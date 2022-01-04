@@ -17,6 +17,7 @@ import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCac
 import { RaycasterParams, SnapPicker } from '../visual_model/SnapPicker';
 import * as visual from "../visual_model/VisualModel";
 import { GizmoMaterialDatabase } from './GizmoMaterials';
+import { Executable } from './Quasimode';
 import { SnapInfo, SnapPresentation, SnapPresenter } from './SnapPresenter';
 
 export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
@@ -294,7 +295,7 @@ export class Model {
     }
 }
 
-export class PointPicker {
+export class PointPicker implements Executable<PointResult, PointResult> {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
 
     readonly raycasterParams: RaycasterParams = {

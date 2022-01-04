@@ -9,7 +9,7 @@ import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 
-class FakeGizmo extends AbstractGizmo<() => void> {
+class FakeGizmo extends AbstractGizmo<void> {
     fakeCommand: jest.Mock;
 
     constructor(editor: EditorLike) {
@@ -42,7 +42,7 @@ beforeEach(() => {
 })
 
 let start: number, end: number, interrupt: number;
-let sm: GizmoStateMachine<() => void>;
+let sm: GizmoStateMachine<void, void>;
 
 beforeEach(() => {
     start = end = interrupt = 0;

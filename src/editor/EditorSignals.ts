@@ -29,6 +29,7 @@ export class EditorSignals {
     factoryCancelled: signals.Signal = new signals.Signal();
     pointPickerChanged: signals.Signal = new signals.Signal();
     gizmoChanged: signals.Signal = new signals.Signal();
+    quasimodeChanged: signals.Signal = new signals.Signal();
     windowResized: signals.Signal = new signals.Signal();
     windowLoaded: signals.Signal = new signals.Signal();
     renderPrepared: signals.Signal<{ camera: THREE.Camera, resolution: THREE.Vector2 }> = new signals.Signal();

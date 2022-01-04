@@ -23,14 +23,15 @@ export default class KeyboardEventManager {
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onWheelEvent = this.onWheelEvent.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onKey = this.onKey.bind(this);
 
-        window.addEventListener('keydown', this.onKeyDown);
+        window.addEventListener('keydown', this.onKey);
+        window.addEventListener('keyup', this.onKey);
         window.addEventListener('pointerdown', this.onPointerDown);
         window.addEventListener('wheel', this.onWheelEvent, { capture: true, passive: false });
         window.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => {
-            window.removeEventListener('keydown', this.onKeyDown);
+            window.removeEventListener('keydown', this.onKey);
             window.removeEventListener('pointerdown', this.onPointerDown);
             window.removeEventListener('wheel', this.onWheelEvent, { capture: true });
             window.removeEventListener('pointermove', this.onPointerMove);
@@ -94,7 +95,7 @@ export default class KeyboardEventManager {
         this.handleKeyboardEvent(e);
     }
 
-    onKeyDown(event: KeyboardEvent) {
+    onKey(event: KeyboardEvent) {
         const lastTarget = this.lastTarget;
         if (lastTarget === undefined) return;
 

@@ -43,11 +43,17 @@ export class ExportFactory extends GeometryFactory {
         const objects = await this.calc();
 
         const temps: TemporaryObject[] = objects.map(object => {
+            db.temporaryObjects.add(object);
+            object.visible = false;
             return {
                 underlying: object,
                 show() {
-                    db.temporaryObjects.add(object);
+                    object.visible = true;
                     solid.visible = false;
+                },
+                hide() {
+                    object.visible = false;
+                    solid.visible = true;
                 },
                 cancel() {
                     for (const child of object.children) {

@@ -177,20 +177,20 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     get shouldRescaleOnZoom() { return true }
 }
 
-interface GizmoInfo<I, O> {
-    gizmo: AbstractGizmo<I, O>;
+interface GizmoInfo<I> {
+    gizmo: AbstractGizmo<I>;
     addEventHandlers: () => Disposable;
 }
 
 export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
-    private readonly allGizmos: GizmoInfo<I, O>[] = [];
+    private readonly allGizmos: GizmoInfo<I>[] = [];
     private readonly raycaster = new THREE.Raycaster();
 
     constructor(private readonly editor: EditorLike) { }
 
     execute(): Disposable {
         const disposable = new CompositeDisposable();
-        let winner: GizmoInfo<I, O> | undefined = undefined;
+        let winner: GizmoInfo<I> | undefined = undefined;
         for (const viewport of this.editor.viewports) {
             const { renderer: { domElement } } = viewport;
 
@@ -243,7 +243,7 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
         return disposable;
     }
 
-    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
         this.allGizmos.push({ gizmo, addEventHandlers });
         return new Disposable();
     }

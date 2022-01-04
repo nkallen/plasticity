@@ -22,6 +22,7 @@ export class RenderedSceneBuilder {
         signals.sceneGraphChanged.add(() => this.highlight());
         signals.modifiersLoaded.add(() => this.highlight());
         signals.historyChanged.add(() => this.highlight());
+        signals.quasimodeChanged.add(() => this.highlight());
         signals.hoverChanged.add(({ added, removed }) => {
             this.unhover(removed);
             this.hover(added);

@@ -129,7 +129,10 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         return gizmo;
     }
 
+    private edges: THREE.Object3D[] = [];
     showEdges() {
+        for (const edge of this.edges) edge.removeFromParent();
+        
         const map = groupBy('parentItem', this.params.edges);
         const views = [];
         for (const [solid, edges] of map.entries()) {
@@ -139,7 +142,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
             this.editor.db.temporaryObjects.add(view);
             views.push(view);
         }
-        return views;
+        this.edges = views;
     }
 
     get shouldRescaleOnZoom() { return false }

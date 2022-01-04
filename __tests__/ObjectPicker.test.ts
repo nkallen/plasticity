@@ -8,7 +8,7 @@ import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { ChangeSelectionExecutor, SelectionMode } from "../src/selection/ChangeSelectionExecutor";
-import { SelectionDatabase } from "../src/selection/SelectionDatabase";
+import { SelectionDatabase, ToggleableSet } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
@@ -73,6 +73,42 @@ describe(ObjectPicker, () => {
         const objectPicker = new ObjectPicker(editor);
         const result = await objectPicker.get(SelectionMode.Curve);
         expect(result).toEqual([item]);
+    })
+
+    test('allows for locally scoped signals', async () => {
+        const temp = selection.makeTemporary();
+        const objectPicker = new ObjectPicker(editor, temp);
+        let privateCount = 0;
+        let publicCount = 0;
+        temp.signals.objectSelected.add(() => privateCount++);
+        editor.signals.objectSelected.add(() => publicCount++);
+        temp.selected.addCurve(item);
+        expect(privateCount).toBe(1);
+        expect(publicCount).toBe(0);
+        expect(temp.selected.curves.size).toBe(1);
+    })
+
+    test('when an object is deleted, it is also removed from the selection', async () => {
+        const temp = selection.makeTemporary();
+        const objectPicker = new ObjectPicker(editor, temp);
+        const promise = objectPicker.execute(() => { });
+        temp.selected.addCurve(item);
+        expect(temp.selected.curves.size).toBe(1);
+        await db.removeItem(item);
+        expect(temp.selected.curves.size).toBe(0);
+        promise.finish();
+        await promise;
+    })
+
+    test('when an object is deleted, no infinite loop when selection is global', async () => {
+        const objectPicker = new ObjectPicker(editor, selection);
+        const promise = objectPicker.execute(() => { });
+        selection.selected.addCurve(item);
+        expect(selection.selected.curves.size).toBe(1);
+        await db.removeItem(item);
+        expect(selection.selected.curves.size).toBe(0);
+        promise.finish();
+        await promise;
     })
 });
 

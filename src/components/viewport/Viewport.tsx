@@ -185,6 +185,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.factoryCancelled.add(this.setNeedsRender);
         this.editor.signals.pointPickerChanged.add(this.setNeedsRender);
         this.editor.signals.gizmoChanged.add(this.setNeedsRender);
+        this.editor.signals.quasimodeChanged.add(this.setNeedsRender);
         this.editor.signals.hoverChanged.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
         this.editor.signals.commandEnded.add(this.setNeedsRender);

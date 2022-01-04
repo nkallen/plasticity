@@ -1,12 +1,11 @@
+import { Signal } from "signals";
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import * as visual from '../visual_model/VisualModel';
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
-import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';
-import { Signal } from "signals";
+import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
@@ -205,24 +204,12 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     private get originalItems() {
         return toArray(this.originalItem);
     }
-    protected get shouldRemoveOriginalItemOnCommit() {
-        return true;
-    }
-    protected get shouldHideOriginalItemDuringUpdate() {
-        return this.shouldRemoveOriginalItemOnCommit;
-    }
+    protected get shouldRemoveOriginalItemOnCommit() { return true }
+    protected get shouldHideOriginalItemDuringUpdate() { return this.shouldRemoveOriginalItemOnCommit }
 
-    async update(): Promise<void> {
-        await this.doUpdate();
-    }
-
-    async commit(): Promise<visual.Item | visual.Item[]> {
-        return this.doCommit();
-    }
-
-    cancel() {
-        this.doCancel();
-    }
+    async update(): Promise<void> { await this.doUpdate() }
+    async commit(): Promise<visual.Item | visual.Item[]> { return this.doCommit() }
+    cancel() { this.doCancel() }
 
     // NOTE: All factories should be explicitly commit or cancel.
     finish() { }
@@ -341,6 +328,32 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 this.state = { tag: 'cancelled' };
                 this.signals.factoryCancelled.dispatch();
                 return;
+            default:
+                throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
+        }
+    }
+
+    pause() {
+        switch (this.state.tag) {
+            case 'none':
+            case 'updated':
+            case 'failed':
+            case 'updating':
+                for (const temp of this.temps) temp.hide();
+                break;
+            default:
+                throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
+        }
+    }
+
+    resume() {
+        switch (this.state.tag) {
+            case 'none':
+            case 'updated':
+            case 'failed':
+            case 'updating':
+                for (const temp of this.temps) temp.show();
+                break;
             default:
                 throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
         }

@@ -5,13 +5,13 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ChangeSelectionExecutor, ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
-import { HasSelectedAndHovered, HasSelection, ModifiesSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
+import { ChangeSelectionExecutor, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { HasSelectedAndHovered, HasSelection, ToggleableSet } from '../selection/SelectionDatabase';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
-import { SelectionMode } from "../selection/ChangeSelectionExecutor";
 import * as visual from "../visual_model/VisualModel";
+import { Executable } from './Quasimode';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -30,11 +30,12 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     constructor(
         viewport: Viewport,
         private readonly editor: EditorLike,
-        private readonly selection: SelectionDatabase,
+        private readonly selection: HasSelectedAndHovered,
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
+        keymapSelector?: string,
     ) {
-        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals, raycasterParams);
+        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals, raycasterParams, keymapSelector);
     }
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
@@ -68,10 +69,10 @@ type SelectionArray = visual.Face[] | visual.CurveEdge[] | visual.Solid[] | visu
 type CancelableSelectionArray = CancellablePromise<visual.Face[]> | CancellablePromise<visual.CurveEdge[]> | CancellablePromise<visual.Solid[]> | CancellablePromise<visual.SpaceInstance<visual.Curve3D>[]> | CancellablePromise<visual.ControlPoint[]>
 type PromiseSelectionArray = Promise<visual.Face[]> | Promise<visual.CurveEdge[]> | Promise<visual.Solid[]> | Promise<visual.SpaceInstance<visual.Curve3D>>[] | Promise<visual.ControlPoint[]>
 
-export class ObjectPicker {
+export class ObjectPicker implements Executable<HasSelection, HasSelection> {
+    private readonly selection: HasSelectedAndHovered;
     min = 1;
     max = 1;
-    readonly mode = new ToggleableSet([], this.editor.signals);
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Mesh: { threshold: 0 },
         Line: { threshold: 0.1 },
@@ -79,20 +80,27 @@ export class ObjectPicker {
         Points: { threshold: 10 }
     };
 
-    constructor(private readonly editor: EditorLike) { }
+    constructor(private readonly editor: EditorLike, selection?: HasSelectedAndHovered, private readonly keymapSelector?: string) {
+        this.selection = selection ?? editor.selection.makeTemporary();
+    }
+
+    get mode() { return this.selection.mode }
 
     execute(cb?: (o: HasSelection) => void): CancellablePromise<HasSelection> {
-        const signals = new EditorSignals();
-        const editor = this.editor;
+        const { editor, selection, selection: { signals } } = this;
         const disposables = new CompositeDisposable();
-        editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
-        disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
-        const selection = editor.selection.makeTemporary(this.mode, signals);
+        if (signals !== editor.signals) {
+            editor.signals.objectRemoved.add(a => signals.objectRemoved.dispatch(a));
+            disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
+        }
+
         if (cb !== undefined) {
             const k = () => cb(selection.selected);
             signals.objectSelected.add(k);
+            signals.objectDeselected.add(k);
             disposables.add(new Disposable(() => {
-                signals.objectSelected.remove(k)
+                signals.objectSelected.remove(k);
+                signals.objectDeselected.remove(k);
             }));
         }
 
@@ -111,13 +119,16 @@ export class ObjectPicker {
                 const reenable = viewport.disableControls(viewport.navigationControls); // FIXME: is this correct?
                 disposables.add(reenable);
 
-                const selector = new ObjectPickerViewportSelector(viewport, editor, selection, finish, this.raycasterParams);
+                const selector = new ObjectPickerViewportSelector(viewport, editor, selection, finish, this.raycasterParams, this.keymapSelector);
                 selector.addEventLiseners();
 
                 disposables.add(new Disposable(() => selector.dispose()));
             }
 
-            return { dispose: () => disposables.dispose(), finish: () => resolve(selection.selected) };
+            return {
+                dispose: () => disposables.dispose(),
+                finish: () => resolve(selection.selected)
+            };
         });
         return cancellable;
     }
@@ -132,8 +143,8 @@ export class ObjectPicker {
         if (min === 0) return CancellablePromise.resolve([]);
 
         const { editor, editor: { selection: { selected } } } = this;
-        let collection: SelectionArray;
-        collection = this.mode2collection(mode, selected);
+        let collection: any[];
+        collection = mode2collection(mode, selected);
         if (collection.length >= min) return CancellablePromise.resolve(collection) as CancelableSelectionArray;
 
         min -= collection.length;
@@ -142,21 +153,21 @@ export class ObjectPicker {
         picker.min = min;
         picker.max = min;
         return picker.execute().map(selected => {
-            const added = this.mode2collection(mode, selected);
-            // @ts-expect-error
+            const added = mode2collection(mode, selected);
             return collection.concat(added);
         });
     }
 
-    private mode2collection(mode: SelectionMode, selected: HasSelection): SelectionArray {
-        let collection;
-        switch (mode) {
-            case SelectionMode.CurveEdge: collection = selected.edges; break;
-            case SelectionMode.Face: collection = selected.faces; break;
-            case SelectionMode.Solid: collection = selected.solids; break;
-            case SelectionMode.Curve: collection = selected.curves; break;
-            case SelectionMode.ControlPoint: collection = selected.controlPoints; break;
-        }
-        return [...collection] as any;
+}
+
+function mode2collection(mode: SelectionMode, selected: HasSelection): SelectionArray {
+    let collection;
+    switch (mode) {
+        case SelectionMode.CurveEdge: collection = selected.edges; break;
+        case SelectionMode.Face: collection = selected.faces; break;
+        case SelectionMode.Solid: collection = selected.solids; break;
+        case SelectionMode.Curve: collection = selected.curves; break;
+        case SelectionMode.ControlPoint: collection = selected.controlPoints; break;
     }
+    return [...collection] as any;
 }

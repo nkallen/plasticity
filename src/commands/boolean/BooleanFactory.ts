@@ -144,6 +144,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
                         return {
                             underlying: phantom.underlying,
                             show() { phantom.show() },
+                            hide() { phantom.hide() },
                             cancel() { }
                         }
                     });

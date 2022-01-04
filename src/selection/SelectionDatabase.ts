@@ -62,7 +62,9 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
+let count= 0;
 export class Selection implements HasSelection, ModifiesSelection, MementoOriginator<SelectionMemento> {
+    id = count++;
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -374,7 +376,8 @@ export interface HasSelectedAndHovered {
     readonly mode: ToggleableSet;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
-    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase;
+    makeTemporary(): HasSelectedAndHovered;
+    signals: EditorSignals;
 }
 
 export class SelectionDatabase implements HasSelectedAndHovered {
@@ -397,8 +400,8 @@ export class SelectionDatabase implements HasSelectedAndHovered {
     readonly hovered: Selection;
 
     constructor(
-        readonly db: DatabaseLike,
-        readonly materials: MaterialDatabase,
+        private readonly db: DatabaseLike,
+        private readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
         readonly mode = new ToggleableSet(SelectionModeAll, signals),
         hovered?: Selection
@@ -413,7 +416,8 @@ export class SelectionDatabase implements HasSelectedAndHovered {
     // any notifications.
     private clearHovered() { this.hovered.clearSilently() }
 
-    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase {
-        return new SelectionDatabase(this.db, this.materials, signals, mode, this.hovered)
+    makeTemporary(): SelectionDatabase {
+        const signals = new EditorSignals();
+        return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals), this.hovered)
     }
 }

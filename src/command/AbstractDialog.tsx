@@ -1,10 +1,11 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { EditorSignals } from "../editor/EditorSignals";
 import { CancellablePromise } from "../util/CancellablePromise";
+import { Executable } from "./Quasimode";
 
 export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
 
-export abstract class AbstractDialog<T> extends HTMLElement {
+export abstract class AbstractDialog<T> extends HTMLElement implements Executable<T, void> {
     private state: State<T> = { tag: 'none' };
     protected abstract readonly params: T;
 

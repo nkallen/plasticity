@@ -199,8 +199,10 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
     }
 
     private _edges!: visual.CurveEdge[];
+    @delegate.update
     get edges() { return this._edges }
     set edges(edges: visual.CurveEdge[]) {
+        for (const factory of this.factories) factory.cancel();
         this._edges = edges;
         const individuals = [];
         const map = groupBy('parentItem', edges);

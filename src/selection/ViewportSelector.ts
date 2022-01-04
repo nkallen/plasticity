@@ -28,16 +28,17 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         private readonly keymaps: AtomKeymap.KeymapManager,
         signals: EditorSignals,
         raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
+        keymapSelector?: string,
     ) {
         super(viewport, layers, db, signals, raycasterParams);
-        const { keystroke2modifier, keystroke2options } = AbstractViewportSelector.getMouseButtons(keymaps);
+        const { keystroke2modifier, keystroke2options } = AbstractViewportSelector.getMouseButtons(keymaps, keymapSelector);
         this.keystroke2modifier = keystroke2modifier;
         this.keystroke2options = keystroke2options;
     }
 
-    static getMouseButtons(keymaps: AtomKeymap.KeymapManager) {
+    static getMouseButtons(keymaps: AtomKeymap.KeymapManager, cssSelector = 'viewport-selector') {
         let bindings = keymaps.getKeyBindings();
-        bindings = bindings.filter(b => b.selector == 'viewport-selector');
+        bindings = bindings.filter(b => b.selector == cssSelector);
         const repl = bindings.filter(b => b.command == 'selection:replace').sort((a, b) => a.compare(b))[0];
         const add = bindings.filter(b => b.command == 'selection:add').sort((a, b) => a.compare(b))[0];
         const rem = bindings.filter(b => b.command == 'selection:remove').sort((a, b) => a.compare(b))[0];

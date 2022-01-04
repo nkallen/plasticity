@@ -9,7 +9,7 @@ export interface FactoryHelpers {
 export type MultiplyableFactory = GeometryFactory & FactoryHelpers;
 
 export class MultiGeometryFactory<T extends MultiplyableFactory> extends GeometryFactory {
-    factories!: T[];
+    factories: T[] = [];
 
     async calculate() {
         const { factories } = this;

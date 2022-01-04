@@ -111,8 +111,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     }
 
     finalize(state: State) {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
         this.state = state;
     }
 

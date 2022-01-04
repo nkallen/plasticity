@@ -102,6 +102,7 @@ export class ModifierStack {
             underlying: undefined as any,
             show() { },
             cancel() { },
+            hide() {},
         };
         if (temps.length > 1) throw new Error("invalid postcondition: " + temps.length);
         const temp = temps[0];
@@ -114,6 +115,11 @@ export class ModifierStack {
                 temp.underlying.updateMatrixWorld();
                 modified.visible = false;
                 premodified.visible = false;
+            },
+            hide() {
+                temp.hide();
+                modified.visible = true;
+                premodified.visible = true;
             },
             cancel() {
                 temp.cancel();
@@ -170,7 +176,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         db: DatabaseLike,
         protected readonly selection: HasSelectedAndHovered,
         protected readonly materials: MaterialDatabase,
-        protected readonly signals: EditorSignals
+        readonly signals: EditorSignals
     ) {
         super(db);
         this.selected = new ModifierSelection(db, this, selection.selected);
@@ -372,8 +378,8 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         else return 'unmodified';
     }
 
-    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase {
-        return this.selection.makeTemporary(mode, signals);
+    makeTemporary(): HasSelectedAndHovered {
+        return this.selection.makeTemporary();
     }
 
     saveToMemento(): ModifierMemento {

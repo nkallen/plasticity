@@ -76,7 +76,7 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     }
 }
 
-class MirrorAxisGizmo extends AbstractGizmo<boolean, void>  {
+class MirrorAxisGizmo extends AbstractGizmo<boolean>  {
     readonly tip = new THREE.Mesh(arrowGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);

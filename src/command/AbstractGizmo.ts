@@ -12,7 +12,7 @@ import { Helper, Helpers } from "../util/Helpers";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
-import { Executable } from "./SemiMode";
+import { Executable } from "./Quasimode";
 import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
 /**
@@ -59,9 +59,9 @@ export enum Mode {
     DisableSelection = 1 << 1,
 };
 
-export abstract class AbstractGizmo<I, O> extends Helper {
-    stateMachine?: GizmoStateMachine<I, O>;
-    trigger: GizmoTriggerStrategy<I, O> = new BasicGizmoTriggerStrategy(this.title, this.editor);
+export abstract class AbstractGizmo<I> extends Helper implements Executable<I, void> {
+    stateMachine?: GizmoStateMachine<I, void>;
+    trigger: GizmoTriggerStrategy<I, void> = new BasicGizmoTriggerStrategy(this.title, this.editor);
 
     protected handle = new THREE.Group();
     readonly picker = new THREE.Group();
@@ -76,15 +76,15 @@ export abstract class AbstractGizmo<I, O> extends Helper {
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
-    onKeyPress(cb: (i: I) => O, text: string) { }
-    abstract onPointerMove(cb: (i: I) => O, intersector: Intersector, info: MovementInfo): void;
-    abstract onPointerDown(cb: (i: I) => O, intersect: Intersector, info: MovementInfo): void;
-    abstract onPointerUp(cb: (i: I) => O, intersect: Intersector, info: MovementInfo): void;
-    abstract onInterrupt(cb: (i: I) => O): void;
+    onKeyPress(cb: (i: I) => void, text: string) { }
+    abstract onPointerMove(cb: (i: I) => void, intersector: Intersector, info: MovementInfo): void;
+    abstract onPointerDown(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
+    abstract onPointerUp(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
+    abstract onInterrupt(cb: (i: I) => void): void;
     onDeactivate() { }
     onActivate() { }
 
-    execute(cb: (i: I) => O, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(cb: (i: I) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
         if (this.parent === null) {
             this.editor.helpers.add(this);
@@ -179,13 +179,13 @@ export abstract class AbstractGizmo<I, O> extends Helper {
 }
 
 export interface GizmoTriggerStrategy<I, O> {
-    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
 }
 
 export class BasicGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
     constructor(private readonly title: string, private readonly editor: EditorLike) { }
 
-    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
         const stateMachine = gizmo.stateMachine!;
         const { renderer: { domElement } } = viewport;
 
@@ -278,7 +278,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
     angle = 0;
 
     constructor(
-        private readonly gizmo: AbstractGizmo<I, O>,
+        private readonly gizmo: AbstractGizmo<I>,
         private readonly editor: EditorLike,
         private readonly cb: (i: I) => O,
     ) { }

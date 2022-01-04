@@ -241,6 +241,12 @@ export default {
         "alt": "selection:option:extend",
     },
 
+    "viewport-selector[quasimode]": {
+        "cmd-mouse0": "selection:replace",
+        "cmd-shift-mouse0": "selection:add",
+        "cmd-ctrl-mouse0": "selection:remove",
+    },
+
     "body[gizmo=point-picker]": {
         "n": "snaps:set-normal",
         "b": "snaps:set-binormal",
@@ -253,5 +259,10 @@ export default {
 
     "body": {
         "alt": "noop",
-    }
+    },
+
+    "body[command]:not([gizmo]) ispace-viewport": {
+        "cmd": "command:quasimode:start",
+        "^cmd": "command:quasimode:stop"
+    },
 }

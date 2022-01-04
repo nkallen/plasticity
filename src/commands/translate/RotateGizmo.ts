@@ -131,7 +131,7 @@ export class AxisAngleGizmo extends AngleGizmo {
     get shouldLookAtCamera() { return false }
 }
 
-export class OccluderGizmo extends AbstractGizmo<void, void> {
+export class OccluderGizmo extends AbstractGizmo<void> {
     private readonly occludeBackHalf = new THREE.Mesh(planeGeometry, this.material);
     private readonly occludeBackHalfPicker = new THREE.Mesh(planeGeometry, this.material);
 

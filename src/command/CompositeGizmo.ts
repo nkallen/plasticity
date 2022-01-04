@@ -5,7 +5,7 @@ import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
 export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<P, void> {
-    private readonly gizmos: [AbstractGizmo<any, void>, (a: any) => void][] = [];
+    private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
 
     constructor(protected readonly params: P, protected readonly editor: EditorLike) {
         super();
@@ -36,13 +36,13 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<P, v
         return all;
     }
 
-    addGizmo<T>(gizmo: AbstractGizmo<T, void>, cb: (t: T) => void) {
+    addGizmo<T>(gizmo: AbstractGizmo<T>, cb: (t: T) => void) {
         this.gizmos.push([gizmo, cb]);
         gizmo.addEventListener('start', () => this.deactivateGizmosExcept(gizmo));
         gizmo.addEventListener('end', () => this.activateGizmos());
     }
 
-    private deactivateGizmosExcept<T>(except: AbstractGizmo<T, void>) {
+    private deactivateGizmosExcept<T>(except: AbstractGizmo<T>) {
         for (const [gizmo] of this.gizmos) {
             if (gizmo === except) {
                 gizmo.stateMachine!.isActive = true;

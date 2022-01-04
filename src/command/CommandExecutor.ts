@@ -100,6 +100,7 @@ export class CommandExecutor {
             }
         } catch (e) {
             command.cancel();
+            // FIXME: possibly restore state just to be 100% sure?
             throw e;
         } finally {
             document.body.removeAttribute("command");

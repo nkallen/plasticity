@@ -80,6 +80,7 @@ export interface TemporaryObject {
     get underlying(): THREE.Object3D;
     cancel(): void;
     show(): void;
+    hide(): void;
 }
 
 export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
@@ -189,8 +190,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return {
             underlying: mesh,
             show() {
-                mesh.visible = true
+                mesh.visible = true;
                 if (ancestor !== undefined) ancestor.visible = false;
+            },
+            hide() {
+                mesh.visible = false;
+                if (ancestor !== undefined) ancestor.visible = true;
             },
             cancel() {
                 mesh.dispose();
