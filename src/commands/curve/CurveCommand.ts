@@ -109,8 +109,7 @@ export class TrimCommand extends Command {
         objectPicker.raycasterParams.Line2.threshold = 30;
         const selection = await objectPicker.execute().resource(this);
         const fragment = selection.curves.first;
-        if (fragment === undefined)
-            return;
+        if (fragment === undefined) return;
 
         const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
         factory.fragment = fragment;

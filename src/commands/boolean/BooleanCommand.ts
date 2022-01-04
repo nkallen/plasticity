@@ -76,7 +76,7 @@ export class CutCommand extends Command {
         }).resource(this);
 
         const objectPicker = new ObjectPicker(this.editor);
-        cut.solids = await objectPicker.get(SelectionMode.Solid, 1);
+        cut.solids = await objectPicker.get(SelectionMode.Solid, 1).resource(this);
         // cut.faces = [...this.editor.selection.selected.faces];
         cut.curves = [...this.editor.selection.selected.curves];
         await cut.update();

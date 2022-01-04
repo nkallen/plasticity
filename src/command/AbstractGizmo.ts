@@ -12,6 +12,7 @@ import { Helper, Helpers } from "../util/Helpers";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
+import { Executable } from "./SemiMode";
 import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
 /**
@@ -48,8 +49,8 @@ export interface EditorLike {
     activeViewport?: Viewport;
 }
 
-export interface GizmoLike<CB> {
-    execute(cb: CB, finishFast?: Mode): CancellablePromise<void>;
+export interface GizmoLike<I, O> {
+    execute(cb: (i: I) => O, finishFast?: Mode): CancellablePromise<void>;
 }
 
 export enum Mode {
@@ -58,9 +59,9 @@ export enum Mode {
     DisableSelection = 1 << 1,
 };
 
-export abstract class AbstractGizmo<CB> extends Helper {
-    stateMachine?: GizmoStateMachine<CB>;
-    trigger: GizmoTriggerStrategy<CB> = new BasicGizmoTriggerStrategy(this.title, this.editor);
+export abstract class AbstractGizmo<I, O> extends Helper {
+    stateMachine?: GizmoStateMachine<I, O>;
+    trigger: GizmoTriggerStrategy<I, O> = new BasicGizmoTriggerStrategy(this.title, this.editor);
 
     protected handle = new THREE.Group();
     readonly picker = new THREE.Group();
@@ -75,15 +76,15 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
-    onKeyPress(cb: CB, text: string) { }
-    abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
-    abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
-    abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
-    abstract onInterrupt(cb: CB): void;
+    onKeyPress(cb: (i: I) => O, text: string) { }
+    abstract onPointerMove(cb: (i: I) => O, intersector: Intersector, info: MovementInfo): void;
+    abstract onPointerDown(cb: (i: I) => O, intersect: Intersector, info: MovementInfo): void;
+    abstract onPointerUp(cb: (i: I) => O, intersect: Intersector, info: MovementInfo): void;
+    abstract onInterrupt(cb: (i: I) => O): void;
     onDeactivate() { }
     onActivate() { }
 
-    execute(cb: CB, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(cb: (i: I) => O, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
         if (this.parent === null) {
             this.editor.helpers.add(this);
@@ -177,14 +178,14 @@ export abstract class AbstractGizmo<CB> extends Helper {
     }
 }
 
-export interface GizmoTriggerStrategy<T> {
-    register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
+export interface GizmoTriggerStrategy<I, O> {
+    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
 }
 
-export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
+export class BasicGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
     constructor(private readonly title: string, private readonly editor: EditorLike) { }
 
-    register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
         const stateMachine = gizmo.stateMachine!;
         const { renderer: { domElement } } = viewport;
 
@@ -251,7 +252,7 @@ export interface MovementInfo {
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable, clearPresenter: Disposable } | { tag: 'command', clearEventHandlers: Disposable, clearPresenter: Disposable, text: string }
 
-export class GizmoStateMachine<T> implements MovementInfo {
+export class GizmoStateMachine<I, O> implements MovementInfo {
     // NOTE: isActive and isEnabled differ only slightly. When !isEnabled, the gizmo is COMPLETELY disabled.
     // However, when !isActive, the gizmo will not respond to mouse input, but will respond to keyboard input; ie, the keyboard will interrupt other active gizmos and activate this one.
     private _isActive = true;
@@ -277,9 +278,9 @@ export class GizmoStateMachine<T> implements MovementInfo {
     angle = 0;
 
     constructor(
-        private readonly gizmo: AbstractGizmo<T>,
+        private readonly gizmo: AbstractGizmo<I, O>,
         private readonly editor: EditorLike,
-        private readonly cb: T,
+        private readonly cb: (i: I) => O,
     ) { }
 
     private _viewport!: Viewport;
@@ -336,7 +337,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.editor.signals.gizmoChanged.dispatch();
     }
 
-    command(fn: (cb?: T) => void, start: () => Disposable): void {
+    command(fn: (cb?: (i: I) => O) => void, start: () => Disposable): void {
         if (!this.isEnabled) return;
 
         switch (this.state.tag) {

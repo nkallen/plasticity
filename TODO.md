@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- toggle boolean diff which is + and which is - while running command  
 - matcap shinier  
 - escape out of fillet command to restart  
 - redo max fillet  

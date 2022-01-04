@@ -25,7 +25,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     private readonly screen = new AngleGizmo("rotate:screen", this.editor, this.white);
     private readonly occluder = new OccluderGizmo("rotate:occluder", this.editor, this.materials.occlude);
 
-    private readonly trigger = new AdvancedGizmoTriggerStrategy(this.editor);
+    private readonly trigger = new AdvancedGizmoTriggerStrategy<any, void>(this.editor);
 
     constructor(params: RotateParams, editor: EditorLike) {
         super(params, editor);
@@ -131,7 +131,7 @@ export class AxisAngleGizmo extends AngleGizmo {
     get shouldLookAtCamera() { return false }
 }
 
-export class OccluderGizmo extends AbstractGizmo<(t: void) => void> {
+export class OccluderGizmo extends AbstractGizmo<void, void> {
     private readonly occludeBackHalf = new THREE.Mesh(planeGeometry, this.material);
     private readonly occludeBackHalfPicker = new THREE.Mesh(planeGeometry, this.material);
 

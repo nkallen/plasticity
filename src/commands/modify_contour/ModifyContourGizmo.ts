@@ -15,8 +15,8 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
     private readonly segments: PushCurveGizmo[] = [];
     private readonly corners: FilletCornerGizmo[] = [];
 
-    private readonly segmentTrigger = new AdvancedGizmoTriggerStrategy(this.editor);
-    private readonly filletTrigger = new AdvancedGizmoTriggerStrategy(this.editor);
+    private readonly segmentTrigger = new AdvancedGizmoTriggerStrategy<number, void>(this.editor);
+    private readonly filletTrigger = new AdvancedGizmoTriggerStrategy<number, void>(this.editor);
 
     constructor(params: ModifyContourParams, editor: EditorLike) {
         super(params, editor);
@@ -177,20 +177,20 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     get shouldRescaleOnZoom() { return true }
 }
 
-interface GizmoInfo<T> {
-    gizmo: AbstractGizmo<T>;
+interface GizmoInfo<I, O> {
+    gizmo: AbstractGizmo<I, O>;
     addEventHandlers: () => Disposable;
 }
 
-export class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
-    private readonly allGizmos: GizmoInfo<T>[] = [];
+export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
+    private readonly allGizmos: GizmoInfo<I, O>[] = [];
     private readonly raycaster = new THREE.Raycaster();
 
     constructor(private readonly editor: EditorLike) { }
 
     execute(): Disposable {
         const disposable = new CompositeDisposable();
-        let winner: GizmoInfo<T> | undefined = undefined;
+        let winner: GizmoInfo<I, O> | undefined = undefined;
         for (const viewport of this.editor.viewports) {
             const { renderer: { domElement } } = viewport;
 
@@ -243,7 +243,7 @@ export class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> 
         return disposable;
     }
 
-    register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I, O>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
         this.allGizmos.push({ gizmo, addEventHandlers });
         return new Disposable();
     }

@@ -130,7 +130,6 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 
     showEdges() {
-        const solid = this.params.edges[0].parentItem;
         const map = groupBy('parentItem', this.params.edges);
         const views = [];
         for (const [solid, edges] of map.entries()) {

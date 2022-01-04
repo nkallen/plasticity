@@ -56,7 +56,7 @@ describe(AngleGizmo, () => {
         gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport } as MovementInfo);
         expect(gizmo.value).toBe(Math.PI);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(Math.PI / 2);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -92,7 +92,7 @@ describe(CircleScaleGizmo, () => {
         gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
         expect(gizmo.value).toBe(4);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(2);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -128,7 +128,7 @@ describe(CircleMoveGizmo, () => {
         gizmo.onPointerMove(cb, intersector, { pointStart3d, pointEnd3d } as MovementInfo);
         expect(gizmo.value).toEqual(pointEnd3d.clone().sub(pointStart3d).multiplyScalar(2));
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toEqual(pointEnd3d.clone().sub(pointStart3d));
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -144,7 +144,7 @@ describe(LengthGizmo, () => {
     })
 
     test("it changes size and respects interrupts", () => {
-        const intersector = { raycast: jest.fn(), snap: jest.fn() } ;
+        const intersector = { raycast: jest.fn(), snap: jest.fn() };
         const cb = jest.fn();
         let info = {} as MovementInfo;
 
@@ -152,7 +152,7 @@ describe(LengthGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -161,10 +161,10 @@ describe(LengthGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -188,7 +188,7 @@ describe(DistanceGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -197,10 +197,10 @@ describe(DistanceGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -226,7 +226,7 @@ describe(MoveAxisGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) });
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -235,10 +235,10 @@ describe(MoveAxisGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) });
-        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -273,7 +273,7 @@ describe(ScaleAxisGizmo, () => {
         gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
         expect(gizmo.value).toBe(4);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(2);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -312,7 +312,7 @@ describe(PlanarMoveGizmo, () => {
         gizmo.onPointerMove(cb, intersector, {} as MovementInfo);
         expect(gizmo.value).toEqual(pointEnd.clone().sub(pointStart).multiplyScalar(2));
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toEqual(pointEnd.clone().sub(pointStart));
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -351,7 +351,7 @@ describe(PlanarScaleGizmo, () => {
         gizmo.onPointerMove(cb, intersector, {} as MovementInfo);
         expect(gizmo.value).toBeCloseTo(2);
 
-        gizmo.onInterrupt(() => {});
+        gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(Math.sqrt(2));
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);

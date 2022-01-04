@@ -25,7 +25,7 @@ export interface EditorLike extends cmd.EditorLike {
 
 type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint, disposable: Disposable } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void>, disposable: Disposable }
 
-export class ViewportPointControl extends ViewportControl implements GizmoLike<(delta: THREE.Vector3) => void> {
+export class ViewportPointControl extends ViewportControl implements GizmoLike<THREE.Vector3, void> {
     private readonly keystroke2modifier: Record<string, ChangeSelectionModifier>;
     private readonly keystroke2options: Record<string, ChangeSelectionOption>;
     private readonly keymaps: AtomKeymap.KeymapManager;
@@ -164,7 +164,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
 
 export class MoveControlPointCommand extends cmd.CommandLike {
     controlPoint!: visual.ControlPoint;
-    gizmo!: GizmoLike<(delta: THREE.Vector3) => void>;
+    gizmo!: GizmoLike<THREE.Vector3, void>;
 
     constructor(editor: cmd.EditorLike) { super(editor) }
 

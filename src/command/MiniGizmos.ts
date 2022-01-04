@@ -59,7 +59,7 @@ export class QuaternionStateMachine extends AbstractValueStateMachine<THREE.Quat
 const circleGeometry = new LineGeometry();
 circleGeometry.setPositions(CircleGeometry(radius, 64));
 
-export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void> {
+export abstract class CircularGizmo<T> extends AbstractGizmo<T, void> {
     protected readonly hasCommand: boolean = true;
     get value() { return this.state.current }
     set value(m: T) { this.state.original = m }
@@ -146,7 +146,7 @@ export class AngleGizmo extends CircularGizmo<number> {
     }
 }
 
-export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => void>  {
+export abstract class AbstractAxisGizmo extends AbstractGizmo<number, void>  {
     abstract readonly tip: THREE.Mesh;
     protected abstract readonly knob: THREE.Mesh;
     protected abstract readonly shaft: THREE.Mesh;
@@ -319,7 +319,7 @@ export class LengthGizmo extends AbstractAxisGizmo { // DO NOT SUBCLASS or the a
     }
 }
 
-export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
+export abstract class PlanarGizmo<T> extends AbstractGizmo<T, void> {
     protected denominator = 1;
     abstract readonly state: AbstractValueStateMachine<T>;
     get value() { return this.state.current }
