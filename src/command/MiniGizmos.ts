@@ -208,7 +208,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
-        if (info.pointer.event.ctrlKey) {
+        if (info.event.ctrlKey) {
             const point = intersect.snap()[0]?.position.clone();
             if (point === undefined) return; // this only happens when the user is dragging through different viewports.
 

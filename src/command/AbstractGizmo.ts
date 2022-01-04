@@ -6,7 +6,6 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
-import { PlaneSnap } from "../editor/snaps/Snap";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Helper, Helpers } from "../util/Helpers";
@@ -176,17 +175,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
         const event = new CustomEvent(command, { bubbles: true });
         this.editor.activeViewport?.renderer.domElement.dispatchEvent(event);
     }
-
-    static getPointer(domElement: HTMLElement, event: MouseEvent): Pointer {
-        const rect = domElement.getBoundingClientRect();
-
-        return {
-            x: (event.clientX - rect.left) / rect.width * 2 - 1,
-            y: - (event.clientY - rect.top) / rect.height * 2 + 1,
-            button: event.button,
-            event
-        };
-    }
 }
 
 export interface GizmoTriggerStrategy<T> {
@@ -234,14 +222,11 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
     }
 }
 
-export interface Pointer {
-    x: number; y: number, button: number, event: MouseEvent
-}
-
 export interface Intersector {
     raycast(...objects: THREE.Object3D[]): THREE.Intersection | undefined;
     snap(): SnapResult[];
 }
+
 export interface MovementInfo {
     // These are the mouse down and mouse move positions in screenspace
     pointStart2d: THREE.Vector2;
@@ -253,17 +238,12 @@ export interface MovementInfo {
     pointEnd3d: THREE.Vector3;
 
     // This is the angle change (polar coordinates) in screenspace
-    endRadius: THREE.Vector2;
     angle: number;
     center2d: THREE.Vector2;
 
-    constructionPlane: PlaneSnap;
-
-    eye: THREE.Vector3;
-
     viewport: Viewport;
 
-    pointer: Pointer;
+    event: MouseEvent;
 }
 
 // This class handles computing some useful data (like click start and click end) of the
@@ -284,17 +264,16 @@ export class GizmoStateMachine<T> implements MovementInfo {
     isEnabled = true;
 
     state: State = { tag: 'none' };
-    pointer!: Pointer;
+    event!: MouseEvent;
 
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
-    constructionPlane!: PlaneSnap;
-    readonly eye = new THREE.Vector3();
     readonly pointStart2d = new THREE.Vector2();
     readonly pointEnd2d = new THREE.Vector2();
     readonly pointStart3d = new THREE.Vector3();
     readonly pointEnd3d = new THREE.Vector3();
     readonly center2d = new THREE.Vector2()
     readonly endRadius = new THREE.Vector2();
+    readonly currentMousePosition = new THREE.Vector2();
     angle = 0;
 
     constructor(
@@ -308,19 +287,17 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     private camera!: THREE.Camera;
     update(viewport: Viewport, event: MouseEvent) {
-        const pointer = AbstractGizmo.getPointer(viewport.domElement, event);
+        viewport.getNormalizedMousePosition(event, this.currentMousePosition);
         const camera = viewport.camera;
         this._viewport = viewport;
         this.camera = camera;
-        this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);
         this.cameraPlane.position.copy(this.gizmo.position);
         this.cameraPlane.quaternion.copy(camera.quaternion);
         this.cameraPlane.updateMatrixWorld();
-        this.constructionPlane = viewport.constructionPlane;
-        this.raycaster.setFromCamera(pointer, camera);
+        this.raycaster.setFromCamera(this.currentMousePosition, camera);
         this.snapPicker.setFromViewport(event, viewport);
-        this.pointer = pointer;
+        this.event = event;
     }
 
     private readonly raycaster = new THREE.Raycaster();
@@ -347,7 +324,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 const center3d = this.gizmo.getWorldPosition(worldPosition).project(this.camera);
                 this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
-                this.pointStart2d.set(this.pointer.x, this.pointer.y);
+                this.pointStart2d.copy(this.currentMousePosition);
                 this.gizmo.onPointerDown(this.cb, this.intersector, this);
                 this.gizmo.helper?.onStart(this.viewport.domElement, this.center2d);
                 break;
@@ -385,7 +362,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'hover':
-                if (this.pointer.button !== 0) return;
+                if (this.event.button !== 0) return;
 
                 this.begin();
                 const clearEventHandlers = start();
@@ -403,9 +380,9 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'dragging':
-                if (this.pointer.button !== -1) return;
+                if (this.event.button !== -1) return;
             case 'command':
-                this.pointEnd2d.set(this.pointer.x, this.pointer.y);
+                this.pointEnd2d.set(this.currentMousePosition.x, this.currentMousePosition.y);
                 const intersection = GizmoStateMachine.intersectObjectWithRay([this.cameraPlane], this.raycaster);
                 if (!intersection) throw new Error("corrupt intersection query");
                 this.pointEnd3d.copy(intersection.point);
@@ -430,7 +407,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         switch (this.state.tag) {
             case 'dragging':
             case 'command':
-                if (this.pointer.button !== 0) return;
+                if (this.event.button !== 0) return;
 
                 this.state.clearEventHandlers.dispose();
                 this.state.clearPresenter.dispose();

@@ -214,7 +214,7 @@ export class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> 
                     if (tag != 'none' && tag != 'hover') return;
                 }
                 const camera = viewport.camera;
-                const pointer = AbstractGizmo.getPointer(domElement, event);
+                const pointer = viewport.getNormalizedMousePosition(event);
                 this.raycaster.setFromCamera(pointer, camera);
                 const intersections = [];
                 for (const info of this.allGizmos) {
