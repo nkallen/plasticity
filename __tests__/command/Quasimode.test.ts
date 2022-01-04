@@ -79,7 +79,7 @@ test('start and finish', async () => {
     expect(pause).toHaveBeenCalledTimes(1);
     promise.finish();
     await promise;
-    expect(resume).toHaveBeenCalledTimes(1);
+    expect(resume).toHaveBeenCalledTimes(0);
 })
 
 test('add to selection', async () => {
