@@ -47,7 +47,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
     private readonly cameraZ = new THREE.Vector3();
 
-    execute(cb: (params: RotateParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: RotateParams) => void, finishFast: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
         const { x, y, z, screen, params, cameraZ, trigger, occluder } = this;
 
         const disposable = new CompositeDisposable();

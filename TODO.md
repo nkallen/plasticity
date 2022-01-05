@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- lookat disableselection and see if it should be used for rotate command, etc  
 - toggle boolean diff which is + and which is - while running command  
 - matcap shinier  
 - escape out of fillet command to restart  
@@ -98,6 +97,7 @@
 
 ### Done ✓
 
+- lookat disableselection and see if it should be used for rotate command, etc  
 - drawing on negative x side of crate is wrong  
 - set pivot of rotate gizmo  
 - grenade case foot but, can't fillet all sides  
