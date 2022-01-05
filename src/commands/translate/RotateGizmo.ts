@@ -95,13 +95,6 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         this.position.copy(params.pivot);
         this.z.value = params.angle;
     }
-
-    update(camera: THREE.Camera): void {
-        super.update(camera);
-
-        const eye = new THREE.Vector3();
-        eye.copy(camera.position).sub(this.position).normalize();
-    }
 }
 
 const localZ = new THREE.Vector3();
@@ -151,6 +144,7 @@ export class OccluderGizmo extends AbstractGizmo<void> {
         this.quaternion.identity();
         super.update(camera);
         this.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
+        this.updateMatrixWorld();
     }
 
     onDeactivate() { this.visible = false }

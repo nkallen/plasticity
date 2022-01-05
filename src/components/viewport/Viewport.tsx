@@ -295,11 +295,11 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             grid.quaternion.copy(camera.quaternion);
         }
 
-        if (camera.isOrthographicCamera) {
-            scene.fog = new THREE.Fog(backgroundColor, 100, 1000);
-        } else {
-            scene.fog = new THREE.Fog(backgroundColor, 1, 100);
-        }
+        const fog = camera.isOrthographicCamera
+            ? new THREE.Fog(backgroundColor, 100, 1000)
+            : new THREE.Fog(backgroundColor, 1, 100)
+        scene.fog = fog;
+
         grid.update(camera);
         helpers.axes.updateMatrixWorld();
         scene.add(helpers.axes);

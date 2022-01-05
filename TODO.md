@@ -89,17 +89,17 @@
 
 ### Todo
 
-- drawing on negative x side of crate is wrong  
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
 
 ### In Progress
 
-- set pivot of rotate gizmo  
 
 ### Done ✓
 
+- drawing on negative x side of crate is wrong  
+- set pivot of rotate gizmo  
 - grenade case foot but, can't fillet all sides  
 - disable fillet dialog while in gizmo  
 - holding cmd/window turns on all selection modes  

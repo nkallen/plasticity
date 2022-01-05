@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { groupBy } from "../../command/MultiFactory";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
@@ -32,15 +32,17 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
 
         main.quaternion.setFromUnitVectors(Y, normal);
         main.position.copy(point);
-        angle.position.copy(point);
         stretchFillet.position.copy(point);
         stretchChamfer.position.copy(point);
         angle.visible = false;
 
         main.relativeScale.setScalar(0.8);
-        angle.relativeScale.setScalar(0.3);
+        angle.relativeScale.setScalar(0.9);
 
-        this.add(main, angle, stretchFillet, stretchChamfer);
+        this.add(main, stretchFillet, stretchChamfer);
+        main.tip.add(angle);
+
+        this.toggle(this.mode);
     }
 
     execute(cb: (params: FilletParams) => void): CancellablePromise<void> {
@@ -52,48 +54,55 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
             if (this.mode === c3d.CreatorType.ChamferSolid) {
                 params.distance1 = length;
                 params.distance2 = params.distance1 * Math.tan(angle.value);
+                stretchFillet.value = -length;
+                stretchChamfer.value = length;
             } else {
                 params.distance = length;
                 stretchFillet.value = length;
+                stretchChamfer.value = -length;
             }
+            this.angle.stateMachine!.isEnabled = this.showAngle;
         });
 
         this.addGizmo(stretchFillet, length => {
             params.distance = length;
             main.value = length;
-            stretchChamfer.value = -length;;
+            stretchChamfer.value = -length;
+            this.angle.stateMachine!.isEnabled = this.showAngle;
         });
 
         this.addGizmo(stretchChamfer, length => {
             params.distance = length;
             main.value = length;
             stretchFillet.value = -length;
+            this.angle.stateMachine!.isEnabled = this.showAngle;
         });
 
         this.addGizmo(angle, angle => {
-            if (this.mode !== c3d.CreatorType.ChamferSolid) throw new Error("invalid precondition");
             params.distance2 = params.distance1 * Math.tan(angle);
         });
 
-        const result = super.execute(cb, Mode.Persistent);
-        this.toggle(this.mode);
-        return result;
+        return super.execute(cb, Mode.Persistent);
     }
 
     toggle(mode: fillet.Mode) {
+        const { variables } = this;
         this.mode = mode;
-        const { angle, variables } = this;
         if (mode === c3d.CreatorType.ChamferSolid) {
             for (const variable of variables) {
                 variable.visible = false;
                 variable.stateMachine!.isEnabled = false;
             }
-            angle.visible = true;
-            angle.stateMachine!.isEnabled = true;
         } else if (mode === c3d.CreatorType.FilletSolid) {
-            angle.visible = false;
-            angle.stateMachine!.isEnabled = false
+            for (const variable of variables) {
+                variable.visible = false;
+                variable.stateMachine!.isEnabled = true;
+            }
         }
+    }
+
+    get showAngle() {
+        return Math.abs(this.params.distance1) + Math.abs(this.params.distance2) > 0
     }
 
     private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
@@ -114,7 +123,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 
     render(length: number) {
-        this.main.render(length);
+        this.main.render(length * Math.tan(Math.PI / 4));
     }
 
     addVariable(point: THREE.Vector3, edge: c3d.CurveEdge, t: number): FilletMagnitudeGizmo {
@@ -132,14 +141,14 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     private edges: THREE.Object3D[] = [];
     showEdges() {
         for (const edge of this.edges) edge.removeFromParent();
-        
+
         const map = groupBy('parentItem', this.params.edges);
         const views = [];
         for (const [solid, edges] of map.entries()) {
             const view = solid.edges.slice(edges);
             view.material = this.editor.materials.lineDashed();
             view.computeLineDistances();
-            this.editor.db.temporaryObjects.add(view);
+            this.add(view);
             views.push(view);
         }
         this.edges = views;
@@ -167,8 +176,9 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     }
 
     render(length: number) {
-        this.shaft.position.set(0, length - 0.5, 0);
-        this.tip.position.set(0, length, 0);
+        const approxDist = length * Math.sin(Math.PI / 4);
+        this.shaft.position.set(0, approxDist - 0.5, 0);
+        this.tip.position.set(0, approxDist, 0);
         this.knob.position.copy(this.tip.position);
     }
 

@@ -97,6 +97,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<T> {
 
     onPointerUp(cb: (n: T) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
+        this.circle.material = this.material.line2;
     }
 
     get shouldLookAtCamera() { return true }
@@ -106,6 +107,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<T> {
             this.quaternion.identity();
             super.update(camera);
             this.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
+            this.updateMatrixWorld();
         } else {
             super.update(camera);
         }
@@ -194,6 +196,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
 
     onPointerUp(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
+        this.shaft.material = this.material.line2;
+        this.tip.material = this.material.mesh;
     }
 
     onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
