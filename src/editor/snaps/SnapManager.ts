@@ -6,7 +6,7 @@ import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
-import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap } from "./Snap";
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
@@ -109,6 +109,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 const threeQuarter = new EdgePointSnap("3/4", threeQuartPt, threeQuartTau, edgeSnap);
                 into.add(quarter);
                 into.add(threeQuarter);
+            } else if (underlying.IsA() === c3d.SpaceType.Nurbs3D) {
+                const cast = underlying.Cast<c3d.Nurbs3D>(c3d.SpaceType.Nurbs3D);
+                const { success, axis } = cast.GetCircleAxis();
+                if (success && cast.IsPlanar()) {
+                    const center = point2point(axis.GetOrigin());
+                    const z = vec2vec(axis.GetAxisZ(), 1);
+                    const centerSnap = new CircularNurbsCenterPointSnap(center, z, view);
+                    into.add(centerSnap);
+                }
             }
         }
 

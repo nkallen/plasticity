@@ -37,7 +37,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         this.solidModel = this.db.lookup(solid)
     }
 
-    private _tools!: visual.Solid[];
+    private _tools: visual.Solid[] = [];
     toolModels!: c3d.Solid[];
     get tools() { return this._tools }
     set tools(tools: visual.Solid[]) {

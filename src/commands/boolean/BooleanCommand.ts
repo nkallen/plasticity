@@ -16,23 +16,26 @@ abstract class BooleanCommand extends Command {
         const { factory, editor } = this;
         factory.resource(this);
 
-        const items = [...editor.selection.selected.solids];
-        const tools = items.slice(1);
+        const objectPicker = new ObjectPicker(this.editor);
+        objectPicker.copy(this.editor.selection);
+        objectPicker.mode.set(SelectionMode.Solid);
 
-        const bbox = new THREE.Box3();
-        for (const object of tools)
-            bbox.expandByObject(object);
-        const centroid = bbox.getCenter(new THREE.Vector3());
+        const solids = await objectPicker.get(SelectionMode.Solid, 1).resource(this);
+        factory.solid = [...solids][0];
+        
+        const tools = await objectPicker.get(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
+        factory.tools = [...tools];
 
-        factory.solid = items[0];
-        factory.tools = tools;
+        for (const object of tools) bbox.expandByObject(object);
+        bbox.getCenter(centroid);
+
         await factory.update();
 
         const dialog = new BooleanDialog(factory, editor.signals);
         const gizmo = new MoveGizmo(factory, editor);
 
         dialog.execute(async (params) => {
-            await factory.update();
+            factory.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
@@ -75,12 +78,14 @@ export class CutCommand extends Command {
             await cut.update();
         }).resource(this);
 
-        const objectPicker = new ObjectPicker(this.editor);
+        let objectPicker = new ObjectPicker(this.editor);
+        objectPicker.copy(this.editor.selection);
         cut.solids = await objectPicker.get(SelectionMode.Solid, 1).resource(this);
         // cut.faces = [...this.editor.selection.selected.faces];
         cut.curves = [...this.editor.selection.selected.curves];
         await cut.update();
 
+        objectPicker = new ObjectPicker(this.editor);
         objectPicker.max = Number.POSITIVE_INFINITY;
         objectPicker.mode.set(SelectionMode.Face);
         objectPicker.execute(async (selection) => {
@@ -94,3 +99,6 @@ export class CutCommand extends Command {
         this.editor.selection.selected.addSolid(results[0]);
     }
 }
+
+const bbox = new THREE.Box3();
+const centroid = new THREE.Vector3();

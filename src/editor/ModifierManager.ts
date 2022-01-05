@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { ItemSelection } from "../selection/TypedSelection";
-import { HasSelectedAndHovered, ModifiesSelection, SelectionDatabase, ToggleableSet } from "../selection/SelectionDatabase";
+import { HasSelectedAndHovered, HasSelection, ModifiesSelection, SelectionDatabase, ToggleableSet } from "../selection/SelectionDatabase";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
@@ -378,8 +378,12 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         else return 'unmodified';
     }
 
-    makeTemporary(): HasSelectedAndHovered {
+    makeTemporary(): SelectionDatabase {
         return this.selection.makeTemporary();
+    }
+
+    copy(that: HasSelectedAndHovered) {
+        this.selection.copy(that);
     }
 
     saveToMemento(): ModifierMemento {

@@ -29,12 +29,19 @@ beforeEach(() => {
     changeSelection = editor.changeSelection;
 })
 
-let item: visual.SpaceInstance<visual.Curve3D>;
+let item1: visual.SpaceInstance<visual.Curve3D>;
+let item2: visual.SpaceInstance<visual.Curve3D>;
 beforeEach(async () => {
-    const makeCircle = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
-    makeCircle.center = new THREE.Vector3();
-    makeCircle.radius = 1;
-    item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
+    makeCircle1.center = new THREE.Vector3();
+    makeCircle1.radius = 1;
+    item1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    const makeCircle2 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
+    makeCircle2.center = new THREE.Vector3(1,1,1);
+    makeCircle2.radius = 1;
+    item2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
 });
 
 describe(ObjectPicker, () => {
@@ -68,13 +75,6 @@ describe(ObjectPicker, () => {
         await promise;
     })
 
-    test('get, when enough already selected', async () => {
-        editor.selection.selected.addCurve(item);
-        const objectPicker = new ObjectPicker(editor);
-        const result = await objectPicker.get(SelectionMode.Curve);
-        expect(result).toEqual([item]);
-    })
-
     test('allows for locally scoped signals', async () => {
         const temp = selection.makeTemporary();
         const objectPicker = new ObjectPicker(editor, temp);
@@ -82,7 +82,7 @@ describe(ObjectPicker, () => {
         let publicCount = 0;
         temp.signals.objectSelected.add(() => privateCount++);
         editor.signals.objectSelected.add(() => publicCount++);
-        temp.selected.addCurve(item);
+        temp.selected.addCurve(item1);
         expect(privateCount).toBe(1);
         expect(publicCount).toBe(0);
         expect(temp.selected.curves.size).toBe(1);
@@ -92,9 +92,9 @@ describe(ObjectPicker, () => {
         const temp = selection.makeTemporary();
         const objectPicker = new ObjectPicker(editor, temp);
         const promise = objectPicker.execute(() => { });
-        temp.selected.addCurve(item);
+        temp.selected.addCurve(item1);
         expect(temp.selected.curves.size).toBe(1);
-        await db.removeItem(item);
+        await db.removeItem(item1);
         expect(temp.selected.curves.size).toBe(0);
         promise.finish();
         await promise;
@@ -103,12 +103,35 @@ describe(ObjectPicker, () => {
     test('when an object is deleted, no infinite loop when selection is global', async () => {
         const objectPicker = new ObjectPicker(editor, selection);
         const promise = objectPicker.execute(() => { });
-        selection.selected.addCurve(item);
+        selection.selected.addCurve(item1);
         expect(selection.selected.curves.size).toBe(1);
-        await db.removeItem(item);
+        await db.removeItem(item1);
         expect(selection.selected.curves.size).toBe(0);
         promise.finish();
         await promise;
+    })
+
+    describe('get', () => {
+        test('get, when enough already selected', async () => {
+            editor.selection.selected.addCurve(item1);
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+            const result = await objectPicker.get(SelectionMode.Curve, 1);
+            expect([...result]).toEqual([item1]);
+        })
+
+        test('get, when more than enough already selected', async () => {
+            editor.selection.selected.addCurve(item1);
+            editor.selection.selected.addCurve(item2);
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+
+            const result1 = await objectPicker.get(SelectionMode.Curve, 1);
+            expect([...result1]).toEqual([item1]);
+
+            const result2 = await objectPicker.get(SelectionMode.Curve, 1);
+            expect([...result2]).toEqual([item2]);
+        })
     })
 });
 
@@ -132,7 +155,7 @@ describe(ObjectPickerViewportSelector, () => {
     test('processClick non-empty', () => {
         expect(selection.selected.curves.size).toBe(0);
         expect(onEmptyIntersection).toBeCalledTimes(0);
-        selector.processClick([{ object: item.underlying, point: new THREE.Vector3() }], new MouseEvent('up'));
+        selector.processClick([{ object: item1.underlying, point: new THREE.Vector3() }], new MouseEvent('up'));
         expect(onEmptyIntersection).toBeCalledTimes(0);
         expect(selection.selected.curves.size).toBe(1);
     });

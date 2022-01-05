@@ -247,9 +247,10 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
     private _solids!: visual.Solid[];
     protected models!: c3d.Solid[];
     get solids(): visual.Solid[] { return this._solids }
-    set solids(solids: visual.Solid[]) {
-        this.models = solids.map(solid => this.db.lookup(solid));
-        this._solids = solids;
+    set solids(solids: Iterable<visual.Solid>) {
+        const array = [...solids];
+        this.models = array.map(solid => this.db.lookup(solid));
+        this._solids = array;
     }
 
     private _surfaces: c3d.Surface[] = [];

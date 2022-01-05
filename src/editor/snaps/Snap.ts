@@ -101,6 +101,17 @@ export class CircleCenterPointSnap extends PointSnap {
     }
 }
 
+export class CircularNurbsCenterPointSnap extends PointSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(center: THREE.Vector3, z: THREE.Vector3, view: visual.CurveEdge) {
+        super("Center", center, z);
+
+        const slice = view.slice('line');
+        this.helper.add(slice);
+    }
+}
+
 export class CrossPointSnap extends PointSnap {
     constructor(readonly cross: CrossPoint, readonly curve1: CurveSnap, readonly curve2: CurveSnap) {
         super("Intersection", cross.position);

@@ -28,6 +28,8 @@ export interface HasSelection {
     readonly regionIds: ReadonlySet<c3d.SimpleName>;
     readonly curveIds: ReadonlySet<c3d.SimpleName>;
     readonly controlPointIds: ReadonlySet<string>;
+
+    saveToMemento(): SelectionMemento;
 }
 
 export interface ModifiesSelection extends HasSelection {
@@ -62,9 +64,7 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
-let count= 0;
 export class Selection implements HasSelection, ModifiesSelection, MementoOriginator<SelectionMemento> {
-    id = count++;
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -290,6 +290,11 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectRemoved.dispatch(item);
     }
 
+    copy(that: HasSelection) {
+        const memento = that.saveToMemento();
+        this.restoreFromMemento(memento);
+    }
+
     saveToMemento() {
         return new SelectionMemento(
             new Set(this.solidIds),
@@ -376,7 +381,8 @@ export interface HasSelectedAndHovered {
     readonly mode: ToggleableSet;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
-    makeTemporary(): HasSelectedAndHovered;
+    makeTemporary(): SelectionDatabase;
+    copy(that: HasSelectedAndHovered): void;
     signals: EditorSignals;
 }
 
@@ -419,5 +425,10 @@ export class SelectionDatabase implements HasSelectedAndHovered {
     makeTemporary(): SelectionDatabase {
         const signals = new EditorSignals();
         return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals), this.hovered)
+    }
+
+    copy(that: HasSelectedAndHovered) {
+        this.selected.copy(that.selected);
+        this.hovered.copy(that.hovered);
     }
 }

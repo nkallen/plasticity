@@ -1,53 +1,57 @@
+import { SelectionMemento } from "../editor/History";
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../visual_model/VisualModel";
 import { ModifiesSelection, Selectable } from "./SelectionDatabase";
 
 export class SelectionProxy implements ModifiesSelection {
     constructor(protected readonly selection: ModifiesSelection) { }
 
-    add(items: Item | Item[]): void {
+    add(items: Item | Item[]) {
         this.selection.add(items);
     }
-    remove(selectables: Selectable[]): void {
+    remove(selectables: Selectable[]) {
         this.selection.remove(selectables);
     }
-    removeFace(object: Face): void {
+    removeFace(object: Face) {
         this.selection.removeFace(object);
     }
-    addFace(object: Face): void {
+    addFace(object: Face) {
         this.selection.addFace(object);
     }
-    removeRegion(object: PlaneInstance<Region>): void {
+    removeRegion(object: PlaneInstance<Region>) {
         this.selection.removeRegion(object);
     }
-    addRegion(object: PlaneInstance<Region>): void {
+    addRegion(object: PlaneInstance<Region>) {
         this.selection.addRegion(object);
     }
-    removeEdge(object: CurveEdge): void {
+    removeEdge(object: CurveEdge) {
         this.selection.removeEdge(object);
     }
-    addEdge(object: CurveEdge): void {
+    addEdge(object: CurveEdge) {
         this.selection.addEdge(object);
     }
-    removeSolid(solid: Solid): void {
+    removeSolid(solid: Solid) {
         this.selection.removeSolid(solid);
     }
-    addSolid(solid: Solid): void {
+    addSolid(solid: Solid) {
         this.selection.addSolid(solid);
     }
-    removeCurve(curve: SpaceInstance<Curve3D>): void {
+    removeCurve(curve: SpaceInstance<Curve3D>) {
         this.selection.removeCurve(curve);
     }
-    addCurve(curve: SpaceInstance<Curve3D>): void {
+    addCurve(curve: SpaceInstance<Curve3D>) {
         this.selection.addCurve(curve);
     }
-    removeControlPoint(index: ControlPoint): void {
+    removeControlPoint(index: ControlPoint) {
         this.selection.removeControlPoint(index);
     }
-    addControlPoint(index: ControlPoint): void {
+    addControlPoint(index: ControlPoint) {
         this.selection.addControlPoint(index);
     }
-    removeAll(): void {
+    removeAll() {
         this.selection.removeAll();
+    }
+    saveToMemento(): SelectionMemento {
+        return this.selection.saveToMemento();
     }
 
     get solids() { return this.selection.solids }
@@ -59,7 +63,7 @@ export class SelectionProxy implements ModifiesSelection {
     hasSelectedChildren(solid: Solid | SpaceInstance<Curve3D>): boolean {
         return this.selection.hasSelectedChildren(solid);
     }
-    deselectChildren(solid: Solid | SpaceInstance<Curve3D>): void {
+    deselectChildren(solid: Solid | SpaceInstance<Curve3D>) {
         this.selection.deselectChildren(solid);
     }
     get solidIds() { return this.selection.solidIds }

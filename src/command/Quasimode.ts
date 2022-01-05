@@ -46,9 +46,7 @@ export class Quasimode<I> implements Executable<I, void> {
             });
             disposables.add(start);
 
-            const dispose = () => {
-                disposables.dispose();
-            }
+            const dispose = () => disposables.dispose();
             const finish = () => resolve();
             return { dispose, finish };
         });

@@ -4,6 +4,10 @@
 
 ### Backlog
 
+- draw diagonal line on box face; can't cut  
+- Moving points is not respecting construction plane  
+- delete region by hitting x  
+- extrude a region after drawing on a face; the region should have the face as a bound  
 - trim should allow deleting a line  
 - toggle boolean diff which is + and which is - while running command  
 - ortho cube goes to ortho mode  
@@ -14,13 +18,12 @@
 - fillet two corners of a curve, not all  
 - turn on/off visual display of edges  
 - autodelete coplanar faces  
-- redo fillet gizmo  
 - angle snaps (5deg)  
 - drawing on face -- boundary edges need to be extendable as snaps  
 - cutting contour needs to extend to infinitiy  
 - autojoin curves at same endpoint  
 - boolean keep tool  
-- draw curve to offset (multiline) flow  
+- optimize the draw curve to offset (multiline) flow  
 - cut body: select edge after starting command  
 - upper-left box select of straight lines is too eager  
 - another mirror bug  
@@ -96,3 +99,5 @@
 - open ticket for huge fillet on box  
 
 ### Done ✓
+
+

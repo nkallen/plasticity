@@ -621,6 +621,8 @@ export default {
             functions: [
                 "void Rotate(const MbAxis3D & axis, double angle)",
                 "void Move(const MbVector3D & to)",
+                "const MbCartPoint3D & GetOrigin()",
+                "const MbVector3D & GetAxisZ()",
             ]
         },
         Placement: {
@@ -1148,9 +1150,10 @@ export default {
         Nurbs3D: {
             rawHeader: "cur_nurbs3d.h",
             extends: "PolyCurve3D",
-            dependencies: ["PolyCurve3D.h", "Placement3D.h", "Nurbs.h"],
+            dependencies: ["PolyCurve3D.h", "Placement3D.h", "Nurbs.h", "Axis3D.h"],
             functions: [
                 { signature: "MbNurbs3D * MbNurbs3D::Create(const MbNurbs & nurbs, const MbPlacement3D & place)", isStatic: true },
+                { signature: "bool GetCircleAxis(MbAxis3D & axis)", axis: isReturn, return: { name: "success" } },
             ]
         },
         Nurbs: {

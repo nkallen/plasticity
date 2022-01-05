@@ -6,11 +6,11 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionExecutor, SelectionMode } from '../selection/ChangeSelectionExecutor';
-import { HasSelectedAndHovered, HasSelection, ToggleableSet } from '../selection/SelectionDatabase';
+import { HasSelectedAndHovered, HasSelection } from '../selection/SelectionDatabase';
+import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
-import * as visual from "../visual_model/VisualModel";
 import { Executable } from './Quasimode';
 
 interface EditorLike {
@@ -65,12 +65,10 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 }
 
-type SelectionArray = visual.Face[] | visual.CurveEdge[] | visual.Solid[] | visual.SpaceInstance<visual.Curve3D>[] | visual.ControlPoint[];
-type CancelableSelectionArray = CancellablePromise<visual.Face[]> | CancellablePromise<visual.CurveEdge[]> | CancellablePromise<visual.Solid[]> | CancellablePromise<visual.SpaceInstance<visual.Curve3D>[]> | CancellablePromise<visual.ControlPoint[]>
-type PromiseSelectionArray = Promise<visual.Face[]> | Promise<visual.CurveEdge[]> | Promise<visual.Solid[]> | Promise<visual.SpaceInstance<visual.Curve3D>>[] | Promise<visual.ControlPoint[]>
+type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellablePromise<EdgeSelection> | CancellablePromise<SolidSelection> | CancellablePromise<CurveSelection> | CancellablePromise<ControlPointSelection>
 
 export class ObjectPicker implements Executable<HasSelection, HasSelection> {
-    private readonly selection: HasSelectedAndHovered;
+    readonly selection: HasSelectedAndHovered;
     min = 1;
     max = 1;
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
@@ -133,34 +131,45 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
         return cancellable;
     }
 
-    get(mode: SelectionMode.Face, min?: number): CancellablePromise<visual.Face[]>;
-    get(mode: SelectionMode.CurveEdge, min?: number): CancellablePromise<visual.CurveEdge[]>;
-    get(mode: SelectionMode.Solid, min?: number): CancellablePromise<visual.Solid[]>;
-    get(mode: SelectionMode.Curve, min?: number): CancellablePromise<visual.SpaceInstance<visual.Curve3D>[]>;
-    get(mode: SelectionMode.ControlPoint, min?: number): CancellablePromise<visual.ControlPoint[]>;
-    get(mode: SelectionMode, min = 1): CancelableSelectionArray {
+    get(mode: SelectionMode.Face, min?: number, max?: number): CancellablePromise<FaceSelection>;
+    get(mode: SelectionMode.CurveEdge, min?: number, max?: number): CancellablePromise<EdgeSelection>;
+    get(mode: SelectionMode.Solid, min?: number, max?: number): CancellablePromise<SolidSelection>;
+    get(mode: SelectionMode.Curve, min?: number, max?: number): CancellablePromise<CurveSelection>;
+    get(mode: SelectionMode.ControlPoint, min?: number, max?: number): CancellablePromise<ControlPointSelection>;
+    get(mode: SelectionMode, min = 1, max = min): CancelableSelectionArray {
         if (min < 0) throw new Error("min must be > 0");
-        if (min === 0) return CancellablePromise.resolve([]);
+        if (min === 0) return CancellablePromise.resolve([] as any);
 
-        const { editor, editor: { selection: { selected } } } = this;
-        let collection: any[];
-        collection = mode2collection(mode, selected);
-        if (collection.length >= min) return CancellablePromise.resolve(collection) as CancelableSelectionArray;
+        const result = this.selection.makeTemporary();
 
-        min -= collection.length;
-        const picker = new ObjectPicker(editor);
+        const collection = mode2collection(mode, this.selection.selected);
+
+        if (collection.size >= min) {
+            let i = 0;
+            for (const item of collection) {
+                if (++i > max) break;
+                this.selection.selected.remove(item);
+                result.selected.add(item);
+            }
+            return CancellablePromise.resolve(mode2collection(mode, result.selected));
+        }
+
+        const picker = new ObjectPicker(this.editor);
+        min -= collection.size;
         picker.mode.set(mode);
         picker.min = min;
         picker.max = min;
-        return picker.execute().map(selected => {
-            const added = mode2collection(mode, selected);
-            return collection.concat(added);
-        });
+        picker.copy(this.selection);
+
+        return picker.execute().map(selected => mode2collection(mode, selected));
     }
 
+    copy(selection: HasSelectedAndHovered) {
+        this.selection.copy(selection);
+    }
 }
 
-function mode2collection(mode: SelectionMode, selected: HasSelection): SelectionArray {
+function mode2collection(mode: SelectionMode, selected: HasSelection): TypedSelection<any, any> {
     let collection;
     switch (mode) {
         case SelectionMode.CurveEdge: collection = selected.edges; break;
@@ -169,5 +178,5 @@ function mode2collection(mode: SelectionMode, selected: HasSelection): Selection
         case SelectionMode.Curve: collection = selected.curves; break;
         case SelectionMode.ControlPoint: collection = selected.controlPoints; break;
     }
-    return [...collection] as any;
+    return collection;
 }

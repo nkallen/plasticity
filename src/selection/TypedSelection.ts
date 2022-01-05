@@ -1,8 +1,9 @@
 import c3d from '../build/Release/c3d.node';
 import { DatabaseLike } from "../editor/GeometryDatabase";
+import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 
-abstract class AbstractTypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
+export abstract class TypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
     size: number;
 
     constructor(
@@ -29,22 +30,36 @@ abstract class AbstractTypedSelection<T extends visual.Item | visual.TopologyIte
     has(s: T) { return this.ids.has(s.simpleName as unknown as any) }
 
     abstract lookupById(id: S): T;
+
+    concat(that: this): this {
+        return new (this.constructor as GConstructor<this>)(this.db, new Set([...this.ids, ...that.ids]));
+    }
+
+    clone() {
+        return new (this.constructor as GConstructor<this>)(this.db, new Set([...this.ids]));
+    }
 }
 
-export class ItemSelection<T extends visual.Item> extends AbstractTypedSelection<T, c3d.SimpleName> {
+export class ItemSelection<T extends visual.Item> extends TypedSelection<T, c3d.SimpleName> {
     lookupById(id: c3d.SimpleName) {
         return this.db.lookupItemById(id).view as T;
     }
 }
 
-export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractTypedSelection<T, string> {
+export class TopologyItemSelection<T extends visual.TopologyItem> extends TypedSelection<T, string> {
     lookupById(id: string) {
         const views = [...this.db.lookupTopologyItemById(id).views];
         return views[views.length - 1] as T;
     }
 }
-export class ControlPointSelection extends AbstractTypedSelection<visual.ControlPoint, string> {
+export class ControlPointSelection extends TypedSelection<visual.ControlPoint, string> {
     lookupById(id: string) {
         return this.db.lookupControlPointById(id).views.values().next().value;
     }
 }
+
+export type SolidSelection = ItemSelection<visual.Solid>;
+export type RegionSelection = ItemSelection<visual.PlaneInstance<visual.Region>>;
+export type CurveSelection = ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
+export type FaceSelection = TopologyItemSelection<visual.Face>;
+export type EdgeSelection = TopologyItemSelection<visual.Edge>;
