@@ -19,6 +19,7 @@ export class FilletSolidCommand extends Command {
 
         const fillet = new MultiFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         fillet.edges = edges;
+        fillet.start();
 
         const gizmo = new FilletSolidGizmo(fillet, this.editor, this.point);
         const keyboard = new ChamferAndFilletKeyboardGizmo(this.editor);
