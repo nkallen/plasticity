@@ -4,21 +4,18 @@
 
 ### Backlog
 
+- trim should allow deleting a line  
 - toggle boolean diff which is + and which is - while running command  
+- ortho cube goes to ortho mode  
 - matcap shinier  
-- escape out of fillet command to restart  
 - redo max fillet  
-- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
 - fillet: span keybinding  
 - fillet: prolong keybinding  
 - fillet two corners of a curve, not all  
 - turn on/off visual display of edges  
-- ctrl to add to selection whilst in command (a la fusion)  
 - autodelete coplanar faces  
 - redo fillet gizmo  
-- redo rotate gizmo  
 - angle snaps (5deg)  
-- gizmos for elementary solids  
 - drawing on face -- boundary edges need to be extendable as snaps  
 - cutting contour needs to extend to infinitiy  
 - autojoin curves at same endpoint  
@@ -88,15 +85,20 @@
 
 ### Todo
 
-- trim should allow deleting a line  
 - start fillet a priori  
-- ortho cube goes to ortho mode  
+- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
+- escape out of fillet command to restart  
+- gizmos for elementary solids  
 
 ### In Progress
 
+- ctrl to add to a command - offset  
+- open ticket for huge fillet on box  
 
 ### Done ✓
 
+- redo rotate gizmo  
+- ctrl to add to selection whilst in command (a la fusion) - fillet  
 - lookat disableselection and see if it should be used for rotate command, etc  
 - drawing on negative x side of crate is wrong  
 - set pivot of rotate gizmo  

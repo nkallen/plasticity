@@ -1,5 +1,8 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
+import { ObjectPicker } from "../../command/ObjectPicker";
+import { Quasimode } from "../../command/Quasimode";
+import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { point2point } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from "../translate/MoveGizmo";
@@ -38,6 +41,11 @@ export class OffsetFaceCommand extends Command {
         const dialog = new OffsetFaceDialog(offset, this.editor.signals);
         const keyboard = new OffsetFaceKeyboardGizmo(this.editor);
 
+        const objectPicker = new ObjectPicker(this.editor, this.editor.selection, 'viewport-selector[quasimode]');
+        objectPicker.mode.set(SelectionMode.Face);
+        objectPicker.max = Number.MAX_SAFE_INTEGER;
+        const quasimode = new Quasimode("modify-selection", this.editor, offset, objectPicker);
+
         gizmo.execute(async (params) => {
             await offset.update();
             dialog.render();
@@ -54,6 +62,10 @@ export class OffsetFaceCommand extends Command {
                     offset.update();
             }
         }).resource(this);
+
+        quasimode.execute(selection => {
+            offset.faces = [...selection.faces];
+        }).resource(this)
 
         await this.finished;
 

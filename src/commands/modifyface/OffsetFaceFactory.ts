@@ -140,8 +140,10 @@ export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFa
     angle!: number;
 
     private _faces!: visual.Face[];
+    @delegate.update
     get faces() { return this._faces }
     set faces(faces: visual.Face[]) {
+        for (const factory of this.factories) factory.cancel();
         this._faces = faces;
         const individuals = [];
         const map = groupBy('parentItem', faces);
