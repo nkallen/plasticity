@@ -9,6 +9,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import '../matchers';
+import { ConstructionPlaneSnap } from "../../src/editor/snaps/Snap";
 
 let editor: Editor;
 let viewport: Viewport;
@@ -77,5 +78,29 @@ describe(ViewportPointControl, () => {
         points.endDrag(new THREE.Vector2());
 
         await promise;
+    })
+
+    describe('drawing on odd construction plane', () => {
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
+            makeCircle.center = new THREE.Vector3(0, 0, 0.1);
+            makeCircle.radius = 1;
+            item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.1))
+        });
+
+        test('dragging on a free construction plane', async () => {
+            expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
+            points.startDrag(new MouseEvent('move'), new THREE.Vector2());
+            let result;
+            const cb = jest.fn().mockImplementation(value => result = value);
+            const promise = points.execute(cb);
+            points.continueDrag(new MouseEvent('move'), new THREE.Vector2(1, 1));
+            expect(cb).toHaveBeenCalledTimes(1);
+            expect(result).toApproximatelyEqual(new THREE.Vector3(-4, 3, 0));
+            promise.finish();
+            await promise;
+        })
     })
 })

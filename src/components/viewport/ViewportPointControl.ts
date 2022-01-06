@@ -105,7 +105,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
         }
     }
 
-    continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
+    continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2) {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start': break;
@@ -120,9 +120,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
                 if (intersection.length === 0) throw new Error("corrupt intersection query");
                 pointEnd3d.copy(intersection[0].point);
 
-                delta.copy(pointEnd3d).sub(pointStart3d);
-                const { position } = constructionPlane.project(delta);
-                delta.copy(position);
+                const { position } = constructionPlane.project(pointEnd3d);
+                delta.copy(position).sub(pointStart3d);
 
                 this.mode.cb(this.delta.clone());
         }

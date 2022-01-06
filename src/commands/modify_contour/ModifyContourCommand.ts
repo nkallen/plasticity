@@ -51,8 +51,7 @@ export class MoveControlPointCommand extends Command {
         factory.contour = await factory.prepare(curve);
 
         const centroid = new THREE.Vector3();
-        for (const point of points)
-            centroid.add(point.position);
+        for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
         const dialog = new MoveDialog(factory, editor.signals);
