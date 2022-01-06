@@ -24,7 +24,7 @@ export class ImporterExporter {
                     console.error(filePath, c3d.ConvResType[result]);
                     continue;
                 }
-                await _db.load(model);
+                await _db.load(model, false);
             }
         }
     }

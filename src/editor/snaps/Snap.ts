@@ -168,12 +168,11 @@ export class CurveEndPointSnap extends CurvePointSnap {
 }
 
 export class EdgePointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
+    readonly helper?: THREE.Object3D;
 
     constructor(name: string, position: THREE.Vector3, tangent: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
         super(name, position, tangent);
-        const slice = edgeSnap.view.slice('line');
-        this.helper.add(slice);
+        this.helper = edgeSnap.helper;
     }
 
     restrictionFor(point: THREE.Vector3) {

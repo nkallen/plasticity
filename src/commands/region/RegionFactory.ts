@@ -1,8 +1,7 @@
-import { point2point, normalizePlacement } from '../../util/Conversion';
-import { curve3d2curve2d } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory } from '../../command/GeometryFactory';
+import { curve3d2curve2d, normalizePlacement } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 
 export class RegionFactory extends GeometryFactory {
     contours = new Array<visual.SpaceInstance<visual.Curve3D>>();

@@ -404,7 +404,7 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
         if (kind == 'line2') {
             const geometry = new LineSegmentsGeometry();
             geometry.setPositions(points);
-            const line = this.line.clone();
+            const line = new LineSegments2(geometry, this.line.material);
             line.geometry = geometry;
             return line;
         } else {

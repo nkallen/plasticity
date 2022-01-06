@@ -4,9 +4,9 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
-import { computeControlPointInfo, deunit, point2point, unit } from "../util/Conversion";
+import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
-import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SolidLevel, SpaceInstance, SpaceItem } from "./VisualModel";
+import { ControlPointGroup, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SolidLevel, SpaceInstance, SpaceItem } from "./VisualModel";
 import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
 
 export class SolidBuilder {
@@ -72,7 +72,11 @@ export class FaceGroupBuilder {
     build(): FaceGroup {
         const geos = [];
         const meshes = this.meshes;
-        for (const mesh of meshes) geos.push(mesh.geometry);
+        for (const mesh of meshes) {
+            // FIXME: this is a temporary hack awaiting SD#7292000
+            if (mesh.geometry.index!.array.length === 0) continue;
+            geos.push(mesh.geometry);
+        }
         const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
         const groups = merged.groups;
 

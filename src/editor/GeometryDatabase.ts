@@ -314,7 +314,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 builder = new build.SolidBuilder();
                 break;
             default:
-                throw new Error("type not yet supported");
+                throw new Error(`type ${c3d.SpaceType[obj.IsA()]} not yet supported`);
         }
 
         const promises = [];
@@ -507,19 +507,24 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.load(everything);
     }
 
-    async load(model: c3d.Model | c3d.Assembly): Promise<void> {
-        const items = model.GetItems();
-        const promises = [];
-        for (const item of items) {
-            const cast = item.Cast<c3d.Item>(item.IsA());
-            if (cast instanceof c3d.Assembly) {
-                this.load(cast);
-            } else if (cast instanceof c3d.Instance) {
-                promises.push(this.addItem(cast.GetItem()!, 'user', item.GetItemName()));
-            } else {
-                promises.push(this.addItem(cast, 'user', item.GetItemName()));
+    async load(model: c3d.Model, preserveNames = true): Promise<void> {
+        const promises: Promise<any>[] = [];
+        const loadItems = (stack: c3d.Item[]) => {
+            while (stack.length > 0) {
+                const item = stack.pop()!;
+                const cast = item.Cast<c3d.Item>(item.IsA());
+                if (cast instanceof c3d.Assembly) {
+                    stack.push(...cast.GetItems());
+                } else if (cast instanceof c3d.Instance) {
+                    stack.push(cast.GetItem()!);
+                } else {
+                    const name = preserveNames ? item.GetItemName() : undefined;
+                    promises.push(this.addItem(cast, 'user', name));
+                }
             }
         }
+
+        loadItems(model.GetItems());
         await Promise.all(promises);
     }
 
