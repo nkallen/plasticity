@@ -405,7 +405,7 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
             const geometry = new LineSegmentsGeometry();
             geometry.setPositions(points);
             const line = new LineSegments2(geometry, this.line.material);
-            line.geometry = geometry;
+            line.matrixWorld.copy(this.line.matrix);
             return line;
         } else {
             const geometry = new THREE.BufferGeometry();
