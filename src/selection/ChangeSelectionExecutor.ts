@@ -115,7 +115,7 @@ export class ChangeSelectionExecutor {
             signals.objectHovered.remove(add);
             signals.objectUnhovered.remove(remove);
         }
-        this.signals.hoverChanged.dispatch({ added, removed });
+        if (added.size > 0 || removed.size > 0) this.signals.hoverChanged.dispatch({ added, removed });
         return result;
     }
 

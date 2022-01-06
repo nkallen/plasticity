@@ -41,6 +41,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     toolModels!: c3d.Solid[];
     get tools() { return this._tools }
     set tools(tools: visual.Solid[]) {
+        this.refresh();
         this._tools = tools;
         this.toolModels = tools.map(t => this.db.lookup(t));
     }
@@ -166,11 +167,12 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     }
 
     protected cleanupTempsOnFinishOrCancel() {
-        for (const temp of this.temps) temp.cancel();
+        super.cleanupTempsOnFinishOrCancel();
         if (this._phantoms === undefined) return;
         CancelPhantomsForReal: {
             for (const temp of this._phantoms) temp.then(t => t.cancel());
         }
+        this._phantoms = undefined;
     }
 }
 

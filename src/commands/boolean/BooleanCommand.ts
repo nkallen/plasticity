@@ -20,10 +20,10 @@ abstract class BooleanCommand extends Command {
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
-        const solids = await objectPicker.get(SelectionMode.Solid, 1).resource(this);
+        const solids = await objectPicker.shift(SelectionMode.Solid, 1).resource(this);
         factory.solid = [...solids][0];
         
-        const tools = await objectPicker.get(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
+        const tools = await objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
         factory.tools = [...tools];
 
         for (const object of tools) bbox.expandByObject(object);
@@ -42,6 +42,11 @@ abstract class BooleanCommand extends Command {
         gizmo.execute(s => {
             factory.update();
         }).resource(this);
+
+        objectPicker.execute(async selection => {
+            factory.tools = [...selection.solids];
+            await factory.update();
+        }, 0, Number.MAX_SAFE_INTEGER).resource(this);
 
         await this.finished;
 
@@ -80,7 +85,7 @@ export class CutCommand extends Command {
 
         let objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
-        cut.solids = await objectPicker.get(SelectionMode.Solid, 1).resource(this);
+        cut.solids = await objectPicker.slice(SelectionMode.Solid, 1).resource(this);
         // cut.faces = [...this.editor.selection.selected.faces];
         cut.curves = [...this.editor.selection.selected.curves];
         await cut.update();

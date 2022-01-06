@@ -10,7 +10,6 @@ import { AbstractViewportSelector, ClickChangeSelectionCommand } from "../../sel
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { Intersection } from "../../visual_model/Intersectable";
 import * as visual from '../../visual_model/VisualModel';
-import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { Viewport } from "./Viewport";
 import { ViewportControl } from "./ViewportControl";
 

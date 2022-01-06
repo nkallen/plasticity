@@ -111,26 +111,67 @@ describe(ObjectPicker, () => {
         await promise;
     })
 
-    describe('get', () => {
-        test('get, when enough already selected', async () => {
+    describe('shift', () => {
+        test('shift, when enough already selected', async () => {
             editor.selection.selected.addCurve(item1);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
-            const result = await objectPicker.get(SelectionMode.Curve, 1);
+            const result = await objectPicker.shift(SelectionMode.Curve, 1);
             expect([...result]).toEqual([item1]);
         })
 
-        test('get, when more than enough already selected', async () => {
+        test('shift, when more than enough already selected', async () => {
             editor.selection.selected.addCurve(item1);
             editor.selection.selected.addCurve(item2);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
 
-            const result1 = await objectPicker.get(SelectionMode.Curve, 1);
+            const result1 = await objectPicker.shift(SelectionMode.Curve, 1);
             expect([...result1]).toEqual([item1]);
 
-            const result2 = await objectPicker.get(SelectionMode.Curve, 1);
+            const result2 = await objectPicker.shift(SelectionMode.Curve, 1);
             expect([...result2]).toEqual([item2]);
+        })
+    })
+
+    describe('slice', () => {
+        test('slice, when enough already selected', async () => {
+            editor.selection.selected.addCurve(item1);
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+            const result = await objectPicker.shift(SelectionMode.Curve, 1);
+            expect([...result]).toEqual([item1]);
+        })
+
+        test('slice, when more than enough already selected', async () => {
+            editor.selection.selected.addCurve(item1);
+            editor.selection.selected.addCurve(item2);
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+
+            const result1 = await objectPicker.slice(SelectionMode.Curve, 1);
+            expect([...result1]).toEqual([item1]);
+
+            const result2 = await objectPicker.slice(SelectionMode.Curve, 2);
+            expect([...result2]).toEqual([item1, item2]);
+        })
+    })
+
+    describe('shift & slice', () => {
+        test('slice, when more than enough already selected', async () => {
+            editor.selection.selected.addCurve(item1);
+            editor.selection.selected.addCurve(item2);
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+
+            const result1 = await objectPicker.shift(SelectionMode.Curve, 1);
+            expect([...result1]).toEqual([item1]);
+
+            const result2 = await objectPicker.slice(SelectionMode.Curve, 1);
+            expect([...result2]).toEqual([item2]);
+
+            const result3 = await objectPicker.slice(SelectionMode.Curve, 1);
+            expect([...result3]).toEqual([item2]);
         })
     })
 });

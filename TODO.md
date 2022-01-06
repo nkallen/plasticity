@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- add xor selection modifier  
 - draw diagonal line on box face; can't cut  
 - delete region by hitting x  
 - extrude a region after drawing on a face; the region should have the face as a bound  
@@ -87,7 +88,6 @@
 
 ### Todo
 
-- Moving points is not respecting construction plane  
 - start fillet a priori  
 - bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
 - escape out of fillet command to restart  
@@ -95,9 +95,10 @@
 
 ### In Progress
 
-- ctrl to add to a command - offset  
-- open ticket for huge fillet on box  
 
 ### Done ✓
 
+- Moving points is not respecting construction plane  
+- open ticket for huge fillet on box  
+- ctrl to add to a command - offset  
 

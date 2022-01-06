@@ -183,6 +183,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
     protected cleanupTempsOnFinishOrCancel() {
         for (const temp of this.temps) temp.cancel();
+        this.temps = [];
     }
 
     private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
@@ -194,6 +195,10 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     }
 
     protected doCancel(): void {
+        this.refresh();
+    }
+
+    refresh() {
         for (const i of this.originalItems) i.visible = true;
         this.cleanupTempsOnFinishOrCancel();
     }
