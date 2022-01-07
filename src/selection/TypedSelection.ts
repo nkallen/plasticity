@@ -62,4 +62,4 @@ export type SolidSelection = ItemSelection<visual.Solid>;
 export type RegionSelection = ItemSelection<visual.PlaneInstance<visual.Region>>;
 export type CurveSelection = ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
 export type FaceSelection = TopologyItemSelection<visual.Face>;
-export type EdgeSelection = TopologyItemSelection<visual.Edge>;
+export type EdgeSelection = TopologyItemSelection<visual.CurveEdge>;

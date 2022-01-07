@@ -16,13 +16,20 @@ abstract class BooleanCommand extends Command {
         const { factory, editor } = this;
         factory.resource(this);
 
+        const dialog = new BooleanDialog(factory, editor.signals);
+        const gizmo = new MoveGizmo(factory, editor);
+
+        dialog.execute(async (params) => {
+            factory.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
         const solids = await objectPicker.shift(SelectionMode.Solid, 1).resource(this);
         factory.solid = [...solids][0];
-        
+
         const tools = await objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
         factory.tools = [...tools];
 
@@ -30,13 +37,6 @@ abstract class BooleanCommand extends Command {
         bbox.getCenter(centroid);
 
         await factory.update();
-
-        const dialog = new BooleanDialog(factory, editor.signals);
-        const gizmo = new MoveGizmo(factory, editor);
-
-        dialog.execute(async (params) => {
-            factory.update();
-        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
         gizmo.execute(s => {
@@ -85,18 +85,18 @@ export class CutCommand extends Command {
 
         let objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
-        cut.solids = await objectPicker.slice(SelectionMode.Solid, 1).resource(this);
+        cut.solids = await objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
         // cut.faces = [...this.editor.selection.selected.faces];
         cut.curves = [...this.editor.selection.selected.curves];
         await cut.update();
 
         objectPicker = new ObjectPicker(this.editor);
-        objectPicker.max = Number.POSITIVE_INFINITY;
-        objectPicker.mode.set(SelectionMode.Face);
+        objectPicker.mode.set(SelectionMode.Face, SelectionMode.Curve);
         objectPicker.execute(async (selection) => {
             cut.surfaces = [...selection.faces];
+            cut.curves = [...selection.curves];
             cut.update();
-        }).resource(this);
+        }, 1, Number.MAX_SAFE_INTEGER).resource(this);
 
         await this.finished;
 

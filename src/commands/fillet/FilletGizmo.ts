@@ -37,7 +37,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         angle.visible = false;
 
         main.relativeScale.setScalar(0.8);
-        angle.relativeScale.setScalar(0.9);
+        angle.relativeScale.setScalar(0.5);
 
         this.add(main, stretchFillet, stretchChamfer);
         main.tip.add(angle);

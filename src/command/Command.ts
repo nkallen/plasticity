@@ -4,7 +4,7 @@ import { Viewport } from "../components/viewport/Viewport";
 import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { Agent, DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
@@ -13,6 +13,7 @@ import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { CancellableRegistor } from "../util/CancellableRegistor";
 import { Helpers } from "../util/Helpers";
+import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
@@ -55,6 +56,7 @@ export interface EditorLike {
     modifiers: ModifierManager,
     crosses: CrossPointDatabase,
     keymaps: AtomKeymap.KeymapManager,
+    highlighter: RenderedSceneBuilder,
 }
 
 export default abstract class Command extends CancellableRegistor {
@@ -64,6 +66,7 @@ export default abstract class Command extends CancellableRegistor {
     get title() { return this.constructor.name.replace(/Command/, '') }
     get identifier() { return _.dasherize(this.title) }
     remember: boolean = true;
+    agent: Agent = 'automatic';
 
     constructor(protected readonly editor: EditorLike) {
         super();

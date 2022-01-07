@@ -12,6 +12,7 @@ import { SelectionDatabase, ToggleableSet } from "../src/selection/SelectionData
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
+import { ThreePointBoxFactory } from "../src/commands/box/BoxFactory";
 
 let db: GeometryDatabase;
 let changeSelection: ChangeSelectionExecutor;
@@ -29,19 +30,27 @@ beforeEach(() => {
     changeSelection = editor.changeSelection;
 })
 
-let item1: visual.SpaceInstance<visual.Curve3D>;
-let item2: visual.SpaceInstance<visual.Curve3D>;
+let curve1: visual.SpaceInstance<visual.Curve3D>;
+let curve2: visual.SpaceInstance<visual.Curve3D>;
+let box: visual.Solid;
+
 beforeEach(async () => {
     const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
     makeCircle1.center = new THREE.Vector3();
     makeCircle1.radius = 1;
-    item1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    curve1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
 
     const makeCircle2 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
-    makeCircle2.center = new THREE.Vector3(1,1,1);
+    makeCircle2.center = new THREE.Vector3(1, 1, 1);
     makeCircle2.radius = 1;
-    item2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    curve2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
+    const makeBox = new ThreePointBoxFactory(editor.db, editor.materials, editor.signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    box = await makeBox.commit() as visual.Solid;
 });
 
 describe(ObjectPicker, () => {
@@ -82,7 +91,7 @@ describe(ObjectPicker, () => {
         let publicCount = 0;
         temp.signals.objectSelected.add(() => privateCount++);
         editor.signals.objectSelected.add(() => publicCount++);
-        temp.selected.addCurve(item1);
+        temp.selected.addCurve(curve1);
         expect(privateCount).toBe(1);
         expect(publicCount).toBe(0);
         expect(temp.selected.curves.size).toBe(1);
@@ -92,9 +101,9 @@ describe(ObjectPicker, () => {
         const temp = selection.makeTemporary();
         const objectPicker = new ObjectPicker(editor, temp);
         const promise = objectPicker.execute(() => { });
-        temp.selected.addCurve(item1);
+        temp.selected.addCurve(curve1);
         expect(temp.selected.curves.size).toBe(1);
-        await db.removeItem(item1);
+        await db.removeItem(curve1);
         expect(temp.selected.curves.size).toBe(0);
         promise.finish();
         await promise;
@@ -103,101 +112,100 @@ describe(ObjectPicker, () => {
     test('when an object is deleted, no infinite loop when selection is global', async () => {
         const objectPicker = new ObjectPicker(editor, selection);
         const promise = objectPicker.execute(() => { });
-        selection.selected.addCurve(item1);
+        selection.selected.addCurve(curve1);
         expect(selection.selected.curves.size).toBe(1);
-        await db.removeItem(item1);
+        await db.removeItem(curve1);
         expect(selection.selected.curves.size).toBe(0);
         promise.finish();
         await promise;
     })
 
+    describe('copy', () => {
+        test('when no modes specified, copies everything', () => {
+            editor.selection.selected.addCurve(curve1);
+            editor.selection.selected.addCurve(curve2);
+            editor.selection.selected.addSolid(box);
+
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection);
+            expect(objectPicker.selection.selected.solids.size).toBe(1);
+            expect(objectPicker.selection.selected.curves.size).toBe(2);
+        })
+
+        test('when a mode is specified, copies only that mode', () => {
+            editor.selection.selected.addCurve(curve1);
+            editor.selection.selected.addCurve(curve2);
+            editor.selection.selected.addFace(box.faces.get(1));
+
+            const objectPicker = new ObjectPicker(editor);
+            objectPicker.copy(editor.selection, SelectionMode.Face);
+            expect(objectPicker.selection.selected.faces.size).toBe(1);
+            expect(objectPicker.selection.selected.curves.size).toBe(0);
+        })
+
+    })
+
     describe('shift', () => {
         test('shift, when enough already selected', async () => {
-            editor.selection.selected.addCurve(item1);
+            editor.selection.selected.addCurve(curve1);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
             const result = await objectPicker.shift(SelectionMode.Curve, 1);
-            expect([...result]).toEqual([item1]);
+            expect([...result]).toEqual([curve1]);
         })
 
         test('shift, when more than enough already selected', async () => {
-            editor.selection.selected.addCurve(item1);
-            editor.selection.selected.addCurve(item2);
+            editor.selection.selected.addCurve(curve1);
+            editor.selection.selected.addCurve(curve2);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
 
             const result1 = await objectPicker.shift(SelectionMode.Curve, 1);
-            expect([...result1]).toEqual([item1]);
+            expect([...result1]).toEqual([curve1]);
 
             const result2 = await objectPicker.shift(SelectionMode.Curve, 1);
-            expect([...result2]).toEqual([item2]);
+            expect([...result2]).toEqual([curve2]);
         })
     })
 
     describe('slice', () => {
         test('slice, when enough already selected', async () => {
-            editor.selection.selected.addCurve(item1);
+            editor.selection.selected.addCurve(curve1);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
             const result = await objectPicker.shift(SelectionMode.Curve, 1);
-            expect([...result]).toEqual([item1]);
+            expect([...result]).toEqual([curve1]);
         })
 
         test('slice, when more than enough already selected', async () => {
-            editor.selection.selected.addCurve(item1);
-            editor.selection.selected.addCurve(item2);
+            editor.selection.selected.addCurve(curve1);
+            editor.selection.selected.addCurve(curve2);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
 
             const result1 = await objectPicker.slice(SelectionMode.Curve, 1);
-            expect([...result1]).toEqual([item1]);
+            expect([...result1]).toEqual([curve1]);
 
             const result2 = await objectPicker.slice(SelectionMode.Curve, 2);
-            expect([...result2]).toEqual([item1, item2]);
+            expect([...result2]).toEqual([curve1, curve2]);
         })
     })
 
     describe('shift & slice', () => {
         test('slice, when more than enough already selected', async () => {
-            editor.selection.selected.addCurve(item1);
-            editor.selection.selected.addCurve(item2);
+            editor.selection.selected.addCurve(curve1);
+            editor.selection.selected.addCurve(curve2);
             const objectPicker = new ObjectPicker(editor);
             objectPicker.copy(editor.selection);
 
             const result1 = await objectPicker.shift(SelectionMode.Curve, 1);
-            expect([...result1]).toEqual([item1]);
+            expect([...result1]).toEqual([curve1]);
 
             const result2 = await objectPicker.slice(SelectionMode.Curve, 1);
-            expect([...result2]).toEqual([item2]);
+            expect([...result2]).toEqual([curve2]);
 
             const result3 = await objectPicker.slice(SelectionMode.Curve, 1);
-            expect([...result3]).toEqual([item2]);
+            expect([...result3]).toEqual([curve2]);
         })
     })
-});
-
-describe(ObjectPickerViewportSelector, () => {
-    let selector: ObjectPickerViewportSelector;
-    let selection: SelectionDatabase;
-    let onEmptyIntersection: jest.Mock<any, any>;
-
-    beforeEach(() => {
-        selection = new SelectionDatabase(db, editor.materials, editor.signals);
-        onEmptyIntersection = jest.fn();
-        selector = new ObjectPickerViewportSelector(viewport, editor, selection, onEmptyIntersection, {});
-    });
-
-    test('processClick empty', () => {
-        expect(onEmptyIntersection).toBeCalledTimes(0);
-        selector.processClick([], new MouseEvent('up'));
-        expect(onEmptyIntersection).toBeCalledTimes(1);
-    });
-
-    test('processClick non-empty', () => {
-        expect(selection.selected.curves.size).toBe(0);
-        expect(onEmptyIntersection).toBeCalledTimes(0);
-        selector.processClick([{ object: item1.underlying, point: new THREE.Vector3() }], new MouseEvent('up'));
-        expect(onEmptyIntersection).toBeCalledTimes(0);
-        expect(selection.selected.curves.size).toBe(1);
-    });
 });

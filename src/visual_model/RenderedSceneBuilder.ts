@@ -1,3 +1,5 @@
+import { CompositeDisposable, Disposable } from "event-kit";
+import signals from "signals";
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
@@ -10,23 +12,42 @@ import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabas
 import { ItemSelection } from "../selection/TypedSelection";
 import * as visual from '../visual_model/VisualModel';
 
+type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
+
 export class RenderedSceneBuilder {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
+    private state: State = { tag: 'none' };
     constructor(
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
-        protected readonly selection: HasSelectedAndHovered,
+        protected readonly editorSelection: HasSelectedAndHovered,
         protected readonly signals: EditorSignals,
     ) {
-        signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
-        signals.commandEnded.add(() => this.highlight());
-        signals.sceneGraphChanged.add(() => this.highlight());
-        signals.modifiersLoaded.add(() => this.highlight());
-        signals.historyChanged.add(() => this.highlight());
-        signals.quasimodeChanged.add(() => this.highlight());
-        signals.hoverChanged.add(({ added, removed }) => {
+        this.highlight = this.highlight.bind(this);
+
+        const bindings: signals.SignalBinding[] = [];
+        bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
+        bindings.push(signals.commandEnded.add(this.highlight));
+        bindings.push(signals.sceneGraphChanged.add(this.highlight));
+        bindings.push(signals.modifiersLoaded.add(this.highlight));
+        bindings.push(signals.historyChanged.add(this.highlight));
+        bindings.push(signals.quasimodeChanged.add(this.highlight));
+        bindings.push(signals.hoverChanged.add(({ added, removed }) => {
             this.unhover(removed);
             this.hover(added);
-        });
+        }));
+        this.disposable.add(new Disposable(() => {
+            for (const binding of bindings) binding.detach();
+        }))
+    }
+
+    private get selection() {
+        switch (this.state.tag) {
+            case 'none': return this.editorSelection;
+            case 'scratch': return this.state.selection;
+        }
     }
 
     // FIXME: combine hovered and unhovered by combining highlightCurve/etc with hoverCurve/etc.
@@ -237,6 +258,24 @@ export class RenderedSceneBuilder {
 
     get outlineSelection() { return this.selection.selected.solids }
     get outlineHover() { return this.selection.hovered.solids }
+
+    useTemporary(selection: HasSelectedAndHovered) {
+        switch (this.state.tag) {
+            case 'none': this.state = { tag: 'scratch', selection }; break;
+            case 'scratch': throw new Error("already in scratch state");
+        }
+        this.signals.selectionChanged.dispatch();
+        const bindings: signals.SignalBinding[] = [];
+        bindings.push(selection.signals.selectionChanged.add(() => this.highlight()));
+        bindings.push(selection.signals.objectSelected.add(() => this.highlight()));
+        bindings.push(selection.signals.objectDeselected.add(() => this.highlight()));
+        return new Disposable(() => {
+            bindings.forEach(x => x.detach());
+            this.state = { tag: 'none' };
+            this.highlight();
+            this.signals.selectionChanged.dispatch();
+        })
+    }
 }
 
 export class ModifierHighlightManager extends RenderedSceneBuilder {

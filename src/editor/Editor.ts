@@ -11,11 +11,11 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
-import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
+import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
-import { ModifierHighlightManager } from "../visual_model/RenderedSceneBuilder";
+import { ModifierHighlightManager, RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
@@ -72,7 +72,7 @@ export class Editor {
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
-    readonly highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
+    readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.signals);
     readonly importer = new ImporterExporter(this);
 
     windowLoaded = false;

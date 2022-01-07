@@ -4,6 +4,11 @@
 
 ### Backlog
 
+- make objectpicker construction more terse  
+- convert selectionmode to bitmap  
+- make all movement pivot changeable  
+- turn on --noimplicitoverride  
+- offset face whilst holding control should show phantoms?  
 - add xor selection modifier  
 - draw diagonal line on box face; can't cut  
 - delete region by hitting x  

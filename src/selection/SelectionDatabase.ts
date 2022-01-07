@@ -99,8 +99,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
     }
 
-    add(items: visual.Item | visual.Item[]) {
-        if (items instanceof visual.Item) items = [items];
+    add(items: Selectable | Selectable[]) {
+        if (!Array.isArray(items)) items = [items];
         for (const item of items) {
             if (item instanceof visual.Solid) {
                 this.addSolid(item);
@@ -108,6 +108,12 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.addCurve(item);
             } else if (item instanceof visual.PlaneInstance) {
                 this.addRegion(item);
+            } else if (item instanceof visual.Face) {
+                this.addFace(item);
+            } else if (item instanceof visual.CurveEdge) {
+                this.addEdge(item);
+            } else if (item instanceof visual.ControlPoint) {
+                this.addControlPoint(item);
             } else throw new Error("invalid type");
         }
     }
@@ -290,9 +296,23 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectRemoved.dispatch(item);
     }
 
-    copy(that: HasSelection) {
+    copy(that: HasSelection, ...modes: SelectionMode[]) {
         const memento = that.saveToMemento();
         this.restoreFromMemento(memento);
+        if (modes.length > 0) {
+            const set = new Set(modes);
+            for (const mode of SelectionModeAll) {
+                if (set.has(mode)) continue;
+                // FIXME: this clearly leaves parentsWithSelectedChildren in an incoherent state
+                switch (mode) {
+                    case SelectionMode.Face: this.faceIds.clear(); break;
+                    case SelectionMode.CurveEdge: this.edgeIds.clear(); break;
+                    case SelectionMode.Curve: this.curveIds.clear();
+                    case SelectionMode.ControlPoint: this.controlPointIds.clear(); break;
+                    case SelectionMode.Solid: this.solidIds.clear(); break;
+                }
+            }
+        }
     }
 
     saveToMemento() {
@@ -382,7 +402,7 @@ export interface HasSelectedAndHovered {
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
     makeTemporary(): SelectionDatabase;
-    copy(that: HasSelectedAndHovered): void;
+    copy(that: HasSelectedAndHovered, ...modes: SelectionMode[]): void;
     signals: EditorSignals;
 }
 
@@ -427,8 +447,8 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals), this.hovered)
     }
 
-    copy(that: HasSelectedAndHovered) {
-        this.selected.copy(that.selected);
-        this.hovered.copy(that.hovered);
+    copy(that: HasSelectedAndHovered, ...modes: SelectionMode[]) {
+        this.selected.copy(that.selected, ...modes);
+        this.hovered.copy(that.hovered, ...modes);
     }
 }

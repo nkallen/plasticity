@@ -23,7 +23,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
-    changeSelection = new ChangeSelectionExecutor(selectionDb, materials, signals);
+    changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
 });
 
 

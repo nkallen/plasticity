@@ -42,4 +42,21 @@ beforeEach(async () => {
     circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 });
 
-test('ok', () => {})
+test('outlineSelection', () => {
+    selection.selected.addSolid(solid);
+    expect([...highlighter.outlineSelection]).toEqual([solid]);
+})
+
+describe('useTemporary', () => {
+    test('it uses a new selection and can be rolled back', () => {
+        selection.selected.addSolid(solid);
+        expect([...highlighter.outlineSelection]).toEqual([solid]);
+    
+        const temp = selection.makeTemporary();
+        const dispose = highlighter.useTemporary(temp);
+        expect([...highlighter.outlineSelection]).toEqual([]);
+    
+        dispose.dispose();
+        expect([...highlighter.outlineSelection]).toEqual([solid]);
+    })
+})

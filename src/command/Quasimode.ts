@@ -10,7 +10,7 @@ export interface EditorLike {
 }
 
 export interface Executable<I, O> {
-    execute(cb: (i: I) => O): CancellablePromise<O>;
+    execute(cb: (i: I) => O, ...args: any[]): CancellablePromise<O>;
 }
 
 export class Quasimode<I> implements Executable<I, void> {
@@ -18,7 +18,7 @@ export class Quasimode<I> implements Executable<I, void> {
 
     }
 
-    execute(cb: (i: I) => any): CancellablePromise<void> {
+    execute(cb: (i: I) => any, ...args: any[]): CancellablePromise<void> {
         const { factory, executable, editor: { registry, signals }, name } = this;
 
         const disposables = new CompositeDisposable();
@@ -29,7 +29,7 @@ export class Quasimode<I> implements Executable<I, void> {
                 const execution = executable.execute(params => {
                     cb(params);
                     signals.quasimodeChanged.dispatch();
-                });
+                }, ...args);
                 disposables.add(new Disposable(() => execution.finish()));
 
                 const stop = registry.addOne(document.body, "command:quasimode:stop", e => {
