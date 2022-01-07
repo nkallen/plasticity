@@ -5,7 +5,7 @@ import { createRef, render } from 'preact';
 
 export default (editor: Editor) => {
     class Dialog extends HTMLElement {
-        private readonly dispose = new CompositeDisposable();
+        private readonly disposable = new CompositeDisposable();
 
         constructor() {
             super();
@@ -19,7 +19,7 @@ export default (editor: Editor) => {
             editor.signals.dialogRemoved.add(this.render);
             editor.signals.factoryUpdateFailed.add(this.onFailure);
             editor.signals.factoryUpdated.add(this.onSuccess);
-            this.dispose.add(new Disposable(() => {
+            this.disposable.add(new Disposable(() => {
                 editor.signals.dialogAdded.remove(this.render);
                 editor.signals.dialogRemoved.remove(this.render);
                 editor.signals.factoryUpdateFailed.remove(this.render);
@@ -29,7 +29,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
-            this.dispose!.dispose();
+            this.disposable.dispose();
         }
 
         render(dialog?: AbstractDialog<any>) {

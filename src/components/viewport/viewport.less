@@ -1,13 +1,3 @@
-ispace-viewport:hover {
-    ispace-toolbar {
-        visibility: visible;
-    }
-
-    ispace-keybindings {
-        visibility: visible;
-    }
-}
-
 ispace-viewport {
     flex: 1;
     display: flex;
@@ -112,6 +102,25 @@ ispace-viewport {
         }
     }
 
+    ispace-viewport-prompt {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translate(-50%, 0);
+        visibility: hidden;
+
+        div[role="alert"] {
+            background-color: rgb(50, 50, 50);
+            padding: 4px;
+            width: 200px;
+    
+            &>.title {
+                font-weight: bold;
+                color: white;
+            }
+        }
+    }
+
     ispace-snap-overlay {
         position: absolute;
         left: 0;
@@ -165,8 +174,18 @@ ispace-viewport {
             stroke-dasharray: 0.006;
         }
     }
-}
 
-ispace-viewport canvas:focus {
-    outline: none;
+    &:hover {
+        ispace-keybindings {
+            visibility: visible;
+        }
+
+        ispace-viewport-prompt {
+            visibility: visible;
+        }
+    }
+
+    canvas:focus {
+        outline: none;
+    }
 }

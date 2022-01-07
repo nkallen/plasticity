@@ -3,6 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
 import { Viewport } from '../components/viewport/Viewport';
+import { Prompt } from "../command/CommandPrompt";
 import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from './GeometryDatabase';
@@ -44,6 +45,8 @@ export class EditorSignals {
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }> = new signals.Signal();
     dialogAdded: signals.Signal<AbstractDialog<any>> = new signals.Signal();
     dialogRemoved: signals.Signal = new signals.Signal();
+    promptAdded: signals.Signal<Prompt> = new signals.Signal();
+    promptRemoved: signals.Signal = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
     selectionModeChanged: signals.Signal<ToggleableSet> = new signals.Signal();

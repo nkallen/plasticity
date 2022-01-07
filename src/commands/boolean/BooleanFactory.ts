@@ -81,7 +81,10 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     get originalItem() {
-        return [this.solid, ...this.tools];
+        let result = [];
+        if (this.solid !== undefined) result.push(this.solid);
+        result = result.concat(this.tools);
+        return result;
     }
 
     get shouldRemoveOriginalItemOnCommit() {

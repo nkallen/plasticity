@@ -184,11 +184,11 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
         }) as CancelableSelectionArray;
     }
 
-    slice(mode: SelectionMode.Face, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<FaceSelection>;
-    slice(mode: SelectionMode.CurveEdge, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<EdgeSelection>;
-    slice(mode: SelectionMode.Solid, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<SolidSelection>;
-    slice(mode: SelectionMode.Curve, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<CurveSelection>;
-    slice(mode: SelectionMode.ControlPoint, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<ControlPointSelection>;
+    slice(mode: SelectionMode.Face, min?: number, max?: number): CancellablePromise<FaceSelection>;
+    slice(mode: SelectionMode.CurveEdge, min?: number, max?: number): CancellablePromise<EdgeSelection>;
+    slice(mode: SelectionMode.Solid, min?: number, max?: number): CancellablePromise<SolidSelection>;
+    slice(mode: SelectionMode.Curve, min?: number, max?: number): CancellablePromise<CurveSelection>;
+    slice(mode: SelectionMode.ControlPoint, min?: number, max?: number): CancellablePromise<ControlPointSelection>;
     slice(mode: SelectionMode, min = 1, max = min): CancelableSelectionArray {
         switch (mode) {
             case SelectionMode.Face: return this.get(mode, min, max, false);
@@ -199,11 +199,11 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
         }
     }
 
-    shift(mode: SelectionMode.Face, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<FaceSelection>;
-    shift(mode: SelectionMode.CurveEdge, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<EdgeSelection>;
-    shift(mode: SelectionMode.Solid, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<SolidSelection>;
-    shift(mode: SelectionMode.Curve, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<CurveSelection>;
-    shift(mode: SelectionMode.ControlPoint, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<ControlPointSelection>;
+    shift(mode: SelectionMode.Face, min?: number, max?: number): CancellablePromise<FaceSelection>;
+    shift(mode: SelectionMode.CurveEdge, min?: number, max?: number): CancellablePromise<EdgeSelection>;
+    shift(mode: SelectionMode.Solid, min?: number, max?: number): CancellablePromise<SolidSelection>;
+    shift(mode: SelectionMode.Curve, min?: number, max?: number): CancellablePromise<CurveSelection>;
+    shift(mode: SelectionMode.ControlPoint, min?: number, max?: number): CancellablePromise<ControlPointSelection>;
     shift(mode: SelectionMode, min = 1, max = min): CancelableSelectionArray {
         switch (mode) {
             case SelectionMode.Face: return this.get(mode, min, max, true);

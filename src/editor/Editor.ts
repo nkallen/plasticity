@@ -180,8 +180,8 @@ export class HotReloadingEditor extends Editor {
         if (module.hot) {
             const editor: CreateMutable<Editor> = this;
 
-            module.hot.accept('../selection/HighlightManager', () => {
-                editor.highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
+            module.hot.accept('../visual_model/RenderedSceneBuilder', () => {
+                editor.highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.signals);
                 editor.highlighter.highlight();
                 this.signals.moduleReloaded.dispatch();
             });

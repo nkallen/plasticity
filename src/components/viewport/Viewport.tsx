@@ -1,4 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { render } from "preact";
 import signals from "signals";
 import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -313,13 +314,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.render(frameNumber);
     }
 
-    outlineSelection() {
+    private outlineSelection() {
         const selection = this.editor.highlighter.outlineSelection;
         const toOutline = [...selection].flatMap(item => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
-    outlineHover() {
+    private outlineHover() {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);
         this.outlinePassHover.selectedObjects = toOutline;

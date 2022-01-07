@@ -8,6 +8,7 @@ import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactor
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
 import { MoveGizmo } from '../translate/MoveGizmo';
+import { Prompt } from "../../command/CommandPrompt";
 
 abstract class BooleanCommand extends Command {
     protected abstract factory: MovingBooleanFactory;
@@ -27,6 +28,7 @@ abstract class BooleanCommand extends Command {
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
+        new Prompt(this.title, "Select target body", editor.signals).execute().resource(this);
         const solids = await objectPicker.shift(SelectionMode.Solid, 1).resource(this);
         factory.solid = [...solids][0];
 
