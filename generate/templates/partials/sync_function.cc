@@ -11,7 +11,7 @@
 <%_ if (func.isStatic) { _%>
 <%- /::/.test(func.rawName) ? func.rawName : '::' + func.cppName %>
 <%_ } else { _%>
-_underlying-><%- func.cppName %>
+_underlying<%- klass.isPOD ? '.' : '->' %><%- func.cppName %>
 <%_ } _%>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>

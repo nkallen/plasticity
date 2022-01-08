@@ -162,7 +162,8 @@ export default {
             ],
             functions: [
                 { signature: "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)", matrix: isReturn },
-                { signature: "void ProjectionRect(const MbPlacement3D & place, MbRect & rect)", rect: isReturn }
+                { signature: "void ProjectionRect(const MbPlacement3D & place, MbRect & rect)", rect: isReturn },
+                "bool Intersect(const MbCube &other, double eps = c3d::MIN_RADIUS)",
             ],
             fields: [
                 "MbCartPoint3D pmin",
@@ -1595,6 +1596,13 @@ export default {
                 "bool IsSurface()",
             ]
         },
+        ShellsDistanceData: {
+            isPOD: true,
+            rawHeader: "topology_faceset.h",
+            functions: [
+                "double GetMinDistanse()"
+            ]
+        },
         SpatialOffsetCurveParams: {
             rawHeader: "op_curve_parameter.h",
             dependencies: ["Vector3D.h", "SNameMaker.h"],
@@ -1696,12 +1704,21 @@ export default {
         },
         Action: {
             rawHeader: "action.h",
-            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h", "Face.h", "Cube.h"],
+            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h", "Face.h", "Cube.h", "ShellsDistanceData.h"],
             functions: [
+                {
+                    signature: "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & names)",
+                    jsName: "IsSolidsIntersectionFast",
+                },
                 {
                     signature: "bool IsSolidsIntersection(const MbSolid & solid1, const MbMatrix3D & matr1, const MbSolid & solid2, const MbMatrix3D & matr2, bool checkTangent, bool getIntersectionSolids, bool checkTouchPoints, RPArray<MbShellsIntersectionData> & intData)",
                     intData: isReturn,
                     return: { name: "isIntersection" },
+                },
+                {
+                    signature: "bool MinimumSolidsDistance(const MbSolid & solid1, const MbMatrix3D & matr1, bool isMultipleUseSolid1, const MbSolid & solid2, const MbMatrix3D & matr2, bool isMultipleUseSolid2, double lowerLimitDistance, bool tillFirstLowerLimit, std::vector<MbShellsDistanceData> & shellsDistanceData)",
+                    shellsDistanceData: isReturn,
+                    return: { name: "hasDistance" },
                 },
                 // {
                 //     signature: "bool FindTouchedFaces(const MbSolid & solid1, const MbSolid & solid2, double precision, c3d::IndicesPairsVector & facesNumbers)",

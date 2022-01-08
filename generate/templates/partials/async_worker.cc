@@ -1,7 +1,7 @@
 <%_ for (const func of klass.functions) { _%>
     <%_ if (func.isManual) continue _%>
     <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker(
-        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
+        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %> _underlying,<% } _%>
         Napi::Promise::Deferred const &d
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>,
@@ -32,7 +32,7 @@
 
         <%- func.before %>
         <% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
-        <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.rawName %>(
+        <%_ if (!func.isStatic) { _%>_underlying<%- klass.isPOD ? '.' : '->' %><% } else { _%>::<%_ } _%><%- func.rawName %>(
         <%_ for (const arg of func.params) { _%>
             <% if (arg.isCppString2CString) { _%>
             <%- arg.name %>, <%- arg.name %>_length

@@ -4,7 +4,7 @@
   class <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker : public PromiseWorker {
       public:
           <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker(
-            <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
+            <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %> _underlying,<% } _%>
             Napi::Promise::Deferred const &d<%_ _%>
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
@@ -24,7 +24,7 @@
           void Reject(Napi::Promise::Deferred const &deferred, Napi::Error const &error) override;
 
       private:
-        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying;<% } _%>
+        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %> _underlying;<% } _%>
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>
             <% if (arg.isCppString2CString) { _%>

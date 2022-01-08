@@ -229,27 +229,30 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         this.bool.isSurface = isSurface;
     }
 
-    protected async beforeCalculate() {
+    protected async beforeCalculate(fast = false) {
         const phantom = await this.fantom.calculate() as c3d.Solid;
+        let isOverlapping, isSurface;
         if (this.target === undefined) {
-            this.isOverlapping = false;
-            this.isSurface = false;
+            isOverlapping = false;
+            isSurface = false;
         } else {
-            // TODO: use MinimumSolidsDistance which is faster
-            const { isIntersection, intData } = await c3d.Action.IsSolidsIntersection_async(this.model!, new c3d.Matrix3D(), phantom, new c3d.Matrix3D(), true, false, false);
-            this.isOverlapping = isIntersection;
-            if (intData.length === 0) {
-                this.isSurface = false;
+            const cube1 = this.model!.GetCube();
+            const cube2 = phantom.GetCube();
+            if (!cube1.Intersect(cube2)) {
+                isOverlapping = false;
+                isSurface = false;
             } else {
-                this.isSurface = intData[0].IsSurface() && !intData[0].IsSolid();
+                isOverlapping = await c3d.Action.IsSolidsIntersectionFast_async(this.model!, phantom, new c3d.SNameMaker(0, c3d.ESides.SideNone, 0));
+                isSurface = false;
             }
         }
-        return phantom;
+        return { phantom, isOverlapping, isSurface };
     }
 
     async calculate() {
-        const phantom = await this.beforeCalculate();
-        if (this.isOverlapping && !this.newBody) {
+        const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
+        this.isOverlapping = isOverlapping; this.isSurface = isSurface;
+        if (isOverlapping && !this.newBody) {
             this.bool.operationType = this.operationType;
             this.bool.tool = phantom;
             const result = await this.bool.calculate() as c3d.Solid;
@@ -260,12 +263,13 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        const phantom = await this.beforeCalculate();
+        const phantom = await this.fantom.calculate() as c3d.Solid;
+        const isOverlapping = this.isOverlapping;
 
         if (this.target === undefined) return [];
         if (this.newBody) return [];
         if (this.operationType === c3d.OperationType.Union) return [];
-        if (!this.isOverlapping) return [];
+        if (!isOverlapping) return [];
 
         let material: MaterialOverride
         if (this.operationType === c3d.OperationType.Difference) material = phantom_red;

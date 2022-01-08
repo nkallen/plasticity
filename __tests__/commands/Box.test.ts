@@ -152,7 +152,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 
         })
 
-        test('when projecting out, union', async () => {
+        test.skip('when projecting out, union', async () => {
             const makeBox2 = new PossiblyBooleanCornerBoxFactory(db, materials, signals);
             makeBox2.target = box;
             makeBox2.p1 = new THREE.Vector3(1, 0, 0);

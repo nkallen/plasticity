@@ -313,7 +313,7 @@ class TypeDeclaration {
     }
 
     get isArray() {
-        return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
+        return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType) || /std::vector/.test(this.rawType);
     }
 
     get isSPtr() {
@@ -335,6 +335,10 @@ class TypeDeclaration {
 
     get isIterator() {
         return /LIterator/.test(this.rawType);
+    }
+
+    get isVector() {
+        return /std::vector/.test(this.rawType);
     }
 
     get isPrimitive() {

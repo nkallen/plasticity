@@ -277,11 +277,11 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 if (state.hasNext) console.warn("Dropping job because of latency");
                 if (state.step === 'phantoms-completed') {
                     state.step = 'begin';
-                    const phantoms = this.doPhantoms(abortEarly);
-                    phantoms.then(() => {
-                        if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
-                        else state.step = 'all-completed';
-                    }, () => { });
+                    c3d.Mutex.EnterParallelRegion();
+                    await this.doPhantoms(abortEarly);
+                    c3d.Mutex.ExitParallelRegion();
+                    if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
+                    else state.step = 'all-completed';
                 }
 
                 state.hasNext = true;

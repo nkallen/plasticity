@@ -248,6 +248,8 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Abstra
 
     @delegate.get center!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
+
+    get defaultOperationType() { return this.bool.defaultOperationType }
 }
 
 export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
