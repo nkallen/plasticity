@@ -7,9 +7,11 @@ import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { zip } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 
+type SubStep = 'begin' | 'phantoms-completed' | 'calculate-completed' | 'all-completed';
+
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
-    | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> }
+    | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any>, step: SubStep }
     | { tag: 'failed', error: any, last?: Map<string, any> }
     | { tag: 'cancelled' }
     | { tag: 'committed' }
@@ -186,6 +188,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         } finally {
             await Promise.resolve(); // This removes flickering when rendering. // FIXME: is that still true?
             this.cleanupTemps();
+            this.cleanupPhantoms();
             for (const i of this.originalItems) i.visible = true;
         }
     }
@@ -236,17 +239,27 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {
     async update() {
+        const abortEarly = () => this.done;
+
         switch (this.state.tag) {
             case 'none':
             case 'failed':
-            case 'updated':
-                this.state = { tag: 'updating', hasNext: false, last: this.state.last };
+            case 'updated': {
+                const state: State = { tag: 'updating', hasNext: false, last: this.state.last, step: 'begin' };
+                this.state = state;
                 c3d.Mutex.EnterParallelRegion();
                 let before = this.saveState();
-                const abortEarly = () => this.done;
                 try {
                     const phantoms = this.doPhantoms(abortEarly);
                     const temps = this.doUpdate(abortEarly);
+                    phantoms.then(() => {
+                        if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
+                        else state.step = 'all-completed';
+                    }, () => { });
+                    temps.then(() => {
+                        if (state.step === 'begin') state.step = 'calculate-completed';
+                        else state.step = 'all-completed';
+                    }, () => { });
                     await Promise.all([phantoms, temps]);
                     // @ts-expect-error
                     if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
@@ -258,10 +271,20 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     await this.continueUpdatingIfMoreWork(before);
                 }
                 break;
+            }
             case 'updating':
-                if (this.state.hasNext) console.warn("Dropping job because of latency");
+                const state = this.state;
+                if (state.hasNext) console.warn("Dropping job because of latency");
+                if (state.step === 'phantoms-completed') {
+                    state.step = 'begin';
+                    const phantoms = this.doPhantoms(abortEarly);
+                    phantoms.then(() => {
+                        if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
+                        else state.step = 'all-completed';
+                    }, () => { });
+                }
 
-                this.state.hasNext = true;
+                state.hasNext = true;
                 break;
             default:
                 throw new Error('invalid state: ' + this.state.tag);

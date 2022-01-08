@@ -20,6 +20,13 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
 })
 
+let sphere: c3d.Solid;
+beforeEach(async () => {
+    const makeSphere = new SphereFactory(db, materials, signals);
+    makeSphere.center = new THREE.Vector3(2);
+    makeSphere.radius = 1;
+    sphere = await makeSphere.calculate() as c3d.Solid;
+})
 class ReplacingFactory extends AbstractGeometryFactory {
     from!: visual.Solid[]
     to!: c3d.Solid[]
@@ -286,8 +293,8 @@ describe(GeometryFactory, () => {
     test("it keeps going if there's an exception", async () => {
         const first = factory.update();
         factory.update();
-        calcDelay1.reject("error"); calcDelay2.resolve();
-        phantDelay1.reject("error"); phantDelay2.resolve();
+        calcDelay1.reject("error"); phantDelay1.resolve();
+        calcDelay2.resolve(); phantDelay2.resolve();
         await first;
         expect(factory.updateCount).toBe(2);
     });
@@ -378,10 +385,55 @@ describe(GeometryFactory, () => {
         expect(factory.updateCount).toBe(1);
     });
 
+    test("in case of an erroring phantom, it keeps going", async () => {
+        const first = factory.update();
+        factory.update();
+        calcDelay1.resolve(); phantDelay1.reject();
+        calcDelay2.resolve(); phantDelay2.resolve();
+        await first;
+        expect(factory.updateCount).toBe(2);
+    });
+
+    test("phantoms create a temporary object", async () => {
+        const first = factory.update();
+        calcDelay1.resolve(); phantDelay1.resolve();
+        await first;
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.phantomObjects.children.length).toBe(1);
+    });
+
+
+    test("in case of a long update and a fast phantom", async () => {
+        const show = jest.fn(), cancel = jest.fn();
+        jest.spyOn(db, 'addTemporaryItem').mockImplementation(() => {
+            return Promise.resolve({ show, cancel, underlying: new THREE.Object3D } as unknown as TemporaryObject);
+        })
+
+        phantDelay1.resolve();
+        const first = factory.update();
+
+        phantDelay2.resolve();
+        const second = factory.update();
+
+        phantDelay3.resolve();
+        const third = factory.update();
+
+        calcDelay1.resolve(); calcDelay2.resolve(); calcDelay3.resolve();
+        await first;
+        await second;
+        await third;
+
+        expect(show).toBeCalledTimes(4);
+        expect(cancel).toBeCalledTimes(2);
+    });
+
     test("in case of long update and cancel", async () => {
         const first = factory.update();
         calcDelay1.resolve(); phantDelay1.resolve();
         await first;
+
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.phantomObjects.children.length).toBe(1);
 
         const second = factory.update();
         factory.cancel();
@@ -389,6 +441,7 @@ describe(GeometryFactory, () => {
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.phantomObjects.children.length).toBe(0);
     });
 
     test("in case of long update and commit", async () => {
@@ -396,16 +449,23 @@ describe(GeometryFactory, () => {
         calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.phantomObjects.children.length).toBe(1);
+
         const second = factory.update();
 
         const third = factory.commit();
         calcDelay3.resolve(); phantDelay3.resolve();
         await third;
 
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.phantomObjects.children.length).toBe(0);
+
         calcDelay2.resolve(); phantDelay2.resolve();
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.phantomObjects.children.length).toBe(0);
     });
 
     test("in case of long update and long temporary object rendering AND commit", async () => {
@@ -443,15 +503,22 @@ describe(GeometryFactory, () => {
         calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.phantomObjects.children.length).toBe(1);
+
         const second = factory.update();
 
         const third = factory.commit();
         calcDelay3.resolve(); phantDelay3.resolve();
         await third;
 
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.phantomObjects.children.length).toBe(0);
+
         calcDelay2.reject("failure"); phantDelay2.resolve();
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.phantomObjects.children.length).toBe(0);
     });
 })
