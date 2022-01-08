@@ -36,8 +36,6 @@ export class BasicMeshCreator implements MeshCreator {
     }
 }
 
-// This is an EXPERIMENTAL mesh creator with parallelism for solids. It is often significantly faster -- and surprisingly,
-// it is never slower, even with simple solids of 3 faces. But it needs to be fully tested.
 export class ParallelMeshCreator implements MeshCreator {
     private readonly fallback = new BasicMeshCreator();
 
@@ -55,7 +53,7 @@ export class ParallelMeshCreator implements MeshCreator {
         const mesh = new c3d.Mesh(false);
         for (const face of solid.GetFaces()) {
             const grid = mesh.AddGrid()!;
-            // face.AttributesConvert(grid); // FIXME: -- losing attributes like style without this
+            face.AttributesConvert(grid);
             grid.SetItem(face);
             grid.SetPrimitiveName(face.GetNameHash());
             grid.SetPrimitiveType(c3d.RefType.TopItem);

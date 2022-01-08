@@ -41,7 +41,7 @@
                         "copies": [
                             {
                                 "destination": "<(module_root_dir)/build/Release/",
-                                "files": ["<(module_root_dir)/vendor/c3d/Release/libc3d.dylib"]
+                                "files": ["<(module_root_dir)/vendor/c3d/Debug/libc3d.dylib"]
                             }
                         ]
                     }

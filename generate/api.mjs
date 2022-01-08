@@ -30,10 +30,11 @@ export default {
         },
         AttributeContainer: {
             rawHeader: "attribute_container.h",
+            dependencies: ["Grid.h"],
             functions: [
                 "void SetStyle(int s)",
                 "int GetStyle()",
-                "void AttributesConvert(MbAttributeContainer & other)",
+                "void AttributesConvert(MbGrid & other)", // NOTE: this is a hack to support face.AttributesConvert(grid)
             ],
         },
         SpaceItem: {
