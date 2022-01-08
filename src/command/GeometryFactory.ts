@@ -71,78 +71,87 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     ) { super() }
 
     protected temps: TemporaryObject[] = [];
+    private phants: TemporaryObject[] = [];
 
-    protected async doUpdate(options?: any): Promise<TemporaryObject[]> {
-        const promises = [];
+    protected async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
+        const infos = await this.calculatePhantoms();
+        if (abortEarly()) return Promise.resolve([]);
 
-        // 0. Make sure original items are visible if we're not going to remove them
-        if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems)
-            i.visible = true;
+        const promises: Promise<TemporaryObject>[] = [];
+        for (const { phantom, material } of infos) {
+            promises.push(this.db.addPhantom(phantom, material));
+        }
+        const phantoms = await Promise.all(promises);
+        this.cleanupPhantoms();
 
-        // 1. Asynchronously compute the geometry
+        if (abortEarly()) {
+            for (const p of phantoms) p.cancel();
+            return Promise.resolve([]);
+        }
+
+        return this.phants = this.showTemps(phantoms);
+    }
+
+    async doUpdate(abortEarly: () => boolean, options?: any): Promise<TemporaryObject[]> {
+        const temps: Promise<TemporaryObject>[] = [];
+
+        // 1. Make sure original items are visible if we're not going to remove them
+        if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems) i.visible = true;
+
+        // 2. Asynchronously compute the geometry
         let result;
         try {
             performance.mark('begin-factory-calculate');
             result = await this.calculate(options);
         } catch (e) {
-            if (e instanceof ValidationError) this.cleanupTempsOnFinishOrCancel();
+            if (e instanceof ValidationError) this.cleanupTemps();
+            this.signals.factoryUpdated.dispatch();
             throw e;
         } finally {
             performance.measure('factory-calculate', 'begin-factory-calculate');
         }
-        if (this.state.tag === 'cancelled' || this.state.tag === 'committed') return Promise.resolve([]);
+        if (abortEarly()) {
+            return Promise.resolve([]);
+        }
 
-        // 2. Asynchronously compute the mesh for temporary items.
+        // 3. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
         const zipped = this.zip(this.originalItems, geometries, this.shouldHideOriginalItemDuringUpdate);
 
         for (const [from, to] of zipped) {
             if (from === undefined) {
-                promises.push(this.db.addTemporaryItem(to!));
+                temps.push(this.db.addTemporaryItem(to!));
             } else if (to === undefined) {
                 from.visible = false;
             } else {
-                promises.push(this.db.replaceWithTemporaryItem(from, to));
+                temps.push(this.db.replaceWithTemporaryItem(from, to));
             }
         }
 
-        this.addPhantoms(promises);
-
-        // 3. When all async work is complete, we can safely show/hide items to the user;
+        // 4. When all async work is complete, we can safely show/hide items to the user;
         // The specific order of operations is designed to avoid any flicker: compute
         // everything async, then sync show/hide objects when all data is ready.
-        const finished = await Promise.all(promises);
+        const finished = await Promise.all(temps);
 
-        // 3.a. remove any previous temporary items.
-        for (const temp of this.temps) temp.cancel();
+        // 4.a. remove any previous temporary items.
+        this.cleanupTemps();
 
-        // @ts-expect-error('cancelled is a possible state because the user may have cancelled during an async operation')
-        if (this.state.tag === 'cancelled' || this.state.tag === 'committed') {
+        if (abortEarly()) {
             for (const p of finished) p.cancel();
             return Promise.resolve([]);
         }
 
-        // 3.c. show the newly created temporary items.
-        return this.showTemps(finished);
-    }
-
-    protected addPhantoms(into: Promise<TemporaryObject>[]) {
-        for (const { phantom, material } of this.phantoms) {
-            into.push(this.db.addPhantom(phantom, material));
-        }
+        // 4.b. show the newly created temporary items.
+        return this.temps = this.showTemps(finished);
     }
 
     protected showTemps(finished: TemporaryObject[]) {
-        const temps = [];
-        for (const p of finished) {
-            const temp = p;
+        for (const temp of finished) {
             temp.show();
             temp.underlying.updateMatrixWorld();
-            temps.push(temp);
         }
-        this.temps = temps;
 
-        return this.temps;
+        return finished;
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
@@ -175,15 +184,20 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             const result = await Promise.all(promises);
             return dearray(result, unarray);
         } finally {
-            await Promise.resolve(); // This removes flickering when rendering. // FIXME is that still true?
+            await Promise.resolve(); // This removes flickering when rendering. // FIXME: is that still true?
+            this.cleanupTemps();
             for (const i of this.originalItems) i.visible = true;
-            this.cleanupTempsOnFinishOrCancel();
         }
     }
 
-    protected cleanupTempsOnFinishOrCancel() {
+    protected cleanupTemps() {
         for (const temp of this.temps) temp.cancel();
         this.temps = [];
+    }
+
+    private cleanupPhantoms() {
+        for (const phantom of this.phants) phantom.cancel();
+        this.phants = [];
     }
 
     private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
@@ -194,28 +208,27 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         }
     }
 
-    protected doCancel(): void {
+    doCancel(): void {
         this.refresh();
+        this.cleanupTemps();
+        this.cleanupPhantoms();
     }
 
     refresh() {
         for (const i of this.originalItems) i.visible = true;
-        this.cleanupTempsOnFinishOrCancel();
     }
 
     calculate(options?: any): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
-    protected get phantoms(): PhantomInfo[] { return [] }
+    calculatePhantoms(): Promise<PhantomInfo[]> { return Promise.resolve([]) }
+
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
-    private get originalItems() {
-        return toArray(this.originalItem);
-    }
+    private get originalItems() { return toArray(this.originalItem) }
     protected get shouldRemoveOriginalItemOnCommit() { return true }
     protected get shouldHideOriginalItemDuringUpdate() { return this.shouldRemoveOriginalItemOnCommit }
 
-    async update(): Promise<void> { await this.doUpdate() }
+    async update(): Promise<void> { await this.doUpdate(() => false) }
     async commit(): Promise<visual.Item | visual.Item[]> { return this.doCommit() }
     cancel() { this.doCancel() }
-
     // NOTE: All factories should be explicitly commit or cancel.
     finish() { }
     interrupt() { }
@@ -230,8 +243,11 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 this.state = { tag: 'updating', hasNext: false, last: this.state.last };
                 c3d.Mutex.EnterParallelRegion();
                 let before = this.saveState();
+                const abortEarly = () => this.done;
                 try {
-                    await this.doUpdate();
+                    const phantoms = this.doPhantoms(abortEarly);
+                    const temps = this.doUpdate(abortEarly);
+                    await Promise.all([phantoms, temps]);
                     // @ts-expect-error
                     if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
                 } catch (e) {
@@ -244,11 +260,16 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 break;
             case 'updating':
                 if (this.state.hasNext) console.warn("Dropping job because of latency");
+
                 this.state.hasNext = true;
                 break;
             default:
                 throw new Error('invalid state: ' + this.state.tag);
         }
+    }
+
+    get done() {
+        return this.state.tag === 'cancelled' || this.state.tag === 'committed';
     }
 
     // If another update() job was "enqueued" while still doing the previous one, do that too
@@ -388,6 +409,10 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     protected get keys(): string[] {
         return [];
     }
+
+    // NOTE: All factories should be explicitly commit or cancel.
+    finish() { }
+    interrupt() { }
 }
 
 function toArray<T>(x: T | T[] | undefined): T[] {

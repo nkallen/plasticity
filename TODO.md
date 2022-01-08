@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- creating sphere 2nd point on vertical z axis errors  
 - make objectpicker construction more terse  
 - convert selectionmode to bitmap  
 - make all movement pivot changeable  

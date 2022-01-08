@@ -1,14 +1,14 @@
-import { GeometryFactory, AbstractGeometryFactory, ValidationError } from "../../src/command/GeometryFactory";
+import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
+import { AbstractGeometryFactory, GeometryFactory, PhantomInfo, ValidationError } from "../../src/command/GeometryFactory";
+import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase, TemporaryObject } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { Delay } from "../../src/util/SequentialExecutor";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
-import c3d from '../../build/Release/c3d.node';
-import SphereFactory from "../../src/commands/sphere/SphereFactory";
-import * as THREE from "three";
-import { Delay } from "../../src/util/SequentialExecutor";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -39,7 +39,7 @@ describe(AbstractGeometryFactory, () => {
     let replacement1: c3d.Solid;
     let replacement2: c3d.Solid;
 
-    describe('commit', () => {
+    describe('doCommit', () => {
         beforeEach(async () => {
             const makeSphere1 = new SphereFactory(db, materials, signals);
             makeSphere1.center = new THREE.Vector3();
@@ -225,14 +225,25 @@ describe(AbstractGeometryFactory, () => {
 
 class FakeFactory extends GeometryFactory {
     updateCount = 0;
-    promises: Promise<void>[] = [];
+    calcPromises: Promise<void>[] = [];
+    phantPromises: Promise<void>[] = [];
 
     get keys() { return ['revertOnError'] }
 
     revertOnError = 0;
 
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        await this.phantPromises[this.updateCount];
+
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(2);
+        makeSphere.radius = 1;
+        const phantom = await makeSphere.calculate();
+        return [{ phantom, material: {} }]
+    }
+
     async calculate() {
-        await this.promises[this.updateCount++];
+        await this.calcPromises[this.updateCount++];
 
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(2);
@@ -241,20 +252,21 @@ class FakeFactory extends GeometryFactory {
     }
 }
 
-type Resolver = (value: void | PromiseLike<void>) => void;
-
 describe(GeometryFactory, () => {
     let factory: FakeFactory;
-    let delay1: Delay<void>;
-    let delay2: Delay<void>
-    let delay3: Delay<void>
+    let calcDelay1: Delay<void>;
+    let calcDelay2: Delay<void>
+    let calcDelay3: Delay<void>
+    let phantDelay1: Delay<void>;
+    let phantDelay2: Delay<void>
+    let phantDelay3: Delay<void>
 
     beforeEach(() => {
         factory = new FakeFactory(db, materials, signals);
-        delay1 = new Delay();
-        delay2 = new Delay();
-        delay3 = new Delay();
-        factory.promises.push(delay1.promise, delay2.promise, delay3.promise);
+        calcDelay1 = new Delay(); calcDelay2 = new Delay(); calcDelay3 = new Delay();
+        phantDelay1 = new Delay(); phantDelay2 = new Delay(); phantDelay3 = new Delay();
+        factory.calcPromises.push(calcDelay1.promise, calcDelay2.promise, calcDelay3.promise);
+        factory.phantPromises.push(phantDelay1.promise, phantDelay2.promise, phantDelay3.promise);
     })
 
     test('does not enqueue multiple updates', async () => {
@@ -265,7 +277,8 @@ describe(GeometryFactory, () => {
         factory.update();
         factory.update();
         factory.update();
-        delay1.resolve(); delay2.resolve();
+        calcDelay1.resolve(); calcDelay2.resolve();
+        phantDelay1.resolve(); phantDelay2.resolve();
         await first;
         expect(factory.updateCount).toBe(2);
     });
@@ -273,18 +286,19 @@ describe(GeometryFactory, () => {
     test("it keeps going if there's an exception", async () => {
         const first = factory.update();
         factory.update();
-        delay1.reject("error"); delay2.resolve();
+        calcDelay1.reject("error"); calcDelay2.resolve();
+        phantDelay1.reject("error"); phantDelay2.resolve();
         await first;
         expect(factory.updateCount).toBe(2);
     });
 
     test("works serially", async () => {
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         const second = factory.update();
-        delay2.resolve();
+        calcDelay2.resolve(); phantDelay2.resolve();
         await second;
 
         expect(factory.updateCount).toBe(2);
@@ -293,13 +307,13 @@ describe(GeometryFactory, () => {
     test("in case of error, it reverts to last successful parameter & updates", async () => {
         factory.revertOnError = 1;
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         factory.revertOnError = 2;
         const second = factory.update();
-        delay2.reject("error");
-        delay3.resolve();
+        calcDelay2.reject("error"); phantDelay2.resolve();
+        calcDelay3.resolve(); phantDelay3.resolve();
         await second;
 
         expect(factory.revertOnError).toBe(1);
@@ -309,14 +323,14 @@ describe(GeometryFactory, () => {
     test("in case of error and cancel, it will not re-update", async () => {
         factory.revertOnError = 1;
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         factory.revertOnError = 2;
         const second = factory.update();
         factory.cancel();
-        delay2.reject("error");
-        delay3.resolve();
+        calcDelay2.reject("error"); phantDelay2.resolve();
+        calcDelay3.resolve();
         await second;
 
         expect(factory.revertOnError).toBe(2);
@@ -326,7 +340,7 @@ describe(GeometryFactory, () => {
     test("in case of error and new update, it will not revert the value", async () => {
         factory.revertOnError = 1;
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         factory.revertOnError = 2;
@@ -335,8 +349,8 @@ describe(GeometryFactory, () => {
         factory.revertOnError = 3;
         const third = factory.update();
 
-        delay2.reject("error");
-        delay3.resolve();
+        calcDelay2.reject("error"); phantDelay1.resolve();
+        calcDelay3.resolve(); phantDelay3.resolve();
         await second;
 
         await third;
@@ -347,7 +361,7 @@ describe(GeometryFactory, () => {
 
     test("update swallows validation errors", async () => {
         const first = factory.update();
-        delay1.reject(new ValidationError());
+        calcDelay1.reject(new ValidationError()); phantDelay1.resolve();
         await expect(first).resolves.not.toThrow();
 
         expect(factory.updateCount).toBe(1);
@@ -358,7 +372,7 @@ describe(GeometryFactory, () => {
         const c3dErr = new Error();
         // @ts-expect-error
         c3dErr.isC3dError = true;
-        delay1.reject(c3dErr);
+        calcDelay1.reject(c3dErr);
         await expect(first).resolves.not.toThrow();
 
         expect(factory.updateCount).toBe(1);
@@ -366,12 +380,12 @@ describe(GeometryFactory, () => {
 
     test("in case of long update and cancel", async () => {
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         const second = factory.update();
         factory.cancel();
-        delay2.resolve();
+        calcDelay2.resolve(); phantDelay2.resolve();
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
@@ -379,16 +393,16 @@ describe(GeometryFactory, () => {
 
     test("in case of long update and commit", async () => {
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         const second = factory.update();
 
         const third = factory.commit();
-        delay3.resolve();
+        calcDelay3.resolve(); phantDelay3.resolve();
         await third;
 
-        delay2.resolve();
+        calcDelay2.resolve(); phantDelay2.resolve();
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
@@ -396,20 +410,20 @@ describe(GeometryFactory, () => {
 
     test("in case of long update and long temporary object rendering AND commit", async () => {
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         const second = factory.update();
 
         const delay4 = new Delay<TemporaryObject>();
-        jest.spyOn(db, 'addTemporaryItem').mockImplementation(() => {
+        jest.spyOn(db, 'addTemporaryItem').mockImplementationOnce(() => {
             return delay4.promise;
         });
 
-        delay2.resolve();
+        calcDelay2.resolve(); phantDelay2.resolve();
 
         const third = factory.commit();
-        delay3.resolve();
+        calcDelay3.resolve(); phantDelay3.resolve();
         await third;
 
         const show = jest.fn();
@@ -426,16 +440,16 @@ describe(GeometryFactory, () => {
 
     test("in case of long update that errors and commit", async () => {
         const first = factory.update();
-        delay1.resolve();
+        calcDelay1.resolve(); phantDelay1.resolve();
         await first;
 
         const second = factory.update();
 
         const third = factory.commit();
-        delay3.resolve();
+        calcDelay3.resolve(); phantDelay3.resolve();
         await third;
 
-        delay2.reject("failure");
+        calcDelay2.reject("failure"); phantDelay2.resolve();
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);

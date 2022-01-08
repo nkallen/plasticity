@@ -12,7 +12,7 @@ export class CylinderCommand extends Command {
         const cylinder = new PossiblyBooleanCylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0)
-            cylinder.solid = selection.solids.first;
+            cylinder.target = selection.solids.first;
 
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         let pointPicker = new PointPicker(this.editor);

@@ -36,7 +36,7 @@ describe(IntersectionFactory, () => {
             makeSphere.radius = 1;
             const sphere2 = await makeSphere.commit() as visual.Solid;
 
-            intersect.solid = sphere1;
+            intersect.target = sphere1;
             intersect.tools = [sphere2];
             const intersection = await intersect.commit();
             expect(intersection).toHaveCentroidNear(new THREE.Vector3(0, 0, 0));

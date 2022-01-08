@@ -117,7 +117,7 @@ describe(FaceExtrudeFactory, () => {
 
     test('faces automatically set the boolean operation type based on direction', async () => {
         extrude.face = box.faces.get(1);
-        extrude.solid = box;
+        extrude.target = box;
         extrude.distance1 = 0.2;
         expect(extrude.operationType).toBe(c3d.OperationType.Union);
         extrude.distance1 = -0.2;
@@ -171,7 +171,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         });
 
         test('basic union', async () => {
-            extrude.solid = sphere;
+            extrude.target = sphere;
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Union;
@@ -188,7 +188,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         })
 
         test('newBody=true', async () => {
-            extrude.solid = sphere;
+            extrude.target = sphere;
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.newBody = true;
@@ -222,7 +222,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         })
 
         test('basic difference', async () => {
-            extrude.solid = sphere;
+            extrude.target = sphere;
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Difference;
@@ -240,12 +240,12 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         
         describe('phantom', () => {
             test('basic difference', async () => {
-                extrude.solid = sphere;
+                extrude.target = sphere;
                 extrude.distance1 = 0;
                 extrude.distance2 = 1.5;
                 extrude.operationType = c3d.OperationType.Difference;
                 await extrude.calculate();
-                const phantoms = extrude.phantoms;
+                const phantoms = await extrude.calculatePhantoms();
                 const { phantom } = phantoms[0];
                 const result = await db.addItem(phantom);
     
@@ -279,7 +279,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         });
 
         test('face direction positive is union', async () => {
-            extrude.solid = box;
+            extrude.target = box;
             extrude.distance1 = 0.2;
             const result = await extrude.commit() as visual.SpaceItem;
 
@@ -292,7 +292,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         });
 
         test('face direction negative is difference', async () => {
-            extrude.solid = box;
+            extrude.target = box;
             extrude.distance1 = -0.2;
             const result = await extrude.commit() as visual.SpaceItem;
 

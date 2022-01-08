@@ -61,7 +61,7 @@ function ExtrudeFactory(editor: EditorLike) {
         const phantom = new FaceExtrudeFactory(db, materials, signals);
         factory.face = phantom.face = face;
         const bool = new PossiblyBooleanExtrudeFactory(factory, phantom);
-        bool.solid = face.parentItem;
+        bool.target = face.parentItem;
         factories.push(bool);
     }
     if (selected.curves.size > 0) {
@@ -71,6 +71,6 @@ function ExtrudeFactory(editor: EditorLike) {
         factories.push(new PossiblyBooleanExtrudeFactory(factory, phantom));
     }
     const extrude = new MultiExtrudeFactory(factories)
-    if (selected.solids.size > 0) extrude.solid = selected.solids.first;
+    if (selected.solids.size > 0) extrude.target = selected.solids.first;
     return extrude;
 }

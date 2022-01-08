@@ -107,8 +107,8 @@ export class SymmetryFactory extends GeometryFactory {
 
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
-    async calculate() {
-        const { shouldCut, shouldUnion, model, origin, quaternion, names } = this;
+    async beforeCalculate() {
+        const { shouldCut, model, origin, quaternion, names } = this;
 
         const { X, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
@@ -119,7 +119,6 @@ export class SymmetryFactory extends GeometryFactory {
         const placement = new c3d.Placement3D(point2point(origin), z, x, false);
 
         const { params } = this.shellCuttingParams;
-        const mergeFlags = new c3d.MergingFlags(true, true);
         
         let original = model;
         let cutAndMirrored = model
@@ -131,7 +130,16 @@ export class SymmetryFactory extends GeometryFactory {
             } catch { }
         }
         cutAndMirrored = await c3d.ActionSolid.MirrorSolid_async(cutAndMirrored, placement, names);
-        this._phantom = cutAndMirrored;
+
+        return { cutAndMirrored, cut: original, placement };
+    }
+
+    async calculate() {
+        const { shouldCut, shouldUnion, model, names } = this;
+
+        const { cutAndMirrored, cut, placement } = await this.beforeCalculate();
+
+        const mergeFlags = new c3d.MergingFlags(true, true);
 
         if (shouldCut && shouldUnion) {
             try {
@@ -143,21 +151,19 @@ export class SymmetryFactory extends GeometryFactory {
             }
         } else {
             if (!shouldCut && !shouldUnion) return [cutAndMirrored]; // actually, its just mirrored in this case
-            else if (shouldCut && !shouldUnion) return [original, cutAndMirrored];
+            else if (shouldCut && !shouldUnion) return [cut, cutAndMirrored];
             else if (!shouldCut && shouldUnion) {
-                const { result: unioned } = await c3d.ActionSolid.UnionResult_async(cutAndMirrored, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
+                const { result: unioned } = await c3d.ActionSolid.UnionResult_async(cutAndMirrored, c3d.CopyMode.Copy, [cut], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 return [unioned];
             }
             throw new Error("unreachable");
         }
     }
 
-    private _phantom!: c3d.Solid;
-
-    get phantoms(): PhantomInfo[] {
-        const phantom = this._phantom;
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        const { cutAndMirrored } = await this.beforeCalculate();
         const material = phantom_blue;
-        return [{ phantom, material }];
+        return [{ phantom: cutAndMirrored, material }];
     }
 
     get shouldHideOriginalItemDuringUpdate(): boolean {
@@ -170,7 +176,7 @@ export class SymmetryFactory extends GeometryFactory {
 
     private temp?: TemporaryObject;
 
-    async doUpdate() {
+    async doUpdate(abortEarly: () => boolean) {
         const { solid, model } = this;
 
         return this.db.optimization(solid, async () => {
@@ -199,7 +205,7 @@ export class SymmetryFactory extends GeometryFactory {
                 this.temp?.cancel();
                 return [];
             }
-        }, () => super.doUpdate());
+        }, () => super.doUpdate(abortEarly));
     }
 
     get shellCuttingParams() {

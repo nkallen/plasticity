@@ -44,7 +44,8 @@
 
     // Uncomment to get maya-style orbit/pan.
     "orbit-controls": {
-        // "alt-mouse0": "orbit:rotate",
+        "mouse1": "orbit:pan",
+        "shift-mouse1": "orbit:rotate",
         // "alt-mouse1": "orbit:pan",
         // "alt-mouse2": "orbit:dolly"
     }

@@ -15,6 +15,8 @@ export interface CutParams {
 
 type CutMode = { tag: 'contour', contour: c3d.Contour, placement: c3d.Placement3D, info?: { Z: THREE.Vector3 } } | { tag: 'surface', surface: c3d.Surface } | { tag: 'axis', contour: c3d.Contour, placement: c3d.Placement3D, info?: { Z: THREE.Vector3 } }
 
+type AxisName = 'X' | 'Y' | 'Z';
+
 abstract class AbstractCutFactory extends GeometryFactory {
     constructionPlane?: PlaneSnap;
     mergingFaces = true;
@@ -34,6 +36,12 @@ abstract class AbstractCutFactory extends GeometryFactory {
         } else {
             this.model = solid;
         }
+    }
+
+    set cutter(cutter: c3d.Surface | string | ContourAndPlacement) {
+        if (cutter instanceof c3d.Surface) this.surface = cutter;
+        else if (typeof cutter == "string") this.axis = cutter as AxisName;
+        else this.curve = cutter;
     }
 
     set curve(inst: visual.SpaceInstance<visual.Curve3D> | ContourAndPlacement) {
@@ -63,7 +71,7 @@ abstract class AbstractCutFactory extends GeometryFactory {
         }
     }
 
-    set axis(axis: 'X' | 'Y' | 'Z') {
+    set axis(axis: AxisName) {
         const { contour, placement } = axis2contour_placement[axis];
         this.mode = { tag: 'contour', contour, placement }
     }
@@ -110,33 +118,30 @@ abstract class AbstractCutFactory extends GeometryFactory {
         }
     }
 
-    protected async computePhantom() {
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
         const { mode, fantom } = this;
+        const material = { surface: surface_red };
 
         switch (mode.tag) {
             case 'axis':
-            case 'contour':
+            case 'contour': {
                 const { placement, contour } = mode;
                 if (mode.info === undefined) this.computeInfo();
                 const { Z } = mode.info!;
 
                 fantom.model = new c3d.PlaneCurve(placement, contour, true);
                 fantom.direction = Z;
-                this._phantom = await fantom.calculate();
-                break;
-            case 'surface':
-                this._phantom = new c3d.SpaceInstance(mode.surface);
+                const phantom = await fantom.calculate();
+                return [{ phantom, material }]
+            }
+            case 'surface': {
+                const phantom = new c3d.SpaceInstance(mode.surface);
+                return [{ phantom, material }]
+            }
         }
     }
 
     get originalItem() { return this.solid }
-
-    protected _phantom!: c3d.SpaceInstance;
-    get phantoms() {
-        const phantom = this._phantom;
-        const material = { surface: surface_red };
-        return [{ phantom, material }];
-    }
 }
 
 export class CutFactory extends AbstractCutFactory {
@@ -144,8 +149,6 @@ export class CutFactory extends AbstractCutFactory {
 
     async calculate() {
         const { params, model: solid } = this;
-
-        this.computePhantom();
 
         const results = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, params);
         return [...results];
@@ -192,8 +195,6 @@ export class SplitFactory extends AbstractCutFactory {
 
         const flags = new c3d.MergingFlags(true, true);
 
-        this.computePhantom();
-
         switch (mode.tag) {
             case 'axis':
             case 'contour':
@@ -226,10 +227,10 @@ export class CutAndSplitFactory extends GeometryFactory {
         else return [await split.calculate()];
     }
 
-    get phantoms() {
+    calculatePhantoms(): Promise<PhantomInfo[]> {
         const { faces, cut, split } = this;
-        if (faces.length === 0) return cut.phantoms;
-        else return split.phantoms;
+        if (faces.length === 0) return cut.calculatePhantoms();
+        else return split.calculatePhantoms();
     }
 
     get originalItem() {
@@ -279,34 +280,38 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
 
     async calculate() {
         const { _surfaces: surfaces, _curves: curves, models: solids, _axes: axes } = this;
+        if (solids.length === 0) return [];
+
         const cutters = [...surfaces, ...curves, ...axes];
         let parts: c3d.Solid[] = solids;
-        let phantoms: PhantomInfo[] = [];
         for (const cutter of cutters) {
             let pass: Promise<c3d.Solid[]>[] = [];
-            for (const [i, part] of parts.entries()) {
+            for (const part of parts) {
                 const cut = new CutFactory(this.db, this.materials, this.signals);
                 cut.solid = part;
-                if (cutter instanceof c3d.Surface) cut.surface = cutter;
-                else if (typeof cutter == "string") cut.axis = cutter;
-                else cut.curve = cutter;
+                cut.cutter = cutter;
                 const promise = cut.calculate().catch(e => [part]);
-                if (i === 0) { // FIXME: this is very ugly
-                    promise.then(() => {
-                        phantoms = phantoms.concat(cut.phantoms);
-                    });
-                }
                 pass.push(promise);
             }
             parts = (await Promise.all(pass)).flat();
         }
-        this._phantoms = phantoms;
         return parts;
     }
 
-    private _phantoms!: PhantomInfo[];
-    get phantoms() {
-        return this._phantoms;
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        const { _surfaces: surfaces, _curves: curves, models: solids, _axes: axes } = this;
+        if (solids.length === 0) return [];
+        const cutters = [...surfaces, ...curves, ...axes];
+        
+        const first = solids[0];
+        const promises = [];
+        for (const cutter of cutters) {
+            const cut = new CutFactory(this.db, this.materials, this.signals);
+            cut.solid = first;
+            cut.cutter = cutter;
+            promises.push(cut.calculatePhantoms());
+        }
+        return (await Promise.all(promises)).flat();
     }
 
     protected get originalItem() {

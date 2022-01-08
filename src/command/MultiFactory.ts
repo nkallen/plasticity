@@ -2,7 +2,6 @@ import * as visual from "../visual_model/VisualModel";
 import { GeometryFactory, PhantomInfo } from "./GeometryFactory";
 
 export interface FactoryHelpers {
-    get phantoms(): PhantomInfo[];
     get originalItem(): visual.Item | visual.Item[] | undefined;
 }
 
@@ -20,8 +19,13 @@ export class MultiGeometryFactory<T extends MultiplyableFactory> extends Geometr
         return (await Promise.all(result)).flat();
     }
 
-    protected get phantoms(): PhantomInfo[] {
-        return this.factories.map(i => i.phantoms).flat();
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        const { factories } = this;
+        const result = [];
+        for (const factory of factories) {
+            result.push(factory.calculatePhantoms());
+        }
+        return (await Promise.all(result)).flat();
     }
 
     protected get originalItem(): visual.Item[] {

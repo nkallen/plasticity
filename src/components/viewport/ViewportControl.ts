@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import LayerManager from "../../editor/LayerManager";
+import { AtomicRef } from "../../util/Util";
 import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
@@ -20,6 +21,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
+    // TODO: use AtomicRef<boolean>
     private clock = 0;
     private _enabled = true;
     get enabled() { return this._enabled }

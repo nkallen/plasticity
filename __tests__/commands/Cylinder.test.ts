@@ -96,7 +96,7 @@ describe(PossiblyBooleanCylinderFactory, () => {
 
     describe('commit', () => {
         test('basic union', async () => {
-            makeCylinder.solid = sphere;
+            makeCylinder.target = sphere;
             makeCylinder.base = new THREE.Vector3();
             makeCylinder.radius = new THREE.Vector3(0.5, 0, 0);
             makeCylinder.height = new THREE.Vector3(0, 0, 10);

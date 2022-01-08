@@ -128,8 +128,6 @@ export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetO
     get originalItem() {
         if (!this.newBody) return this.offset.originalItem;
     }
-
-    get phantoms() { return super.phantoms }
 }
 
 export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFactory> {

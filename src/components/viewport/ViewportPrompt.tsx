@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { createRef, render } from 'preact';
-import { Prompt } from '../../command/CommandPrompt';
+import { CommandPrompt } from '../../command/CommandPrompt';
 import { Editor } from '../../editor/Editor';
 
 export default (editor: Editor) => {
@@ -26,7 +26,7 @@ export default (editor: Editor) => {
             this.render = this.render.bind(this);
         }
 
-        render(prompt?: Prompt) {
+        render(prompt?: CommandPrompt) {
             if (prompt) {
                 const ref = createRef();
                 render(<div ref={ref}></div>, this);

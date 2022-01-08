@@ -46,6 +46,7 @@
         );
 
         <%_ if (func.returnType.isErrorCode) { _%>
+        this->resultType = _result;
         if (_result == rt_Success) {
         <%_ } else if (func.returnType.isErrorBool) { _%>
         if (_result) {
@@ -115,6 +116,8 @@
     }
 
     void <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::Reject(Napi::Promise::Deferred const &deferred, Napi::Error const & error) {
+        Napi::Env env = deferred.Env();
+        error.Value().Set("code", Napi::Number::New(env, this->resultType));
         error.Value()["isC3dError"] = true;
         deferred.Reject(error.Value());
     }

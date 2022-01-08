@@ -72,6 +72,7 @@ export class ModifierStack {
         for (const modifier of modifiers) {
             const symmetry = modifier as SymmetryFactory;
             symmetry.solid = model;
+            await symmetry.beforeCalculate();
             model = (await symmetry.calculate())[0];
         }
 
@@ -96,7 +97,8 @@ export class ModifierStack {
         }
         const symmetry = last as SymmetryFactory;
         symmetry.solid = symmetrized;
-        const temps = await symmetry.doUpdate();
+        await symmetry.beforeCalculate()
+        const temps = await symmetry.doUpdate(() => false);
 
         if (temps.length === 0) return {
             underlying: undefined as any,

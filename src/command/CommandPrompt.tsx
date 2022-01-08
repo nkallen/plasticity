@@ -6,7 +6,7 @@ import { CancellablePromise } from '../util/CancellablePromise';
 
 export type State = { tag: 'none' } | { tag: 'executing', cb?: () => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
 
-export class Prompt extends HTMLElement implements Executable<void, void> {
+export class CommandPrompt extends HTMLElement implements Executable<void, void> {
     private state: State = { tag: 'none' };
 
     connectedCallback() { this.render() }
@@ -59,4 +59,11 @@ export class Prompt extends HTMLElement implements Executable<void, void> {
         </div>, this);
     }
 }
-customElements.define('ispace-command-prompt', Prompt);
+customElements.define('ispace-command-prompt', CommandPrompt);
+
+export function Prompt<T>(header: string, description: string, signals: EditorSignals, promise: CancellablePromise<T>): CancellablePromise<T> {
+    const prompt = new CommandPrompt(header, description, signals);
+    const p = prompt.execute();
+    promise.then(() => p.finish(), () => p.finish());
+    return promise;
+}

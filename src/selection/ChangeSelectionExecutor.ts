@@ -102,6 +102,7 @@ export class ChangeSelectionExecutor {
         this.conversionStrategy.convert(mode, modifier);
     }
 
+    // TODO: aggregate selection as well
     private aggregateHovers<R>(f: () => R): R {
         const { signals } = this;
         const added = new Set<Selectable>(), removed = new Set<Selectable>();

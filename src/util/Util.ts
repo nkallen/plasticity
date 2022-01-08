@@ -87,35 +87,41 @@ export function CircleGeometry(radius: number, segmentsPerCircle: number, arc = 
     return vertices;
 }
 
-export class WeakValueMap<K, V extends object> {
-    private readonly underlying = new Map<K, WeakRef<V>>();
-
-    get(k: K): V | undefined {
-        const ref = this.underlying.get(k);
-        if (ref === undefined) return;
-        const v = ref.deref();
-        if (v) {
-            return v;
-        } else {
-            this.underlying.delete(k);
-            return;
-        }
-    }
-
-    set(k: K, v: V): this {
-        this.underlying.set(k, new WeakRef(v));
-        return this;
-    }
-
-    *[Symbol.iterator]() {
-        for (const key of this.underlying.keys()) {
-            const value = this.get(key);
-            if (!value) continue;
-            yield [key, value];
-        }
-    }
-}
-
 export const zip = <T, S>(a: Array<T>, b: Array<S>): [T | undefined, S | undefined][] => {
     return Array.from(Array(Math.max(b.length, a.length)), (_, i) => [a[i], b[i]]);
+}
+
+export class AtomicRef<T> {
+    private clock = 0;
+    private value: T;
+
+    constructor(value: T) {
+        this.value = value;
+    }
+
+    set(value: T) {
+        const before = this.value;
+        this.value = value;
+        return { clock: ++this.clock, before };
+    }
+
+    get() {
+        return { clock: this.clock, value: this.value };
+    }
+
+    compareAndSet(clock: number, value: T) {
+        if (this.clock === clock) {
+            this.set(value);
+            this.clock++;
+            return true;
+        } else return false;
+    }
+
+    eq(clock: number) {
+        return this.clock === clock;
+    }
+
+    gt(clock: number) {
+        return this.clock > clock;
+    }
 }

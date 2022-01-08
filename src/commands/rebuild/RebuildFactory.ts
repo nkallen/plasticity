@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from '../../editor/GeometryDatabase';
 import * as visual from '../../visual_model/VisualModel';
-import { GeometryFactory } from '../../command/GeometryFactory';
+import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import * as THREE from "three";
 
 export class RebuildFactory extends GeometryFactory {
@@ -47,7 +47,7 @@ export class RebuildFactory extends GeometryFactory {
         return dup;
     }
 
-    get phantoms() {
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
         const result = [];
         for (const basis of this.bases) {
             if (basis.IsA() === c3d.SpaceType.Solid) {

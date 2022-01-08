@@ -62,8 +62,8 @@ export class DraftSolidFactory extends GeometryFactory implements RotateFactoryL
         this._phantom = phantom;
     }
 
-    protected cleanupTempsOnFinishOrCancel() {
-        super.cleanupTempsOnFinishOrCancel();
+    protected cleanupTemps() {
+        super.cleanupTemps();
         this._phantom?.cancel();
     }
 }

@@ -8,9 +8,9 @@ import { ProjectCurveFactory } from "../src/commands/translate/ProjectCurveFacto
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import * as visual from '../src/visual_model/VisualModel';
 import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit } from "../src/util/Conversion";
-import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
+import { AtomicRef, Redisposable, RefCounter } from "../src/util/Util";
+import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -52,23 +52,6 @@ describe('RefCounter', () => {
         expect(d1).toHaveBeenCalledTimes(2);
     });
 });
-
-describe('WeakValueMap', () => {
-    let map: WeakValueMap<string, Record<string, unknown>>;
-
-    beforeEach(() => {
-        map = new WeakValueMap();
-    });
-
-    test('incr/decr creates and deletes', () => {
-        let x: any = {};
-        expect(map.get("foo")).toBeUndefined();
-        map.set("foo", x);
-        expect(map.get("foo")).toBe(x);
-        x = undefined;
-        // expect(map.get("foo")).toBeUndefined();
-    });
-})
 
 describe("curve3d2curve2d", () => {
     let db: GeometryDatabase;
@@ -491,3 +474,24 @@ describe('polyline2contour', () => {
         })
     });
 });
+
+describe('AtomicRef', () => {
+    let ref = new AtomicRef("initial");
+
+    test("compareAndSet", () => {
+        const { clock: clock0, value: value0 } = ref.get();
+        expect(value0).toBe("initial");
+
+        ref.compareAndSet(clock0, "second");
+        const { clock: clock1, value: value1 } = ref.get();
+        expect(value1).toBe("second");
+
+        ref.compareAndSet(clock0, "third");
+        const { clock: clock2, value: value2 } = ref.get();
+        expect(value2).toBe("second");
+
+        ref.compareAndSet(clock1, "third");
+        const { clock: clock3, value: value3 } = ref.get();
+        expect(value3).toBe("third");
+    });
+})

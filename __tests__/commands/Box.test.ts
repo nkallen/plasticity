@@ -101,7 +101,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
         })
 
         test('basic union', async () => {
-            makeBox.solid = sphere;
+            makeBox.target = sphere;
             makeBox.p1 = new THREE.Vector3(0, 0, 0);
             makeBox.p2 = new THREE.Vector3(1, 1, 0);
             makeBox.p3 = new THREE.Vector3(0, 0, 3);
@@ -154,7 +154,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 
         test('when projecting out, union', async () => {
             const makeBox2 = new PossiblyBooleanCornerBoxFactory(db, materials, signals);
-            makeBox2.solid = box;
+            makeBox2.target = box;
             makeBox2.p1 = new THREE.Vector3(1, 0, 0);
             makeBox2.p2 = new THREE.Vector3(2, 1, 0);
             makeBox2.p3 = new THREE.Vector3(0, 0, 1);
@@ -168,7 +168,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 
         test('when projecting in, intersection', async () => {
             const makeBox2 = new PossiblyBooleanCornerBoxFactory(db, materials, signals);
-            makeBox2.solid = box;
+            makeBox2.target = box;
             makeBox2.p1 = new THREE.Vector3(1, 0, 0);
             makeBox2.p2 = new THREE.Vector3(0.5, 1, 0);
             makeBox2.p3 = new THREE.Vector3(0, 0, 1);

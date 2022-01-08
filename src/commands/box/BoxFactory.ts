@@ -112,10 +112,10 @@ abstract class PossiblyBooleanBoxFactory<B extends BoxFactory> extends PossiblyB
     protected bool = new BooleanFactory(this.db, this.materials, this.signals);
     protected abstract fantom: B;
 
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid | undefined) {
-        super.solid = solid;
-        if (solid !== undefined) this.bool.solid = solid;
+    get target() { return this._target }
+    set target(solid: visual.Solid | undefined) {
+        super.target = solid;
+        if (solid !== undefined) this.bool.target = solid;
     }
 
     get p1() { return this.fantom.p1 }
@@ -125,11 +125,6 @@ abstract class PossiblyBooleanBoxFactory<B extends BoxFactory> extends PossiblyB
     set p1(p1: THREE.Vector3) { this.fantom.p1 = p1 }
     set p2(p2: THREE.Vector3) { this.fantom.p2 = p2 }
     set p3(p3: THREE.Vector3) { this.fantom.p3 = p3 }
-
-    protected async precomputeGeometry() {
-        await super.precomputeGeometry();
-        if (this._phantom !== undefined) this.bool.toolModels = [this._phantom];
-    }
 }
 
 export class PossiblyBooleanThreePointBoxFactory extends PossiblyBooleanBoxFactory<ThreePointBoxFactory> {

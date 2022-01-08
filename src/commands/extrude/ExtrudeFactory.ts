@@ -5,7 +5,7 @@ import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanLikeFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 
 export interface ExtrudeParams {
     distance1: number;
@@ -16,7 +16,7 @@ export interface ExtrudeParams {
     thickness2: number;
 }
 
-abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams {
+abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams, BooleanLikeFactory {
     distance1 = 0;
     distance2 = 0;
     race1 = 0;
@@ -41,9 +41,11 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
     get defaultOperationType() { return c3d.OperationType.Difference }
 
-    private _solid!: { view?: visual.Solid, model?: c3d.Solid };
-    @derive(visual.Solid) get solid(): visual.Solid { throw '' }
-    set solid(solid: visual.Solid | c3d.Solid) { }
+    private _target!: { view?: visual.Solid, model?: c3d.Solid };
+    @derive(visual.Solid) get target(): visual.Solid { throw '' }
+    set target(target: visual.Solid | c3d.Solid) { }
+
+    set tool(tool: visual.Solid | c3d.Solid) { }
 
     async calculate() {
         const { contours2d, curves3d, surface, direction, distance1, thickness1, thickness2 } = this;
@@ -70,17 +72,18 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 
     protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
-        const { names, _solid: { model: solid }, operationType } = this;
+        const { names, _target: { model: solid }, operationType } = this;
 
         if (solid === undefined) {
-            return c3d.ActionSolid.ExtrusionSolid_async(sweptData, direction, null, null, false, params, names, ns);
+            const result = await c3d.ActionSolid.ExtrusionSolid_async(sweptData, direction, null, null, false, params, names, ns);
+            return result;
         } else {
             return c3d.ActionSolid.ExtrusionResult_async(solid, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
         }
     }
 
     get originalItem() {
-        return this._solid.view;
+        return this._target.view;
     }
 }
 
@@ -253,7 +256,7 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExt
         if (factories.length === 0) throw new Error('invalid precondition');
     }
 
-    @delegate solid!: visual.Solid;
+    @delegate target!: visual.Solid;
     @delegate.default(0) distance1!: number;
     @delegate.default(0) distance2!: number;
     @delegate.default(0) race1!: number;

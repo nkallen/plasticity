@@ -48,10 +48,10 @@ export class PossiblyBooleanCylinderFactory extends PossiblyBooleanFactory<Cylin
     protected bool = new BooleanFactory(this.db, this.materials, this.signals);
     protected fantom = new CylinderFactory(this.db, this.materials, this.signals);
 
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid | undefined) {
-        super.solid = solid;
-        if (solid !== undefined) this.bool.solid = solid;
+    get target() { return this._target }
+    set target(solid: visual.Solid | undefined) {
+        super.target = solid;
+        if (solid !== undefined) this.bool.target = solid;
     }
 
     get base() { return this.fantom.base }
@@ -61,9 +61,4 @@ export class PossiblyBooleanCylinderFactory extends PossiblyBooleanFactory<Cylin
     set base(base: THREE.Vector3) { this.fantom.base = base }
     set radius(radius: THREE.Vector3) { this.fantom.radius = radius }
     set height(height: THREE.Vector3) { this.fantom.height = height }
-
-    protected async precomputeGeometry() {
-        await super.precomputeGeometry();
-        if (this._phantom !== undefined) this.bool.toolModels = [this._phantom];
-    }
 }

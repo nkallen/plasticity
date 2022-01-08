@@ -23,7 +23,7 @@ export class PhantomLineFactory extends GeometryFactory {
         return [];
     }
 
-    get phantoms(): PhantomInfo[] {
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
         const { p1, p2 } = this;
         const line = new c3d.Polyline3D([point2point(p1), point2point(p2)], false);
         const phantom = new c3d.SpaceInstance(line);

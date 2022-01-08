@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
+import { Prompt } from "../../command/CommandPrompt";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
+import { MoveGizmo } from '../translate/MoveGizmo';
 import { BooleanDialog, CutDialog } from "./BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './BooleanFactory';
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
-import { MoveGizmo } from '../translate/MoveGizmo';
-import { Prompt } from "../../command/CommandPrompt";
 
 abstract class BooleanCommand extends Command {
     protected abstract factory: MovingBooleanFactory;
@@ -28,11 +28,14 @@ abstract class BooleanCommand extends Command {
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
-        new Prompt(this.title, "Select target body", editor.signals).execute().resource(this);
-        const solids = await objectPicker.shift(SelectionMode.Solid, 1).resource(this);
-        factory.solid = [...solids][0];
+        const solids = await Prompt(
+            this.title, "Select target body", editor.signals,
+            objectPicker.shift(SelectionMode.Solid, 1)).resource(this);
+        factory.target = [...solids][0];
 
-        const tools = await objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER).resource(this);
+        const tools = await Prompt(
+            this.title, "Select tool body", editor.signals,
+            objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER)).resource(this);
         factory.tools = [...tools];
 
         for (const object of tools) bbox.expandByObject(object);
@@ -45,10 +48,13 @@ abstract class BooleanCommand extends Command {
             factory.update();
         }).resource(this);
 
-        objectPicker.execute(async selection => {
-            factory.tools = [...selection.solids];
-            await factory.update();
-        }, 0, Number.MAX_SAFE_INTEGER).resource(this);
+        await Prompt(
+            this.title, "Select additional tool bodies", editor.signals,
+            objectPicker.execute(async selection => {
+                factory.tools = [...selection.solids];
+                await factory.update();
+            }, 0, Number.MAX_SAFE_INTEGER)
+        ).resource(this);
 
         await this.finished;
 

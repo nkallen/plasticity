@@ -47,7 +47,7 @@ abstract class TranslateFactory extends GeometryFactory {
         return tmp
     }
 
-    async doUpdate() {
+    async doUpdate(abortEarly: () => boolean) {
         const { db, items, deunitMatrix: mat } = this;
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
@@ -59,15 +59,15 @@ abstract class TranslateFactory extends GeometryFactory {
 
                 const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
                 return [temp] as TemporaryObject[];
-            }, () => this.doOriginalUpdate(item));
+            }, () => this.doOriginalUpdate(abortEarly, item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
         return await Promise.all(result);
     }
 
-    protected doOriginalUpdate(item?: visual.Item): Promise<TemporaryObject[]> {
-        return super.doUpdate(item);
+    protected doOriginalUpdate(abortEarly: () => boolean, item?: visual.Item): Promise<TemporaryObject[]> {
+        return super.doUpdate(abortEarly, item);
     }
 
     async calculate(only?: visual.Item) {
@@ -184,7 +184,7 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
 
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
     // but this works instead.
-    async doUpdate() {
+    async doUpdate(abortEarly: () => boolean) {
         const { items, pivot: point, axis, angle, db } = this;
         axis.normalize();
         let result: Promise<TemporaryObject>[] = [];
@@ -207,7 +207,7 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
 
                 const temp = { underlying: item, show() { }, hide() {}, cancel() { } };
                 return [temp] as TemporaryObject[];
-            }, () => this.doOriginalUpdate(item));
+            }, () => this.doOriginalUpdate(abortEarly, item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }

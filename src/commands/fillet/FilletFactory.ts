@@ -177,7 +177,6 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     get mode() { return this.updater.mode }
 
     get originalItem() { return this.updater.originalItem }
-    get phantoms() { return super.phantoms }
 }
 
 export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> implements FilletParams {

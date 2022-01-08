@@ -13,7 +13,7 @@ export class ThreePointBoxCommand extends Command {
         const box = new PossiblyBooleanThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0)
-            box.solid = selection.solids.first;
+            box.target = selection.solids.first;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const pointPicker = new PointPicker(this.editor);
@@ -54,7 +54,7 @@ export class CornerBoxCommand extends Command {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0)
-            box.solid = selection.solids.first;
+            box.target = selection.solids.first;
 
         let pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
@@ -102,7 +102,7 @@ export class CenterBoxCommand extends Command {
         const box = new PossiblyBooleanCenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0)
-            box.solid = selection.solids.first;
+            box.target = selection.solids.first;
 
         let pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.X);
