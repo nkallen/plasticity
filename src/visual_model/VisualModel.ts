@@ -404,10 +404,11 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
         if (kind == 'line2') {
             const geometry = new LineSegmentsGeometry();
             geometry.setPositions(points);
-            // Fast clone:
+            // Fast clone: this code is brittle but has been measured to offer a significant boost
             const line = new LineSegments2(geometry, this.line.material);
-            line.matrixWorld.copy(this.line.matrix);
             line.scale.copy(this.line.scale);
+            line.matrixWorld.copy(this.line.matrixWorld);
+            line.renderOrder = this.line.renderOrder;
             return line;
         } else {
             const geometry = new THREE.BufferGeometry();
