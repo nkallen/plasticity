@@ -34,6 +34,8 @@ export default {
             functions: [
                 "void SetStyle(int s)",
                 "int GetStyle()",
+                "void SetColor(uint32 c)",
+                "uint32 GetColor()",
                 "void AttributesConvert(MbGrid & other)", // NOTE: this is a hack to support face.AttributesConvert(grid)
             ],
         },
@@ -132,6 +134,7 @@ export default {
                     mesh: isReturn
                 },
                 "SimpleName GetItemName()",
+                "void SetItemName(SimpleName name)",
                 { signature: "MbItem * Cast()", isManual: true },
                 { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: isRaw },
                 "const MbItem * GetItemByPath(const MbPath & path, size_t ind, MbMatrix3D & from, size_t currInd = 0)"
