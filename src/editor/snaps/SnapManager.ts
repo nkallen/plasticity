@@ -4,7 +4,7 @@ import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Convers
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
-import { DatabaseLike } from "../GeometryDatabase";
+import { DatabaseLike } from "../DatabaseLike";
 import { MementoOriginator, SnapMemento } from "../History";
 import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap } from "./Snap";
 

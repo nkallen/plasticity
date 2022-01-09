@@ -3,7 +3,7 @@ import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { Boxcaster } from "../../src/selection/Boxcaster";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -15,7 +15,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 describe(visual.CurveEdge, () => {

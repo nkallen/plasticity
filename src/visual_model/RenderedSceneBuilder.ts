@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/DatabaseLike";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import matcap from '../img/matcap/ceramic_dark.exr';

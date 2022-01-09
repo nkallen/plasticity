@@ -3,62 +3,19 @@
  */
 
 import Command from "../../src/command/Command";
-import { CommandExecutor, EditorLike } from "../../src/command/CommandExecutor";
-import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import { CommandExecutor } from "../../src/command/CommandExecutor";
 import { SelectionCommandManager } from "../../src/command/SelectionCommandManager";
-import CommandRegistry from "../../src/components/atom/CommandRegistry";
-import { Viewport } from "../../src/components/viewport/Viewport";
-import ContourManager from "../../src/editor/curves/ContourManager";
-import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
-import { PlanarCurveDatabase } from "../../src/editor/curves/PlanarCurveDatabase";
-import { RegionManager } from "../../src/editor/curves/RegionManager";
-import { EditorSignals } from "../../src/editor/EditorSignals";
-import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
-import { EditorOriginator, History } from "../../src/editor/History";
-import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import ModifierManager from "../../src/editor/ModifierManager";
-import { SnapManager } from "../../src/editor/snaps/SnapManager";
-import { Selection, SelectionDatabase } from "../../src/selection/SelectionDatabase";
+import { Editor } from "../../src/editor/Editor";
 import { Delay } from "../../src/util/SequentialExecutor";
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 describe(CommandExecutor, () => {
-    let materials: MaterialDatabase;
-    let db: GeometryDatabase;
-    let signals: EditorSignals;
     let selectionGizmo: SelectionCommandManager;
-    let registry: CommandRegistry;
-    let originator: EditorOriginator;
-    let history: History;
-    let snaps: SnapManager;
-    let curves: PlanarCurveDatabase;
-    let gizmos: GizmoMaterialDatabase;
-    let editor: any
-    let regions: RegionManager;
-    let contours: ContourManager;
-    let modifiers: ModifierManager;
-    let crosses: CrossPointDatabase;
-    let viewports: Viewport[];
+    let editor: Editor;
 
     beforeEach(() => {
-        materials = new FakeMaterials();
-        signals = new EditorSignals();
-        gizmos = new GizmoMaterialDatabase(signals);
-        db = new GeometryDatabase(materials, signals);
-        registry = new CommandRegistry();
-        const selection = new SelectionDatabase(db, materials, signals);
-        crosses = new CrossPointDatabase();
-        snaps = new SnapManager(db, crosses, signals);
-        curves = new PlanarCurveDatabase(db, materials, signals);
-        regions = new RegionManager(db, curves);
-        contours = new ContourManager(db, curves, regions);
-        modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selection.selected, snaps, crosses, curves, contours, modifiers);
-        history = new History(originator, signals);
-        editor = {
-            materials, sprites: gizmos, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo
-        } as unknown as EditorLike;
+        editor = new Editor();
+
         selectionGizmo = new SelectionCommandManager(editor);
     })
 

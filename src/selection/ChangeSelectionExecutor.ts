@@ -1,5 +1,5 @@
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike } from '../editor/GeometryDatabase';
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';

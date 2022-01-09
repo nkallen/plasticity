@@ -25,6 +25,7 @@ import { Editor } from '../src/editor/Editor';
 import KeymapManager from 'atom-keymap-plasticity';
 import CommandRegistry from '../src/components/atom/CommandRegistry';
 import LayerManager from '../src/editor/LayerManager';
+import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 
 describe(EditorOriginator, () => {
     let db: GeometryDatabase;
@@ -45,7 +46,7 @@ describe(EditorOriginator, () => {
     beforeEach(() => {
         materials = new FakeMaterials();
         signals = new EditorSignals();
-        db = new GeometryDatabase(materials, signals);
+        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
         gizmos = new GizmoMaterialDatabase(signals);
         crosses = new CrossPointDatabase();
         snaps = new SnapManager(db, crosses, signals);
@@ -81,7 +82,7 @@ describe(EditorOriginator, () => {
     test("saveToMemento & restoreFromMemento", () => {
         const memento = originator.saveToMemento();
 
-        db = new GeometryDatabase(materials, signals);
+        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
 
@@ -92,7 +93,7 @@ describe(EditorOriginator, () => {
     test("serialize & deserialize", async () => {
         const data = await originator.serialize();
 
-        db = new GeometryDatabase(materials, signals);
+        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
 

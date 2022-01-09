@@ -12,6 +12,7 @@ import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -22,7 +23,7 @@ let changeSelection: ChangeSelectionExecutor;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
 });

@@ -1,5 +1,5 @@
 import c3d from '../build/Release/c3d.node';
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 

@@ -7,74 +7,15 @@ import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import * as build from '../visual_model/VisualModelBuilder';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
+import { Agent, DatabaseLike } from './DatabaseLike';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { ParallelMeshCreator } from './MeshCreator';
+import { MeshCreator } from './MeshCreator';
 
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
 const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
-
-export type Agent = 'user' | 'automatic';
-
-export interface DatabaseLike {
-    get version(): number;
-
-    addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
-    addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
-    addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
-    addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-
-    replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
-    replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
-    replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
-    replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-    replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item>;
-
-    removeItem(view: visual.Item, agent?: Agent): Promise<void>;
-
-    duplicate(model: visual.Solid): Promise<visual.Solid>;
-    duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
-    duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
-    duplicate(model: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
-
-    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
-    addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
-    replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
-    optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;
-
-    clearTemporaryObjects(): void;
-    readonly temporaryObjects: THREE.Scene; // FIXME: should this really be public?
-    readonly phantomObjects: THREE.Scene;
-
-    lookup(object: visual.Solid): c3d.Solid;
-    lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
-    lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
-    lookup(object: visual.Item): c3d.Item;
-
-    lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item };
-
-    hasTopologyItem(id: string): boolean;
-    lookupTopologyItemById(id: string): TopologyData;
-    lookupTopologyItem(object: visual.Face): c3d.Face;
-    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
-    lookupControlPointById(id: string): ControlPointData;
-
-    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
-    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
-    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
-    find(): { view: visual.Item, model: c3d.Solid }[];
-
-    get visibleObjects(): visual.Item[];
-
-    hide(item: visual.Item): Promise<void>;
-    unhide(item: visual.Item): Promise<void>;
-    unhideAll(): Promise<visual.Item[]>;
-
-    deserialize(data: Buffer): Promise<void>;
-    load(model: c3d.Model | c3d.Assembly): Promise<void>;
-}
 
 export interface TemporaryObject {
     get underlying(): THREE.Object3D;
@@ -109,8 +50,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     readonly queue = new SequentialExecutor();
 
     constructor(
+        private readonly meshCreator: MeshCreator,
         private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals) { }
+        private readonly signals: EditorSignals
+    ) { }
 
     private counter = 0;
     get version() { return this.counter }
@@ -327,8 +270,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         result.userData.simpleName = id;
         return result;
     }
-
-    private readonly meshCreator = new ParallelMeshCreator();
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);

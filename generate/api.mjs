@@ -231,6 +231,8 @@ export default {
                 { signature: "void GetItems(RPArray<MbTopologyItem> items)", items: isReturn },
                 "bool IsClosed()",
                 "const MbCube GetCube()",
+                "void SetOwnChangedThrough(MbeChangedType type)",
+                "void MakeRight()",
             ]
         },
         Assembly: {
@@ -832,7 +834,8 @@ export default {
                 "SimpleName GetNameHash()",
                 "void AddYourGabaritTo(MbCube & cube)",
                 { signature: "MbTopologyItem * Cast()", isManual: true },
-                { signature: "void CalculateMesh(const MbStepData & stepData, const MbFormNote & note, MbMesh & mesh)", mesh: isReturn }
+                { signature: "void CalculateMesh(const MbStepData & stepData, const MbFormNote & note, MbMesh & mesh)", mesh: isReturn },
+                "bool GetOwnChanged()",
             ]
         },
         Edge: {
@@ -2034,5 +2037,6 @@ export default {
         "ExtensionValues::ExtensionWay",
         "ExtensionValues::LateralKind",
         "SlotValues::SlotType",
+        "MbeChangedType",
     ]
 }

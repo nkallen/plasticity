@@ -4,7 +4,7 @@ import { ModifyContourCommand } from "../commands/modify_contour/ModifyContourCo
 import { FilletSolidCommand } from "../commands/fillet/FilletCommand";
 import { ModifyFaceCommand } from "../commands/modifyface/ModifyFaceCommand";
 import { ExtrudeCommand } from "../commands/extrude/ExtrudeCommand";
-import { DatabaseLike } from '../editor/GeometryDatabase';
+import { DatabaseLike } from "../editor/DatabaseLike";
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ClickChangeSelectionCommand } from '../selection/ViewportSelector';
 

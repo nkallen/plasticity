@@ -5,6 +5,7 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase, TemporaryObject } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { Delay } from "../../src/util/SequentialExecutor";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -17,7 +18,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 let sphere: c3d.Solid;

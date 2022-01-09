@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Model } from "../command/PointPicker";
 import { SnapInfo } from "../command/SnapPresenter";
 import { Viewport } from "../components/viewport/Viewport";
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
 import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, PlaneSnap, PointSnap, Snap, axisSnapMaterial } from "../editor/snaps/Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";

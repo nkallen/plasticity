@@ -11,6 +11,7 @@ import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 import { inst2curve } from "../../src/util/Conversion";
 import { ProjectCurveFactory, ProjectingBasicScaleFactory, ProjectingFreestyleScaleFactory } from "../../src/commands/translate/ProjectCurveFactory";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -20,7 +21,7 @@ let box: visual.Solid;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 const center = new THREE.Vector3();

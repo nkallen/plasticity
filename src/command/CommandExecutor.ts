@@ -3,7 +3,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import ContourManager from "../editor/curves/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorOriginator, History } from "../editor/History";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
@@ -11,6 +11,7 @@ import { GConstructor } from "../util/Util";
 import Command from "./Command";
 import { NoOpError, ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
+import { CachingMeshCreator, MeshCreator } from "../editor/MeshCreator";
 
 export interface EditorLike {
     db: DatabaseLike;
@@ -22,6 +23,7 @@ export interface EditorLike {
     selection: HasSelectedAndHovered;
     contours: ContourManager;
     viewports: ReadonlyArray<Viewport>;
+    meshCreator: CachingMeshCreator;
 }
 
 export class CommandExecutor {
@@ -72,7 +74,7 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        const { signals, registry, originator, history, selection, contours, db } = this.editor;
+        const { signals, registry, originator, history, selection, contours, db, meshCreator } = this.editor;
         signals.commandStarted.dispatch(command);
         const disposable = registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
@@ -90,7 +92,9 @@ export class CommandExecutor {
                 }
             });
             await contours.transaction(async () => {
-                await command.execute();
+                await meshCreator.caching(async () => {
+                    await command.execute();
+                });
                 command.finish(); // FIXME: I'm not sure this is necessary
             })
             if (command.state == 'Finished') {
@@ -100,9 +104,10 @@ export class CommandExecutor {
             }
         } catch (e) {
             command.cancel();
-            // FIXME: possibly restore state just to be 100% sure?
+            originator.restoreFromMemento(state);
             throw e;
         } finally {
+            // meshCache.dispose();
             document.body.removeAttribute("command");
             for (const viewport of this.editor.viewports) {
                 viewport.enableControls();

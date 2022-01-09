@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { DatabaseLike } from "../../editor/GeometryDatabase";
+import { DatabaseLike } from "../../editor/DatabaseLike";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";

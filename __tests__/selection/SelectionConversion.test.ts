@@ -14,6 +14,7 @@ import { SelectionConversionStrategy, SelectionCommandRegistrar } from '../../sr
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -24,7 +25,7 @@ let selected: Selection;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     selected = selectionDb.selected;
 });

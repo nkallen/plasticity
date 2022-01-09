@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike } from '../editor/GeometryDatabase';
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { Helper, Helpers } from '../util/Helpers';
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";

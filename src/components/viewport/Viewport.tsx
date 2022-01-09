@@ -7,7 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
-import { DatabaseLike } from "../../editor/GeometryDatabase";
+import { DatabaseLike } from "../../editor/DatabaseLike";
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";

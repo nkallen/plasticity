@@ -11,6 +11,7 @@ import * as visual from '../src/visual_model/VisualModel';
 import { Selection, SelectionDatabase } from "../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
+import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -23,7 +24,7 @@ beforeEach(() => {
     document.createElement('div')
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     const selman = new SelectionDatabase(db, materials, signals);
     selected = selman.selected;
     toolbar = new Model(selected, db);

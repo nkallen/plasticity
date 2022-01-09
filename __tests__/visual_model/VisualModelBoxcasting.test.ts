@@ -12,6 +12,7 @@ import '../matchers';
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import { FastFrustum } from "../../src/visual_model/VisualModelBoxcasting";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -20,7 +21,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 describe(visual.FaceGroup, () => {

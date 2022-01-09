@@ -13,7 +13,7 @@ import { GeometryFactory } from '../../command/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { MirrorGizmo } from '../../commands/mirror/MirrorGizmo';
 import { Editor } from '../../editor/Editor';
-import { DatabaseLike } from '../../editor/GeometryDatabase';
+import { DatabaseLike } from "../../editor/DatabaseLike";
 import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
 import { HasSelection } from '../../selection/SelectionDatabase';
 import * as visual from '../../visual_model/VisualModel';

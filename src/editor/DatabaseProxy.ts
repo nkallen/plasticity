@@ -1,6 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from "../util/Util";
-import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
+import { ControlPointData, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
+import { Agent, DatabaseLike } from "./DatabaseLike";
 import * as visual from "../visual_model/VisualModel";
 
 export class DatabaseProxy implements DatabaseLike {

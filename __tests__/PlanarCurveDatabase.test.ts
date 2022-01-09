@@ -1,16 +1,17 @@
-import c3d from '../build/Release/c3d.node';
 import * as THREE from "three";
+import c3d from '../build/Release/c3d.node';
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
-import { EditorSignals } from '../src/editor/EditorSignals';
-import { Agent, GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { CurveMemento } from "../src/editor/History";
-import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { CornerRectangleFactory } from '../src/commands/rect/RectangleFactory';
 import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
+import { Agent } from '../src/editor/DatabaseLike';
+import { EditorSignals } from '../src/editor/EditorSignals';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
-import { CornerRectangleFactory } from '../src/commands/rect/RectangleFactory';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -26,7 +27,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     curves = new PlanarCurveDatabase(db, materials, signals);
 });
 

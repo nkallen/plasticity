@@ -1,6 +1,6 @@
 import { HasSelectedAndHovered, Selection, SelectionDatabase } from './SelectionDatabase';
 import { ChangeSelectionModifier, SelectionMode } from './ChangeSelectionExecutor';
-import { DatabaseLike } from '../editor/GeometryDatabase';
+import { DatabaseLike } from "../editor/DatabaseLike";
 import * as visual from '../visual_model/VisualModel';
 import CommandRegistry from '../components/atom/CommandRegistry';
 import { CompositeDisposable } from 'event-kit';

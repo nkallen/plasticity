@@ -4,7 +4,7 @@ import { pointerEvent2keyboardEvent } from "../components/viewport/KeyboardEvent
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";
 import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
 import * as intersectable from "../visual_model/Intersectable";
 import { Boxcaster } from "./Boxcaster";

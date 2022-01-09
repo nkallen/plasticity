@@ -3,7 +3,7 @@ import { render } from 'preact';
 import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
-import { DatabaseLike } from '../../editor/GeometryDatabase';
+import { DatabaseLike } from "../../editor/DatabaseLike";
 import { HasSelection } from '../../selection/SelectionDatabase';
 import { GConstructor } from '../../util/Util';
 import { icons, tooltips } from './icons';

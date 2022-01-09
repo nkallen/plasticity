@@ -8,6 +8,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../../build/Release/c3d.node';
 import '../matchers';
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -23,7 +24,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     curves = new CrossPointDatabase();
 });
 

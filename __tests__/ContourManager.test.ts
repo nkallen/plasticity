@@ -13,6 +13,7 @@ import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
+import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 
 let _db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -35,7 +36,7 @@ let makeFillet: ContourFilletFactory;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    _db = new GeometryDatabase(materials, signals);
+    _db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     curves = new PlanarCurveDatabase(_db, materials, signals);
     regions = new RegionManager(_db, curves);
     contours = new ContourManager(_db, curves, regions);

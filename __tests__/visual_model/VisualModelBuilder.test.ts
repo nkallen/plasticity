@@ -11,6 +11,7 @@ import * as builder from "../../src/visual_model/VisualModelBuilder";
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -25,7 +26,7 @@ let selection: SelectionDatabase;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     makeSphere = new SphereFactory(db, materials, signals);
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);

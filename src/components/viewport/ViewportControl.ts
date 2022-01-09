@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
-import { DatabaseLike } from "../../editor/GeometryDatabase";
+import { DatabaseLike } from "../../editor/DatabaseLike";
 import LayerManager from "../../editor/LayerManager";
 import { AtomicRef } from "../../util/Util";
 import { GeometryPicker } from "../../visual_model/GeometryPicker";

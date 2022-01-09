@@ -11,6 +11,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -19,7 +20,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 describe(ContourFactory, () => {

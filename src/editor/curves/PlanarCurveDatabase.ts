@@ -2,7 +2,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, polyline2contour } from '../../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { EditorSignals } from '../EditorSignals';
-import { DatabaseLike } from '../GeometryDatabase';
+import { DatabaseLike } from "../DatabaseLike";
 import { CurveMemento, MementoOriginator } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import * as visual from "../../visual_model/VisualModel";

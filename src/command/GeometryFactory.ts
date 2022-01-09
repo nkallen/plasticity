@@ -1,7 +1,8 @@
 import { Signal } from "signals";
 import c3d from '../../build/Release/c3d.node';
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
+import { MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { zip } from '../util/Util';
@@ -187,10 +188,23 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering. // FIXME: is that still true?
-            this.cleanupTemps();
-            this.cleanupPhantoms();
-            for (const i of this.originalItems) i.visible = true;
+            this.finalize();
         }
+    }
+
+    doCancel(): void {
+        this.finalize();
+    }
+
+    private finalize() {
+        this.cleanupTemps();
+        this.cleanupPhantoms();
+        this.restoreOriginalItems();
+        this.dispose();
+    }
+
+    protected restoreOriginalItems() {
+        for (const i of this.originalItems) i.visible = true;
     }
 
     protected cleanupTemps() {
@@ -203,22 +217,14 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         this.phants = [];
     }
 
+    dispose() {}
+
     private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
         if (shouldRemoveOriginal) {
             return zip(originals, replacements);
         } else {
             return zip([], replacements);
         }
-    }
-
-    doCancel(): void {
-        this.refresh();
-        this.cleanupTemps();
-        this.cleanupPhantoms();
-    }
-
-    refresh() {
-        for (const i of this.originalItems) i.visible = true;
     }
 
     calculate(options?: any): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }

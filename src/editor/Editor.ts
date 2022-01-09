@@ -23,7 +23,8 @@ import { CrossPointDatabase } from "./curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { RegionManager } from "./curves/RegionManager";
 import { EditorSignals } from "./EditorSignals";
-import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
+import { GeometryDatabase } from "./GeometryDatabase";
+import { DatabaseLike } from "./DatabaseLike";
 import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
@@ -31,6 +32,7 @@ import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import { ParallelMeshCreator } from "./MeshCreator";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -45,7 +47,8 @@ export class Editor {
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
-    readonly _db = new GeometryDatabase(this.materials, this.signals);
+    readonly meshCreator = new ParallelMeshCreator();
+    readonly _db = new GeometryDatabase(this.meshCreator, this.materials, this.signals);
 
     readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
     readonly regions = new RegionManager(this._db, this.curves);

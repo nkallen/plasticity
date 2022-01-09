@@ -15,6 +15,7 @@ import { point2point, vec2vec } from "../src/util/Conversion";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
+import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
@@ -30,7 +31,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     gizmos = new GizmoMaterialDatabase(signals);
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);

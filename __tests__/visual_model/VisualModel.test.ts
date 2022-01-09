@@ -13,6 +13,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { CurveEdgeGroupBuilder } from '../../src/visual_model/VisualModelBuilder';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -27,7 +28,7 @@ let selection: SelectionDatabase;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     makeSphere = new SphereFactory(db, materials, signals);
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);

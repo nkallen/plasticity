@@ -8,6 +8,7 @@ import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import './matchers';
 import * as THREE from 'three';
 import { point2point } from '../src/util/Conversion';
+import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -28,7 +29,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     sprites = new FakeSprites();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 
     box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
@@ -247,7 +248,7 @@ test("serialize & deserialize", async () => {
     const data = await db.serialize();
     expect(view.simpleName).toBe(10);
 
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     expect(db.visibleObjects.length).toBe(0);
 
     await db.deserialize(data);

@@ -1,16 +1,17 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
-import { ItemSelection } from "../selection/TypedSelection";
-import { HasSelectedAndHovered, HasSelection, ModifiesSelection, SelectionDatabase, ToggleableSet } from "../selection/SelectionDatabase";
+import { HasSelectedAndHovered, ModifiesSelection, SelectionDatabase } from "../selection/SelectionDatabase";
 import { SelectionProxy } from "../selection/SelectionProxy";
+import { ItemSelection } from "../selection/TypedSelection";
 import { GConstructor } from "../util/Util";
+import * as visual from "../visual_model/VisualModel";
+import { Agent, DatabaseLike } from "./DatabaseLike";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
-import { Agent, DatabaseLike, TemporaryObject } from "./GeometryDatabase";
+import { TemporaryObject } from "./GeometryDatabase";
 import { MementoOriginator, ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
-import * as visual from "../visual_model/VisualModel";
 
 export type Replacement = { from: visual.Item, to: visual.Item }
 

@@ -557,4 +557,18 @@ declare module "*c3d.node" {
         DoveTail = 3,  ///< \ru Ласточкин хвост. \en Dovetail
     };
 
+    declare enum ChangedType {
+        Unchanged   = 0x0000, ///< \ru Без изменений. \en Unchanged. 
+        Modified    = 0x0001, ///< \ru Изменен. \en Modified. 
+        Created     = 0x0002, ///< \ru Создан новый. \en Created (new). 
+        Transformed = 0x0004, ///< \ru Трансформирован. \en Transformed. 
+        Reoriented  = 0x0008, ///< \ru Переориентирован. \en Reoriented. 
+        Deleted     = 0x0010, ///< \ru Удален (элемент объекта или связь). \en Deleted (object's element or link). 
+        Truncated   = 0x0020, ///< \ru Разрезан, усечен, продлен. \en Cut, truncated or extended.
+        Merged      = 0x0040, ///< \ru Объединен или сшито. \en Merged or sewn (stitched).
+        Replaced    = 0x0080, ///< \ru Заменен. \en Replaced. 
+        Added       = 0x0100, ///< \ru Добавлен или вставлен (элемент объекта). \en Added or inserted (object's element). 
+        Renamed     = 0x0200, ///< \ru Переименован. \en Renamed.
+    };
+
 }

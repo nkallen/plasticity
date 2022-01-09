@@ -4,7 +4,7 @@ import { Viewport } from "../components/viewport/Viewport";
 import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { EditorSignals } from "../editor/EditorSignals";
-import { Agent, DatabaseLike } from "../editor/GeometryDatabase";
+import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";

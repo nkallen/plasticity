@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- objectpicker sends events for deselect and select rather than aggregating -- causes update to be called twice where used  
 - creating sphere 2nd point on vertical z axis errors  
 - make objectpicker construction more terse  
 - convert selectionmode to bitmap  

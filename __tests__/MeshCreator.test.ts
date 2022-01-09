@@ -17,7 +17,7 @@ let makeBox: ThreePointBoxFactory;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 beforeEach(() => {
@@ -73,4 +73,19 @@ describe(ParallelMeshCreator, () => {
             expect(facesParallel[0].index).toEqual(facesBasic[0].index);
         })
     })
+
+    test('caching', async () => {
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+
+        const item = await makeBox.calculate() as c3d.Solid;
+
+        await parallel.caching(async () => {
+            const { edges, faces } = await parallel.create(item, stepData, formNote, true);
+            expect(edges.length).toBe(12);
+            expect(faces.length).toBe(6);
+        });
+    });
 });

@@ -1,12 +1,12 @@
 import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from '../../editor/EditorSignals';
-import { DatabaseLike } from '../../editor/GeometryDatabase';
-import MaterialDatabase from '../../editor/MaterialDatabase';
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, deunit, unit } from '../../util/Conversion';
+import { delegate, derive } from '../../command/FactoryBuilder';
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
-import { delegate } from '../../command/FactoryBuilder';
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
+import { DatabaseLike } from "../../editor/DatabaseLike";
+import { EditorSignals } from '../../editor/EditorSignals';
+import MaterialDatabase from '../../editor/MaterialDatabase';
+import { composeMainName, deunit, unit } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 
 export interface FilletParams {
     edges: visual.CurveEdge[];
@@ -29,10 +29,6 @@ export type Mode = c3d.CreatorType.FilletSolid | c3d.CreatorType.ChamferSolid;
 export default class FilletFactory extends GeometryFactory implements FilletParams {
     static LengthSentinel = deunit(-1e300);
 
-    private _solid!: visual.Solid;
-    private _edges!: visual.CurveEdge[];
-
-    private model!: c3d.Solid;
     edgeFunctions!: c3d.EdgeFunction[];
     curveEdges!: c3d.CurveEdge[];
     functions!: Map<string, c3d.CubicFunction>;
@@ -57,15 +53,11 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     params: c3d.SmoothValues;
 
-    get solid(): visual.Solid {
-        return this._solid;
-    }
+    protected _solid!: { view: visual.Solid, model: c3d.Solid };
+    @derive(visual.Solid) get solid(): visual.Solid { throw '' }
+    set solid(solid: visual.Solid | c3d.Solid) { }
 
-    set solid(solid: visual.Solid) {
-        this._solid = solid;
-        this.model = this.db.lookup(solid);
-    }
-
+    private _edges!: visual.CurveEdge[];
     get edges() { return this._edges }
     set edges(edges: visual.CurveEdge[]) {
         const edgeFunctions = [];
@@ -123,16 +115,17 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
+        const { _solid: { model: solid } } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
         if (this.mode === c3d.CreatorType.ChamferSolid) {
-            return c3d.ActionSolid.ChamferSolid_async(this.model, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
+            return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
         } else {
-            return c3d.ActionSolid.FilletSolid_async(this.model, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
+            return c3d.ActionSolid.FilletSolid_async(solid, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
         }
     }
 
-    get originalItem() { return this.solid }
+    get originalItem() { return this._solid.view }
 }
 
 export class MaxFilletFactory extends GeometryFactory implements FilletParams {
@@ -149,8 +142,8 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
         })
     }
 
-    start() { 
-        return this.max.start() 
+    start() {
+        return this.max.start()
     }
 
     @delegate solid!: visual.Solid;
@@ -189,7 +182,7 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
     @delegate.default(FilletFactory.LengthSentinel) begLength!: number;
     @delegate.default(FilletFactory.LengthSentinel) endLength!: number;
     @delegate.default(false) equable!: boolean;
-    
+
     @delegate.default(0) distance1!: number;
     @delegate.default(0) distance2!: number;
 

@@ -13,6 +13,7 @@ import { inst2curve } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -22,7 +23,7 @@ let curve: visual.SpaceInstance<visual.Curve3D>;
 beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 })
 
 const center = new THREE.Vector3();

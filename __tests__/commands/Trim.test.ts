@@ -14,6 +14,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import { inst2curve, point2point } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -29,7 +30,7 @@ const center = new THREE.Vector3();
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     curves = new PlanarCurveDatabase(db, materials, signals);
     regions = new RegionManager(db, curves);
     contours = new ContourManager(db, curves, regions);

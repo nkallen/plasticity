@@ -12,6 +12,7 @@ import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { SelectionDatabase } from '../src/selection/SelectionDatabase';
+import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -25,7 +26,7 @@ let highlighter: RenderedSceneBuilder;
 beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 

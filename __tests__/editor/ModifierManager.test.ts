@@ -11,6 +11,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -25,7 +26,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
 });
 
@@ -382,7 +383,7 @@ describe(ModifierManager, () => {
             const buffer = await manager.serialize();
             const dbuffer = await db.serialize();
 
-            db = new GeometryDatabase(materials, signals);
+            db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
             await db.deserialize(dbuffer);
             manager = new ModifierManager(db, selection, materials, signals);
             await manager.deserialize(buffer);

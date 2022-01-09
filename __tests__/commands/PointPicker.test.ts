@@ -10,6 +10,7 @@ import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -26,18 +27,7 @@ let presenter: SnapIndicator;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    const gizmos = new GizmoMaterialDatabase(signals);
-    presenter = new SnapIndicator(gizmos);
-    const crosses = new CrossPointDatabase();
-    const registry = new CommandRegistry();
-    pointPicker = new Model(db, crosses, registry, signals);
-});
-
-beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();

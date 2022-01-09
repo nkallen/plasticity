@@ -7,6 +7,7 @@ import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
 import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
 import { SelectionDatabase, ToggleableSet } from "../../src/selection/SelectionDatabase";
@@ -25,7 +26,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     modes = new ToggleableSet(SelectionModeAll, signals);
-    db = new GeometryDatabase(materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     click = new ClickStrategy(modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
 })

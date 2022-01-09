@@ -1,9 +1,10 @@
 import c3d from '../../../build/Release/c3d.node';
 import { DatabaseProxy } from '../DatabaseProxy';
-import { Agent, GeometryDatabase } from '../GeometryDatabase';
+import { GeometryDatabase } from '../GeometryDatabase';
 import * as visual from "../../visual_model/VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
+import { Agent } from '../DatabaseLike';
 
 /**
  * The ContourManager is a DatabaseProxy that observes inserts/deletes/replaces of curves. When the curves change in the system
