@@ -2,13 +2,6 @@ import { render } from 'preact';
 import * as THREE from "three";
 import { Editor } from '../../editor/Editor';
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
-import edge from './img/edge.svg';
-import face from './img/face.svg';
-import grid from './img/ortho.svg';
-import point from './img/point.svg';
-import perspective from './img/perspective.svg';
-import solid from './img/solid.svg';
-import xray from './img/xray.svg';
 import { ViewportElement } from './Viewport';
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -45,27 +38,19 @@ export default (editor: Editor) => {
             const { viewport } = this;
             if (!viewport.isOrthoMode) return "";
             const n = viewport.constructionPlane.n;
-            if (n.equals(X)) {
-                return "Right";
-            } else if (n.equals(_Y)) {
-                return "Front";
-            } else if (n.equals(Z)) {
-                return "Top";
-            } else if (n.equals(_X)) {
-                return "Left";
-            } else if (n.equals(Y)) {
-                return "Back";
-            } else if (n.equals(_Z)) {
-                return "Bottom";
-            }
+            if (n.equals(X)) return "Right";
+            else if (n.equals(_Y)) return "Front";
+            else if (n.equals(Z)) return "Top";
+            else if (n.equals(_X)) return "Left";
+            else if (n.equals(Y)) return "Back";
+            else if (n.equals(_Z)) return "Bottom";
         }
 
         render() {
-            const { description } = this;
             const result = (
                 <>
-                    <div class="absolute top-2 left-1/2 w-full -translate-x-1/2">
-                        <ol class="flex absolute left-2 flex-row space-x-0.5">
+                    <div class="flex absolute top-2 right-2 left-2 z-50 justify-between m-auto">
+                        <ol class="flex flex-row space-x-0.5">
                             <li>
                                 <input type="checkbox" class="hidden absolute peer" id="control-point" checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
                                     onClick={e => editor.selection.mode.set(SelectionMode.ControlPoint)}
@@ -115,63 +100,57 @@ export default (editor: Editor) => {
                                 </label>
                             </li>
                         </ol>
+
+                        <ol class="flex flex-row space-x-0.5">
+                            <li>
+                                <input type="checkbox" class="hidden absolute peer" id="ortho" checked={this.viewport.camera.isPerspectiveCamera}
+                                    onClick={e => this.viewport.togglePerspective()}
+                                />
+                                <label for="ortho" class="block p-2 rounded-l shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
+                                    <svg width="24" height="24" class="w-4 h-4 stroke-2 text-neutral-200 group-hover:text-neutral-100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M21 3V21H3V3H21Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M3 16.5H21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M3 12H21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M3 7.5H21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M16.5 3V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 3V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M7.5 3V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <ispace-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</ispace-tooltip>
+                                </label>
+                            </li>
+
+                            <li>
+                                <input type="checkbox" class="hidden absolute peer" id="xray" checked={this.viewport.isXRay}
+                                    onClick={e => this.viewport.toggleXRay()}
+                                />
+                                <label for="xray" class="block p-2 shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
+                                    <svg width="24" height="24" class="w-4 h-4 stroke-2 text-neutral-200 group-hover:text-neutral-100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12.0098 16L11.9998 16.0111" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12.0098 12L11.9998 12.0111" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12.0098 8.00001L11.9998 8.01112" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M8.00977 12L7.99977 12.0111" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M16.0098 12L15.9998 12.0111" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </label>
+                            </li>
+
+                            <li>
+                                <input type="checkbox" class="hidden absolute peer" id="overlays" checked={this.viewport.showOverlays}
+                                    onClick={e => this.viewport.toggleOverlays()}
+                                />
+                                <label for="overlays" class="block p-2 rounded-r shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
+                                    <svg width="24" height="24" class="w-4 h-4 stroke-2 text-neutral-200 group-hover:text-neutral-100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M21 19.4516L12 12.8428M12 12.8428L12 2.99999M12 12.8428L3 19.4516" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M20.4375 16.7097L21 19.4516L18.1875 20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M9.75 5.19354L12 2.99999L14.25 5.19354" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M5.8125 20L3 19.4516L3.5625 16.7097" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </label>
+                            </li>
+                        </ol>
                     </div>
-                    {/* <div class="selection">
-                        <input type="checkbox" class="btn" id="control-point" checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
-                            onClick={e => editor.selection.mode.toggle(SelectionMode.ControlPoint)}
-                        />
-                        <label class="btn" for="control-point">
-                            <img src={point}></img>
-                            <ispace-tooltip placement="bottom" command="selection:set-control-point">Control-Point select</ispace-tooltip>
-                        </label>
-                        <input type="checkbox" class="btn" id="edge" checked={editor.selection.mode.has(SelectionMode.CurveEdge)}
-                            onClick={e => editor.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve)}
-                        />
-                        <label class="btn" for="edge">
-                            <img src={edge}></img>
-                            <ispace-tooltip placement="bottom" command="selection:set-edge">Edge select</ispace-tooltip>
-                        </label>
-                        <input type="checkbox" class="btn" id="face" checked={editor.selection.mode.has(SelectionMode.Face)}
-                            onClick={e => editor.selection.mode.toggle(SelectionMode.Face)}
-                        />
-                        <label class="btn" for="face">
-                            <img src={face}></img>
-                            <ispace-tooltip placement="bottom" command="selection:set-face">Face select</ispace-tooltip>
-                        </label>
-                        <input type="checkbox" class="btn" id="solid" checked={editor.selection.mode.has(SelectionMode.Solid)}
-                            onClick={e => editor.selection.mode.toggle(SelectionMode.Solid)}
-                        />
-                        <label class="btn" for="solid">
-                            <img src={solid}></img>
-                            <ispace-tooltip placement="bottom" command="selection:set-solid">Solid select</ispace-tooltip>
-                        </label>
-                    </div>
-                    <div class="info">
-                        {description}
-                    </div>
-                    <div class="properties">
-                        <input type="checkbox" class="btn" id="ortho" checked={this.viewport.camera.isPerspectiveCamera}
-                            onClick={e => this.viewport.togglePerspective()}
-                        />
-                        <label class="btn" for="ortho">
-                            <img src={perspective}></img>
-                            <ispace-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</ispace-tooltip>
-                        </label>
-                        <input type="checkbox" class="btn" id="xray" checked={this.viewport.isXRay}
-                            onClick={e => this.viewport.toggleXRay()}
-                        />
-                        <label class="btn" for="xray">
-                            <img src={xray}></img>
-                            <ispace-tooltip placement="bottom" command="viewport:toggle-xray">Toggle X-Ray mode</ispace-tooltip>
-                        </label>
-                        <input type="checkbox" class="btn" id="overlays" checked={this.viewport.showOverlays}
-                            onClick={e => this.viewport.toggleOverlays()}
-                        />
-                        <label class="btn" for="overlays">
-                            <img src={grid}></img>
-                            <ispace-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</ispace-tooltip>
-                        </label>
-                    </div> */}
                 </>
             );
             render(result, this);
