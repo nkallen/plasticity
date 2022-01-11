@@ -7,30 +7,7 @@
 </head>
 
 <body class="flex flex-col h-screen bg-neutral-900">
-    <div class="absolute h-[42px] w-full top-0 flex justify-between p-1 bg-neutral-900 hover:border-b-[0.5px] border-[#0B0B0B] transition-all">
-        <div class="flex flex-row justify-start space-x-1">
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="upload" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="download" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-        </div>
-        <div class="flex flex-row justify-start space-x-1">
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="minimize" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="maximize" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-            <button class="p-2 rounded hover:bg-neutral-700 group">
-                <i data-feather="x" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
-            </button>
-        </div>
-    </div>
+    <plasticity-titlebar></plasticity-titlebar>
     <div class="top-0 w-full h-full flex flex-col space-y-1 py-[42px]">
         <div class="flex flex-col flex-grow p-1 space-y-2">
             <div class="h-full">

@@ -1,6 +1,6 @@
-import checkSquare from 'bootstrap-icons/icons/check-square.svg';
-import eye from 'bootstrap-icons/icons/eye.svg';
-import trash from 'bootstrap-icons/icons/trash.svg';
+import checkSquare from 'iconoir/icons/check.svg';
+import eye from 'iconoir/icons/eye-alt.svg';
+import trash from 'iconoir/icons/trash.svg';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import * as THREE from 'three';

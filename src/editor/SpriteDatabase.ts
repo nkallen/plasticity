@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import circleIcon from 'bootstrap-icons/icons/circle.svg';
-import circleFillIcon from 'bootstrap-icons/icons/circle-fill.svg';
+import circleIcon from 'iconoir/icons/trash.svg';
+import circleFillIcon from 'iconoir/icons/trash.svg';
 
 const textureloader = new THREE.TextureLoader();
 

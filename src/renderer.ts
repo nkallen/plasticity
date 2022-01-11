@@ -10,17 +10,17 @@ import * as cmd from './commands/GeometryCommands';
 import Creators from './components/creators/Creators';
 import Dialog from './components/dialog/Dialog';
 import NumberScrubber from './components/dialog/NumberScrubber';
-import Header from './components/header/Header';
 import Modifiers from './components/modifiers/Modifiers';
 import './components/pane/Pane';
+import TitleBar from './components/title-bar/TitleBar';
 import registerDefaultCommands from './components/toolbar/icons';
 import Palette from './components/toolbar/Palette';
 import Toolbar from './components/toolbar/Toolbar';
 import Keybindings from './components/viewport/Keybindings';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
-import Prompt from './components/viewport/ViewportPrompt';
 import ViewportHeader from './components/viewport/ViewportHeader';
+import Prompt from './components/viewport/ViewportPrompt';
 import './css/index.css';
 import defaultKeymap from "./default-keymap";
 import { HotReloadingEditor } from './editor/Editor';
@@ -62,7 +62,7 @@ requestAnimationFrame(function loop() {
     requestAnimationFrame(loop)
 });
 
-Header(editor);
+TitleBar(editor);
 Toolbar(editor);
 Keybindings(editor);
 Palette(editor);
