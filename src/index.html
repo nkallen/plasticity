@@ -33,39 +33,21 @@
                             </li>
                         </ol>
                     </div>
+
+                    <div class="relative border rounded shadow-xl basis-8/12 bg-viewport border-neutral-700">
+                        <plasticity-viewport view="3d">
+                            <plasticity-viewport-header></plasticity-viewport-header>
+                            <!-- <ispace-viewport-prompt></ispace-viewport-prompt>
+                            <ispace-toolbar></ispace-toolbar>
+                            <ispace-keybindings></ispace-keybindings>
+                            <ispace-dialog></ispace-dialog>
+                            <ispace-snap-overlay></ispace-snap-overlay> -->
+                        </plasticity-viewport>
+                    </div>
+
+
                     <div class="relative border rounded shadow-xl basis-8/12 bg-viewport border-neutral-700">
                         <img class="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 h-96 w-96" src="img/sphere.png" />
-
-                        <!-- top buttons -->
-                        <div class="absolute w-full -translate-x-1/2 top-2 left-1/2">
-                            <div class="flex flex-row absolute left-2 space-x-0.5">
-                                <button class="p-2 transform shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                            </div>
-
-                            <div class="flex flex-row absolute right-2 space-x-0.5">
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                                <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r">
-                                    <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-200 hover:stroke-neutral-100"></i>
-                                </button>
-                            </div>
-
-                        </div>
 
                         <!-- side buttons -->
                         <div class="absolute flex flex-col space-y-2 -translate-y-1/2 right-2 top-1/2">
@@ -335,9 +317,6 @@
             </button>
         </div>
     </div>
-    <script>
-        feather.replace()
-    </script>
 </body>
 
 </html>

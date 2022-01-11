@@ -1,52 +1,52 @@
 export default {
-    "[command='center-circle'] ispace-viewport": {
+    "[command='center-circle'] plasticity-viewport": {
         "v": "gizmo:circle:mode",
     },
 
-    "[command='polygon'] ispace-viewport": {
+    "[command='polygon'] plasticity-viewport": {
         "wheel+up": "gizmo:polygon:add-vertex",
         "wheel+down": "gizmo:polygon:subtract-vertex",
         "v": "gizmo:polygon:mode",
     },
 
-    "[command='rebuild'] ispace-viewport": {
+    "[command='rebuild'] plasticity-viewport": {
         "wheel+up": "gizmo:rebuild:forward",
         "wheel+down": "gizmo:rebuild:backward",
     },
 
-    "[command='spiral'] ispace-viewport": {
+    "[command='spiral'] plasticity-viewport": {
         "a": "gizmo:spiral:angle",
         "d": "gizmo:spiral:length",
         "r": "gizmo:spiral:radius",
     },
 
-    "[command='revolution'] ispace-viewport": {
+    "[command='revolution'] plasticity-viewport": {
         "a": "gizmo:revolution:angle",
         "t": "gizmo:revolution:thickness",
     },
 
-    "[command='center-box'] ispace-viewport, [command='corner-box'] ispace-viewport, [command='three-point-box'] ispace-viewport": {
+    "[command='center-box'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='three-point-box'] plasticity-viewport": {
         "q": "gizmo:box:union",
         "w": "gizmo:box:difference",
         "e": "gizmo:box:intersect",
         "r": "gizmo:box:new-body",
     },
 
-    "[command='cylinder'] ispace-viewport": {
+    "[command='cylinder'] plasticity-viewport": {
         "q": "gizmo:cylinder:union",
         "w": "gizmo:cylinder:difference",
         "e": "gizmo:cylinder:intersect",
         "r": "gizmo:cylinder:new-body",
     },
 
-    "[command='sphere'] ispace-viewport": {
+    "[command='sphere'] plasticity-viewport": {
         "q": "gizmo:sphere:union",
         "w": "gizmo:sphere:difference",
         "e": "gizmo:sphere:intersect",
         "r": "gizmo:sphere:new-body",
     },
 
-    "[command='extrude'] ispace-viewport": {
+    "[command='extrude'] plasticity-viewport": {
         "a": "gizmo:extrude:race1",
         "s": "gizmo:extrude:race2",
         "d": "gizmo:extrude:distance1",
@@ -59,21 +59,21 @@ export default {
         "r": "gizmo:extrude:new-body",
     },
 
-    "[command='offset-face'] ispace-viewport": {
+    "[command='offset-face'] plasticity-viewport": {
         "d": "gizmo:offset-face:distance",
         "a": "gizmo:offset-face:angle",
         "q": "gizmo:offset-face:toggle",
     },
 
-    "[command='refillet-face'] ispace-viewport": {
+    "[command='refillet-face'] plasticity-viewport": {
         "d": "gizmo:refillet-face:distance",
     },
 
-    "[command='offset-curve'] ispace-viewport": {
+    "[command='offset-curve'] plasticity-viewport": {
         "d": "gizmo:offset-curve:distance",
     },
 
-    "[command='move'] ispace-viewport, [command='move-item'] ispace-viewport, [command='duplicate'] ispace-viewport, [command='move-control-point'] ispace-viewport, [command='action-face'] ispace-viewport, [command='difference'] ispace-viewport, [command='union'] ispace-viewport, [command='intersection'] ispace-viewport": {
+    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport, [command='difference'] plasticity-viewport, [command='union'] plasticity-viewport, [command='intersection'] plasticity-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",
@@ -84,7 +84,7 @@ export default {
         "f": "gizmo:move:free",
     },
 
-    "[command='scale'] ispace-viewport, [command='scale-item'] ispace-viewport, [command='scale-control-point'] ispace-viewport": {
+    "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
         "x": "gizmo:scale:x",
         "y": "gizmo:scale:y",
         "z": "gizmo:scale:z",
@@ -95,7 +95,7 @@ export default {
         "f": "gizmo:scale:free",
     },
 
-    "[command='fillet-solid'] ispace-viewport": {
+    "[command='fillet-solid'] plasticity-viewport": {
         "v": "gizmo:fillet-solid:add",
         "f": "gizmo:fillet-solid:distance",
         "d": "gizmo:fillet-solid:fillet",
@@ -103,11 +103,11 @@ export default {
         "a": "gizmo:fillet-solid:angle",
     },
 
-    "[command='modify-contour'] ispace-viewport": {
+    "[command='modify-contour'] plasticity-viewport": {
         "d": "gizmo:modify-contour:fillet-all",
     },
 
-    "[command='rotate'] ispace-viewport, [command='rotate-item'] ispace-viewport, [command='rotate-control-point'] ispace-viewport, [command='draft-solid'] ispace-viewport": {
+    "[command='rotate'] plasticity-viewport, [command='rotate-item'] plasticity-viewport, [command='rotate-control-point'] plasticity-viewport, [command='draft-solid'] plasticity-viewport": {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",
@@ -116,7 +116,7 @@ export default {
         "w": "gizmo:rotate:pivot"
     },
 
-    "[command='curve'] ispace-viewport": {
+    "[command='curve'] plasticity-viewport": {
         "1": "gizmo:curve:hermite",
         "2": "gizmo:curve:bezier",
         "3": "gizmo:curve:nurbs",
@@ -125,12 +125,12 @@ export default {
         "ctrl-z": "gizmo:curve:undo",
     },
 
-    "[command='line'] ispace-viewport": {
+    "[command='line'] plasticity-viewport": {
         "cmd-z": "gizmo:line:undo",
         "ctrl-z": "gizmo:line:undo",
     },
 
-    "[command='mirror-solid'] ispace-viewport, [command='mirror-item'] ispace-viewport": {
+    "[command='mirror-solid'] plasticity-viewport, [command='mirror-item'] plasticity-viewport": {
         "x": "gizmo:mirror:x",
         "y": "gizmo:mirror:y",
         "z": "gizmo:mirror:z",
@@ -140,11 +140,11 @@ export default {
         "f": "gizmo:mirror:free",
     },
 
-    "[command='thin-solid'] ispace-viewport": {
+    "[command='thin-solid'] plasticity-viewport": {
         "d": "gizmo:thin-solid:thickness",
     },
 
-    "ispace-viewport": {
+    "plasticity-viewport": {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",
         "numpad7": "viewport:navigate:top",
@@ -161,7 +161,7 @@ export default {
         "shift-alt-z": "viewport:toggle-overlays",
     },
 
-    "body[command] ispace-viewport": {
+    "body[command] plasticity-viewport": {
         "escape": "command:abort",
         "enter": "command:finish",
         "mouse2": "command:finish",
@@ -184,11 +184,11 @@ export default {
         "$": "selection:mode:toggle:solid",
     },
 
-    "body:not([gizmo]) ispace-viewport": {
+    "body:not([gizmo]) plasticity-viewport": {
         "/": "viewport:focus",
     },
 
-    "body:not([gizmo]) ispace-workspace": {
+    "body:not([gizmo]) plasticity-workspace": {
         "c": "command:cut",
         "g": "command:move",
         "r": "command:rotate",
@@ -261,7 +261,7 @@ export default {
         "alt": "noop",
     },
 
-    "body[command]:not([gizmo]) ispace-viewport": {
+    "body[command]:not([gizmo]) plasticity-viewport": {
         "cmd": "command:quasimode:start",
         "^cmd": "command:quasimode:stop"
     },

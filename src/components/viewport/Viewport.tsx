@@ -618,5 +618,5 @@ export default (editor: EditorLike) => {
         }
     }
 
-    customElements.define('ispace-viewport', ViewportElement);
+    customElements.define('plasticity-viewport', ViewportElement);
 }
