@@ -21,7 +21,7 @@ import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import Prompt from './components/viewport/ViewportPrompt';
 import ViewportHeader from './components/viewport/ViewportHeader';
-import './css/index.less';
+import './css/index.css';
 import defaultKeymap from "./default-keymap";
 import { HotReloadingEditor } from './editor/Editor';
 
