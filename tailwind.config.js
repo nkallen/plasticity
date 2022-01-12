@@ -69,6 +69,11 @@ module.exports = {
                 800: "#0C6B58",
                 900: "#014D40"
             }
+        },
+        extend: {
+            minHeight: (theme) => ({
+                ...theme('spacing'),
+            }),
         }
     },
     plugins: [],

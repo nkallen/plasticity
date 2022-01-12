@@ -99,7 +99,7 @@ export class CommandExecutor {
             })
             if (command.state == 'Finished') {
                 if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
-                if (command.shouldAddToHistory(selectionChanged)) history.add(command.title, state);
+                if (command.shouldAddToHistory(selectionChanged)) history.add(command.pretty, state);
                 signals.commandFinishedSuccessfully.dispatch(command);
             }
         } catch (e) {

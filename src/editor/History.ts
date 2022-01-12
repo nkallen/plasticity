@@ -285,9 +285,8 @@ export class EditorOriginator {
             this.modifiers.saveToMemento());
 
         this.state = { tag: 'group', memento: memento };
-        try {
-            fn();
-        } finally {
+        try { fn() }
+        finally {
             this.state = { tag: 'start' };
         }
     }
@@ -366,7 +365,7 @@ export class EditorOriginator {
             await this.viewports[i].deserialize(viewportData);
             pos += viewportSize;
         }
-        
+
         await this.db.deserialize(dbData);
         await this.modifiers.deserialize(modifiersData);
         await this.contours.rebuild();
@@ -404,8 +403,11 @@ export interface MementoOriginator<T> {
 }
 
 export class History {
-    private readonly undoStack: [String, Memento][] = [];
-    private readonly redoStack: [String, Memento][] = [];
+    private readonly _undoStack: [String, Memento][] = [];
+    get undoStack(): readonly [String, Memento][] { return this._undoStack }
+
+    private readonly _redoStack: [String, Memento][] = [];
+    get redoStack(): readonly [String, Memento][] { return this._redoStack }
 
     constructor(
         private readonly originator: EditorOriginator,
@@ -413,31 +415,32 @@ export class History {
     ) { }
 
     add(name: String, state: Memento) {
-        if (this.undoStack.length > 0 &&
-            this.undoStack[this.undoStack.length - 1][1] === state) return;
-        this.undoStack.push([name, state]);
-        this.redoStack.length = 0;
+        if (this._undoStack.length > 0 &&
+            this._undoStack[this._undoStack.length - 1][1] === state) return;
+        this._undoStack.push([name, state]);
+        this._redoStack.length = 0;
+        this.signals.historyAdded.dispatch();
     }
 
     undo(): boolean {
-        const undo = this.undoStack.pop();
+        const undo = this._undoStack.pop();
         if (!undo) return false;
 
         const [, memento] = undo;
         this.originator.restoreFromMemento(memento);
-        this.redoStack.push(undo);
+        this._redoStack.push(undo);
 
         this.signals.historyChanged.dispatch();
         return true;
     }
 
     redo(): boolean {
-        const redo = this.redoStack.pop();
+        const redo = this._redoStack.pop();
         if (redo === undefined) return false;
 
         const [, memento] = redo;
         this.originator.restoreFromMemento(memento);
-        this.undoStack.push(redo);
+        this._undoStack.push(redo);
         this.signals.historyChanged.dispatch();
 
         return true;

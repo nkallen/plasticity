@@ -65,6 +65,8 @@ export default abstract class Command extends CancellableRegistor {
 
     get title() { return this.constructor.name.replace(/Command/, '') }
     get identifier() { return _.dasherize(this.title) }
+    get pretty() { return _.undasherize(this.identifier) }
+
     remember: boolean = true;
     agent: Agent = 'automatic';
 

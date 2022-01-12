@@ -10,7 +10,7 @@
         @apply flex flex-col w-full h-full space-y-2;
     }
     plasticity-pane {
-        @apply relative overflow-y-auto border rounded shadow-xl overflow-clip bg-neutral-800 border-neutral-700;
+        @apply relative overflow-y-auto border rounded shadow-xl overflow-clip bg-neutral-800 border-neutral-700 min-h-20;
     }
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {
         @apply w-2 cursor-col-resize;
