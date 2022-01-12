@@ -12,25 +12,7 @@
         <plasticity-pane-axis class="horizontal">
 
             <plasticity-pane class="basis-2/12">
-                <h1 class="mb-4 text-xs font-bold text-neutral-100">Scene collection</h1>
-                <ol class="space-y-1">
-                    <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700">
-                        <div class="text-sm text-neutral-400">Sphere 1</div>
-                        <button class="p-2 rounded hover:bg-neutral-500 group">
-                            <i data-feather="eye" class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i>
-                        </button>
-                    </li>
-                    <li class="flex items-center justify-between p-3 py-2 rounded hover:bg-neutral-700">
-                        <div class="text-sm text-neutral-400">Sphere 2</div>
-                        <button class="p-2 rounded hover:bg-neutral-500 bg-neutral-700 group"><i data-feather="eye-off"
-                                class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
-                    </li>
-                    <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700 bg-neutral-600 ">
-                        <div class="text-sm text-neutral-50">Sphere 3</div>
-                        <button class="p-2 rounded hover:bg-neutral-500 group"><i data-feather="eye"
-                                class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
-                    </li>
-                </ol>
+                <plasticity-outliner></plasticity-outliner>
             </plasticity-pane>
 
             <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
@@ -40,10 +22,9 @@
                     <plasticity-viewport-header></plasticity-viewport-header>
                     <plasticity-palette></plasticity-palette>
                     <plasticity-toolbar></plasticity-toolbar>
-                    <!--
-                            <ispace-keybindings></ispace-keybindings>
-                            <ispace-dialog></ispace-dialog>
-                            <ispace-snap-overlay></ispace-snap-overlay> -->
+                    <plasticity-keybindings></plasticity-keybindings>
+                    <!-- <plasticity-dialog></plasticity-dialog> -->
+                    <plasticity-snap-overlay></plasticity-snap-overlay>
                 </plasticity-viewport>
             </plasticity-pane>
 

@@ -3,11 +3,10 @@ import signals from "signals";
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
-import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/DatabaseLike";
-import MaterialDatabase from "../editor/MaterialDatabase";
+import { EditorSignals } from "../editor/EditorSignals";
+import MaterialDatabase, { matcapTexture } from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
-import matcap from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { ItemSelection } from "../selection/TypedSelection";
 import * as visual from '../visual_model/VisualModel';
@@ -409,9 +408,6 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
-
-// @ts-expect-error
-const matcapTexture = new EXRLoader().load(matcap);
 
 const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;

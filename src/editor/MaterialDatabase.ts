@@ -33,7 +33,7 @@ line_dashed.defines.USE_DASH = "";
 const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
 
 // @ts-expect-error
-const matcapTexture = new EXRLoader().load(matcap);
+export const matcapTexture = new EXRLoader().load(matcap);
 
 const surface = new THREE.MeshMatcapMaterial();
 surface.fog = false;

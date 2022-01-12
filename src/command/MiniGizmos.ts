@@ -485,9 +485,11 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.element.setAttribute('viewBox', '-1 -1 2 2');
         this.element.setAttribute('preserveAspectRatio', 'none')
-        this.element.classList.add('gizmo-helper');
+        this.element.classList.add('absolute', 'top-0', 'left-0', 'w-full', 'h-full');
 
         this.line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        this.line.classList.add('stroke', 'stroke-black');
+        this.line.setAttribute('style', 'stroke-width: 0.002; stroke-dasharray: 0.006');
         this.element.appendChild(this.line);
     }
 

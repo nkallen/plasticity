@@ -21,7 +21,7 @@ export default (editor: Editor) => {
         render() {
             const { commands } = this;
             const keymaps = editor.keymaps;
-            const result = <ul>
+            const result = <ul class="absolute bottom-3 right-24 bg-transparent text-neutral-100  w-52">
                 {[...commands].map(command => {
                     const bindings = keymaps.findKeyBindings({ command });
                     if (bindings.length == 0) {
@@ -30,10 +30,12 @@ export default (editor: Editor) => {
                     }
                     const keystroke = humanizeKeystrokes(bindings[0].keystrokes);
                     const desc = keybindings.get(command);
-                    if (desc === undefined) {
-                        console.warn("Description missing from (icons.ts)", command);
-                    }
-                    return <li><label class="keystroke">{keystroke}</label>{desc}</li>
+                    if (desc === undefined) console.error("Description missing from (icons.ts)", command);
+
+                    return <li class="m-1 text-xs flex items-center">
+                        <label class="flex justify-center items-center p-1 mr-1 w-6 h-6 font-bold border text-neutral-100 border-neutral-200">{keystroke}</label>
+                        <div>{desc}</div>
+                    </li>
                 })}
             </ul>;
             render(result, this);
@@ -54,5 +56,5 @@ export default (editor: Editor) => {
             editor.signals.keybindingsCleared.remove(this.add);
         }
     }
-    customElements.define('ispace-keybindings', Keybindings);
+    customElements.define('plasticity-keybindings', Keybindings);
 };

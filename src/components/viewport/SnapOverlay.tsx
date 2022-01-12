@@ -23,14 +23,16 @@ export default (editor: Editor) => {
         private readonly normalized = new THREE.Vector2();
         render() {
             const { info } = this;
+            let result;
             if (info === undefined || info.names.length === 0) {
-                render(<></>, this);
+                result = <></>;
             } else {
                 const { position, names } = info;
                 const { normalized } = this;
                 normalized2screen(position, normalized);
-                render(<div style={`left: ${normalized.x * 100}%; top: ${normalized.y * 100}%`}>{names!.join(',')}</div>, this);
+                result = <div class="absolute py-2 px-1 ml-5 -mt-5 text-sm text-black rounded border opacity-90 bg-neutral-500 border-neutral-600" style={`left: ${normalized.x * 100}%; top: ${normalized.y * 100}%`}>{names!.join(',')}</div>;
             }
+            render(<div class="absolute top-0 left-0 w-full h-full pointer-events-none">{result}</div>, this);
         }
 
         private add(info?: { position: Readonly<THREE.Vector3>, names: readonly string[] }) {
@@ -38,7 +40,7 @@ export default (editor: Editor) => {
             this.render();
         }
     }
-    customElements.define('ispace-snap-overlay', SnapOverlay);
+    customElements.define('plasticity-snap-overlay', SnapOverlay);
 }
 
 function normalized2screen(from: THREE.Vector3, to: THREE.Vector2) {
