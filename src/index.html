@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Plasticity 0.3 Beta</title>
+    <style>
+        body {
+            display: none
+        }
+    </style>
 </head>
 
 <body class="flex flex-col h-screen bg-neutral-900">
@@ -32,10 +37,14 @@
 
             <plasticity-pane-axis class="vertical basis-2/12">
                 <plasticity-pane>
-                    <h1 class="mb-3 text-xs font-bold text-neutral-100">Modifiers</h1>
+                    <plasticity-outliner></plasticity-outliner>
                 </plasticity-pane>
                 <plasticity-pane>
-                    <h1 class="mb-3 text-xs font-bold text-neutral-100">Selection</h1>
+                    <plasticity-outliner></plasticity-outliner>
+                </plasticity-pane>
+                <plasticity-pane>
+                    <plasticity-viewport view="3d" class="block w-full h-full"></plasticity-viewport>
+
                 </plasticity-pane>
             </plasticity-pane-axis>
 
