@@ -76,7 +76,7 @@ export class CommandExecutor {
     private async execute(command: Command) {
         const { signals, registry, originator, history, selection, contours, db, meshCreator } = this.editor;
         signals.commandStarted.dispatch(command);
-        const disposable = registry.add('ispace-viewport', {
+        const disposable = registry.add('plasticity-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });

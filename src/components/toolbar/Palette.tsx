@@ -38,12 +38,12 @@ export default (editor: Editor) => {
         render() {
             const { command, tooltip, name } = this;
             render(
-                <div class="block p-2 transform shadow-lg shadow-black/30 cursor-pointer bg-accent-800 hover:bg-accent-600 group-first:rounded-t group-last:rounded-b"
-                    onClick={this.execute}>
+                <div class="p-2 cursor-pointer bg-accent-800 hover:bg-accent-600"
+                    onClick={this.execute} >
                     <plasticity-icon name={name}></plasticity-icon>
 
                     {/* {this.tooltip !== undefined && <plasticity-tooltip command={`command:${command.identifier}`} placement="left">{tooltip}</plasticity-tooltip>} */}
-                </div>, this);
+                </div >, this);
         }
 
         execute = (event: MouseEvent) => {
@@ -184,40 +184,40 @@ export default (editor: Editor) => {
 
         render() {
             return render(
-                <div class="absolute flex flex-col space-y-2 -translate-y-1/2 right-2 top-1/2">
+                <div class="flex absolute right-2 top-1/2 flex-col space-y-2 -translate-y-1/2">
                     <section class="flex flex-col space-y-0.5">
-                        <plasticity-command name="line" class="group"></plasticity-command>
-                        <plasticity-command name="curve" class="group"></plasticity-command>
-                        <plasticity-button-group class="group">
+                        <plasticity-command name="line" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        <plasticity-command name="curve" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="center-circle"></plasticity-command>
                             <plasticity-command name="two-point-circle"></plasticity-command>
                             <plasticity-command name="three-point-circle"></plasticity-command>
                         </plasticity-button-group>
-                        <plasticity-button-group class="group">
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="center-point-arc"></plasticity-command>
                             <plasticity-command name="three-point-arc"></plasticity-command>
                         </plasticity-button-group>
-                        <plasticity-button-group class="group">
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="center-ellipse"></plasticity-command>
                             <plasticity-command name="three-point-ellipse"></plasticity-command>
                         </plasticity-button-group>
-                        <plasticity-button-group class="group">
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="corner-rectangle"></plasticity-command>
                             <plasticity-command name="center-rectangle"></plasticity-command>
                             <plasticity-command name="three-point-rectangle"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-command name="polygon"></plasticity-command>
-                        <plasticity-button-group class="group">
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="spiral"></plasticity-command>
                             <plasticity-command name="character-curve"></plasticity-command>
                         </plasticity-button-group>
-                        <plasticity-command name="trim" class="group"></plasticity-command>
-                        <plasticity-command name="bridge-curves" class="group"></plasticity-command>
+                        <plasticity-command name="trim" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        <plasticity-command name="bridge-curves" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                     </section>
                     <section class="flex flex-col space-y-0.5">
-                        <plasticity-command name="sphere" class="group"></plasticity-command>
-                        <plasticity-command name="cylinder" class="group"></plasticity-command>
-                        <plasticity-button-group class="group">
+                        <plasticity-command name="sphere" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        <plasticity-command name="cylinder" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="corner-box"></plasticity-command>
                             <plasticity-command name="center-box"></plasticity-command>
                             <plasticity-command name="three-point-box"></plasticity-command>

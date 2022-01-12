@@ -10,7 +10,7 @@
         @apply flex flex-col w-full h-full space-y-2;
     }
     plasticity-pane {
-        @apply relative overflow-hidden border rounded shadow-xl bg-neutral-800 border-neutral-700;
+        @apply relative border rounded shadow-xl overflow-clip bg-neutral-800 border-neutral-700;
     }
     plasticity-viewport {
         @apply block w-full h-full;

@@ -41,7 +41,7 @@ export function MakeViewport(editor: EditorLike) {
     const camera = new ProxyCamera();
     camera.position.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
-    const domElement = document.createElement('ispace-viewport');
+    const domElement = document.createElement('plasticity-viewport');
     // @ts-expect-error('Cannot mock DomRect')
     domElement.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
 

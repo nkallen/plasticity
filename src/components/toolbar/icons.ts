@@ -239,7 +239,7 @@ keybindings.set("gizmo:shell", "Thickness");
 
 export default (editor: Editor): void => {
     for (const Command of Object.values(cmd)) {
-        editor.registry.addOne('ispace-viewport', `command:${Command.identifier}`, () => {
+        editor.registry.addOne('plasticity-viewport', `command:${Command.identifier}`, () => {
             const command = new Command(editor);
             command.agent = 'user';
             editor.enqueue(command);
@@ -247,7 +247,7 @@ export default (editor: Editor): void => {
     }
 
     for (const Command of Object.values(like)) {
-        editor.registry.addOne('ispace-viewport', `command:${Command.identifier}`, () => {
+        editor.registry.addOne('plasticity-viewport', `command:${Command.identifier}`, () => {
             const command = new Command(editor);
             command.agent = 'user';
             editor.enqueue(command);

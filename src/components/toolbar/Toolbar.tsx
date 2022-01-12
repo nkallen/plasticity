@@ -24,6 +24,7 @@ export class Model {
 
         const translations: Set<(typeof Command & GConstructor<Command>)> = new Set();
         const misc: Set<(typeof Command & GConstructor<Command>)> = new Set();
+        const bool: Set<(typeof Command & GConstructor<Command>)> = new Set();
         let trash: (typeof Command & GConstructor<Command>) | undefined = undefined;
 
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
@@ -49,9 +50,9 @@ export class Model {
             misc.add(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {
-            misc.add(cmd.UnionCommand);
-            misc.add(cmd.IntersectionCommand);
-            misc.add(cmd.DifferenceCommand);
+            bool.add(cmd.UnionCommand);
+            bool.add(cmd.IntersectionCommand);
+            bool.add(cmd.DifferenceCommand);
         }
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetCurveCommand);
@@ -59,7 +60,7 @@ export class Model {
             misc.add(cmd.ExtensionShellCommand);
         }
         if (selection.faces.size > 0 || selection.solids.size > 0) {
-            misc.add(cmd.CutCommand);
+            bool.add(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {
             misc.add(cmd.ExtrudeCommand);
@@ -80,7 +81,7 @@ export class Model {
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetFaceCommand);
         }
-        return { sections: [[...translations], [...misc]], trash };
+        return { sections: [[...translations], [...misc], [...bool]], trash };
     }
 }
 
@@ -112,7 +113,6 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.render = this.render.bind(this);
         }
 
         connectedCallback() {
@@ -124,38 +124,30 @@ export default (editor: Editor) => {
             editor.signals.selectionChanged.remove(this.render);
         }
 
-        render() {
+        render = () => {
             const { model: { commands: { sections, trash } } } = this;
-
 
             // preact's diffing algorithm will mutate ispace-tooltips rather than create new ones, which leads to corruption;
             // So, force things to be cleared first.
             render('', this);
             const result = (
-                <div class="absolute flex flex-row space-x-2 -translate-x-1/2 bottom-2 left-1/2">
+                <div class="flex absolute bottom-2 left-1/2 flex-row space-x-2 -translate-x-1/2">
                     {
-                        sections.map(section => {
-                            <div class="flex flex-row space-x-0.5">
+                        sections.map(section =>
+                            <section class="flex flex-row space-x-0.5">
                                 {
                                     section.map(command => {
                                         const tooltip = tooltips.get(command);
                                         if (!tooltip) console.error("invalid tooltip for " + command);
-                                        const constructor = command as GConstructor<Command>;
-                                        <button class="p-2 shadow-lg bg-accent-800 hover:bg-accent-600 first:rounded-l last:rounded-r cursor-pointer"
-                                            onClick={_ => editor.enqueue(new constructor(editor))} name={command.identifier}
-                                        >
-                                            <svg width="24" height="24" class="w-4 h-4 stroke-2 text-neutral-200 group-hover:text-neutral-100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                                            </svg>
-                                        </button>
-                                        //     <ispace-tooltip placement="top" command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
-                                        // return <button onClick={_ => editor.enqueue(new constructor(editor))} name={command.identifier} tabIndex={-1}>
-                                        //     <img src={icons.get(command)}></img>
-                                        // </button>
+                                        return <plasticity-command name={command.identifier} class="shadow-lg first:rounded-l last:rounded-r overflow-clip"></plasticity-command>
                                     })
                                 }
-                            </div>
-                        })
+                            </section>
+                        )
+                    }
+                    {
+                        trash !== undefined &&
+                        <plasticity-command name="delete" class="rounded-full overflow-clip"></plasticity-command>
                     }
                 </div>
             );

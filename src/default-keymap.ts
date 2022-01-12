@@ -182,13 +182,7 @@ export default {
         "@": "selection:mode:toggle:edge",
         "#": "selection:mode:toggle:face",
         "$": "selection:mode:toggle:solid",
-    },
 
-    "body:not([gizmo]) plasticity-viewport": {
-        "/": "viewport:focus",
-    },
-
-    "body:not([gizmo]) plasticity-workspace": {
         "c": "command:cut",
         "g": "command:move",
         "r": "command:rotate",
@@ -223,6 +217,10 @@ export default {
         "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
         "escape": "command:deselect-all",
+    },
+
+    "body:not([gizmo]) plasticity-viewport": {
+        "/": "viewport:focus",
     },
 
     "orbit-controls": {

@@ -31,7 +31,7 @@ const gridColor = new THREE.Color(0x666666).convertSRGBToLinear();
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
-const backgroundColor = new THREE.Color(0x424242).convertSRGBToLinear();
+const backgroundColor = new THREE.Color(0x2E2E30).convertSRGBToLinear();
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
