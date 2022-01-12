@@ -14,13 +14,6 @@ export class PaneAxis extends HTMLElement {
         if (!this.style.flexGrow) this.style.flexGrow = '1';
     }
 
-    connectedCallback() {
-        // const axis = this.parentElement as PaneAxis;
-        // if (axis) {
-        //     axis.signals.flexScaleChanged.add((fg) => this.signals.flexScaleChanged.dispatch(fg));
-        // }
-    }
-
     set flexGrow(fg: number) {
         this.style.flexGrow = String(fg);
         this.signals.flexScaleChanged.dispatch(fg);
@@ -30,7 +23,7 @@ export class PaneAxis extends HTMLElement {
         return Number(this.style.flexGrow);
     }
 }
-customElements.define('ispace-pane-axis', PaneAxis);
+customElements.define('plasticity-pane-axis', PaneAxis);
 
 export class Pane extends HTMLElement {
     signals: PaneSignals = {
@@ -43,7 +36,7 @@ export class Pane extends HTMLElement {
     }
 
     connectedCallback() {
-        const axis = this.closest("ispace-pane-axis")! as PaneAxis;
+        const axis = this.closest("plasticity-pane-axis")! as PaneAxis;
         axis.signals.flexScaleChanged.add(this.signals.flexScaleChanged.dispatch);
     }
 
@@ -56,7 +49,7 @@ export class Pane extends HTMLElement {
         return Number(this.style.flexGrow);
     }
 }
-customElements.define('ispace-pane', Pane);
+customElements.define('plasticity-pane', Pane);
 
 export class PaneResizeHandle extends HTMLElement {
     constructor() {
@@ -85,7 +78,7 @@ export class PaneResizeHandle extends HTMLElement {
         const previousSibling = this.previousElementSibling as Pane | PaneAxis;
         const nextSibling = this.nextElementSibling as Pane | PaneAxis;
 
-        const direction = this.closest("ispace-pane-axis")!.className;
+        const direction = this.closest("plasticity-pane-axis")!.className;
         if (direction == "horizontal") {
             const totalWidth = previousSibling.clientWidth + nextSibling.clientWidth;
 
@@ -113,4 +106,4 @@ export class PaneResizeHandle extends HTMLElement {
         }
     }
 }
-customElements.define('ispace-pane-resize-handle', PaneResizeHandle);
+customElements.define('plasticity-pane-resize-handle', PaneResizeHandle);

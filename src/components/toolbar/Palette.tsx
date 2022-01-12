@@ -6,60 +6,54 @@ import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { GConstructor } from '../../util/Util';
-import { icons, tooltips } from './icons';
+import { tooltips } from './icons';
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
 
 export default (editor: Editor) => {
-    class CommandButton extends HTMLButtonElement {
-        private klass: typeof Command;
-        // private title: string;
-        private tooltip: string;
+    class CommandButton extends HTMLElement {
+        private command!: GConstructor<Command> & { identifier: string };
+        private tooltip?: string;
 
-        constructor() {
-            super();
+        private _name!: string;
+        get name() { return this._name }
+        set name(name: string) {
+            this._name = name
 
-            const name = this.getAttribute('name');
-            if (!name) throw "invalid name";
-            // this.title = name;
-
-            type CommandName = keyof typeof cmd;
-            const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as CommandName;
+            const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as keyof typeof cmd;
             const klass = cmd[CommandName];
             if (klass == null) throw `${name} is invalid (${CommandName})`;
-            this.klass = klass;
 
             const tooltip = tooltips.get(klass);
-            if (!tooltip) throw "no matching tooltip for command " + CommandName;
+            if (!tooltip) console.error("no matching tooltip for command " + CommandName);
+
+            this.command = klass;
             this.tooltip = tooltip;
-
-            this.execute = this.execute.bind(this);
         }
 
-        connectedCallback() {
-            this.addEventListener('click', this.execute);
-            this.render();
-        }
+        connectedCallback() { this.render() }
 
         render() {
-            const { klass, tooltip } = this;
-            const result = <>
-                <img src={icons.get(klass)}></img>
-                <ispace-tooltip command={`command:${klass.identifier}`} placement="left">{tooltip}</ispace-tooltip>
-            </>
-            render(result, this);
+            const { command, tooltip, name } = this;
+            render(
+                <div class="block p-2 transform shadow-lg cursor-pointer bg-accent-800 hover:bg-accent-600 group-first:rounded-t group-last:rounded-b"
+                    onClick={this.execute}>
+                    <plasticity-icon name={name}></plasticity-icon>
+
+                    {/* {this.tooltip !== undefined && <plasticity-tooltip command={`command:${command.identifier}`} placement="left">{tooltip}</plasticity-tooltip>} */}
+                </div>, this);
         }
 
-        execute(event: MouseEvent) {
+        execute = (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const klass = this.klass as unknown as GConstructor<Command>;
+            const klass = this.command;
             editor.enqueue(new klass(editor));
         }
     }
-    customElements.define('ispace-command', CommandButton, { extends: 'button' });
+    customElements.define('plasticity-command', CommandButton);
 
     type ButtonGroupState = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: CompositeDisposable } | { tag: 'open', downEvent: PointerEvent, disposable: CompositeDisposable };
     class ButtonGroup extends HTMLElement {
@@ -183,5 +177,54 @@ export default (editor: Editor) => {
             }
         }
     }
-    customElements.define('ispace-button-group', ButtonGroup);
+    customElements.define('plasticity-button-group', ButtonGroup);
+
+    class Palette extends HTMLElement {
+        connectedCallback() { this.render() }
+
+        render() {
+            return render(
+                <div class="absolute flex flex-col space-y-2 -translate-y-1/2 right-2 top-1/2">
+                    <section class="flex flex-col space-y-0.5">
+                        <plasticity-command name="line" class="group"></plasticity-command>
+                        <plasticity-command name="curve" class="group"></plasticity-command>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="center-circle"></plasticity-command>
+                            <plasticity-command name="two-point-circle"></plasticity-command>
+                            <plasticity-command name="three-point-circle"></plasticity-command>
+                        </plasticity-button-group>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="center-point-arc"></plasticity-command>
+                            <plasticity-command name="three-point-arc"></plasticity-command>
+                        </plasticity-button-group>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="center-ellipse"></plasticity-command>
+                            <plasticity-command name="three-point-ellipse"></plasticity-command>
+                        </plasticity-button-group>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="corner-rectangle"></plasticity-command>
+                            <plasticity-command name="center-rectangle"></plasticity-command>
+                            <plasticity-command name="three-point-rectangle"></plasticity-command>
+                        </plasticity-button-group>
+                        <plasticity-command name="polygon"></plasticity-command>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="spiral"></plasticity-command>
+                            <plasticity-command name="character-curve"></plasticity-command>
+                        </plasticity-button-group>
+                        <plasticity-command name="trim" class="group"></plasticity-command>
+                        <plasticity-command name="bridge-curves" class="group"></plasticity-command>
+                    </section>
+                    <section class="flex flex-col space-y-0.5">
+                        <plasticity-command name="sphere" class="group"></plasticity-command>
+                        <plasticity-command name="cylinder" class="group"></plasticity-command>
+                        <plasticity-button-group class="group">
+                            <plasticity-command name="corner-box"></plasticity-command>
+                            <plasticity-command name="center-box"></plasticity-command>
+                            <plasticity-command name="three-point-box"></plasticity-command>
+                        </plasticity-button-group>
+                    </section>
+                </div>, this);
+        }
+    }
+    customElements.define('plasticity-palette', Palette);
 }

@@ -96,7 +96,7 @@ export class Editor {
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
 
-        const d = this.registry.add("ispace-workspace", {
+        const d = this.registry.add(document.body, {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
             'repeat-last-command': () => this.executor.repeatLastCommand(),

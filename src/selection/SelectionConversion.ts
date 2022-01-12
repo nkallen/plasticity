@@ -18,7 +18,7 @@ export class SelectionCommandRegistrar {
     register(registry: CommandRegistry) {
         const { selection } = this.editor;
 
-        return registry.add("ispace-workspace", {
+        return registry.add(document.body, {
             'selection:mode:set:control-point': () => selection.mode.set(SelectionMode.ControlPoint),
             'selection:mode:set:edge': () => selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:mode:set:face': () => selection.mode.set(SelectionMode.Face),

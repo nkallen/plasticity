@@ -13,6 +13,7 @@ import NumberScrubber from './components/dialog/NumberScrubber';
 import Modifiers from './components/modifiers/Modifiers';
 import './components/pane/Pane';
 import TitleBar from './components/title-bar/TitleBar';
+import Icon from './components/toolbar/Icon';
 import registerDefaultCommands from './components/toolbar/icons';
 import Palette from './components/toolbar/Palette';
 import Toolbar from './components/toolbar/Toolbar';
@@ -62,6 +63,7 @@ requestAnimationFrame(function loop() {
     requestAnimationFrame(loop)
 });
 
+Icon(editor);
 TitleBar(editor);
 Toolbar(editor);
 Keybindings(editor);
