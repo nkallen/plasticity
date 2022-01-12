@@ -49,7 +49,7 @@ export default (editor: Editor) => {
         render() {
             const result = (
                 <>
-                    <div class="flex absolute top-2 right-2 left-2 z-50 justify-between m-auto">
+                    <div class="flex absolute top-2 right-2 left-2 z-50 justify-between mr-32">
                         <ol class="flex flex-row space-x-0.5">
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id="control-point" checked={editor.selection.mode.has(SelectionMode.ControlPoint)}

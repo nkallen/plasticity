@@ -327,7 +327,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        const { camera, renderer, composer, outlinePassHover, outlinePassSelection } = this;
+        const { camera, renderer, composer } = this;
         camera.setSize(offsetWidth, offsetHeight);
 
         renderer.setSize(offsetWidth, offsetHeight);
@@ -600,21 +600,19 @@ export default (editor: EditorLike) => {
         connectedCallback() {
             editor.viewports.push(this.model);
 
-            const pane = this.parentElement as Pane;
-            pane.signals.flexScaleChanged.add(this.resize);
+            const pane = this.parentElement as Pane | null;
+            pane?.signals?.flexScaleChanged.add(this.resize);
             editor.signals.windowLoaded.add(this.resize);
             editor.signals.windowResized.add(this.resize);
 
             if (editor.windowLoaded) this.model.start();
         }
 
-        disconnectedCallback() {
-            this.model.dispose();
-        }
+        disconnectedCallback() { this.model.dispose() }
 
         resize() {
-            this.model.start();
             this.model.setSize(this.offsetWidth, this.offsetHeight);
+            this.model.start();
         }
     }
 

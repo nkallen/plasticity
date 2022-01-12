@@ -80,7 +80,7 @@
                         "mainConfig": "./webpack.main.config.js",
                         "devServer": {
                             "liveReload": false,
-                            "hot": true
+                            "hot": false
                         },
                         "renderer": {
                             "nodeIntegration": true,

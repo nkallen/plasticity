@@ -7,6 +7,7 @@ module.exports = {
         colors: {
             viewport: '#2E2E30',
             dialog: '#111111',
+            black: '#000000',
             neutral: {
                 900: "#191919",
                 800: "#202020",

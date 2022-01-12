@@ -10,16 +10,16 @@
         @apply flex flex-col w-full h-full space-y-2;
     }
     plasticity-pane {
-        @apply relative px-4 pt-4 border rounded shadow-xl bg-neutral-800 border-neutral-700;
+        @apply relative overflow-hidden border rounded shadow-xl bg-neutral-800 border-neutral-700;
     }
-    plasticity-pane-resize-handle {
-        @apply w-2;
+    plasticity-viewport {
+        @apply block w-full h-full;
     }
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {
-        cursor: col-resize;
+        @apply w-2 cursor-col-resize;
     }
     plasticity-pane-axis.vertical plasticity-pane-resize-handle {
-        cursor: row-resize;
+        @apply h-2 cursor-row-resize;
     }
 }
 

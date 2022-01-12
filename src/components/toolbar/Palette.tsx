@@ -38,7 +38,7 @@ export default (editor: Editor) => {
         render() {
             const { command, tooltip, name } = this;
             render(
-                <div class="block p-2 transform shadow-lg cursor-pointer bg-accent-800 hover:bg-accent-600 group-first:rounded-t group-last:rounded-b"
+                <div class="block p-2 transform shadow-lg shadow-black/30 cursor-pointer bg-accent-800 hover:bg-accent-600 group-first:rounded-t group-last:rounded-b"
                     onClick={this.execute}>
                     <plasticity-icon name={name}></plasticity-icon>
 
