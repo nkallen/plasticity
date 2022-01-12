@@ -8,103 +8,61 @@
 
 <body class="flex flex-col h-screen bg-neutral-900">
     <plasticity-titlebar></plasticity-titlebar>
-    <div class="top-0 w-full h-full flex flex-col space-y-1 py-[42px]">
-        <div class="flex flex-col flex-grow p-1 space-y-2">
-            <div class="h-full">
-                <div class="flex h-full space-x-2">
-                    <div class="px-4 pt-4 border rounded-md shadow-xl basis-2/12 bg-neutral-800 border-neutral-700">
-                        <h1 class="mb-4 text-xs font-bold text-neutral-100">Scene collection</h1>
-                        <ol class="space-y-1">
-                            <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700">
-                                <div class="text-sm text-neutral-400">Sphere 1</div>
-                                <button class="p-2 rounded hover:bg-neutral-500 group">
-                                    <i data-feather="eye" class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i>
-                                </button>
-                            </li>
-                            <li class="flex items-center justify-between p-3 py-2 rounded hover:bg-neutral-700">
-                                <div class="text-sm text-neutral-400">Sphere 2</div>
-                                <button class="p-2 rounded hover:bg-neutral-500 bg-neutral-700 group"><i data-feather="eye-off"
-                                        class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
-                            </li>
-                            <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700 bg-neutral-600 ">
-                                <div class="text-sm text-neutral-50">Sphere 3</div>
-                                <button class="p-2 rounded hover:bg-neutral-500 group"><i data-feather="eye"
-                                        class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
-                            </li>
-                        </ol>
-                    </div>
+    <div class="absolute top-0 h-full w-full py-[48px]">
+        <plasticity-pane-axis class="horizontal">
 
-                    <div class="relative border rounded shadow-xl basis-8/12 bg-viewport border-neutral-700">
-                        <plasticity-viewport view="3d">
-                            <plasticity-viewport-header></plasticity-viewport-header>
-                            <plasticity-palette></plasticity-palette>
-                            <!-- <ispace-viewport-prompt></ispace-viewport-prompt>
-                            <ispace-toolbar></ispace-toolbar>
+            <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
+
+            <plasticity-pane class="basis-2/12">
+                <h1 class="mb-4 text-xs font-bold text-neutral-100">Scene collection</h1>
+                <ol class="space-y-1">
+                    <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700">
+                        <div class="text-sm text-neutral-400">Sphere 1</div>
+                        <button class="p-2 rounded hover:bg-neutral-500 group">
+                            <i data-feather="eye" class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i>
+                        </button>
+                    </li>
+                    <li class="flex items-center justify-between p-3 py-2 rounded hover:bg-neutral-700">
+                        <div class="text-sm text-neutral-400">Sphere 2</div>
+                        <button class="p-2 rounded hover:bg-neutral-500 bg-neutral-700 group"><i data-feather="eye-off"
+                                class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
+                    </li>
+                    <li class="flex items-center justify-between px-3 py-2 rounded hover:bg-neutral-700 bg-neutral-600 ">
+                        <div class="text-sm text-neutral-50">Sphere 3</div>
+                        <button class="p-2 rounded hover:bg-neutral-500 group"><i data-feather="eye"
+                                class="w-4 h-4 stroke-neutral-400 group-hover:stroke-neutral-50"></i></button>
+                    </li>
+                </ol>
+            </plasticity-pane>
+
+            <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
+
+            <plasticity-pane class="basis-8/12">
+                <plasticity-viewport view="3d">
+                    <plasticity-viewport-header></plasticity-viewport-header>
+                    <plasticity-palette></plasticity-palette>
+                    <plasticity-toolbar></plasticity-toolbar>
+                    <!--
                             <ispace-keybindings></ispace-keybindings>
                             <ispace-dialog></ispace-dialog>
                             <ispace-snap-overlay></ispace-snap-overlay> -->
-                        </plasticity-viewport>
-                    </div>
+                </plasticity-viewport>
+            </plasticity-pane>
 
+            <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
 
-                    <div class="flex flex-col space-y-2 basis-2/12">
-                        <div class="px-4 pt-4 border rounded shadow-xl basis-1/2 bg-neutral-800 border-neutral-700">
-                            <h1 class="mb-3 text-xs font-bold text-neutral-100">Modifiers</h1>
-                        </div>
-                        <div class="px-4 pt-4 border rounded shadow-xl basis-1/2 bg-neutral-800 border-neutral-700">
-                            <h1 class="mb-3 text-xs font-bold text-neutral-100">Selection</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- history -->
-    <div class="h-[42px] absolute bottom-0 w-full px-1 py-0.5">
-        <div class="flex flex-row justify-start space-x-0.5">
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-            <button class="p-2 shadow-xl bg-neutral-800 hover:bg-neutral-700 first:rounded-l last:rounded-r group">
-                <i data-feather="file-plus" class="w-4 h-4 stroke-neutral-500 group-hover:stroke-neutral-200"></i>
-            </button>
-        </div>
+            <plasticity-pane-axis class="vertical basis-2/12">
+                <plasticity-pane>
+                    <h1 class="mb-3 text-xs font-bold text-neutral-100">Modifiers</h1>
+                </plasticity-pane>
+                <plasticity-pane>
+                    <h1 class="mb-3 text-xs font-bold text-neutral-100">Selection</h1>
+                </plasticity-pane>
+            </plasticity-pane-axis>
+
+            <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
+
+        </plasticity-pane-axis>
     </div>
 </body>
 
