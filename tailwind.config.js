@@ -3,7 +3,7 @@ module.exports = {
     theme: {
         colors: {
             viewport: 'var(--viewport, #2E2E30)',
-            grid: 'var(--grid, #272727)',
+            grid: 'var(--grid, #484848)',
             dialog: 'var(--dialog, #111111)',
             black: '#000000',
             white: '#ffffff',

@@ -18,7 +18,7 @@ export interface EditorLike extends cmd.EditorLike {
 export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly keystroke2modifier: Record<string, ChangeSelectionModifier>;
     private readonly keystroke2options: Record<string, ChangeSelectionOption>;
-    private readonly selectionHelper = new BoxSelectionHelper(this.viewport.renderer.domElement, 'select-box');
+    private readonly selectionHelper = new BoxSelectionHelper(this.viewport.domElement, 'select-box');
     private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
 
     constructor(
@@ -197,7 +197,7 @@ class BoxSelectionHelper {
     }
 
     onSelectStart(event: PointerEvent) {
-        this.domElement.parentElement!.appendChild(this.element);
+        this.domElement.appendChild(this.element);
 
         this.element.style.left = event.clientX + 'px';
         this.element.style.top = event.clientY + 'px';

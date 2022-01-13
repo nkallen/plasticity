@@ -1,9 +1,8 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/DatabaseLike";
+import { EditorSignals } from "../../editor/EditorSignals";
 import LayerManager from "../../editor/LayerManager";
-import { AtomicRef } from "../../util/Util";
 import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
@@ -13,8 +12,8 @@ type State = { tag: 'none', last?: MouseEvent } | { tag: 'hover', last?: MouseEv
 export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
     Line: { threshold: 0.1 },
-    Line2: { threshold: 15 },
-    Points: { threshold: 20 }
+    Line2: { threshold: 1 },
+    Points: { threshold: 5 }
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {

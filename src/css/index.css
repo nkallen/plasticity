@@ -3,24 +3,34 @@
 @tailwind utilities;
 
 @layer components {
+
+    plasticity-pane-axis,
+    plasticity-pane {
+        @apply flex-1 min-w-0;
+    }
+
     plasticity-pane-axis.horizontal {
         @apply flex w-full h-full;
     }
 
     plasticity-pane-axis.vertical {
-        @apply flex flex-col w-full h-full space-y-2;
+        @apply flex flex-col w-full h-full;
     }
 
     plasticity-pane {
-        @apply relative overflow-y-auto border rounded shadow-xl overflow-clip bg-neutral-800 border-neutral-700 min-h-20;
+        @apply relative overflow-y-auto border rounded shadow-xl bg-neutral-800 border-neutral-700 min-h-20;
     }
 
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {
-        @apply w-2 cursor-col-resize;
+        @apply w-2 h-full cursor-col-resize;
     }
 
     plasticity-pane-axis.vertical plasticity-pane-resize-handle {
-        @apply h-2 cursor-row-resize;
+        @apply w-full h-2 cursor-row-resize;
+    }
+
+    plasticity-viewport {
+        @apply overflow-clip bg-viewport;
     }
 
     plasticity-viewport,
@@ -59,16 +69,20 @@
     }
 
     .select-box.contains {
-        @apply border border-accent-600 bg-accent-500 bg-opacity-30;
+        @apply border border-accent-600 bg-accent-500 opacity-20;
     }
 
     .select-box.intersects {
-        @apply border border-dashed border-supporting-600 bg-supporting-500 bg-opacity-30;
+        @apply border border-dashed border-supporting-600 bg-supporting-500 opacity-30;
     }
 }
 
 .drag {
     -webkit-app-region: drag;
+}
+
+button {
+    outline: none;
 }
 
 body {

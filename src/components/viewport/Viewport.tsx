@@ -46,11 +46,11 @@ export interface EditorLike extends selector.EditorLike {
 export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
-    
+
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
-    
-    readonly gridColor = new THREE.Color(this.editor.styles.getPropertyValue('--grid') || '#272727').convertSRGBToLinear();
+
+    readonly gridColor = new THREE.Color(this.editor.styles.getPropertyValue('--grid') || '#484848').convertSRGBToLinear();
     readonly backgroundColor = new THREE.Color(this.editor.styles.getPropertyValue('--viewport') || '#2E2E30').convertSRGBToLinear();
     readonly selectionOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-50') || '#facc15').convertSRGBToLinear();
     readonly hoverOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-300') || '#fefce8').convertSRGBToLinear();
@@ -597,8 +597,6 @@ export default (editor: EditorLike) => {
                 constructionPlane,
                 navigationControls,
             );
-
-            this.resize = this.resize.bind(this);
         }
 
         connectedCallback() {
@@ -614,9 +612,14 @@ export default (editor: EditorLike) => {
 
         disconnectedCallback() { this.model.dispose() }
 
-        resize() {
-            this.model.setSize(this.offsetWidth, this.offsetHeight);
-            this.model.start();
+        private debounce?: NodeJS.Timeout;
+        resize = () => {
+            if (this.debounce !== undefined) clearTimeout(this.debounce);
+
+            this.debounce = setTimeout(() => {
+                this.model.setSize(this.offsetWidth, this.offsetHeight);
+                this.model.start();
+            }, 30);
         }
     }
 

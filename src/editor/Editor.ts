@@ -39,7 +39,7 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 export class Editor {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
-    
+
     readonly viewports: Viewport[] = [];
 
     readonly styles = document.documentElement.style;
@@ -56,7 +56,7 @@ export class Editor {
     readonly contours = new ContourManager(this._db, this.curves, this.regions);
 
     readonly _selection = new SelectionDatabase(this._db, this.materials, this.signals);
-    
+
     readonly modifiers = new ModifierManager(this.contours, this._selection, this.materials, this.signals);
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
@@ -104,7 +104,7 @@ export class Editor {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
             'repeat-last-command': () => this.executor.repeatLastCommand(),
-            'noop': () => {},
+            'noop': () => { },
         });
         this.disposable.add(d);
         this.disposable.add(this.registrar.register(this.registry));

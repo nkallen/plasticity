@@ -17,14 +17,14 @@
     <div class="absolute top-0 h-full w-full py-[42px] px-2">
         <plasticity-pane-axis class="horizontal">
 
-            <plasticity-pane class="basis-2/12">
+            <plasticity-pane>
                 <plasticity-outliner></plasticity-outliner>
             </plasticity-pane>
 
             <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
 
-            <plasticity-pane class="basis-8/12">
-                <plasticity-viewport view="3d" class="block w-full h-full">
+            <plasticity-pane style="flex-grow: 4">
+                <plasticity-viewport view="3d">
                     <plasticity-viewport-header></plasticity-viewport-header>
                     <plasticity-palette></plasticity-palette>
                     <plasticity-toolbar></plasticity-toolbar>
@@ -36,16 +36,21 @@
 
             <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
 
-            <plasticity-pane-axis class="vertical basis-2/12">
-                <plasticity-pane class="basis-1/3">
+            <plasticity-pane-axis class="vertical">
+                <plasticity-pane>
                     <plasticity-outliner></plasticity-outliner>
                 </plasticity-pane>
-                <plasticity-pane class="basis-1/3">
+
+                <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
+
+                <plasticity-pane>
                     <plasticity-undo-history></plasticity-undo-history>
                 </plasticity-pane>
-                <plasticity-pane class="basis-1/3">
-                    <plasticity-viewport view="3d" class="block w-full h-full">
-                        <plasticity-viewport-header></plasticity-viewport-header>
+
+                <plasticity-pane-resize-handle></plasticity-pane-resize-handle> 
+
+                <plasticity-pane>
+                    <plasticity-viewport view="3d">
                     </plasticity-viewport>
                 </plasticity-pane>
             </plasticity-pane-axis>
