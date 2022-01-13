@@ -16,9 +16,8 @@ export default (editor: Editor) => {
         render = () => {
             render(
                 <div class="p-4">
-                    <h1 class="mb-4 text-xs font-bold text-neutral-100">Scene collection</h1>
                     <section>
-                        <h2 class="mt-4 mb-1 text-xs uppercase text-neutral-200">Solids</h2>
+                        <h1 class="mb-4 text-xs font-bold text-neutral-100">Solids</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.Solid).map(solid =>
                                 <li class="flex items-center justify-between px-3 py-0.5 rounded hover:bg-neutral-700">
@@ -31,7 +30,7 @@ export default (editor: Editor) => {
                         </ol>
                     </section>
                     <section>
-                        <h2 class="mt-4 mb-1 text-xs uppercase text-neutral-200">Curves</h2>
+                        <h1 class="mb-4 text-xs font-bold text-neutral-100">Curves</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.SpaceInstance).map(solid =>
                                 <li class="flex items-center justify-between px-3 py-0.5 rounded hover:bg-neutral-700">

@@ -42,7 +42,7 @@ export default (editor: Editor) => {
             </div>;
 
             render(
-                <div class="z-50 drag w-full absolute h-[42px] top-0 flex justify-between p-1 bg-neutral-900 hover:border-b border-[#0B0B0B]">
+                <div class="z-50 drag w-full absolute h-[38px] top-0 flex justify-between p-1 hover:border-b hover:backdrop-blur-sm border-[#0B0B0B]">
                     {tools}
                     {!isMac && windowButtons}
                 </div>, this);

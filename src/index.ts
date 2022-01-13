@@ -33,7 +33,7 @@ const createWindow = (): void => {
         show: false,
         backgroundColor: '#2e2c29',
         titleBarStyle: 'hiddenInset',
-        trafficLightPosition: { x: 14, y: 14 },
+        trafficLightPosition: { x: 12, y: 12 },
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,
