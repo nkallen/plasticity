@@ -20,7 +20,7 @@ export default (editor: Editor) => {
                     <h1 class="mb-4 text-xs font-bold text-neutral-100">Undo history</h1>
                     <ol class="space-y-1">
                         {editor.history.undoStack.map(([name, memento]) =>
-                            <li class="flex items-center justify-between px-3 py-0.5 rounded hover:bg-neutral-700">
+                            <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
                                 <div class="text-sm text-neutral-400">{name}</div>
                             </li>
                         )}

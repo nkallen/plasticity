@@ -20,9 +20,9 @@ export default (editor: Editor) => {
                         <h1 class="mb-4 text-xs font-bold text-neutral-100">Solids</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.Solid).map(solid =>
-                                <li class="flex items-center justify-between px-3 py-0.5 rounded hover:bg-neutral-700">
+                                <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
                                     <div class="text-sm text-neutral-400">Solid {solid.view.simpleName}</div>
-                                    <button class="p-1 rounded hover:bg-neutral-500 group">
+                                    <button class="p-1 rounded group hover:bg-neutral-500">
                                         <plasticity-icon name="eye"></plasticity-icon>
                                     </button>
                                 </li>
@@ -33,9 +33,9 @@ export default (editor: Editor) => {
                         <h1 class="mb-4 text-xs font-bold text-neutral-100">Curves</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.SpaceInstance).map(solid =>
-                                <li class="flex items-center justify-between px-3 py-0.5 rounded hover:bg-neutral-700">
+                                <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
                                     <div class="text-sm text-neutral-400">Curve {solid.view.simpleName}</div>
-                                    <button class="p-1 rounded hover:bg-neutral-500 group">
+                                    <button class="p-1 rounded group hover:bg-neutral-500">
                                         <plasticity-icon name="eye"></plasticity-icon>
                                     </button>
                                 </li>
