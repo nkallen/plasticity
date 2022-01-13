@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
-import matcap from '../img/matcap/ceramic_dark.exr';
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
+import { matcapTexture } from "./Matcaps";
 
 export default interface MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial;
@@ -31,9 +30,6 @@ line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
 
 const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
-
-// @ts-expect-error
-export const matcapTexture = new EXRLoader().load(matcap);
 
 const surface = new THREE.MeshMatcapMaterial();
 surface.fog = false;

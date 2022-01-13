@@ -20,7 +20,6 @@ import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 let db: GeometryDatabase;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
-let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let intersect: jest.Mock<any, any>;
 let raycaster: THREE.Raycaster;
@@ -30,7 +29,6 @@ let bbox: THREE.Box3;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();

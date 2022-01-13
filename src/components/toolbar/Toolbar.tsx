@@ -125,7 +125,7 @@ export default (editor: Editor) => {
                     }
                     {
                         trash !== undefined &&
-                        <plasticity-command name="delete" class="rounded-full overflow-clip"></plasticity-command>
+                        <plasticity-command name="delete" class="rounded-full overflow-clip" tooltipPlacement="top"></plasticity-command>
                     }
                 </div>
             );

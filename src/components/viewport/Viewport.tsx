@@ -1,13 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { render } from "preact";
 import signals from "signals";
 import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
-import { EditorSignals } from '../../editor/EditorSignals';
+import { StyleDeclaration } from "../../command/GizmoMaterials";
 import { DatabaseLike } from "../../editor/DatabaseLike";
+import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
@@ -27,11 +27,9 @@ import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
 
-const gridColor = new THREE.Color(0x666666).convertSRGBToLinear();
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
-const backgroundColor = new THREE.Color(0x2E2E30).convertSRGBToLinear();
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
@@ -42,14 +40,20 @@ export interface EditorLike extends selector.EditorLike {
     windowLoaded: boolean,
     highlighter: RenderedSceneBuilder,
     keymaps: AtomKeymap.KeymapManager,
+    styles: StyleDeclaration,
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
-
+    
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
+    
+    readonly gridColor = new THREE.Color(this.editor.styles.getPropertyValue('--grid') || '#272727').convertSRGBToLinear();
+    readonly backgroundColor = new THREE.Color(this.editor.styles.getPropertyValue('--viewport') || '#2E2E30').convertSRGBToLinear();
+    readonly selectionOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-50') || '#facc15').convertSRGBToLinear();
+    readonly hoverOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-300') || '#fefce8').convertSRGBToLinear();
 
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
@@ -69,7 +73,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
     private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.domElement, 128);
-    private grid = new GridHelper(300, 300, gridColor, gridColor);
+    private grid = new GridHelper(300, 300, this.gridColor, this.gridColor);
 
     constructor(
         private readonly editor: EditorLike,
@@ -107,16 +111,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassSelection.edgeStrength = 3;
             outlinePassSelection.edgeThickness = 1;
-            outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
-            outlinePassSelection.hiddenEdgeColor.setHex(0xfffff00);
+            outlinePassSelection.visibleEdgeColor.copy(this.selectionOutlineColor);
+            outlinePassSelection.hiddenEdgeColor.copy(this.selectionOutlineColor);
             outlinePassSelection.downSampleRatio = 1;
             this.outlinePassSelection = outlinePassSelection;
 
             const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassHover.edgeStrength = 3;
             outlinePassHover.edgeThickness = 1;
-            outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
-            outlinePassHover.hiddenEdgeColor.setHex(0xfffffff);
+            outlinePassHover.visibleEdgeColor.copy(this.hoverOutlineColor);
+            outlinePassHover.hiddenEdgeColor.copy(this.hoverOutlineColor);
             outlinePassHover.downSampleRatio = 1;
             this.outlinePassHover = outlinePassHover;
 
@@ -164,7 +168,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.navigationControls.dispose();
         }));
 
-        this.scene.background = backgroundColor;
+        this.scene.background = this.backgroundColor;
         this.scene.autoUpdate = false;
     }
 
@@ -297,8 +301,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
 
         const fog = camera.isOrthographicCamera
-            ? new THREE.Fog(backgroundColor, 100, 1000)
-            : new THREE.Fog(backgroundColor, 1, 100)
+            ? new THREE.Fog(this.backgroundColor, 100, 1000)
+            : new THREE.Fog(this.backgroundColor, 1, 100)
         scene.fog = fog;
 
         grid.update(camera);

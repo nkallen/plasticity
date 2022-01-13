@@ -21,7 +21,7 @@ export default (editor: Editor) => {
                     <ol class="space-y-1">
                         {editor.history.undoStack.map(([name, memento]) =>
                             <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
-                                <div class="text-sm text-neutral-400">{name}</div>
+                                <div class="text-xs text-neutral-400">{name}</div>
                             </li>
                         )}
                     </ol>

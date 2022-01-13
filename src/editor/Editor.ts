@@ -4,7 +4,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
-import { GizmoMaterialDatabase } from "../command/GizmoMaterials";
+import { DefaultStyles, GizmoMaterialDatabase } from "../command/GizmoMaterials";
 import { SelectionCommandManager } from "../command/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
@@ -42,10 +42,11 @@ export class Editor {
     
     readonly viewports: Viewport[] = [];
 
+    readonly styles = document.documentElement.style;
     readonly signals = new EditorSignals();
     readonly registry = new CommandRegistry();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
-    readonly gizmos = new GizmoMaterialDatabase(this.signals);
+    readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
     readonly sprites = new SpriteDatabase();
     readonly meshCreator = new ParallelMeshCreator();
     readonly _db = new GeometryDatabase(this.meshCreator, this.materials, this.signals);
@@ -67,7 +68,7 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
-    readonly helpers: Helpers = new Helpers(this.signals);
+    readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.modifiers, this.viewports);

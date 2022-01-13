@@ -1,6 +1,3 @@
-import fs from 'fs';
-import json5 from 'json5';
-import path from 'path';
 import Stats from 'stats.js';
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
@@ -26,12 +23,16 @@ import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import Prompt from './components/viewport/ViewportPrompt';
 import './css/index.css';
-import defaultKeymap from "./default-keymap";
-import { HotReloadingEditor } from './editor/Editor';
+import { Editor } from './editor/Editor';
+import { loadKeymap } from './startup/UserKeymap';
+import { loadTheme } from './startup/UserTheme';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
-const editor = new HotReloadingEditor();
+loadTheme();
+
+export const editor = new Editor();
+
 editor.backup.load();
 Object.defineProperty(window, 'editor', {
     value: editor,
@@ -52,38 +53,7 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
 
-editor.keymaps.add('/default', defaultKeymap);
-const userKeymap = path.join(process.env.PLASTICITY_HOME!, 'keymap.json');
-if (fs.existsSync(userKeymap)) {
-    try {
-        const parsed = json5.parse(fs.readFileSync(userKeymap).toString());
-        editor.keymaps.add('/user', parsed, 100);
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-const userTheme = path.join(process.env.PLASTICITY_HOME!, 'theme.json');
-if (fs.existsSync(userTheme)) {
-    try {
-        const parsed = json5.parse(fs.readFileSync(userTheme).toString());
-        const style = document.documentElement.style;
-        for (const color of ['viewport', 'dialog']) {
-            style.setProperty(`--${color}`, parsed.colors[color]);
-        };
-        for (const colorName of ['neutral', 'accent', 'supporting', 'red', 'green', 'blue', 'yellow']) {
-            const colorInfo = parsed.colors[colorName];
-            if (colorInfo === undefined) continue;
-            for (const shadeName of ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']) {
-                const shadeInfo = colorInfo[shadeName];
-                if (shadeInfo === undefined) continue
-                style.setProperty(`--${colorName}-${shadeName}`, shadeInfo);
-            }
-        };
-    } catch (e) {
-        console.error(e);
-    }
-}
+loadKeymap();
 
 registerDefaultCommands(editor);
 

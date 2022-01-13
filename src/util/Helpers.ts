@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { StyleDeclaration } from '../command/GizmoMaterials';
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { EditorSignals } from '../editor/EditorSignals';
 import * as visual from "../visual_model/VisualModel";
@@ -64,16 +65,18 @@ export class Helpers {
     readonly scene = new THREE.Scene();
     readonly axes: THREE.AxesHelper;
 
-    constructor(signals: EditorSignals) {
+    constructor(signals: EditorSignals, styles: StyleDeclaration) {
         const axes = new THREE.AxesHelper(10_000);
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
         axes.renderOrder = -1;
         axes.position.set(0, 0, 0.01);
         const material = axes.material as THREE.Material;
-        material.transparent = true;
         material.fog = false;
-
+        axes.setColors(
+            new THREE.Color(styles.getPropertyValue('--red-600') || '#dc2626').convertSRGBToLinear(),
+            new THREE.Color(styles.getPropertyValue('--green-600') || '#16a34a').convertSRGBToLinear(),
+            new THREE.Color(styles.getPropertyValue('--blue-600') || '#2563eb').convertSRGBToLinear());
     }
 
     add(...objects: THREE.Object3D[]) {

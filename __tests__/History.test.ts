@@ -39,27 +39,22 @@ describe(EditorOriginator, () => {
     let modifiers: ModifierManager;
     let contours: ContourManager;
     let selection: SelectionDatabase;
-    let regions: RegionManager;
     let crosses: CrossPointDatabase;
     let viewports: Viewport[];
 
     beforeEach(() => {
-        materials = new FakeMaterials();
-        signals = new EditorSignals();
-        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-        gizmos = new GizmoMaterialDatabase(signals);
-        crosses = new CrossPointDatabase();
-        snaps = new SnapManager(db, crosses, signals);
-        selection = new SelectionDatabase(db, materials, signals);
+        const editor = new Editor();
+        materials = editor.materials;
+        signals = editor.signals;
+        db = editor._db;
+        gizmos = editor.gizmos;
+        crosses = editor.crosses;
+        snaps = editor.snaps;
+        selection = editor._selection;
         selected = selection.selected;
-        curves = new PlanarCurveDatabase(db, materials, signals);
-        modifiers = new ModifierManager(db, selection, materials, signals);
-        const regions = new RegionManager(db, curves);
-        contours = new ContourManager(db, curves, regions);
-        const keymaps = new KeymapManager();
-        const registry = new CommandRegistry();
-        const layers = new LayerManager(selection.selected, signals);
-        const editor = { keymaps, db, registry, layers, signals } as unknown as Editor;
+        curves = editor.curves;
+        modifiers = editor.modifiers;
+        contours = editor.contours;
         viewports = [MakeViewport(editor)];
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
     });
