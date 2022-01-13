@@ -15,7 +15,6 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            console.log(editor.history.undoStack)
             render(
                 <div class="p-4">
                     <h1 class="mb-4 text-xs font-bold text-neutral-100">Undo history</h1>

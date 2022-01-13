@@ -15,17 +15,17 @@ export default (editor: Editor) => {
 
         render() {
             const tools = <div class={`flex flex-row items-center justify-start space-x-1 ${isMac ? 'ml-[128px]' : ''}`}>
-                <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1}>
+                <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1} onClick={this.execute} data-command="file:new">
                     <plasticity-icon name="new"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom">New document</plasticity-tooltip>
+                    <plasticity-tooltip placement="bottom" command="file:new">New document</plasticity-tooltip>
                 </button>
-                <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1}>
+                <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1} onClick={this.execute} data-command="file:save-as">
                     <plasticity-icon name="export"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom">Export document (OBJ, STEP, ...)</plasticity-tooltip>
+                    <plasticity-tooltip placement="bottom" command="file:save-as">Export document (OBJ, STEP, ...)</plasticity-tooltip>
                 </button>
-                <button class="p-1 rounded group hover:bg-neutral-700" tabIndex={-1}>
+                <button class="p-1 rounded group hover:bg-neutral-700" tabIndex={-1} onClick={this.execute} data-command="file:open">
                     <plasticity-icon name="import"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom">Import document</plasticity-tooltip>
+                    <plasticity-tooltip placement="bottom" command="file:open">Import document</plasticity-tooltip>
                 </button>
             </div>;
 
@@ -46,6 +46,19 @@ export default (editor: Editor) => {
                     {tools}
                     {!isMac && windowButtons}
                 </div>, this);
+        }
+
+        private execute = (e: MouseEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const element = e.currentTarget! as HTMLElement;
+            const command = element.getAttribute('data-command');
+            if (command === null) {
+                console.error("Missing command name: ", element);
+                return;
+            }
+
+            element.dispatchEvent(new CustomEvent(command, { bubbles: true }));
         }
     }
     customElements.define('plasticity-titlebar', TitleBar);

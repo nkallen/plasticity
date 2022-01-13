@@ -115,7 +115,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='xray'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-xray">Toggle X-Ray mode</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-Ray mode</plasticity-tooltip>
                                 </label>
                             </li>
 

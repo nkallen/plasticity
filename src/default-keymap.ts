@@ -214,6 +214,13 @@ export default {
         "ctrl-z": "undo",
         "ctrl-shift-z": "redo",
 
+        "cmd-n": "file:new",
+        "ctrl-n": "file:new",
+        "cmd-shift-s": "file:save-as",
+        "ctrl-shift-s": "file:save-as",
+        "cmd-o": "file:open",
+        "ctrl-o": "file:open",
+
         "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
         "escape": "command:deselect-all",

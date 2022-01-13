@@ -15,24 +15,24 @@ import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
-import { ModifierHighlightManager, RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
+import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { RegionManager } from "./curves/RegionManager";
+import { DatabaseLike } from "./DatabaseLike";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { DatabaseLike } from "./DatabaseLike";
 import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
+import { ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { ParallelMeshCreator } from "./MeshCreator";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -97,6 +97,9 @@ export class Editor {
         this.keymaps.defaultTarget = document.body;
 
         const d = this.registry.add(document.body, {
+            'file:new': () => this.clear(),
+            'file:open': () => this.open(),
+            'file:save-as': () => this.export(),
             'undo': () => this.undo(),
             'redo': () => this.redo(),
             'repeat-last-command': () => this.executor.repeatLastCommand(),
