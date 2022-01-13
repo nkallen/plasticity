@@ -55,8 +55,34 @@ stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor
 editor.keymaps.add('/default', defaultKeymap);
 const userKeymap = path.join(process.env.PLASTICITY_HOME!, 'keymap.json');
 if (fs.existsSync(userKeymap)) {
-    const parsed = json5.parse(fs.readFileSync(userKeymap).toString());
-    editor.keymaps.add('/user', parsed, 100);
+    try {
+        const parsed = json5.parse(fs.readFileSync(userKeymap).toString());
+        editor.keymaps.add('/user', parsed, 100);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+const userTheme = path.join(process.env.PLASTICITY_HOME!, 'theme.json');
+if (fs.existsSync(userTheme)) {
+    try {
+        const parsed = json5.parse(fs.readFileSync(userTheme).toString());
+        const style = document.documentElement.style;
+        for (const color of ['viewport', 'dialog']) {
+            style.setProperty(`--${color}`, parsed.colors[color]);
+        };
+        for (const colorName of ['neutral', 'accent', 'supporting', 'red', 'green', 'blue', 'yellow']) {
+            const colorInfo = parsed.colors[colorName];
+            if (colorInfo === undefined) continue;
+            for (const shadeName of ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']) {
+                const shadeInfo = colorInfo[shadeName];
+                if (shadeInfo === undefined) continue
+                style.setProperty(`--${colorName}-${shadeName}`, shadeInfo);
+            }
+        };
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 registerDefaultCommands(editor);
