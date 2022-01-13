@@ -6,20 +6,56 @@
     plasticity-pane-axis.horizontal {
         @apply flex w-full h-full;
     }
+
     plasticity-pane-axis.vertical {
         @apply flex flex-col w-full h-full space-y-2;
     }
+
     plasticity-pane {
         @apply relative overflow-y-auto border rounded shadow-xl overflow-clip bg-neutral-800 border-neutral-700 min-h-20;
     }
+
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {
         @apply w-2 cursor-col-resize;
     }
+
     plasticity-pane-axis.vertical plasticity-pane-resize-handle {
         @apply h-2 cursor-row-resize;
     }
-    plasticity-viewport, plasticity-outliner, plasticity-undo-history {
+
+    plasticity-viewport,
+    plasticity-outliner,
+    plasticity-undo-history {
         @apply block w-full h-full;
+    }
+
+    .tooltip {
+        all: unset;
+        @apply absolute z-50 text-xs opacity-0;
+    }
+
+    .tooltip.in {
+        @apply opacity-95;
+    }
+
+    .tooltip .tooltip-inner {
+        @apply max-w-xs px-2 py-1 text-center border-[0.5px] rounded text-neutral-50 bg-neutral-500 border-neutral-400 shadow-black/20 shadow-md;
+    }
+
+    .tooltip.top {
+        @apply py-2 -mr-1;
+    }
+
+    .tooltip.right {
+        @apply px-2 ml-1;
+    }
+
+    .tooltip.bottom {
+        @apply py-2 mt-1;
+    }
+
+    .tooltip.left {
+        @apply px-2 -ml-1;
     }
 }
 

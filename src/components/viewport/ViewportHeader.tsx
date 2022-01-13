@@ -101,7 +101,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`ortho_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='ortho'></plasticity-icon>
-                                    <ispace-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</ispace-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</plasticity-tooltip>
                                 </label>
                             </li>
 

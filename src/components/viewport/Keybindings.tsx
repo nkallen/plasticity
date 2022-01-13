@@ -21,7 +21,7 @@ export default (editor: Editor) => {
         render() {
             const { commands } = this;
             const keymaps = editor.keymaps;
-            const result = <ul class="absolute bottom-3 right-24 bg-transparent text-neutral-100  w-52">
+            const result = <ul class="absolute bottom-3 right-24 w-52 bg-transparent text-neutral-100">
                 {[...commands].map(command => {
                     const bindings = keymaps.findKeyBindings({ command });
                     if (bindings.length == 0) {
@@ -32,7 +32,7 @@ export default (editor: Editor) => {
                     const desc = keybindings.get(command);
                     if (desc === undefined) console.error("Description missing from (icons.ts)", command);
 
-                    return <li class="m-1 text-xs flex items-center">
+                    return <li class="flex items-center m-1 text-xs">
                         <label class="flex justify-center items-center p-1 mr-1 w-6 h-6 font-bold border text-neutral-100 border-neutral-200">{keystroke}</label>
                         <div>{desc}</div>
                     </li>

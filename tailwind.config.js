@@ -8,6 +8,7 @@ module.exports = {
             viewport: '#2E2E30',
             dialog: '#111111',
             black: '#000000',
+            white: '#ffffff',
             transparent: 'transparent',
             neutral: {
                 900: "#191919",

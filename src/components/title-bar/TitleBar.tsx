@@ -17,15 +17,15 @@ export default (editor: Editor) => {
             const tools = <div class={`flex flex-row items-center justify-start space-x-1 ${isMac ? 'ml-[128px]' : ''}`}>
                 <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1}>
                     <plasticity-icon name="new"></plasticity-icon>
-                    <ispace-tooltip placement="bottom">New document</ispace-tooltip>
+                    <plasticity-tooltip placement="bottom">New document</plasticity-tooltip>
                 </button>
                 <button class="p-1 rounded stroke-1 group hover:bg-neutral-700" tabIndex={-1}>
                     <plasticity-icon name="export"></plasticity-icon>
-                    <ispace-tooltip placement="bottom">Export document (OBJ, STEP, ...)</ispace-tooltip>
+                    <plasticity-tooltip placement="bottom">Export document (OBJ, STEP, ...)</plasticity-tooltip>
                 </button>
                 <button class="p-1 rounded group hover:bg-neutral-700" tabIndex={-1}>
                     <plasticity-icon name="import"></plasticity-icon>
-                    <ispace-tooltip placement="bottom">Import document</ispace-tooltip>
+                    <plasticity-tooltip placement="bottom">Import document</plasticity-tooltip>
                 </button>
             </div>;
 

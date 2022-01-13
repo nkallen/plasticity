@@ -2,11 +2,11 @@ import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
-import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from "../../editor/DatabaseLike";
+import { Editor } from '../../editor/Editor';
 import { HasSelection } from '../../selection/SelectionDatabase';
 import { GConstructor } from '../../util/Util';
-import { icons, tooltips } from './icons';
+import { tooltips } from './icons';
 
 interface CommandList {
     sections: (typeof Command & GConstructor<Command>)[][];
@@ -86,28 +86,6 @@ export class Model {
 }
 
 export default (editor: Editor) => {
-    class Tooltip extends HTMLElement {
-        dispose?: Disposable
-
-        constructor() {
-            super();
-            this.attachShadow({ mode: 'open' });
-        }
-
-        connectedCallback() {
-            this.dispose = editor.tooltips.add(this.parentElement, {
-                title: this.innerHTML,
-                placement: this.getAttribute('placement') ?? undefined,
-                keyBindingCommand: this.getAttribute('command'),
-            });
-        }
-
-        disconnectedCallback() {
-            this.dispose!.dispose();
-        }
-    }
-    customElements.define('ispace-tooltip', Tooltip);
-
     class Toolbar extends HTMLElement {
         private readonly model = new Model(editor.selection.selected, editor.db);
 
@@ -127,7 +105,7 @@ export default (editor: Editor) => {
         render = () => {
             const { model: { commands: { sections, trash } } } = this;
 
-            // preact's diffing algorithm will mutate ispace-tooltips rather than create new ones, which leads to corruption;
+            // preact's diffing algorithm will mutate plasticity-tooltips rather than create new ones, which leads to corruption;
             // So, force things to be cleared first.
             render('', this);
             const result = (

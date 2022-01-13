@@ -163,7 +163,7 @@ export default (editor: Editor) => {
             render(
                 <button onPointerEnter={this.pointerEnter} onPointerLeave={this.pointerLeave} onPointerDown={this.pointerDown} tabIndex={-1}>
                     <img src={icons.get(this.creator.constructor)}></img>
-                    <ispace-tooltip placement="top">{c3d.CreatorType[this.creator.IsA()]}</ispace-tooltip>
+                    <plasticity-tooltip placement="top">{c3d.CreatorType[this.creator.IsA()]}</plasticity-tooltip>
                 </button>
                 , this);
         }

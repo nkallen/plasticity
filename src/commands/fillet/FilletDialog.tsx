@@ -41,7 +41,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                 <ul>
                     <li>
                         <label for="distance1">Distance 1
-                            <ispace-tooltip><img src={distance1_2} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={distance1_2} /></plasticity-tooltip>
                         </label>
                         <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
@@ -51,13 +51,13 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="conic">Conic
-                            <ispace-tooltip><img src={conic1} /><img src={conic2} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={conic1} /><img src={conic2} /></plasticity-tooltip>
                         </label>
                         <ispace-number-scrubber disabled={0} min={0.05} max={0.95} default={0.5} name="conic" value={conic} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="begLength">Beginning length
-                            <ispace-tooltip><img src={beginningLength} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={beginningLength} /></plasticity-tooltip>
                         </label>
                         <ispace-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
@@ -67,7 +67,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="form">Form
-                            <ispace-tooltip><img src={span1} /><img src={span2} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={span1} /><img src={span2} /></plasticity-tooltip>
                         </label>
 
                         <input type="radio" name="form" id="fillet" value={c3d.SmoothForm.Fillet} checked={form === c3d.SmoothForm.Fillet} onClick={this.onChange}></input>
@@ -77,7 +77,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li>
                         <label for="smoothCorner">Corner
-                            <ispace-tooltip><img src={corner1} /><img src={corner2} /><img src={corner3} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={corner1} /><img src={corner2} /><img src={corner3} /></plasticity-tooltip>
                         </label>
                         <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
                             <option value={c3d.CornerForm.pointed}>Pointed</option>
@@ -87,13 +87,13 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li>
                         <label for="prolong">Prolong
-                            <ispace-tooltip><img src={prolong_} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={prolong_} /></plasticity-tooltip>
                         </label>
                         <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
                     </li>
                     <li>
                         <label for="keepCant">Overrun
-                            <ispace-tooltip><img src={cant1} /><img src={cant2} /><img src={cant3} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={cant1} /><img src={cant2} /><img src={cant3} /></plasticity-tooltip>
                         </label>
                         <select name="keepCant" value={keepCant} onChange={this.onChange}>
                             <option value="-1">Warp</option>
@@ -107,7 +107,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="equable">Equable
-                            <ispace-tooltip><img src={equable1} /><img src={equable2} /></ispace-tooltip>
+                            <plasticity-tooltip><img src={equable1} /><img src={equable2} /></plasticity-tooltip>
                         </label>
                         <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
                     </li>
