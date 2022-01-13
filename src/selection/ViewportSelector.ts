@@ -192,7 +192,7 @@ class BoxSelectionHelper {
 
     constructor(private readonly domElement: HTMLElement, cssClassName: string) {
         this.element = document.createElement('div');
-        this.element.classList.add(cssClassName);
+        this.element.classList.add('fixed', cssClassName);
         this.element.style.pointerEvents = 'none';
     }
 

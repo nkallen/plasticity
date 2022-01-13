@@ -57,6 +57,14 @@
     .tooltip.left {
         @apply px-2 -ml-0.5;
     }
+
+    .select-box.contains {
+        @apply border border-accent-600 bg-accent-500 bg-opacity-30;
+    }
+
+    .select-box.intersects {
+        @apply border border-dashed border-supporting-600 bg-supporting-500 bg-opacity-30;
+    }
 }
 
 .drag {
