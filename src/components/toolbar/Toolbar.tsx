@@ -117,7 +117,7 @@ export default (editor: Editor) => {
                                     section.map(command => {
                                         const tooltip = tooltips.get(command);
                                         if (!tooltip) console.error("invalid tooltip for " + command);
-                                        return <plasticity-command name={command.identifier} class="shadow-lg first:rounded-l last:rounded-r overflow-clip"></plasticity-command>
+                                        return <plasticity-command name={command.identifier} class="shadow-lg first:rounded-l last:rounded-r overflow-clip" tooltipPlacement="top"></plasticity-command>
                                     })
                                 }
                             </section>

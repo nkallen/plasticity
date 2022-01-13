@@ -63,6 +63,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`control-point_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='control-point'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="selection:set-control-point">Control-Point select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -72,6 +73,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`edge_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='edge'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="selection:set-edge">Edge select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -81,6 +83,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='face'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="selection:set-face">Face select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -90,6 +93,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='solid'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="selection:set-solid">Solid select</plasticity-tooltip>
                                 </label>
                             </li>
                         </ol>
@@ -101,7 +105,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`ortho_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='ortho'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Perspective/Orthographic</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -111,6 +115,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 hover:bg-accent-600">
                                     <plasticity-icon name='xray'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-xray">Toggle X-Ray mode</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -120,6 +125,7 @@ export default (editor: Editor) => {
                                         onClick={e => viewport.toggleOverlays()}
                                     />
                                     <plasticity-icon name='overlays'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</plasticity-tooltip>
                                 </label>
                             </li>
                         </ol>

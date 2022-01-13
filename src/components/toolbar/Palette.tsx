@@ -12,10 +12,16 @@ import { tooltips } from './icons';
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
 
+type TooltipPlacement = "left" | "top" | "bottom" | "right" | undefined;
+
 export default (editor: Editor) => {
     class CommandButton extends HTMLElement {
         private command!: GConstructor<Command> & { identifier: string };
         private tooltip?: string;
+
+        private _tooltipPlacement: TooltipPlacement = "left";
+        get tooltipPlacement() { return this._tooltipPlacement }
+        set tooltipPlacement(placement: TooltipPlacement) { this._tooltipPlacement = placement }
 
         private _name!: string;
         get name() { return this._name }
@@ -41,8 +47,7 @@ export default (editor: Editor) => {
                 <div class="p-2 cursor-pointer bg-accent-800 hover:bg-accent-600"
                     onClick={this.execute} >
                     <plasticity-icon name={name}></plasticity-icon>
-
-                    {/* {this.tooltip !== undefined && <plasticity-tooltip command={`command:${command.identifier}`} placement="left">{tooltip}</plasticity-tooltip>} */}
+                    {tooltip !== undefined && <plasticity-tooltip command={`command:${command.identifier}`} placement={this.tooltipPlacement}>{tooltip}</plasticity-tooltip>}
                 </div >, this);
         }
 

@@ -43,19 +43,19 @@
     }
 
     .tooltip.top {
-        @apply py-2 -mr-1;
+        @apply py-2 -mr-0.5;
     }
 
     .tooltip.right {
-        @apply px-2 ml-1;
+        @apply px-2 ml-0.5;
     }
 
     .tooltip.bottom {
-        @apply py-2 mt-1;
+        @apply py-2 mt-0.5;
     }
 
     .tooltip.left {
-        @apply px-2 -ml-1;
+        @apply px-2 -ml-0.5;
     }
 }
 
