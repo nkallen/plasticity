@@ -1,7 +1,7 @@
 import Command from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
 import { PurifyFaceCommand } from "../modifyface/ModifyFaceCommand";
-import { FilletFaceFactory, ModifyEdgeFactory, RemoveFaceFactory } from "../modifyface/ModifyFaceFactory";
+import { FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "../modifyface/ModifyFaceFactory";
 import { RemoveContourPointFactory } from "../modify_contour/ModifyContourPointFactory";
 
 
@@ -11,7 +11,7 @@ export class DeleteCommand extends Command {
         if (selected.faces.size > 0) {
             const faces = [...selected.faces];
             const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            if (fillet.areFilletFaces(faces)) {
+            if (fillet.areFilletOrChamferFaces(faces)) {
                 const command = new PurifyFaceCommand(this.editor);
                 await command.execute();
             } else {
@@ -64,11 +64,17 @@ export class RemoveFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid;
 
-        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        removeFace.solid = parent;
-        removeFace.faces = faces;
-
-        await removeFace.commit();
+        try {
+            const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            removeFace.solid = parent;
+            removeFace.faces = faces;
+            await removeFace.commit();
+        } catch {
+            const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            removeFace.solid = parent;
+            removeFace.faces = faces;
+            await removeFace.commit();
+        }
     }
 }
 

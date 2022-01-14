@@ -20,7 +20,7 @@ export class ModifyFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
         const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const shouldRefillet = fillet.areFilletFaces(faces);
+        const shouldRefillet = fillet.areFilletFaces(faces); // TODO: some fillets are missed by this
         const command = shouldRefillet ? new RefilletFaceCommand(this.editor) : new OffsetFaceCommand(this.editor);
         command.point = this.point;
         this.editor.enqueue(command, true);

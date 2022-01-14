@@ -86,13 +86,27 @@ export class ActionFaceFactory extends ModifyFaceFactory implements MoveParams {
 }
 
 export class FilletFaceFactory extends ModifyFaceFactory implements FilletFaceParams {
-    areFilletFaces(faces: visual.Face[]): boolean {
-        for (const face of faces) {
-            const model = this.db.lookupTopologyItem(face);
+    areFilletOrChamferFaces(faces: visual.Face[] | c3d.Face[]): boolean {
+        const models = this.models(faces);
+        return c3d.Action.FindFilletFaces(models, 10e-3).length == models.length;
+    }
+
+    areFilletFaces(faces: visual.Face[] | c3d.Face[]): boolean {
+        const models = this.models(faces);
+        for (const model of models) {
             const [type] = decomposeMainName(model.GetMainName());
             if (type != c3d.CreatorType.FilletSolid) return false;
         }
         return true;
+    }
+
+    private models(faces: visual.Face[] | c3d.Face[]): c3d.Face[] {
+        if (faces.length === 0) return [];
+        if (faces[0] instanceof visual.Face) {
+            return faces.map(f => this.db.lookupTopologyItem(f as visual.Face));
+        } else {
+            return faces as c3d.Face[];
+        }
     }
 
     operationType = c3d.ModifyingType.Fillet;
