@@ -108,40 +108,29 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         </div>
                     </li>
                     <li>
-                        <label for="prolong">Prolong
+                        <label for="prolong">Selection
                             <plasticity-tooltip><img src={prolong_} /></plasticity-tooltip>
                         </label>
                         <div class="fields">
-                            <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
+                            <input type="checkbox" hidden id="prolong" name="prolong" checked={prolong} onClick={this.onChange}></input>
+                            <label for="prolong">Add tangent edges</label>
                         </div>
                     </li>
                     <li>
-                        <label for="keepCant">Overrun
+                        <label for="keepCant">Boundary
                             <plasticity-tooltip><img src={cant1} /><img src={cant2} /><img src={cant3} /></plasticity-tooltip>
                         </label>
                         <div class="fields">
-                            <select name="keepCant" value={keepCant} onChange={this.onChange}>
-                                <option value="-1">Warp</option>
-                                <option value="0">Flow</option>
-                                <option value="1">Trim</option>
-                            </select>
-                        </div>
-                    </li>
-                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
-                        <label for="strict">Strict</label>
-                        <div class="fields">
-                            <input type="checkbox" name="strict" checked={strict} onChange={this.onChange}></input>
-                        </div>
-                    </li>
-                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
-                        <label for="equable">Equable
-                            <plasticity-tooltip><img src={equable1} /><img src={equable2} /></plasticity-tooltip>
-                        </label>
-                        <div class="fields">
-                            <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
-                        </div>
-                    </li>
+                            <input type="radio" hidden name="keepCant" id="neutral" value={c3d.ThreeStates.neutral} checked={keepCant === c3d.ThreeStates.neutral} onClick={this.onChange}></input>
+                            <label for="neutral">Neutral</label>
 
+                            <input type="radio" hidden name="keepCant" id="negative" value={c3d.ThreeStates.negative} checked={keepCant === c3d.ThreeStates.negative} onClick={this.onChange}></input>
+                            <label for="negative">Negative</label>
+
+                            <input type="radio" hidden name="keepCant" id="positive" value={c3d.ThreeStates.positive} checked={keepCant === c3d.ThreeStates.positive} onClick={this.onChange}></input>
+                            <label for="positive">Positive</label>
+                        </div>
+                    </li>
                 </ul></>, this);
     }
 }

@@ -100,15 +100,17 @@
         @apply flex items-center space-x-1 cursor-pointer;
     }
 
-    plasticity-dialog ul>li>.fields>input[type="radio"] {
+    plasticity-dialog ul>li>.fields>input[type="radio"], plasticity-dialog ul>li>.fields>input[type="checkbox"] {
         @apply absolute hidden;
     }
 
-    plasticity-dialog ul>li>.fields>input[type="radio"]+label {
+    plasticity-dialog ul>li>.fields>input[type="radio"]+label,
+    plasticity-dialog ul>li>.fields>input[type="checkbox"]+label {
         @apply block w-full px-3 py-1 text-xs text-center rounded cursor-pointer bg-neutral-500 text-neutral-100;
     }
 
-    plasticity-dialog ul>li>.fields>input[type="radio"]:checked+label {
+    plasticity-dialog ul>li>.fields>input[type="radio"]:checked+label,
+    plasticity-dialog ul>li>.fields>input[type="checkbox"]:checked+label {
         @apply bg-accent-600 text-accent-100;
     }
 }
