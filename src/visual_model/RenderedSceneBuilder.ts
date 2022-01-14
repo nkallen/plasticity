@@ -10,6 +10,7 @@ import ModifierManager from "../editor/ModifierManager";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { ItemSelection } from "../selection/TypedSelection";
 import * as visual from '../visual_model/VisualModel';
+import { StyleDeclaration } from "../command/GizmoMaterials";
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
 
@@ -22,6 +23,7 @@ export class RenderedSceneBuilder {
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
         protected readonly editorSelection: HasSelectedAndHovered,
+        style: StyleDeclaration,
         protected readonly signals: EditorSignals,
     ) {
         this.highlight = this.highlight.bind(this);
@@ -39,7 +41,9 @@ export class RenderedSceneBuilder {
         }));
         this.disposable.add(new Disposable(() => {
             for (const binding of bindings) binding.detach();
-        }))
+        }));
+
+        this.setColor(style);
     }
 
     private get selection() {
@@ -275,6 +279,17 @@ export class RenderedSceneBuilder {
             this.signals.selectionChanged.dispatch();
         })
     }
+
+    private setColor(style: StyleDeclaration) {
+        console.log(style.getPropertyValue('--matcap'));
+        face_unhighlighted.color.setStyle(style.getPropertyValue('--matcap') || '#ffffff').convertSRGBToLinear();
+        face_highlighted.color.setStyle(style.getPropertyValue('--yellow-300') || '#fde047').convertSRGBToLinear();
+        face_hovered.color.setStyle(style.getPropertyValue('--yellow-100') || '#fef9c3').convertSRGBToLinear();
+        line_unselected.color.setStyle(style.getPropertyValue('--blue-400') || '#60a5fa').convertSRGBToLinear();
+        region_hovered.color.setStyle(style.getPropertyValue('--blue-200') || '#bfdbfe').convertSRGBToLinear();
+        region_highlighted.color.setStyle(style.getPropertyValue('--blue-300') || '#93c5fd').convertSRGBToLinear();
+        region_unhighlighted.color.setStyle(style.getPropertyValue('--blue-400') || '#60a5fa').convertSRGBToLinear();        
+    }
 }
 
 export class ModifierHighlightManager extends RenderedSceneBuilder {
@@ -283,9 +298,10 @@ export class ModifierHighlightManager extends RenderedSceneBuilder {
         db: DatabaseLike,
         materials: MaterialDatabase,
         selection: HasSelectedAndHovered,
+        styles: StyleDeclaration,
         signals: EditorSignals,
     ) {
-        super(db, materials, selection, signals);
+        super(db, materials, selection, styles, signals);
     }
 
     highlight() {
@@ -396,7 +412,6 @@ function unmask(child: THREE.Object3D) {
 }
 
 const line_unselected = new LineMaterial({ linewidth: 1.5 });
-line_unselected.color.setHex(0x7dc9e2).convertSRGBToLinear();
 line_unselected.polygonOffset = true;
 line_unselected.polygonOffsetFactor = -20;
 line_unselected.polygonOffsetUnits = -20;
@@ -409,7 +424,7 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
 
-const face_unhighlighted = new THREE.MeshMatcapMaterial();
+export const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;
 face_unhighlighted.matcap = matcapTexture;
 face_unhighlighted.polygonOffset = true;
@@ -417,7 +432,6 @@ face_unhighlighted.polygonOffsetFactor = 1;
 face_unhighlighted.polygonOffsetUnits = 2;
 
 const face_highlighted = new THREE.MeshMatcapMaterial();
-face_highlighted.color.setHex(0xffff00).convertSRGBToLinear();
 face_highlighted.fog = false;
 face_highlighted.matcap = matcapTexture;
 face_highlighted.polygonOffset = true;
@@ -430,7 +444,6 @@ face_highlighted_phantom.transparent = true;
 face_highlighted_phantom.opacity = 0.0;
 
 const face_hovered = new THREE.MeshMatcapMaterial();
-face_hovered.color.setHex(0xffffcc).convertSRGBToLinear();
 face_hovered.fog = false;
 face_hovered.matcap = matcapTexture;
 face_hovered.polygonOffset = true;
@@ -445,7 +458,6 @@ face_hovered.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;
-region_hovered.color.setHex(0x8dd9f2).convertSRGBToLinear();
 region_hovered.opacity = 0.5;
 region_hovered.transparent = true;
 region_hovered.side = THREE.DoubleSide;
@@ -456,7 +468,6 @@ region_hovered.depthFunc = THREE.AlwaysDepth;
 
 const region_highlighted = new THREE.MeshBasicMaterial();
 region_highlighted.fog = false;
-region_highlighted.color.setHex(0x8dd9f2).convertSRGBToLinear();
 region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
 region_highlighted.side = THREE.DoubleSide;
@@ -464,9 +475,8 @@ region_highlighted.polygonOffset = true;
 region_highlighted.polygonOffsetFactor = -10;
 region_highlighted.polygonOffsetUnits = -1;
 
-const region_unhighlighted = new THREE.MeshBasicMaterial();
+export const region_unhighlighted = new THREE.MeshBasicMaterial();
 region_unhighlighted.fog = false;
-region_unhighlighted.color.setHex(0x8dd9f2).convertSRGBToLinear();
 region_unhighlighted.opacity = 0.1;
 region_unhighlighted.transparent = true;
 region_unhighlighted.side = THREE.DoubleSide;

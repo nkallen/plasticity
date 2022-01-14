@@ -5,6 +5,7 @@ module.exports = {
             viewport: 'var(--viewport, #2E2E30)',
             grid: 'var(--grid, #484848)',
             dialog: 'var(--dialog, #111111)',
+            matcap: 'var(--matcap, #ffffff)',
             black: '#000000',
             white: '#ffffff',
             transparent: 'transparent',
@@ -18,7 +19,7 @@ module.exports = {
                 600: "var(--neutral-600, #363636)",
                 700: "var(--neutral-700, #272727)",
                 800: "var(--neutral-800, #202020)",
-                900: "var(--neutral-90, #191919)",
+                900: "var(--neutral-900, #191919)",
             },
             accent: {
                 50: "var(--accent-50, #f5f3ff)",

@@ -10,8 +10,9 @@ export function loadTheme() {
             const colorInfo = parsed.colors;
 
             const style = document.documentElement.style;
-            for (const colorName of ['viewport', 'dialog']) {
+            for (const colorName of ['viewport', 'dialog', 'matcap', 'grid']) {
                 const color = colorInfo[colorName];
+                console.log(colorName, color);
                 if (color === undefined) continue;
                 style.setProperty(`--${colorName}`, color);
             };

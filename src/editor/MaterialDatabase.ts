@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
+import { face_unhighlighted, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
 import { matcapTexture } from "./Matcaps";
@@ -31,24 +32,11 @@ line_dashed.defines.USE_DASH = "";
 
 const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
 
-const surface = new THREE.MeshMatcapMaterial();
-surface.fog = false;
-surface.matcap = matcapTexture;
-surface.side = THREE.DoubleSide;
+const surface = region_unhighlighted;
 
-const mesh = new THREE.MeshMatcapMaterial();
-mesh.fog = false;
-mesh.matcap = matcapTexture;
-mesh.polygonOffset = true;
-mesh.polygonOffsetFactor = 1;
-mesh.polygonOffsetUnits = 1;
+const mesh = face_unhighlighted;
 
-const region = new THREE.MeshBasicMaterial();
-region.fog = false;
-region.color.setHex(0x8dd9f2).convertSRGBToLinear();
-region.opacity = 0.1;
-region.transparent = true;
-region.side = THREE.DoubleSide;
+const region = region_unhighlighted;
 
 const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
 

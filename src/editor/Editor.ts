@@ -76,7 +76,7 @@ export class Editor {
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
-    readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.signals);
+    readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
 
     windowLoaded = false;
@@ -177,21 +177,5 @@ export class Editor {
     debug() {
         this.originator.debug();
         this.executor.debug();
-    }
-}
-
-export class HotReloadingEditor extends Editor {
-    constructor() {
-        super();
-
-        if (module.hot) {
-            const editor: CreateMutable<Editor> = this;
-
-            module.hot.accept('../visual_model/RenderedSceneBuilder', () => {
-                editor.highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.signals);
-                editor.highlighter.highlight();
-                this.signals.moduleReloaded.dispatch();
-            });
-        }
     }
 }
