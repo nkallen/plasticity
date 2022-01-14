@@ -111,14 +111,6 @@ export default class TooltipManager {
     // Returns a {Disposable} on which `.dispose()` can be called to remove the
     // tooltip.
     add(target, options) {
-        if (target.jquery) {
-            const disposable = new CompositeDisposable();
-            for (let i = 0; i < target.length; i++) {
-                disposable.add(this.add(target[i], options));
-            }
-            return disposable;
-        }
-
         if (Tooltip == null) {
             Tooltip = require('./tooltip');
         }

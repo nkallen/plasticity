@@ -6,7 +6,7 @@ import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { GConstructor } from '../../util/Util';
-import { tooltips } from './icons';
+import icons, { tooltips } from './icons';
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
@@ -23,11 +23,8 @@ export default (editor: Editor) => {
         get tooltipPlacement() { return this._tooltipPlacement }
         set tooltipPlacement(placement: TooltipPlacement) { this._tooltipPlacement = placement }
 
-        private _name!: string;
-        get name() { return this._name }
-        set name(name: string) {
-            this._name = name
-
+        connectedCallback() {
+            const name = this.getAttribute('name')!;
             const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as keyof typeof cmd;
             const klass = cmd[CommandName];
             if (klass == null) throw `${name} is invalid (${CommandName})`;
@@ -37,12 +34,13 @@ export default (editor: Editor) => {
 
             this.command = klass;
             this.tooltip = tooltip;
+
+            this.render()
         }
 
-        connectedCallback() { this.render() }
-
         render() {
-            const { command, tooltip, name } = this;
+            const { command, tooltip } = this;
+            const name = this.getAttribute('name')!;
             render(
                 <div class="p-2 cursor-pointer bg-accent-800 text-accent-300 hover:bg-accent-600 hover:text-accent-100"
                     onClick={this.execute} >
@@ -68,10 +66,6 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.render = this.render.bind(this);
-            this.onPointerDown = this.onPointerDown.bind(this);
-            this.onPointerMove = this.onPointerMove.bind(this);
-            this.onPointerUp = this.onPointerUp.bind(this);
         }
 
         connectedCallback() {
@@ -80,12 +74,12 @@ export default (editor: Editor) => {
             this.addEventListener('pointerdown', this.onPointerDown)
         }
 
-        render() {
+        render = () => {
             switch (this.state.tag) {
                 case 'none': {
                     for (const [i, child] of Array.from(this.children).entries()) {
                         if (!(child instanceof CommandButton)) continue;
-                        if (i == this.selected) continue;
+                        if (i === this.selected) continue;
                         child.style.display = 'none';
                     }
                     break;
@@ -94,10 +88,8 @@ export default (editor: Editor) => {
                     const { disposable } = this.state;
                     const pos = this.getBoundingClientRect();
                     const submenu = document.createElement('section');
-                    submenu.className = 'submenu';
+                    submenu.className = 'absolute flex flex-col space-y-0.5 p-1';
                     submenu.innerHTML = this.original;
-                    submenu.style.top = '0px';
-                    submenu.style.left = '0px';
                     document.body.appendChild(submenu);
                     disposable.add(new Disposable(() => submenu.remove()));
 
@@ -116,7 +108,7 @@ export default (editor: Editor) => {
             }
         }
 
-        private onPointerDown(e: PointerEvent) {
+        private onPointerDown = (e: PointerEvent) => {
             switch (this.state.tag) {
                 case 'none': {
                     e.stopPropagation();
@@ -133,7 +125,7 @@ export default (editor: Editor) => {
             }
         }
 
-        private onPointerMove(e: PointerEvent) {
+        private onPointerMove = (e: PointerEvent) => {
             switch (this.state.tag) {
                 case 'down': {
                     const { downEvent, disposable } = this.state;
@@ -156,7 +148,7 @@ export default (editor: Editor) => {
             }
         }
 
-        private onPointerUp(e: PointerEvent) {
+        private onPointerUp = (e: PointerEvent) => {
             switch (this.state.tag) {
                 case 'down': {
                     const { downEvent, disposable } = this.state;
@@ -170,9 +162,11 @@ export default (editor: Editor) => {
                     const { downEvent, disposable } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
-                    const button = e.target;
-                    if (button instanceof CommandButton) {
-                        button.execute(e);
+                    for (const item of Array.from(e.composedPath())) {
+                        if (item instanceof CommandButton) {
+                            item.execute(e);
+                            break;
+                        }
                     }
 
                     disposable.dispose();
@@ -194,27 +188,27 @@ export default (editor: Editor) => {
                         <plasticity-command name="line" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         <plasticity-command name="curve" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="center-circle"></plasticity-command>
-                            <plasticity-command name="two-point-circle"></plasticity-command>
-                            <plasticity-command name="three-point-circle"></plasticity-command>
+                            <plasticity-command name="center-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="two-point-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="three-point-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="center-point-arc"></plasticity-command>
-                            <plasticity-command name="three-point-arc"></plasticity-command>
+                            <plasticity-command name="center-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="three-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="center-ellipse"></plasticity-command>
-                            <plasticity-command name="three-point-ellipse"></plasticity-command>
+                            <plasticity-command name="center-ellipse" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="three-point-ellipse" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="corner-rectangle"></plasticity-command>
-                            <plasticity-command name="center-rectangle"></plasticity-command>
-                            <plasticity-command name="three-point-rectangle"></plasticity-command>
+                            <plasticity-command name="corner-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="center-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="three-point-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-command name="polygon"></plasticity-command>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="spiral"></plasticity-command>
-                            <plasticity-command name="character-curve"></plasticity-command>
+                            <plasticity-command name="spiral" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="character-curve" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-command name="trim" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         <plasticity-command name="bridge-curves" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>

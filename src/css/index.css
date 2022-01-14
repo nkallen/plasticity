@@ -76,10 +76,19 @@
         @apply border border-dashed border-supporting-600 bg-supporting-500 opacity-30;
     }
 
+    plasticity-button-group {
+        @apply relative;
+    }
+
+    plasticity-button-group::before {
+        content: "";
+        @apply absolute bottom-0 left-0 w-full h-1 rotate-45 -translate-x-4 bg-accent-500;
+    }
+
     plasticity-dialog>div {
         @apply box-content border-2 border-transparent;
     }
-    
+
     plasticity-dialog.failure>div {
         @apply border-2 border-red-700 border-dashed;
     }
