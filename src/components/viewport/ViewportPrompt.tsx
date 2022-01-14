@@ -36,5 +36,5 @@ export default (editor: Editor) => {
             }
         }
     }
-    customElements.define('ispace-viewport-prompt', Anon);
+    customElements.define('plasticity-viewport-prompt', Anon);
 }

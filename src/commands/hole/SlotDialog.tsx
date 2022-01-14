@@ -5,6 +5,8 @@ import { SlotParams } from "./SlotFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class SlotDialog extends AbstractDialog<SlotParams> {
+    title = "Slot";
+
     constructor(protected readonly params: SlotParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,7 +16,6 @@ export class SlotDialog extends AbstractDialog<SlotParams> {
 
         render(
             <>
-                <h4>Slot</h4>
                 <ul>
                     <li>
                         <label for="type">Type
@@ -36,44 +37,44 @@ export class SlotDialog extends AbstractDialog<SlotParams> {
                     <li>
                         <label for="width">Width
                         </label>
-                        <ispace-number-scrubber name="width" value={width} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="width" value={width} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="depth">Depth
                         </label>
-                        <ispace-number-scrubber name="depth" value={depth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="depth" value={depth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     {/* <li>
                         <label for="floorRadius">Floor Radius
                         </label>
-                        <ispace-number-scrubber name="floorRadius" value={floorRadius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="floorRadius" value={floorRadius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li> */}
                     <li>
                         <label for="tailAngle">Tail angle
                         </label>
-                        <ispace-number-scrubber name="tailAngle" value={tailAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="tailAngle" value={tailAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="bottomWidth">Bottom width
                         </label>
-                        <ispace-number-scrubber name="bottomWidth" value={bottomWidth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="bottomWidth" value={bottomWidth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="bottomDepth">Bottom depth
                         </label>
-                        <ispace-number-scrubber name="bottomDepth" value={bottomDepth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="bottomDepth" value={bottomDepth} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     {/* <li>
                         <label for="placeAngle">Place angle
                         </label>
-                        <ispace-number-scrubber name="placeAngle" value={placeAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="placeAngle" value={placeAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="azimuthAngle">Azimuth angle
                         </label>
-                        <ispace-number-scrubber name="azimuthAngle" value={azimuthAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="azimuthAngle" value={azimuthAngle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li> */}
                 </ul></>, this);
     }
 }
-customElements.define('ispace-hole-dialog', SlotDialog);
+customElements.define('plasticity-hole-dialog', SlotDialog);

@@ -33,13 +33,24 @@ export default (editor: Editor) => {
         }
 
         render(dialog?: AbstractDialog<any>) {
-            if (dialog) {
+            if (dialog !== undefined) {
                 const ref = createRef();
-                const form = <form onSubmit={e => { e.preventDefault(); return false }}>
+                const form = <div class="absolute rounded bottom-2 left-2 w-[365] bg-dialog opacity-90 overflow-clip shadow-neutral-900/95 shadow-lg">
+                    <div class="my-1 border-b border-neutral-900 m">
+                        <div class="flex justify-between items-center px-2">
+                            <div class="flex items-center m-3 space-x-4 text-xs font-bold text-neutral-100">
+                                <div>{dialog.title}</div>
+                                <i data-feather="alert-circle" class="stroke-red-700"></i>
+                            </div>
+
+                            <a class="py-1 px-3 text-xs text-center align-middle rounded-full bg-neutral-800 text-neutral-400">Learn more ...</a>
+                        </div>
+                    </div>
                     <div ref={ref}></div>
-                    <button type="button" onClick={e => dialog.cancel()} tabIndex={-1}>Cancel</button>
-                    <button type="button" onClick={e => dialog.finish()} tabIndex={-1}>Ok</button>
-                </form>
+                    <div class="flex justify-end py-1 px-2 space-x-2 border bg-neutral-900 border-neutral-900">
+                        <button class="py-1 px-2 text-xs rounded text-neutral-200">Cancel</button>
+                        <button class="py-1 px-2 text-xs rounded shadow-sm bg-accent-900 text-accent-100">OK</button>
+                    </div>                </div>
                 render(form, this);
                 ref.current.appendChild(dialog);
             } else {
@@ -57,5 +68,5 @@ export default (editor: Editor) => {
             this.classList.add('success');
         }
     }
-    customElements.define('ispace-dialog', Dialog);
+    customElements.define('plasticity-dialog', Dialog);
 }

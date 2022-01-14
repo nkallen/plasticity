@@ -6,6 +6,8 @@ import { CutParams } from "./CutFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class BooleanDialog extends AbstractDialog<BooleanParams> {
+    title = "Boolean";
+
     constructor(protected readonly params: BooleanParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,7 +16,6 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
         const { mergingFaces, mergingEdges, operationType } = this.params;
         render(
             <>
-                <h4>Boolean {c3d.OperationType[operationType]}</h4>
                 <ul>
                     <li>
                         <label for="mergingFaces">mergingFaces</label>
@@ -31,6 +32,8 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
 customElements.define('boolean-dialog', BooleanDialog);
 
 export class CutDialog extends AbstractDialog<CutParams> {
+    title = "Cut";
+
     constructor(protected readonly params: CutParams, signals: EditorSignals) {
         super(signals);
     }
@@ -39,7 +42,6 @@ export class CutDialog extends AbstractDialog<CutParams> {
         const { mergingFaces, mergingEdges } = this.params;
         render(
             <>
-                <h4>Cut</h4>
                 <ul>
                     <li>
                         <label for="mergingFaces">mergingFaces</label>

@@ -5,6 +5,8 @@ import { ExtensionShellParams } from "./ExtensionShellFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class ExtensionShellDialog extends AbstractDialog<ExtensionShellParams> {
+    title = "Extension shell";
+
     constructor(protected readonly params: ExtensionShellParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,7 +16,6 @@ export class ExtensionShellDialog extends AbstractDialog<ExtensionShellParams> {
 
         render(
             <>
-                <h4>Extend face</h4>
                 <ul>
                     <li>
                         <label for="type">Type</label>
@@ -26,7 +27,7 @@ export class ExtensionShellDialog extends AbstractDialog<ExtensionShellParams> {
                     </li>
                     <li>
                         <label for="distance">Distance</label>
-                        <ispace-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                 </ul>
             </>, this);

@@ -5,7 +5,7 @@
 
 {
     // Probably the keybindings you want to change the most are case 1., when no command or gizmo is active.
-    "body:not([gizmo]) ispace-workspace": {
+    "body:not([gizmo]) plasticity-workspace": {
         // "c": "command:cut",
         // "g": "command:move",
         // "r": "command:rotate",

@@ -20,6 +20,8 @@ import corner2 from './img/corner2.jpg';
 import corner3 from './img/corner3.jpg';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
+    title = "Fillet";
+
     private mode: Mode = c3d.CreatorType.FilletSolid;
 
     constructor(protected readonly params: FilletParams, signals: EditorSignals) {
@@ -37,82 +39,110 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
 
         render(
             <>
-                <h4>{this.mode === c3d.CreatorType.ChamferSolid ? 'Chamfer' : 'Fillet'}</h4>
+                <div class="my-1">
+                    <ol class="pb-3 m-3 space-y-1 border-b border-neutral-900">
+                        <li class="flex items-center px-1 space-x-2">
+                            <i data-feather="check" class="w-4 h-4 p-1 bg-green-600 rounded-full stroke-2 stroke-black"></i>
+                            <div class=""><span class="text-xs font-bold text-neutral-200">Select edges</span> <span
+                                class="text-xs text-neutral-500">to
+                                fillet or chamfer</span></div>
+                        </li>
+                        <li class="flex items-center px-1 space-x-2 rounded-full bg-neutral-800">
+                            <i class="w-4 h-4 p-1 rounded-full stroke-2 stroke-black bg-neutral-600"></i>
+                            <div class=""><span class="text-xs font-bold text-neutral-200">Select tool bodies</span> <span
+                                class="text-xs text-neutral-500">to cut or join with</span></div>
+                        </li>
+                    </ol>
+                </div>
+
                 <ul>
                     <li>
-                        <label for="distance1">Distance 1
-                            <plasticity-tooltip><img src={distance1_2} /></plasticity-tooltip>
-                        </label>
-                        <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
-                    </li>
-                    <li>
-                        <label for="distance2">Distance 2</label>
-                        <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <label for="distance1">Distance</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="conic">Conic
                             <plasticity-tooltip><img src={conic1} /><img src={conic2} /></plasticity-tooltip>
                         </label>
-                        <ispace-number-scrubber disabled={0} min={0.05} max={0.95} default={0.5} name="conic" value={conic} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber disabled={0} min={0.05} max={0.95} default={0.5} name="conic" value={conic} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li>
-                        <label for="begLength">Beginning length
+                        <label for="begLength">Length
                             <plasticity-tooltip><img src={beginningLength} /></plasticity-tooltip>
                         </label>
-                        <ispace-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
-                    <li>
-                        <label for="endLength">End length</label>
-                        <ispace-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
-                    </li>
+
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="form">Form
                             <plasticity-tooltip><img src={span1} /><img src={span2} /></plasticity-tooltip>
                         </label>
-
-                        <input type="radio" name="form" id="fillet" value={c3d.SmoothForm.Fillet} checked={form === c3d.SmoothForm.Fillet} onClick={this.onChange}></input>
-                        <label class="btn" for="fillet">Fillet</label>
-                        <input type="radio" name="form" id="span" value={c3d.SmoothForm.Span} checked={form === c3d.SmoothForm.Span} onClick={this.onChange}></input>
-                        <label class="btn" for="span">Span</label>
+                        <div class="fields">
+                            <input type="radio" hidden name="form" id="fillet" value={c3d.SmoothForm.Fillet} checked={form === c3d.SmoothForm.Fillet} onClick={this.onChange}></input>
+                            <label for="fillet">Fillet</label>
+                            <input type="radio" hidden name="form" id="span" value={c3d.SmoothForm.Span} checked={form === c3d.SmoothForm.Span} onClick={this.onChange}></input>
+                            <label for="span">Span</label>
+                        </div>
                     </li>
                     <li>
                         <label for="smoothCorner">Corner
                             <plasticity-tooltip><img src={corner1} /><img src={corner2} /><img src={corner3} /></plasticity-tooltip>
                         </label>
-                        <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
-                            <option value={c3d.CornerForm.pointed}>Pointed</option>
-                            <option value={c3d.CornerForm.uniform}>Uniform</option>
-                            <option value={c3d.CornerForm.sharp}>Sharp</option>
-                        </select>
+                        <div class="fields">
+                            <input type="radio" hidden name="form" id="pointed" value={c3d.CornerForm.pointed} checked={smoothCorner === c3d.CornerForm.pointed} onClick={this.onChange}></input>
+                            <label for="pointed">Pointed</label>
+
+                            <input type="radio" hidden name="form" id="uniform" value={c3d.CornerForm.uniform} checked={smoothCorner === c3d.CornerForm.uniform} onClick={this.onChange}></input>
+                            <label for="uniform">Uniform</label>
+
+                            <input type="radio" hidden name="form" id="sharp" value={c3d.CornerForm.sharp} checked={smoothCorner === c3d.CornerForm.sharp} onClick={this.onChange}></input>
+                            <label for="sharp">Sharp</label>
+                        </div>
                     </li>
                     <li>
                         <label for="prolong">Prolong
                             <plasticity-tooltip><img src={prolong_} /></plasticity-tooltip>
                         </label>
-                        <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
+                        <div class="fields">
+                            <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
+                        </div>
                     </li>
                     <li>
                         <label for="keepCant">Overrun
                             <plasticity-tooltip><img src={cant1} /><img src={cant2} /><img src={cant3} /></plasticity-tooltip>
                         </label>
-                        <select name="keepCant" value={keepCant} onChange={this.onChange}>
-                            <option value="-1">Warp</option>
-                            <option value="0">Flow</option>
-                            <option value="1">Trim</option>
-                        </select>
+                        <div class="fields">
+                            <select name="keepCant" value={keepCant} onChange={this.onChange}>
+                                <option value="-1">Warp</option>
+                                <option value="0">Flow</option>
+                                <option value="1">Trim</option>
+                            </select>
+                        </div>
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="strict">Strict</label>
-                        <input type="checkbox" name="strict" checked={strict} onChange={this.onChange}></input>
+                        <div class="fields">
+                            <input type="checkbox" name="strict" checked={strict} onChange={this.onChange}></input>
+                        </div>
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="equable">Equable
                             <plasticity-tooltip><img src={equable1} /><img src={equable2} /></plasticity-tooltip>
                         </label>
-                        <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
+                        <div class="fields">
+                            <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
+                        </div>
                     </li>
 
                 </ul></>, this);
     }
 }
-customElements.define('ispace-fillet-dialog', FilletDialog);
+customElements.define('plasticity-fillet-dialog', FilletDialog);

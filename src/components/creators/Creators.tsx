@@ -122,7 +122,7 @@ export default (editor: Editor) => {
 
             const result = <ol>
                 {creators.map((creator, index) => {
-                    const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
+                    const Z = `plasticity-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                     // @ts-expect-error("not sure how to type this")
                     return <li><Z creator={creator} index={index} item={solid} model={model}></Z></li>
                 })}
@@ -130,7 +130,7 @@ export default (editor: Editor) => {
             render(result, this);
         }
     }
-    customElements.define('ispace-creators', Creators);
+    customElements.define('plasticity-creators', Creators);
 
     class Creator extends HTMLElement {
         private _index!: number;
@@ -186,11 +186,11 @@ export default (editor: Editor) => {
             }
         }
     }
-    customElements.define('ispace-creator', Creator);
+    customElements.define('plasticity-creator', Creator);
 
     for (const key in c3d.CreatorType) {
         class Anon extends Creator { };
-        customElements.define(`ispace-creator-${_.dasherize(key)}`, Anon);
+        customElements.define(`plasticity-creator-${_.dasherize(key)}`, Anon);
     }
 }
 

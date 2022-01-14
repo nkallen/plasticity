@@ -4,6 +4,8 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { OffsetFaceParams } from "./OffsetFaceFactory";
 
 export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
+    title = "Offset face";
+
     constructor(protected readonly params: OffsetFaceParams, signals: EditorSignals) {
         super(signals);
     }
@@ -13,11 +15,10 @@ export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
 
         render(
             <>
-                <h4>Offset face</h4>
                 <ul>
                     <li>
                         <label for="distance">Distance</label>
-                        <ispace-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                 </ul>
             </>, this);

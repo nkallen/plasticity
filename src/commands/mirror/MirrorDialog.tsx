@@ -4,6 +4,8 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { MirrorParams } from "./MirrorFactory";
 
 export class MirrorDialog extends AbstractDialog<MirrorParams> {
+    title = "Mirror";
+
     constructor(protected readonly params: MirrorParams, signals: EditorSignals) {
         super(signals);
     }
@@ -13,7 +15,6 @@ export class MirrorDialog extends AbstractDialog<MirrorParams> {
 
         render(
             <>
-                <h4>Mirror</h4>
                 <ul>
                     <li>
                         <label for="shouldCut">Cut</label>

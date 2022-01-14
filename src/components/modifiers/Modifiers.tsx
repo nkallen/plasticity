@@ -96,7 +96,7 @@ export default (editor: Editor) => {
                 </div>
                 <ol>
                     {stack.modifiers.map((factory, index) => {
-                        const Z = `ispace-modifier-${_.dasherize(factory.constructor.name)}`;
+                        const Z = `plasticity-modifier-${_.dasherize(factory.constructor.name)}`;
                         // @ts-expect-error("not sure how to type this")
                         return <li><Z factory={factory} index={index} stack={stack}></Z></li>
                     })}
@@ -109,7 +109,7 @@ export default (editor: Editor) => {
             this.dispose.dispose();
         }
     }
-    customElements.define('ispace-modifiers', Modifiers);
+    customElements.define('plasticity-modifiers', Modifiers);
 
     class Modifier<F extends GeometryFactory> extends HTMLElement {
         constructor() {
@@ -156,10 +156,10 @@ export default (editor: Editor) => {
                 , this);
         }
     }
-    customElements.define('ispace-modifier', Modifier);
+    customElements.define('plasticity-modifier', Modifier);
 
     class Foo extends Modifier<SymmetryFactory> { };
-    customElements.define(`ispace-modifier-symmetry-factory`, Foo);
+    customElements.define(`plasticity-modifier-symmetry-factory`, Foo);
 }
 
 

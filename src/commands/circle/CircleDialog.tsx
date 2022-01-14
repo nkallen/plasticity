@@ -4,6 +4,8 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditCircleParams } from './CircleFactory';
 
 export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
+    title = "Circle";
+
     constructor(protected readonly params: EditCircleParams, signals: EditorSignals) {
         super(signals);
     }
@@ -13,14 +15,13 @@ export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
 
         render(
             <>
-                <h4>Circle</h4>
                 <ul>
                     <li>
                         <label for="radius">Radius</label>
-                        <ispace-number-scrubber name="radius" value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="radius" value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                 </ul>
                 </>, this);
     }
 }
-customElements.define('ispace-center-circle-dialog', EditCircleDialog);
+customElements.define('plasticity-center-circle-dialog', EditCircleDialog);

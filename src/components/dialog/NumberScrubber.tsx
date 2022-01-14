@@ -226,17 +226,19 @@ export default (editor: Editor) => {
             const that = this;
             const onBlur = () => { that.state = { tag: 'none' }; that.render() };
             let input;
+
+            const classes = `py-1 px-2 w-full h-6 text-xs leading-tight text-center align-middle rounded bg-neutral-700 text-neutral-200 ${this.isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-800'}`;
             switch (this.state.tag) {
                 case 'none':
                 case 'dragging':
-                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled} tabIndex={0} onFocus={this.onFocus}>
+                    input = <div class={classes} onPointerDown={this.onPointerDown} disabled={this.isDisabled} tabIndex={0} onFocus={this.onFocus}>
                         <span class="prefix"></span>
                         <span class="value">{full}</span>
                         <span class="suffix"></span>
-                    </span>
+                    </div>
                     break;
                 case 'cancel':
-                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} onKeyDown={e => e.stopPropagation()} />
+                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} onKeyDown={e => e.stopPropagation()} class={classes} />
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
@@ -244,10 +246,7 @@ export default (editor: Editor) => {
             let checkbox = <></>;
             if (disabled !== undefined) checkbox = <input type="checkbox" checked={!this.isDisabled} onChange={this.toggle} onMouseDown={e => e.preventDefault()}></input>;
 
-            render(<>
-                {checkbox}
-                {input}
-            </>, this);
+            render(<> {checkbox} {input} </>, this);
         }
 
         attributeChangedCallback(name: string, oldValue: any, newValue: any) {
@@ -262,5 +261,5 @@ export default (editor: Editor) => {
             return !this._enabled || stringValue === stringDisabled;
         }
     }
-    customElements.define('ispace-number-scrubber', Scrubber);
+    customElements.define('plasticity-number-scrubber', Scrubber);
 }

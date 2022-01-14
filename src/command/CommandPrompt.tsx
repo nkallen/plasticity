@@ -59,7 +59,7 @@ export class CommandPrompt extends HTMLElement implements Executable<void, void>
         </div>, this);
     }
 }
-customElements.define('ispace-command-prompt', CommandPrompt);
+customElements.define('plasticity-command-prompt', CommandPrompt);
 
 export function Prompt<T>(header: string, description: string, signals: EditorSignals, promise: CancellablePromise<T>): CancellablePromise<T> {
     const prompt = new CommandPrompt(header, description, signals);

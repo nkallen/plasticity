@@ -4,6 +4,8 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { CharacterCurveParams } from './CharacterCurveFactory';
 
 export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
+    title = "Character curve";
+    
     constructor(protected readonly params: CharacterCurveParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,11 +16,11 @@ export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
             <ul>
                 <li>
                     <label for="tMin">tMin</label>
-                    <ispace-number-scrubber name="tMin" value={tMin} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                    <plasticity-number-scrubber name="tMin" value={tMin} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                 </li>
                 <li>
                     <label for="tMax">tMax</label>
-                    <ispace-number-scrubber name="tMax" value={tMax} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                    <plasticity-number-scrubber name="tMax" value={tMax} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                 </li>
                 <li>
                     <label for="argument">Argument name</label>

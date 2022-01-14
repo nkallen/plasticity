@@ -5,6 +5,8 @@ import { BridgeCurvesParams } from './BridgeCurvesFactory';
 import c3d from '../../../build/Release/c3d.node';
 
 export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
+    title = "Bridge curves";
+
     constructor(protected readonly params: BridgeCurvesParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,15 +16,14 @@ export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
 
         render(
             <>
-                <h4>Bridge Curves</h4>
                 <ul>
                     <li>
                         <label for="t1">t1</label>
-                        <ispace-number-scrubber name="t1" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="t1" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="t2">t2</label>
-                        <ispace-number-scrubber name="t2" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="t2" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="type">Type </label>
@@ -41,11 +42,11 @@ export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
                     </li>
                     <li class={type === c3d.ConnectingType.Bridge ? 'disabled' : ''}>
                         <label for="tension1">Tension 1</label>
-                        <ispace-number-scrubber name="tension1" enabled={type === c3d.ConnectingType.Spline} value={tension1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="tension1" enabled={type === c3d.ConnectingType.Spline} value={tension1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li class={type === c3d.ConnectingType.Bridge ? 'disabled' : ''}>
                         <label for="tension2">Tension 2</label>
-                        <ispace-number-scrubber name="tension2" enabled={type === c3d.ConnectingType.Spline} value={tension2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="tension2" enabled={type === c3d.ConnectingType.Spline} value={tension2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li class={type === c3d.ConnectingType.Bridge ? 'disabled' : ''}>
                         <label for="mating1">Mating 1</label>
@@ -72,4 +73,4 @@ export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
                 </ul></>, this);
     }
 }
-customElements.define('ispace-bridge-curves-dialog', BridgeCurvesDialog);
+customElements.define('plasticity-bridge-curves-dialog', BridgeCurvesDialog);

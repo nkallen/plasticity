@@ -75,13 +75,49 @@
     .select-box.intersects {
         @apply border border-dashed border-supporting-600 bg-supporting-500 opacity-30;
     }
+
+    plasticity-dialog ul {
+        @apply flex flex-col mx-3 my-2 space-y-1;
+    }
+
+    plasticity-dialog ul>li {
+        @apply flex items-center p-1 space-x-1;
+    }
+
+    plasticity-dialog ul>li>label {
+        @apply block w-1/3 px-3 text-xs text-neutral-200;
+    }
+
+    plasticity-dialog ul>li>label+.fields {
+        @apply flex w-2/3 space-x-2;
+    }
+
+    plasticity-dialog ul>li>.fields>* {
+        @apply grow;
+    }
+
+    plasticity-dialog ul>li>.fields>plasticity-number-scrubber {
+        @apply flex items-center space-x-1 cursor-pointer;
+    }
+
+    plasticity-dialog ul>li>.fields>input[type="radio"] {
+        @apply absolute hidden;
+    }
+
+    plasticity-dialog ul>li>.fields>input[type="radio"]+label {
+        @apply block w-full px-3 py-1 text-xs text-center rounded cursor-pointer bg-neutral-500 text-neutral-100;
+    }
+
+    plasticity-dialog ul>li>.fields>input[type="radio"]:checked+label {
+        @apply bg-accent-600 text-accent-100;
+    }
 }
 
 .drag {
     -webkit-app-region: drag;
 }
 
-button {
+* {
     outline: none;
 }
 

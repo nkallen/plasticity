@@ -4,6 +4,8 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ThinSolidParams } from "./ThinSolidFactory";
 
 export class ThinSolidDialog extends AbstractDialog<ThinSolidParams> {
+    title = "Thin solid";
+
     constructor(protected readonly params: ThinSolidParams, signals: EditorSignals) {
         super(signals);
     }
@@ -13,17 +15,16 @@ export class ThinSolidDialog extends AbstractDialog<ThinSolidParams> {
 
         render(
             <>
-                <h4>Shell</h4>
                 <ul>
                     <li>
                         <label for="thickness1">Distance 1 </label>
-                        <ispace-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="thickness2">Distance 2</label>
-                        <ispace-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                 </ul></>, this);
     }
 }
-customElements.define('ispace-thin-solid-dialog', ThinSolidDialog);
+customElements.define('plasticity-thin-solid-dialog', ThinSolidDialog);

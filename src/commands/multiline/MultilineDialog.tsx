@@ -5,6 +5,8 @@ import { MultilineParams } from './MultilineFactory';
 import c3d from '../../../build/Release/c3d.node';
 
 export class MultilineDialog extends AbstractDialog<MultilineParams> {
+    title = "Multiline";
+
     constructor(protected readonly params: MultilineParams, signals: EditorSignals) {
         super(signals);
     }
@@ -14,12 +16,11 @@ export class MultilineDialog extends AbstractDialog<MultilineParams> {
 
         render(
             <>
-                <h4>Stroke Curves</h4>
                 <ul>
                     <li>
                         <label for="radius">radius
                         </label>
-                        <ispace-number-scrubber name="radius" value={radius} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <plasticity-number-scrubber name="radius" value={radius} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                     </li>
                     <li>
                         <label for="begTipType">Beginning Tip Type</label>
@@ -41,4 +42,4 @@ export class MultilineDialog extends AbstractDialog<MultilineParams> {
             </>, this);
     }
 }
-customElements.define('ispace-multiline-dialog', MultilineDialog);
+customElements.define('plasticity-multiline-dialog', MultilineDialog);

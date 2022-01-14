@@ -15,6 +15,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
         this.onChange = this.onChange.bind(this);
     }
 
+    abstract get title(): string;
     abstract render(): void;
 
     onChange(e: Event) {
@@ -31,7 +32,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                         value = Number(e.target.value);
                 } else if (e.target instanceof HTMLSelectElement) {
                     value = e.target.value;
-                } else if (e.target instanceof HTMLElement && e.target.tagName == 'ISPACE-NUMBER-SCRUBBER') {
+                } else if (e.target instanceof HTMLElement && e.target.tagName == 'PLASTICITY-NUMBER-SCRUBBER') {
                     value = Number(e.target.getAttribute('value'));
                 } else {
                     throw new Error("invalid precondition");
