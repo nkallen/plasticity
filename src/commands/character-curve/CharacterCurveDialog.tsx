@@ -5,7 +5,7 @@ import { CharacterCurveParams } from './CharacterCurveFactory';
 
 export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
     title = "Character curve";
-    
+
     constructor(protected readonly params: CharacterCurveParams, signals: EditorSignals) {
         super(signals);
     }
@@ -16,27 +16,39 @@ export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
             <ul>
                 <li>
                     <label for="tMin">tMin</label>
-                    <plasticity-number-scrubber name="tMin" value={tMin} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                    <div class="fields">
+                        <plasticity-number-scrubber name="tMin" value={tMin} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                    </div>
                 </li>
                 <li>
                     <label for="tMax">tMax</label>
-                    <plasticity-number-scrubber name="tMax" value={tMax} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                    <div class="fields">
+                        <plasticity-number-scrubber name="tMax" value={tMax} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                    </div>
                 </li>
                 <li>
                     <label for="argument">Argument name</label>
-                    <input type="text" name="argument" value={argument} onChange={this.onChange} />
+                    <div class="fields">
+                        <input type="text" name="argument" value={argument} onChange={this.onChange} />
+                    </div>
                 </li>
                 <li>
                     <label for="xFunction">xFunction</label>
-                    <input type="text" name="xFunction" value={xFunction} onChange={this.onChange} />
+                    <div class="fields">
+                        <input type="text" name="xFunction" value={xFunction} onChange={this.onChange} />
+                    </div>
                 </li>
                 <li>
-                <label for="yFunction">yFunction</label>
-                    <input type="text" name="yFunction" value={yFunction} onChange={this.onChange} />
+                    <label for="yFunction">yFunction</label>
+                    <div class="fields">
+                        <input type="text" name="yFunction" value={yFunction} onChange={this.onChange} />
+                    </div>
                 </li>
                 <li>
-                <label for="zFunction">zFunction</label>
-                    <input type="text" name="zFunction" value={zFunction} onChange={this.onChange} />
+                    <label for="zFunction">zFunction</label>
+                    <div class="fields">
+                        <input type="text" name="zFunction" value={zFunction} onChange={this.onChange} />
+                    </div>
                 </li>
             </ul>, this);
     }

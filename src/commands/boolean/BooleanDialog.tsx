@@ -18,12 +18,13 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
             <>
                 <ul>
                     <li>
-                        <label for="mergingFaces">mergingFaces</label>
-                        <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="mergingEdges">mergingEdges</label>
-                        <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                        <label for="mergingFaces">Merge</label>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="mergingFaces" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
+                            <label for="mergingFaces">Coplanar faces</label>
+                            <input type="checkbox" hidden id="mergingEdges" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                            <label for="mergingEdges">Tangent edges</label>
+                        </div>
                     </li>
                 </ul>
             </>, this);
@@ -44,12 +45,13 @@ export class CutDialog extends AbstractDialog<CutParams> {
             <>
                 <ul>
                     <li>
-                        <label for="mergingFaces">mergingFaces</label>
-                        <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="mergingEdges">mergingEdges</label>
-                        <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                        <label for="mergingFaces">Merge</label>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="mergingFaces" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
+                            <label for="mergingFaces">Coplanar faces</label>
+                            <input type="checkbox" hidden id="mergingEdges" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                            <label for="mergingEdges">Tangent edges</label>
+                        </div>
                     </li>
                 </ul>
             </>, this);

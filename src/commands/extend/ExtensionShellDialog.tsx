@@ -20,14 +20,18 @@ export class ExtensionShellDialog extends AbstractDialog<ExtensionShellParams> {
                     <li>
                         <label for="type">Type</label>
 
-                        <input type="radio" name="type" id="tangent" value={c3d.ExtensionType.tangent} checked={type === c3d.ExtensionType.tangent} onClick={this.onChange}></input>
-                        <label class="btn" for="tangent">Tangent</label>
-                        <input type="radio" name="type" id="same" value={c3d.ExtensionType.same} checked={type === c3d.ExtensionType.same} onClick={this.onChange}></input>
-                        <label class="btn" for="same">Same</label>
+                        <div class="fields">
+                            <input type="radio" hidden name="type" id="tangent" value={c3d.ExtensionType.tangent} checked={type === c3d.ExtensionType.tangent} onClick={this.onChange}></input>
+                            <label class="btn" for="tangent">Tangent</label>
+                            <input type="radio" hidden name="type" id="same" value={c3d.ExtensionType.same} checked={type === c3d.ExtensionType.same} onClick={this.onChange}></input>
+                            <label class="btn" for="same">Same</label>
+                        </div>
                     </li>
                     <li>
                         <label for="distance">Distance</label>
-                        <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                 </ul>
             </>, this);

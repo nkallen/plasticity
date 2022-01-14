@@ -18,19 +18,17 @@ export class RotateDialog extends AbstractDialog<RotateParams> {
                 <ul>
                     <li>
                         <label for="degrees">Angle</label>
-                        <plasticity-number-scrubber name="degrees" min={-360} max={360} value={degrees} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="degrees" min={-360} max={360} value={degrees} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li>
-                        <label for="axis.x">Axis X</label>
-                        <plasticity-number-scrubber name="axis.x" min={0} max={1} value={axis.x} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
-                    </li>
-                    <li>
-                        <label for="axis.y">Axis Y</label>
-                        <plasticity-number-scrubber name="axis.y" min={0} max={1} value={axis.y} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
-                    </li>
-                    <li>
-                        <label for="axis.z">Axis Z</label>
-                        <plasticity-number-scrubber name="axis.z" min={0} max={1} value={axis.z} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label for="axis">Axis</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="axis.x" min={0} max={1} value={axis.x} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="axis.y" min={0} max={1} value={axis.y} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="axis.z" min={0} max={1} value={axis.z} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                 </ul>
             </>, this);

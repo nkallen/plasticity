@@ -140,7 +140,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 const currentPosition = new THREE.Vector2(moveEvent.clientX, moveEvent.clientY);
                 const startPosition = new THREE.Vector2(downEvent.clientX, downEvent.clientY);
 
-                if (moveEvent.timeStamp - dragStartTime >= consummationTimeThreshold ||
+                if (moveEvent.timeStamp - dragStartTime >= dragConsummationTimeThreshold ||
                     currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                 ) {
                     this.normalizedMousePosition.copy(this.onDownPosition);
@@ -166,7 +166,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.visibleObjects]);
                 const currentTime = upEvent.timeStamp;
                 try {
-                    if (this.state.last !== undefined && currentTime - this.state.last.timeStamp < consummationTimeThreshold) {
+                    if (this.state.last !== undefined && currentTime - this.state.last.timeStamp < dblClickTimeThreshold) {
                         this.dblClick(intersects, upEvent);
                     } else {
                         this.endClick(intersects, upEvent);
@@ -244,5 +244,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 }
 
 // Time thresholds are in milliseconds,\ distance thresholds are in pixels.
-const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
-const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
+const dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
+const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummatedconst dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
+const dblClickTimeThreshold = 300; // once the mouse is down at least this long the drag is consummated

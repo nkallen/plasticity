@@ -18,7 +18,9 @@ export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
                 <ul>
                     <li>
                         <label for="distance">Distance</label>
-                        <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                 </ul>
             </>, this);

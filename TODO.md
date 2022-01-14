@@ -8,7 +8,6 @@
 - creating sphere 2nd point on vertical z axis errors  
 - make objectpicker construction more terse  
 - convert selectionmode to bitmap  
-- make all movement pivot changeable  
 - turn on --noimplicitoverride  
 - offset face whilst holding control should show phantoms?  
 - add xor selection modifier  
@@ -99,6 +98,11 @@
 - bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
 - escape out of fillet command to restart  
 - gizmos for elementary solids  
+- make all movement pivot changeable  
+- all gizmos not scaling pickers  
+- boolean with multitarget  
+- audit snap precision with pointpicker -- i recently dropped threshold for line2, but it doesn't make sense why  
+- variable fillet broken (gizmo disappears) when adjust main distance  
 
 ### In Progress
 

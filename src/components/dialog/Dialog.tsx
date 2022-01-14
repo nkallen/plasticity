@@ -35,7 +35,7 @@ export default (editor: Editor) => {
         render(dialog?: AbstractDialog<any>) {
             if (dialog !== undefined) {
                 const ref = createRef();
-                const form = <div class="absolute rounded bottom-2 left-2 w-[365] bg-dialog opacity-90 overflow-clip shadow-neutral-900/95 shadow-lg">
+                const form = <div class="absolute rounded bottom-2 left-2 w-96 bg-dialog opacity-90 overflow-clip shadow-neutral-900/95 shadow-lg">
                     <div class="my-1 border-b border-neutral-900 m">
                         <div class="flex justify-between items-center px-2">
                             <div class="flex items-center m-3 space-x-4 text-xs font-bold text-neutral-100">
@@ -48,9 +48,10 @@ export default (editor: Editor) => {
                     </div>
                     <div ref={ref}></div>
                     <div class="flex justify-end py-1 px-2 space-x-2 border bg-neutral-900 border-neutral-900">
-                        <button class="py-1 px-2 text-xs rounded text-neutral-200">Cancel</button>
-                        <button class="py-1 px-2 text-xs rounded shadow-sm bg-accent-900 text-accent-100">OK</button>
-                    </div>                </div>
+                        <button class="py-1 px-2 text-xs rounded text-neutral-200" type="button" onClick={e => dialog.cancel()} tabIndex={-1}>Cancel</button>
+                        <button class="py-1 px-2 text-xs rounded shadow-sm bg-accent-900 text-accent-100" type="button" onClick={e => dialog.finish()} tabIndex={-1}>OK</button>
+                    </div>
+                </div>
                 render(form, this);
                 ref.current.appendChild(dialog);
             } else {

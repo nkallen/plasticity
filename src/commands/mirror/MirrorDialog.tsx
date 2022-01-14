@@ -18,11 +18,17 @@ export class MirrorDialog extends AbstractDialog<MirrorParams> {
                 <ul>
                     <li>
                         <label for="shouldCut">Cut</label>
-                        <input type="checkbox" name="shouldCut" checked={shouldCut} onClick={this.onChange}></input>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="shouldCut" name="shouldCut" checked={shouldCut} onClick={this.onChange}></input>
+                            <label for="shouldCut">Slice down mirror plane</label>
+                        </div>
                     </li>
                     <li>
                         <label for="shouldUnion">Union</label>
-                        <input type="checkbox" name="shouldUnion" checked={shouldUnion} onClick={this.onChange}></input>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="shouldUnion" name="shouldUnion" checked={shouldUnion} onClick={this.onChange}></input>
+                            <label for="shouldUnion">Merge halves together</label>
+                        </div>
                     </li>
                 </ul>
 

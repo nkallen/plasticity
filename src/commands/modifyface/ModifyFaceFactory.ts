@@ -97,7 +97,7 @@ export class FilletFaceFactory extends ModifyFaceFactory implements FilletFacePa
             const [type] = decomposeMainName(model.GetMainName());
             if (type != c3d.CreatorType.FilletSolid) return false;
         }
-        return true;
+        return this.areFilletOrChamferFaces(faces);
     }
 
     private models(faces: visual.Face[] | c3d.Face[]): c3d.Face[] {

@@ -1,8 +1,7 @@
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import RevolutionFactory, { RevolutionParams } from "./RevolutionFactory";
-import c3d from '../../../build/Release/c3d.node';
+import { EditorSignals } from "../../editor/EditorSignals";
+import { RevolutionParams } from "./RevolutionFactory";
 
 export class RevolutionDialog extends AbstractDialog<RevolutionParams> {
     title = "Revolution";
@@ -18,24 +17,28 @@ export class RevolutionDialog extends AbstractDialog<RevolutionParams> {
             <>
                 <ul>
                     <li>
-                        <label for="thickness1">Distance 1
-                        </label>
-                        <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label for="thickness1">Distance 1 </label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li>
-                        <label for="thickness2">Thickness 1
-                        </label>
-                        <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label for="thickness2">Thickness 1 </label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li>
-                        <label for="side">Side 1
-                        </label>
-                        <plasticity-number-scrubber name="side1" value={side1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label for="side">Side 1 </label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="side1" value={side1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                     <li>
-                        <label for="side2">Side 2
-                        </label>
-                        <plasticity-number-scrubber name="side2" value={side2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label for="side2">Side 2 </label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="side2" value={side2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
 
                 </ul></>, this);

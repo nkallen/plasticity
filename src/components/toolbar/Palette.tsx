@@ -227,6 +227,7 @@ export default (editor: Editor) => {
                             <plasticity-command name="center-box"></plasticity-command>
                             <plasticity-command name="three-point-box"></plasticity-command>
                         </plasticity-button-group>
+                        <plasticity-command name="slot" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                     </section>
                 </div>, this);
         }

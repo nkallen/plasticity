@@ -131,7 +131,7 @@ export class BridgeCurvesCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const pointPicker = new PointPicker(this.editor);
-        pointPicker.raycasterParams.Line2.threshold = 400;
+        pointPicker.raycasterParams.Line2.threshold = 50;
         const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.style = 1;
         const { point: p1, info: { snap: snap1 } } = await pointPicker.execute().resource(this);

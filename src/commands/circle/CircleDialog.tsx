@@ -18,10 +18,12 @@ export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
                 <ul>
                     <li>
                         <label for="radius">Radius</label>
-                        <plasticity-number-scrubber name="radius" value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="radius" value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                 </ul>
-                </>, this);
+            </>, this);
     }
 }
 customElements.define('plasticity-center-circle-dialog', EditCircleDialog);

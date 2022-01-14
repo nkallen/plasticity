@@ -17,12 +17,11 @@ export class ThinSolidDialog extends AbstractDialog<ThinSolidParams> {
             <>
                 <ul>
                     <li>
-                        <label for="thickness1">Distance 1 </label>
-                        <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
-                    </li>
-                    <li>
-                        <label for="thickness2">Distance 2</label>
-                        <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        <label>Thickness</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
                     </li>
                 </ul></>, this);
     }
