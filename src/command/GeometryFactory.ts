@@ -217,7 +217,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         this.phants = [];
     }
 
-    dispose() {}
+    dispose() { }
 
     private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
         if (shouldRemoveOriginal) {
@@ -332,15 +332,12 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     }
                 }
 
-                if (this.state.last !== undefined) {
-                    this.restoreSavedState(this.state.last);
-                    await this.update();
-                } else {
-                    if (!(e instanceof NoOpError)) {
-                        if (e instanceof ValidationError || e.isC3dError) {
-                            this.signals.factoryUpdateFailed.dispatch(e);
-                        } else throw e;
-                    }
+                for (const temp of this.temps) temp.hide();
+
+                if (!(e instanceof NoOpError)) {
+                    if (e instanceof ValidationError || e.isC3dError) {
+                        this.signals.factoryUpdateFailed.dispatch(e);
+                    } else throw e;
                 }
                 break;
             case 'updating': break;
@@ -365,6 +362,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 } catch (error) {
                     this.state = { tag: 'failed', error };
                     this.doCancel();
+                    this.signals.factoryCancelled.dispatch();
                     throw error;
                 }
             default:

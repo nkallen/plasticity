@@ -312,7 +312,7 @@ describe(GeometryFactory, () => {
         expect(factory.updateCount).toBe(2);
     });
 
-    test("in case of error, it reverts to last successful parameter & updates", async () => {
+    test("in case of error, it throws", async () => {
         factory.revertOnError = 1;
         const first = factory.update();
         calcDelay1.resolve(); phantDelay1.resolve();
@@ -322,10 +322,17 @@ describe(GeometryFactory, () => {
         const second = factory.update();
         calcDelay2.reject("error"); phantDelay2.resolve();
         calcDelay3.resolve(); phantDelay3.resolve();
-        await second;
+        await expect(second).rejects.toBe("error");
 
-        expect(factory.revertOnError).toBe(1);
-        expect(factory.updateCount).toBe(3);
+        expect(factory.revertOnError).toBe(2);
+        expect(factory.updateCount).toBe(2);
+
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.phantomObjects.children.length).toBe(1);
+
+        expect(db.temporaryObjects.children[0].visible).toBe(false);
+        expect(db.phantomObjects.children[0].visible).toBe(true);
+
     });
 
     test("in case of error and cancel, it will not re-update", async () => {

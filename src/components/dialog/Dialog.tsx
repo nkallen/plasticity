@@ -9,9 +9,6 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.render = this.render.bind(this);
-            this.onFailure = this.onFailure.bind(this);
-            this.onSuccess = this.onSuccess.bind(this);
         }
 
         connectedCallback() {
@@ -19,12 +16,16 @@ export default (editor: Editor) => {
             editor.signals.dialogRemoved.add(this.render);
             editor.signals.factoryUpdateFailed.add(this.onFailure);
             editor.signals.factoryUpdated.add(this.onSuccess);
+            editor.signals.factoryCancelled.add(this.reset);
+            editor.signals.factoryCommitted.add(this.reset);
             this.disposable.add(new Disposable(() => {
                 editor.signals.dialogAdded.remove(this.render);
                 editor.signals.dialogRemoved.remove(this.render);
                 editor.signals.factoryUpdateFailed.remove(this.render);
                 editor.signals.factoryUpdated.remove(this.render);
-            }));
+                editor.signals.factoryCancelled.remove(this.reset);
+                editor.signals.factoryCommitted.remove(this.reset);
+                }));
             this.render();
         }
 
@@ -32,7 +33,7 @@ export default (editor: Editor) => {
             this.disposable.dispose();
         }
 
-        render(dialog?: AbstractDialog<any>) {
+        render = (dialog?: AbstractDialog<any>) => {
             if (dialog !== undefined) {
                 const ref = createRef();
                 const form = <div class="absolute rounded bottom-2 left-2 w-96 bg-dialog opacity-90 overflow-clip shadow-neutral-900/95 shadow-lg">
@@ -40,7 +41,7 @@ export default (editor: Editor) => {
                         <div class="flex justify-between items-center px-2">
                             <div class="flex items-center m-3 space-x-4 text-xs font-bold text-neutral-100">
                                 <div>{dialog.title}</div>
-                                <i data-feather="alert-circle" class="stroke-red-700"></i>
+                                <plasticity-icon name="alert" class="alert text-red-700"></plasticity-icon>
                             </div>
 
                             <a class="py-1 px-3 text-xs text-center align-middle rounded-full bg-neutral-800 text-neutral-400">Learn more ...</a>
@@ -59,14 +60,19 @@ export default (editor: Editor) => {
             }
         }
 
-        onFailure(e: any) {
+        onFailure = (e: any) => {
             this.classList.add('failure');
             this.classList.remove('success');
         }
 
-        onSuccess() {
+        onSuccess = () => {
             this.classList.remove('failure');
             this.classList.add('success');
+        }
+
+        reset = () => {
+            this.classList.remove('failure');
+            this.classList.remove('success');
         }
     }
     customElements.define('plasticity-dialog', Dialog);

@@ -76,6 +76,22 @@
         @apply border border-dashed border-supporting-600 bg-supporting-500 opacity-30;
     }
 
+    plasticity-dialog>div {
+        @apply box-content border-2 border-transparent;
+    }
+    
+    plasticity-dialog.failure>div {
+        @apply border-2 border-red-700 border-dashed;
+    }
+
+    plasticity-dialog plasticity-icon.alert {
+        @apply hidden;
+    }
+
+    plasticity-dialog.failure plasticity-icon.alert {
+        @apply block;
+    }
+
     plasticity-dialog ul {
         @apply flex flex-col mx-3 my-2 space-y-1;
     }
@@ -100,7 +116,8 @@
         @apply flex items-center space-x-1 cursor-pointer min-w-[5em];
     }
 
-    plasticity-dialog ul>li>.fields>input[type="radio"], plasticity-dialog ul>li>.fields>input[type="checkbox"] {
+    plasticity-dialog ul>li>.fields>input[type="radio"],
+    plasticity-dialog ul>li>.fields>input[type="checkbox"] {
         @apply absolute hidden;
     }
 
