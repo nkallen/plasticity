@@ -44,7 +44,7 @@ export default (editor: Editor) => {
         render() {
             const { command, tooltip, name } = this;
             render(
-                <div class="p-2 cursor-pointer bg-accent-800 hover:bg-accent-600 text-accent-300 hover:text-accent-100"
+                <div class="p-2 cursor-pointer bg-accent-800 text-accent-300 hover:bg-accent-600 hover:text-accent-100"
                     onClick={this.execute} >
                     <plasticity-icon name={name}></plasticity-icon>
                     {tooltip !== undefined && <plasticity-tooltip command={`command:${command.identifier}`} placement={this.tooltipPlacement}>{tooltip}</plasticity-tooltip>}

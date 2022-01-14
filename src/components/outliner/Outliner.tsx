@@ -15,14 +15,15 @@ export default (editor: Editor) => {
 
         render = () => {
             render(
-                <div class="p-4">
+                <div class="py-3 px-4">
                     <section>
-                        <h1 class="mb-4 text-xs font-bold text-neutral-100">Solids</h1>
+                        <h1 class="mt-3 text-xs font-bold text-neutral-100">Solids</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.Solid).map(solid =>
-                                <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
-                                    <div class="text-sm text-neutral-400">Solid {solid.view.simpleName}</div>
-                                    <button class="p-1 rounded group hover:bg-neutral-500">
+                                <li class="flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700">
+                                    <plasticity-icon name="corner-box" class="text-accent-500"></plasticity-icon>
+                                    <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">Solid {solid.view.simpleName}</div>
+                                    <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500">
                                         <plasticity-icon name="eye"></plasticity-icon>
                                     </button>
                                 </li>
@@ -30,12 +31,13 @@ export default (editor: Editor) => {
                         </ol>
                     </section>
                     <section>
-                        <h1 class="mb-4 text-xs font-bold text-neutral-100">Curves</h1>
+                        <h1 class="mt-3 text-xs font-bold text-neutral-100">Curves</h1>
                         <ol class="space-y-1">
                             {editor.db.find(visual.SpaceInstance).map(solid =>
-                                <li class="flex justify-between items-center py-0.5 px-3 rounded hover:bg-neutral-700">
-                                    <div class="text-sm text-neutral-400">Curve {solid.view.simpleName}</div>
-                                    <button class="p-1 rounded group hover:bg-neutral-500">
+                                <li class="flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700">
+                                    <plasticity-icon name="curve" class="text-accent-500"></plasticity-icon>
+                                    <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">Curve {solid.view.simpleName}</div>
+                                    <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500">
                                         <plasticity-icon name="eye"></plasticity-icon>
                                     </button>
                                 </li>

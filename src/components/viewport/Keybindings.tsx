@@ -33,7 +33,7 @@ export default (editor: Editor) => {
                     if (desc === undefined) console.error("Description missing from (icons.ts)", command);
 
                     return <li class="flex items-center m-1 text-xs text-neutral-100">
-                        <label class="flex justify-center items-center p-1 mr-1 w-7 h-5 font-extrabold text-xs border text-neutral-50 border-neutral-200">{keystroke}</label>
+                        <label class="flex justify-center items-center p-1 mr-1 w-7 h-5 text-xs font-extrabold border text-neutral-50 border-neutral-200">{keystroke}</label>
                         <div>{desc}</div>
                     </li>
                 })}
