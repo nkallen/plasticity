@@ -283,7 +283,7 @@ export class RenderedSceneBuilder {
     private setTheme(theme: Theme) {
         face_unhighlighted.color.setStyle(theme.colors.matcap).convertSRGBToLinear();
         face_highlighted.color.setStyle(theme.colors.yellow[200]).convertSRGBToLinear();
-        face_hovered.color.setStyle(theme.colors.yellow[100]).convertSRGBToLinear();
+        face_hovered.color.setStyle(theme.colors.yellow[500]).convertSRGBToLinear();
         line_unselected.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
         region_hovered.color.setStyle(theme.colors.blue[200]).convertSRGBToLinear();
         region_highlighted.color.setStyle(theme.colors.blue[300]).convertSRGBToLinear();
@@ -452,7 +452,7 @@ face_hovered.polygonOffsetUnits = 1;
 const face_hovered_phantom = face_hovered.clone();
 face_hovered.depthFunc = THREE.AlwaysDepth;
 face_hovered.transparent = true;
-face_hovered.opacity = 0.3;
+face_hovered.opacity = 0.35;
 face_hovered.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
