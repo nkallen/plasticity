@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
 - objectpicker sends events for deselect and select rather than aggregating -- causes update to be called twice where used  
 - creating sphere 2nd point on vertical z axis errors  
 - make objectpicker construction more terse  
@@ -103,8 +104,8 @@
 - boolean with multitarget  
 - audit snap precision with pointpicker -- i recently dropped threshold for line2, but it doesn't make sense why  
 - variable fillet broken (gizmo disappears) when adjust main distance  
-- <use href="#circle-arrow-left" />
-https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
+- <use href="#circle-arrow-left" />  
+- https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 
 ### In Progress
 

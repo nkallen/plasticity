@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { StyleDeclaration } from '../command/GizmoMaterials';
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Theme } from '../startup/LoadTheme';
 import * as visual from "../visual_model/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should
@@ -65,7 +65,7 @@ export class Helpers {
     readonly scene = new THREE.Scene();
     readonly axes: THREE.AxesHelper;
 
-    constructor(signals: EditorSignals, styles: StyleDeclaration) {
+    constructor(signals: EditorSignals, styles: Theme) {
         const axes = new THREE.AxesHelper(10_000);
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
@@ -74,9 +74,9 @@ export class Helpers {
         const material = axes.material as THREE.Material;
         material.fog = false;
         axes.setColors(
-            new THREE.Color(styles.getPropertyValue('--red-600') || '#dc2626').convertSRGBToLinear(),
-            new THREE.Color(styles.getPropertyValue('--green-600') || '#16a34a').convertSRGBToLinear(),
-            new THREE.Color(styles.getPropertyValue('--blue-600') || '#2563eb').convertSRGBToLinear());
+            new THREE.Color(styles.colors.red[600]).convertSRGBToLinear(),
+            new THREE.Color(styles.colors.green[600]).convertSRGBToLinear(),
+            new THREE.Color(styles.colors.blue[600]).convertSRGBToLinear());
     }
 
     add(...objects: THREE.Object3D[]) {

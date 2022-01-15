@@ -5,7 +5,6 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
-import { StyleDeclaration } from "../../command/GizmoMaterials";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
@@ -13,6 +12,7 @@ import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
+import { Theme } from "../../startup/LoadTheme";
 import { Helper, Helpers } from "../../util/Helpers";
 import { xray } from "../../visual_model/Intersectable";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
@@ -40,7 +40,7 @@ export interface EditorLike extends selector.EditorLike {
     windowLoaded: boolean,
     highlighter: RenderedSceneBuilder,
     keymaps: AtomKeymap.KeymapManager,
-    styles: StyleDeclaration,
+    styles: Theme,
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
@@ -50,10 +50,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
 
-    readonly gridColor = new THREE.Color(this.editor.styles.getPropertyValue('--grid') || '#484848').convertSRGBToLinear();
-    readonly backgroundColor = new THREE.Color(this.editor.styles.getPropertyValue('--viewport') || '#2E2E30').convertSRGBToLinear();
-    readonly selectionOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-50') || '#facc15').convertSRGBToLinear();
-    readonly hoverOutlineColor = new THREE.Color(this.editor.styles.getPropertyValue('--yellow-300') || '#fefce8').convertSRGBToLinear();
+    readonly gridColor = new THREE.Color(this.editor.styles.colors.grid).convertSRGBToLinear();
+    readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
+    readonly selectionOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[400]).convertSRGBToLinear();
+    readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
 
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;

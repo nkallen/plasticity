@@ -4,13 +4,13 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import MaterialDatabase from "../editor/MaterialDatabase";
 import { matcapTexture } from "../editor/Matcaps";
+import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { ItemSelection } from "../selection/TypedSelection";
+import { Theme } from "../startup/LoadTheme";
 import * as visual from '../visual_model/VisualModel';
-import { StyleDeclaration } from "../command/GizmoMaterials";
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
 
@@ -23,7 +23,7 @@ export class RenderedSceneBuilder {
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
         protected readonly editorSelection: HasSelectedAndHovered,
-        style: StyleDeclaration,
+        theme: Theme,
         protected readonly signals: EditorSignals,
     ) {
         this.highlight = this.highlight.bind(this);
@@ -43,7 +43,7 @@ export class RenderedSceneBuilder {
             for (const binding of bindings) binding.detach();
         }));
 
-        this.setColor(style);
+        this.setTheme(theme);
     }
 
     private get selection() {
@@ -280,15 +280,14 @@ export class RenderedSceneBuilder {
         })
     }
 
-    private setColor(style: StyleDeclaration) {
-        console.log(style.getPropertyValue('--matcap'));
-        face_unhighlighted.color.setStyle(style.getPropertyValue('--matcap') || '#ffffff').convertSRGBToLinear();
-        face_highlighted.color.setStyle(style.getPropertyValue('--yellow-300') || '#fde047').convertSRGBToLinear();
-        face_hovered.color.setStyle(style.getPropertyValue('--yellow-100') || '#fef9c3').convertSRGBToLinear();
-        line_unselected.color.setStyle(style.getPropertyValue('--blue-400') || '#60a5fa').convertSRGBToLinear();
-        region_hovered.color.setStyle(style.getPropertyValue('--blue-200') || '#bfdbfe').convertSRGBToLinear();
-        region_highlighted.color.setStyle(style.getPropertyValue('--blue-300') || '#93c5fd').convertSRGBToLinear();
-        region_unhighlighted.color.setStyle(style.getPropertyValue('--blue-400') || '#60a5fa').convertSRGBToLinear();        
+    private setTheme(theme: Theme) {
+        face_unhighlighted.color.setStyle(theme.colors.matcap).convertSRGBToLinear();
+        face_highlighted.color.setStyle(theme.colors.yellow[200]).convertSRGBToLinear();
+        face_hovered.color.setStyle(theme.colors.yellow[100]).convertSRGBToLinear();
+        line_unselected.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
+        region_hovered.color.setStyle(theme.colors.blue[200]).convertSRGBToLinear();
+        region_highlighted.color.setStyle(theme.colors.blue[300]).convertSRGBToLinear();
+        region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();        
     }
 }
 
@@ -298,10 +297,10 @@ export class ModifierHighlightManager extends RenderedSceneBuilder {
         db: DatabaseLike,
         materials: MaterialDatabase,
         selection: HasSelectedAndHovered,
-        styles: StyleDeclaration,
+        theme: Theme,
         signals: EditorSignals,
     ) {
-        super(db, materials, selection, styles, signals);
+        super(db, materials, selection, theme, signals);
     }
 
     highlight() {

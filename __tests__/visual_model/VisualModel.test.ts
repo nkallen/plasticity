@@ -1,3 +1,5 @@
+import * as THREE from "three";
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
@@ -6,14 +8,13 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, GeometryGroupUtils, SpaceInstance } from '../../src/visual_model/VisualModel';
-import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import * as THREE from "three";
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { CurveEdgeGroupBuilder } from '../../src/visual_model/VisualModelBuilder';
-import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import theme from '../../src/startup/default-theme';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -34,7 +35,7 @@ beforeEach(() => {
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
-    highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
+    highlighter = new RenderedSceneBuilder(db, materials, selection, theme, signals);
 });
 
 

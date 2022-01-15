@@ -4,7 +4,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
-import { DefaultStyles, GizmoMaterialDatabase } from "../command/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../command/GizmoMaterials";
 import { SelectionCommandManager } from "../command/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
@@ -14,7 +14,6 @@ import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { Helpers } from "../util/Helpers";
-import { CreateMutable } from "../util/Util";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { Backup } from "./Backup";
@@ -33,6 +32,7 @@ import { ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import theme from '../startup/default-theme';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -42,7 +42,6 @@ export class Editor {
 
     readonly viewports: Viewport[] = [];
 
-    readonly styles = document.documentElement.style;
     readonly signals = new EditorSignals();
     readonly registry = new CommandRegistry();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
@@ -81,7 +80,7 @@ export class Editor {
 
     windowLoaded = false;
 
-    constructor() {
+    constructor(readonly styles = theme) {
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onWindowLoad = this.onWindowLoad.bind(this);
         this.onViewportActivated = this.onViewportActivated.bind(this);

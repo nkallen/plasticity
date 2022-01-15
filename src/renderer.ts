@@ -24,8 +24,8 @@ import ViewportHeader from './components/viewport/ViewportHeader';
 import Prompt from './components/viewport/ViewportPrompt';
 import './css/index.css';
 import { Editor } from './editor/Editor';
-import { loadKeymap } from './startup/UserKeymap';
-import { loadTheme } from './startup/UserTheme';
+import { loadKeymap } from './startup/LoadKeymap';
+import { loadTheme } from './startup/LoadTheme';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

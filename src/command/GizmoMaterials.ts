@@ -1,6 +1,8 @@
 import { EditorSignals } from "../editor/EditorSignals";
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { Theme } from "../startup/LoadTheme";
+import theme from '../startup/default-theme';
 
 const depthInfo: THREE.MaterialParameters = {
     depthTest: true,
@@ -38,7 +40,7 @@ export class GizmoMaterialDatabase {
         }
     }
 
-    constructor(signals: EditorSignals, style: StyleDeclaration = new DefaultStyles()) {
+    constructor(signals: EditorSignals, style: Theme = theme) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
         this.setColor(style);
     }
@@ -99,26 +101,26 @@ export class GizmoMaterialDatabase {
         return [this.default, this.red, this.darkGray, this.green, this.blue, this.yellow, this.white, this.magenta, this.cyan];
     }
 
-    private setColor(style: StyleDeclaration) {
+    private setColor(style: Theme) {
         for (const color of this.all) {
             if (color === undefined) continue;
             color.line.dispose(); color.line2.dispose(); color.mesh.dispose();
             color.hover.line.dispose(); color.hover.line2.dispose(); color.hover.mesh.dispose();
         }
 
-        const red = new THREE.Color(style.getPropertyValue('--red-600') || '#dc2626').convertSRGBToLinear();
-        const green = new THREE.Color(style.getPropertyValue('--green-600') || '#16a34a').convertSRGBToLinear();
-        const blue = new THREE.Color(style.getPropertyValue('--blue-600') || '#2563eb').convertSRGBToLinear();
-        const dark = new THREE.Color(style.getPropertyValue('--neutral-800') || '#202020').convertSRGBToLinear();
-        const yellow = new THREE.Color(style.getPropertyValue('--yellow-300') || '#fde047').convertSRGBToLinear();
-        const white = new THREE.Color(style.getPropertyValue('--neutral-50') || '#e2e2e2').convertSRGBToLinear();
+        const red = new THREE.Color(style.colors.red[600]).convertSRGBToLinear();
+        const green = new THREE.Color(style.colors.green[600]).convertSRGBToLinear();
+        const blue = new THREE.Color(style.colors.blue[600]).convertSRGBToLinear();
+        const dark = new THREE.Color(style.colors.neutral[800]).convertSRGBToLinear();
+        const yellow = new THREE.Color(style.colors.yellow[300]).convertSRGBToLinear();
+        const white = new THREE.Color(style.colors.neutral[50]).convertSRGBToLinear();
 
-        const red_hover = new THREE.Color(style.getPropertyValue('--red-400') || '#f87171').convertSRGBToLinear();
-        const green_hover = new THREE.Color(style.getPropertyValue('--green-400') || '#4ade80').convertSRGBToLinear();
-        const blue_hover = new THREE.Color(style.getPropertyValue('--blue-400') || '#60a5fa').convertSRGBToLinear();
-        const dark_hover = new THREE.Color(style.getPropertyValue('--neutral-500') || '#484848').convertSRGBToLinear();
-        const yellow_hover = new THREE.Color(style.getPropertyValue('--yellow-200') || '#fef08a').convertSRGBToLinear();
-        const white_hover = new THREE.Color(style.getPropertyValue('--white') || '#ffffff').convertSRGBToLinear();
+        const red_hover = new THREE.Color(style.colors.red[400]).convertSRGBToLinear();
+        const green_hover = new THREE.Color(style.colors.green[400]).convertSRGBToLinear();
+        const blue_hover = new THREE.Color(style.colors.blue[400]).convertSRGBToLinear();
+        const dark_hover = new THREE.Color(style.colors.neutral[500]).convertSRGBToLinear();
+        const yellow_hover = new THREE.Color(style.colors.yellow[200]).convertSRGBToLinear();
+        const white_hover = new THREE.Color(style.colors.white).convertSRGBToLinear();
 
         this._default = GizmoMaterialDatabase.make(yellow, yellow_hover);
         this._red = GizmoMaterialDatabase.make(red, red_hover);
@@ -139,12 +141,3 @@ export class GizmoMaterialDatabase {
     }
 }
 
-export interface StyleDeclaration {
-    getPropertyValue(property: string): string;
-}
-
-export class DefaultStyles implements StyleDeclaration {
-    getPropertyValue(property: string): string {
-        return '';
-    }
-}

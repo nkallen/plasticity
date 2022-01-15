@@ -1,6 +1,10 @@
 import fs from 'fs';
 import json5 from 'json5';
 import path from 'path';
+// TODO: once we have top-level await, import inside load-theme to avoid mutating global.
+import theme from './default-theme';
+
+export type Theme = typeof import('./default-theme')
 
 export function loadTheme() {
     const userTheme = path.join(process.env.PLASTICITY_HOME!, 'theme.json');
@@ -10,11 +14,12 @@ export function loadTheme() {
             const colorInfo = parsed.colors;
 
             const style = document.documentElement.style;
-            for (const colorName of ['viewport', 'dialog', 'matcap', 'grid']) {
+            const simpleColors = ['viewport', 'dialog', 'matcap', 'grid'];
+            for (const colorName of simpleColors) {
                 const color = colorInfo[colorName];
-                console.log(colorName, color);
                 if (color === undefined) continue;
                 style.setProperty(`--${colorName}`, color);
+                theme.colors[colorName as 'viewport'] = color;
             };
             for (const colorName of ['neutral', 'accent', 'supporting', 'red', 'green', 'blue', 'yellow']) {
                 const colorInfo = parsed.colors[colorName];
@@ -23,10 +28,12 @@ export function loadTheme() {
                     const shadeInfo = colorInfo[shadeName];
                     if (shadeInfo === undefined) continue;
                     style.setProperty(`--${colorName}-${shadeName}`, shadeInfo);
+                    theme.colors[colorName as 'neutral'][shadeName as '50'] = shadeInfo;
                 }
             };
         } catch (e) {
             console.error(e);
         }
     }
+    return theme;
 }

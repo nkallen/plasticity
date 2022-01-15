@@ -13,6 +13,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { SelectionDatabase } from '../src/selection/SelectionDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import theme from '../src/startup/default-theme';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -28,7 +29,7 @@ beforeEach(async () => {
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
-    highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
+    highlighter = new RenderedSceneBuilder(db, materials, selection, theme, signals);
 
     const makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
