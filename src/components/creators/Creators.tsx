@@ -4,7 +4,7 @@ import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
 import * as cmd from "../../command/Command";
 import { EditorLike } from '../../command/Command';
-import {  RebuildCommand } from '../../commands/CommandLike';
+import { RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { AbstractViewportSelector } from '../../selection/ViewportSelector';
@@ -17,7 +17,7 @@ export class Model {
 
     constructor(
         private readonly editor: EditorLike,
-    ) { 
+    ) {
         this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps).keystroke2modifier;
     }
 
@@ -120,7 +120,7 @@ export default (editor: Editor) => {
                 return;
             }
 
-            const result = <ol>
+            const result = <ol class="h-[42px] absolute bottom-0 w-full ml-1 px-1 py-0.5 flex flex-row justify-start space-x-0.5 items-center">
                 {creators.map((creator, index) => {
                     const Z = `plasticity-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                     // @ts-expect-error("not sure how to type this")
@@ -161,8 +161,8 @@ export default (editor: Editor) => {
 
         render() {
             render(
-                <button onPointerEnter={this.pointerEnter} onPointerLeave={this.pointerLeave} onPointerDown={this.pointerDown} tabIndex={-1}>
-                    <img src={icons.get(this.creator.constructor)}></img>
+                <button class="p-2 shadow-lg first:rounded-l last:rounded-r bg-neutral-800 group hover:bg-neutral-700" onPointerEnter={this.pointerEnter} onPointerLeave={this.pointerLeave} onPointerDown={this.pointerDown} tabIndex={-1}>
+                    <plasticity-icon name={_.dasherize(c3d.CreatorType[this.creator.IsA()])}></plasticity-icon>
                     <plasticity-tooltip placement="top">{c3d.CreatorType[this.creator.IsA()]}</plasticity-tooltip>
                 </button>
                 , this);

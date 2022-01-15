@@ -1,13 +1,12 @@
-import Stats from 'stats.js';
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
 import Creators from './components/creators/Creators';
+import Stats from './components/stats/Stats';
 import Dialog from './components/dialog/Dialog';
 import NumberScrubber from './components/dialog/NumberScrubber';
-import Modifiers from './components/modifiers/Modifiers';
 import Outliner from './components/outliner/Outliner';
 import './components/pane/Pane';
 import TitleBar from './components/title-bar/TitleBar';
@@ -49,18 +48,10 @@ Object.defineProperty(window, 'cmd', {
     writable: false,
 })
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
-stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
-
 loadKeymap();
 
 registerDefaultCommands(editor);
 
-requestAnimationFrame(function loop() {
-    stats.update();
-    requestAnimationFrame(loop)
-});
 
 Icon(editor);
 TitleBar(editor);
@@ -69,7 +60,6 @@ Keybindings(editor);
 Palette(editor);
 Viewport(editor);
 Creators(editor);
-Modifiers(editor);
 NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
@@ -78,3 +68,4 @@ Prompt(editor);
 Outliner(editor);
 UndoHistory(editor);
 Tooltip(editor);
+Stats(editor);

@@ -88,7 +88,7 @@ export default (editor: Editor) => {
                     const { disposable } = this.state;
                     const pos = this.getBoundingClientRect();
                     const submenu = document.createElement('section');
-                    submenu.className = 'absolute flex flex-col space-y-0.5 p-1';
+                    submenu.className = 'flex absolute flex-col p-1 space-y-0.5';
                     submenu.innerHTML = this.original;
                     document.body.appendChild(submenu);
                     disposable.add(new Disposable(() => submenu.remove()));

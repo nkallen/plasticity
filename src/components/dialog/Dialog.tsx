@@ -36,12 +36,12 @@ export default (editor: Editor) => {
         render = (dialog?: AbstractDialog<any>) => {
             if (dialog !== undefined) {
                 const ref = createRef();
-                const form = <div class="absolute rounded bottom-2 left-2 w-96 bg-dialog opacity-90 overflow-clip shadow-neutral-900/95 shadow-lg">
+                const form = <div class="absolute bottom-2 left-2 w-96 rounded shadow-lg opacity-90 bg-dialog overflow-clip shadow-neutral-900/95">
                     <div class="my-1 border-b border-neutral-900 m">
                         <div class="flex justify-between items-center px-2">
                             <div class="flex items-center m-3 space-x-4 text-xs font-bold text-neutral-100">
                                 <div>{dialog.title}</div>
-                                <plasticity-icon name="alert" class="alert text-red-700"></plasticity-icon>
+                                <plasticity-icon name="alert" class="text-red-700 alert"></plasticity-icon>
                             </div>
 
                             <a class="py-1 px-3 text-xs text-center align-middle rounded-full bg-neutral-800 text-neutral-400">Learn more ...</a>

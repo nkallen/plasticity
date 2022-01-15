@@ -2,7 +2,7 @@ module.exports = {
     colors: {
         viewport: '#3f3f46',
         grid: '#52525b',
-        dialog: '#111827',
+        dialog: '#111518',
         matcap: '#fafafa',
         white: '#ffffff',
         neutral: {

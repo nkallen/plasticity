@@ -1,12 +1,12 @@
+import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
-import { CancellablePromise } from "../../util/CancellablePromise";
 import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { GizmoMaterial, GizmoMaterialDatabase } from "../../command/GizmoMaterials";
+import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
-import { RotateParams } from "./TranslateFactory";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { AdvancedGizmoTriggerStrategy } from "../modify_contour/ModifyContourGizmo";
-import { CompositeDisposable } from "event-kit";
+import { RotateParams } from "./TranslateFactory";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const X = new THREE.Vector3(1, 0, 0);

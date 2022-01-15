@@ -238,6 +238,7 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
             disposable.add(new Disposable(() => {
                 domElement.removeEventListener('pointerdown', onPointerDown, { capture: true });
                 domElement.removeEventListener('pointermove', onPointerHover);
+                domElement.ownerDocument.body.removeAttribute('gizmo');
             }));
         }
         return disposable;
