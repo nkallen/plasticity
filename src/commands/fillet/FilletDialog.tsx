@@ -1,23 +1,20 @@
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../../command/AbstractDialog";
-import FilletFactory, { FilletParams, Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
-import distance1_2 from './img/distance1-2.jpg';
-import conic1 from './img/conic1.jpg';
-import conic2 from './img/conic2.jpg';
-import span1 from './img/span1.jpg';
-import span2 from './img/span2.jpg';
+import { AbstractDialog } from "../../command/AbstractDialog";
+import { EditorSignals } from "../../editor/EditorSignals";
+import FilletFactory, { FilletParams, Mode } from "./FilletFactory";
 import beginningLength from './img/begLength.png';
-import prolong_ from './img/prolong.png';
-import equable1 from './img/equable1.png';
-import equable2 from './img/equable2.png';
 import cant1 from './img/cant1.png';
 import cant2 from './img/cant2.png';
 import cant3 from './img/cant3.jpg';
+import conic1 from './img/conic1.jpg';
+import conic2 from './img/conic2.jpg';
 import corner1 from './img/corner1.jpg';
 import corner2 from './img/corner2.jpg';
 import corner3 from './img/corner3.jpg';
+import prolong_ from './img/prolong.png';
+import span1 from './img/span1.jpg';
+import span2 from './img/span2.jpg';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
     title = "Fillet";
@@ -47,11 +44,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                                 class="text-xs text-neutral-500">to
                                 fillet or chamfer</span></div>
                         </li>
-                        <li class="flex items-center px-1 space-x-2 rounded-full bg-neutral-800">
+                        {/* <li class="flex items-center px-1 space-x-2 rounded-full bg-neutral-800">
                             <i class="w-4 h-4 p-1 rounded-full stroke-2 stroke-black bg-neutral-600"></i>
                             <div class=""><span class="text-xs font-bold text-neutral-200">Select tool bodies</span> <span
                                 class="text-xs text-neutral-500">to cut or join with</span></div>
-                        </li>
+                        </li> */}
                     </ol>
                 </div>
 
