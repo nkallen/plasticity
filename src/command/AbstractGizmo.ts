@@ -125,21 +125,23 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                         stateMachine.update(viewport, lastEvent);
                         stateMachine.command(fn, () => {
                             domElement.ownerDocument.body.setAttribute("gizmo", this.title);
-                            return addEventHandlers();
+                            return addEventHandlers(lastEvent);
                         });
                     });
                     disposables.add(disp);
                 }
 
                 // Add handlers when triggered, for example, on pointerdown
-                const addEventHandlers = () => {
+                const addEventHandlers = (event: PointerEvent) => {
                     const reenableControls = viewport.disableControls();
-                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                    // domElement.setPointerCapture(event.pointerId);
+                    document.addEventListener('pointermove', onPointerMove);
+                    document.addEventListener('pointerup', onPointerUp);
                     return new Disposable(() => {
                         reenableControls.dispose();
-                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
+                        // domElement.releasePointerCapture(event.pointerId);
+                        document.removeEventListener('pointerup', onPointerUp);
+                        document.removeEventListener('pointermove', onPointerMove);
                     });
                 }
 
@@ -179,13 +181,13 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
 }
 
 export interface GizmoTriggerStrategy<I, O> {
-    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable;
 }
 
 export class BasicGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
     constructor(private readonly title: string, private readonly editor: EditorLike) { }
 
-    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable {
         const stateMachine = gizmo.stateMachine!;
         const { renderer: { domElement } } = viewport;
 
@@ -197,7 +199,7 @@ export class BasicGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, 
                 event.stopImmediatePropagation();
 
                 domElement.ownerDocument.body.setAttribute("gizmo", this.title);
-                return addEventHandlers();
+                return addEventHandlers(event);
             });
         }
 

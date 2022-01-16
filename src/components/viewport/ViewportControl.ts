@@ -12,8 +12,8 @@ type State = { tag: 'none', last?: MouseEvent } | { tag: 'hover', last?: MouseEv
 export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
     Line: { threshold: 0.1 },
-    Line2: { threshold: 1 },
-    Points: { threshold: 5 }
+    Line2: { threshold: 15 },
+    Points: { threshold: 20 }
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {

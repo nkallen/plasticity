@@ -179,7 +179,7 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
 
 interface GizmoInfo<I> {
     gizmo: AbstractGizmo<I>;
-    addEventHandlers: () => Disposable;
+    addEventHandlers: (event: PointerEvent) => Disposable;
 }
 
 export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
@@ -204,7 +204,7 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
                     event.stopPropagation();
                     event.stopImmediatePropagation();
 
-                    return winner!.addEventHandlers();
+                    return winner!.addEventHandlers(event);
                 });
             }
 
@@ -244,7 +244,7 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
         return disposable;
     }
 
-    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable {
         this.allGizmos.push({ gizmo, addEventHandlers });
         return new Disposable();
     }
