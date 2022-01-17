@@ -10,6 +10,7 @@ import fse from 'fs-extra';
 import { buildContextMenu, buildMenu } from './Menu';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 crashReporter.start({
     productName: 'ispace',
@@ -34,9 +35,10 @@ const createWindow = (): void => {
         show: false,
         backgroundColor: '#2e2c29',
         titleBarStyle: 'hiddenInset',
+        // frame: false,
         trafficLightPosition: { x: 12, y: 12 },
         webPreferences: {
-            // preload: path.join(path.join(__dirname, 'preload.js')),
+            // preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
             nodeIntegration: true,
             contextIsolation: false,
             nodeIntegrationInWorker: true,
