@@ -162,13 +162,16 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     protected material = this.editor.gizmos.default;
     readonly helper = new AxisHelper(this.material.line);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
-    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
+    protected readonly shaft = new THREE.Mesh();
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+    private readonly line = new Line2(lineGeometry, this.material.line2);
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
         this.setup();
         this.add(this.helper);
+        this.tip.add(this.line);
+        this.line.position.set(0, - 0.5, 0);
     }
 
     onInterrupt(cb: (radius: number) => void) {
@@ -177,7 +180,6 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
 
     render(length: number) {
         const approxDist = length * Math.sin(Math.PI / 4);
-        this.shaft.position.set(0, approxDist - 0.5, 0);
         this.tip.position.set(0, approxDist, 0);
         this.knob.position.copy(this.tip.position);
     }
@@ -187,6 +189,8 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     }
 
     scaleIndependentOfZoom(camera: THREE.Camera) {
+        // Rather than scaling the parent, we scale the children, so that the position (set in render)
+        // is in world space
         this.tip.scale.copy(this.relativeScale);
         this.knob.scale.copy(this.relativeScale);
         Helper.scaleIndependentOfZoom(this.tip, camera);
@@ -199,7 +203,7 @@ class FilletAngleGizmo extends AngleGizmo {
         this.state.push();
     }
 
-    get shouldRescaleOnZoom() { return true }
+    get shouldRescaleOnZoom() { return false }
 }
 
 class FilletStretchGizmo extends AbstractAxialScaleGizmo {
@@ -212,8 +216,6 @@ class FilletStretchGizmo extends AbstractAxialScaleGizmo {
         super(name, editor, editor.gizmos.default);
         this.setup();
     }
-
-    get shouldRescaleOnZoom() { return true }
 
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();

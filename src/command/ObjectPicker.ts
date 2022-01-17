@@ -40,6 +40,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
+        if (intersections.length === 0) return; 
         this.changeSelection.onClick(intersections, this.event2modifier(upEvent), this.event2option(upEvent));
     }
 

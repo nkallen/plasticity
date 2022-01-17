@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { CancellablePromise } from "../../util/CancellablePromise";
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, AxisHelper, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 const Z = new THREE.Vector3(0, 0, 1);
@@ -61,7 +61,7 @@ class ExtrudeAngleGizmo extends AngleGizmo {
         this.state.push();
     }
 
-    get shouldRescaleOnZoom() { return true }
+    get shouldRescaleOnZoom() { return false }
 }
 
 export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
