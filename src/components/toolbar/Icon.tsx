@@ -306,7 +306,7 @@ export default (editor: Editor) => {
                         </svg>, this);
                 case 'boolean-solid':
                 case 'union-solid':
-                case 'union':
+                case 'boolean':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M15 9H20.4C20.7314 9 21 9.26863 21 9.6V20.4C21 20.7314 20.7314 21 20.4 21H9.6C9.26863 21 9 20.7314 9 20.4V15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />

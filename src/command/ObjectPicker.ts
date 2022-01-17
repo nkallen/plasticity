@@ -82,7 +82,7 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
 
     get mode() { return this.selection.mode }
 
-    execute(cb?: (o: HasSelection) => void, min = this.min, max = this.max): CancellablePromise<HasSelection> {
+    execute(cb?: (o: HasSelection) => void, min = this.min, max = this.max, callbackImmediately = false): CancellablePromise<HasSelection> {
         const { editor, selection, selection: { signals } } = this;
         const disposables = new CompositeDisposable();
         if (signals !== editor.signals) {
@@ -125,6 +125,8 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
                 finish: () => resolve(selection.selected)
             };
         });
+
+        if (cb !== undefined && callbackImmediately) cb(selection.selected);
         return cancellable;
     }
 

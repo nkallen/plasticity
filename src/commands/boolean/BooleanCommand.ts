@@ -51,7 +51,7 @@ export class BooleanCommand extends Command {
         
                 factory.tools = tools;
                 await factory.update();
-            }, 0, Number.MAX_SAFE_INTEGER)
+            }, 0, Number.MAX_SAFE_INTEGER, true)
         ).resource(this);
 
         keyboard.execute(e => {
