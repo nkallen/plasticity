@@ -79,7 +79,7 @@ export default {
         "d": "gizmo:offset-curve:distance",
     },
 
-    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport, [command='difference'] plasticity-viewport, [command='union'] plasticity-viewport, [command='intersection'] plasticity-viewport": {
+    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport, [command='boolean'] plasticity-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",

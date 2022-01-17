@@ -32,7 +32,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     private readonly xz = new PlanarMoveGizmo("move:xz", this.editor, this.magenta);
     private readonly screen = new CircleMoveGizmo("move:screen", this.editor);
 
-    private originalPosition!: THREE.Vector3;
+    private readonly originalPosition = new THREE.Vector3();
 
     protected prepare(mode: Mode) {
         const { x, y, z, xy, yz, xz, screen } = this;
@@ -48,7 +48,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
 
-        this.originalPosition = this.position.clone();
+        this.originalPosition.copy(this.position);
     }
 
     execute(cb: (params: MoveParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {

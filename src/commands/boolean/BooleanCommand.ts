@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
-import { Prompt } from "../../components/dialog/CommandPrompt";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
@@ -11,6 +10,7 @@ import { BooleanKeyboardGizmo } from "./BooleanKeyboardGizmo";
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
 import c3d from '../../../build/Release/c3d.node';
+import { CancellablePromise } from "../../util/CancellablePromise";
 
 export class BooleanCommand extends Command {
     async execute(): Promise<void> {
@@ -19,7 +19,6 @@ export class BooleanCommand extends Command {
         factory.resource(this);
 
         const dialog = new BooleanDialog(factory, editor.signals);
-        const gizmo = new MoveGizmo(factory, editor);
         const keyboard = new BooleanKeyboardGizmo(this.editor);
 
         dialog.execute(async (params) => {
@@ -34,9 +33,26 @@ export class BooleanCommand extends Command {
             objectPicker.shift(SelectionMode.Solid, 1)).resource(this);
         factory.target = [...solids][0];
 
-        const tools = await dialog.prompt("Select tool bodies",
-            objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER)).resource(this);
-        factory.tools = [...tools];
+        let g: CancellablePromise<void> | undefined = undefined;
+        dialog.prompt("Select tool bodies",
+            objectPicker.execute(async selection => {
+                const tools = [...selection.solids];
+
+                const bbox = new THREE.Box3();
+                for (const object of tools) bbox.expandByObject(object);
+                bbox.getCenter(centroid);
+
+                g?.cancel();
+                const gizmo = new MoveGizmo(factory, editor);
+                gizmo.position.copy(centroid);
+                g = gizmo.execute(s => {
+                    factory.update();
+                }).resource(this);
+        
+                factory.tools = tools;
+                await factory.update();
+            }, 0, Number.MAX_SAFE_INTEGER)
+        ).resource(this);
 
         keyboard.execute(e => {
             let operationType;
@@ -50,41 +66,11 @@ export class BooleanCommand extends Command {
             factory.update();
         }).resource(this);
 
-        for (const object of tools) bbox.expandByObject(object);
-        bbox.getCenter(centroid);
-
-        await factory.update();
-
-        gizmo.position.copy(centroid);
-        gizmo.execute(s => {
-            factory.update();
-        }).resource(this);
-
-        await Prompt(
-            this.title, "Select additional tool bodies", editor.signals,
-            objectPicker.execute(async selection => {
-                factory.tools = [...selection.solids];
-                await factory.update();
-            }, 0, Number.MAX_SAFE_INTEGER)
-        ).resource(this);
-
         await this.finished;
 
         const result = await factory.commit() as visual.Solid;
         editor.selection.selected.addSolid(result);
     }
-}
-
-export class UnionCommand extends BooleanCommand {
-    protected factory = new MovingUnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
-}
-
-export class IntersectionCommand extends BooleanCommand {
-    protected factory = new MovingIntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
-}
-
-export class DifferenceCommand extends BooleanCommand {
-    protected factory = new MovingDifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
 export class CutCommand extends Command {
@@ -125,5 +111,4 @@ export class CutCommand extends Command {
     }
 }
 
-const bbox = new THREE.Box3();
 const centroid = new THREE.Vector3();
