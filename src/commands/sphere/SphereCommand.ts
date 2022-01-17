@@ -2,7 +2,7 @@ import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
-import { BooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
+import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanSphereFactory } from './SphereFactory';
 
 
@@ -19,7 +19,7 @@ export class SphereCommand extends Command {
         sphere.center = p1;
         pointPicker.restrictToPlaneThroughPoint(p1);
 
-        const keyboard = new BooleanKeyboardGizmo("sphere", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("sphere", this.editor);
         keyboard.prepare(sphere).resource(this);
 
         await pointPicker.execute(({ point: p2 }) => {

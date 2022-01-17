@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command, { EditorLike } from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
-import { BooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
+import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { ExtrudeDialog } from "./ExtrudeDialog";
 import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
@@ -17,7 +17,7 @@ export class ExtrudeCommand extends Command {
         const extrude = ExtrudeFactory(this.editor).resource(this);
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
-        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("extrude", this.editor);
         const dialog = new ExtrudeDialog(extrude, this.editor.signals);
 
         keyboard.prepare(extrude).resource(this);

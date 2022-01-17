@@ -9,16 +9,18 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
     private state: State<T> = { tag: 'none' };
     protected abstract readonly params: T;
 
+    connectedCallback() { this.render() }
+    disconnectedCallback() { }
+
     constructor(private readonly signals: EditorSignals) {
         super();
         this.render = this.render.bind(this);
-        this.onChange = this.onChange.bind(this);
     }
 
     abstract get title(): string;
     abstract render(): void;
 
-    onChange(e: Event) {
+    onChange = (e: Event) => {
         e.stopPropagation();
         switch (this.state.tag) {
             case 'executing':
@@ -82,6 +84,12 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
         }
     }
 
-    connectedCallback() { this.render() }
-    disconnectedCallback() { }
+    prompt<T>(key: string, promise: CancellablePromise<T>): CancellablePromise<T> {
+        const element = this.querySelector(`plasticity-prompt[name='${key}']`);
+        if (element === null) throw new Error("invalid prompt: " + key);
+        const prompt = element as unknown as { execute(): CancellablePromise<T> };
+        const p = prompt.execute();
+        promise.then(() => p.finish(), () => p.finish());
+        return promise;
+    }
 }

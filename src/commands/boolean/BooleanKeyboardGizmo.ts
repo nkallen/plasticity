@@ -1,11 +1,10 @@
 import c3d from '../../../build/Release/c3d.node';
+import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { AbstractCommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
-import { PossiblyBooleanFactory } from './BooleanFactory';
 
 export type BooleanKeyboardEvent = { tag: 'boolean', type: number } | { tag: 'new-body' }
 
-export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: BooleanKeyboardEvent) => void> {
+export class PossiblyBooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: BooleanKeyboardEvent) => void> {
     private active?: CancellablePromise<void>;
     private cb!: (e: BooleanKeyboardEvent) => void;
     private map = commands(this.name).map;
@@ -57,6 +56,16 @@ export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Boole
                 this.active = super.execute(this.cb);
             }
         }
+    }
+}
+
+export class BooleanKeyboardGizmo extends CommandKeyboardInput {
+    constructor(editor: EditorLike) {
+        super('boolean', editor, [
+            'gizmo:boolean:union',
+            'gizmo:boolean:difference',
+            'gizmo:boolean:intersect',
+        ]);
     }
 }
 

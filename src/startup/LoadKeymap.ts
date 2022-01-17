@@ -1,7 +1,7 @@
 import fs from 'fs';
 import json5 from 'json5';
 import path from 'path';
-import defaultKeymap from "../default-keymap";
+import defaultKeymap from "./default-keymap";
 import { editor } from '../renderer';
 
 export function loadKeymap() {

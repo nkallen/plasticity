@@ -20,7 +20,7 @@ import Keybindings from './components/viewport/Keybindings';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
-import Prompt from './components/viewport/ViewportPrompt';
+import Prompt from './components/dialog/Prompt';
 import './css/index.css';
 import { Editor } from './editor/Editor';
 import { loadKeymap } from './startup/LoadKeymap';

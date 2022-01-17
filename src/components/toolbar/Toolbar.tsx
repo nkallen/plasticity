@@ -50,9 +50,7 @@ export class Model {
             misc.add(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {
-            bool.add(cmd.UnionCommand);
-            bool.add(cmd.IntersectionCommand);
-            bool.add(cmd.DifferenceCommand);
+            bool.add(cmd.BooleanCommand);
         }
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetCurveCommand);

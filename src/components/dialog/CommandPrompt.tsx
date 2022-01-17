@@ -1,8 +1,8 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
-import { Executable } from './Quasimode';
-import { EditorSignals } from '../editor/EditorSignals';
-import { CancellablePromise } from '../util/CancellablePromise';
+import { Executable } from '../../command/Quasimode';
+import { EditorSignals } from '../../editor/EditorSignals';
+import { CancellablePromise } from '../../util/CancellablePromise';
 
 export type State = { tag: 'none' } | { tag: 'executing', cb?: () => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
 
@@ -53,7 +53,7 @@ export class CommandPrompt extends HTMLElement implements Executable<void, void>
             <div class="title">
                 {this.heading}
             </div>
-            <div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+            <div class="py-3 px-4 text-red-700 bg-red-100 rounded-b border border-t-0 border-red-400">
                 <p>{this.description}</p>
             </div>
         </div>, this);

@@ -25,6 +25,12 @@ export default {
         "t": "gizmo:revolution:thickness",
     },
 
+    "[command='boolean'] plasticity-viewport": {
+        "q": "gizmo:boolean:union",
+        "w": "gizmo:boolean:difference",
+        "e": "gizmo:boolean:intersect",
+    },
+
     "[command='center-box'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='three-point-box'] plasticity-viewport": {
         "q": "gizmo:box:union",
         "w": "gizmo:box:difference",
@@ -198,9 +204,7 @@ export default {
         "backspace": "command:delete",
         "shift-q": "command:rebuild",
 
-        "q q": "command:union",
-        "q w": "command:difference",
-        "q e": "command:intersect",
+        "q": "command:boolean",
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",

@@ -104,7 +104,7 @@
 - boolean with multitarget  
 - audit snap precision with pointpicker -- i recently dropped threshold for line2, but it doesn't make sense why  
 - variable fillet broken (gizmo disappears) when adjust main distance  
-- <use href="#circle-arrow-left" />  
+- icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 
 ### In Progress

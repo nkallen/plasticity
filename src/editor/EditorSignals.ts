@@ -3,7 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
 import { Viewport } from '../components/viewport/Viewport';
-import { CommandPrompt } from "../command/CommandPrompt";
+import { CommandPrompt } from "../components/dialog/CommandPrompt";
 import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Replacement } from './ModifierManager';

@@ -139,6 +139,14 @@
     plasticity-dialog ul>li>.fields>input[type="checkbox"]:checked+label {
         @apply bg-accent-600 text-accent-100;
     }
+
+    plasticity-dialog plasticity-prompt.executing {
+        @apply bg-neutral-800;
+    }
+
+    plasticity-dialog plasticity-prompt.finished {
+        @apply bg-neutral-800;
+    }
 }
 
 .drag {

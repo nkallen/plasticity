@@ -7,15 +7,14 @@ export default (editor: Editor) => {
     class Keybindings extends HTMLElement {
         private commands = new Set<string>();
 
-        constructor() {
-            super();
-            this.add = this.add.bind(this);
-            this.delete = this.delete.bind(this);
-        }
-
         connectedCallback() {
             editor.signals.keybindingsRegistered.add(this.add);
             editor.signals.keybindingsCleared.add(this.delete);
+        }
+
+        disconnectedCallback() {
+            editor.signals.keybindingsRegistered.remove(this.add);
+            editor.signals.keybindingsCleared.remove(this.add);
         }
 
         render() {
@@ -41,19 +40,14 @@ export default (editor: Editor) => {
             render(result, this);
         }
 
-        add(commands: string[]) {
+        add = (commands: string[]) => {
             for (const command of commands) this.commands.add(command);
             this.render();
         }
 
-        delete(commands: string[]) {
+        delete = (commands: string[]) => {
             for (const command of commands) this.commands.delete(command);
             this.render();
-        }
-
-        disconnectedCallback() {
-            editor.signals.keybindingsRegistered.remove(this.add);
-            editor.signals.keybindingsCleared.remove(this.add);
         }
     }
     customElements.define('plasticity-keybindings', Keybindings);

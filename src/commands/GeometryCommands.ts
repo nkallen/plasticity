@@ -1,6 +1,6 @@
 import { ThreePointArcCommand } from "./arc/ThreePointArcCommand";
 import { RadialArrayCommand } from "./array/ArrayCommand";
-import { CutCommand, DifferenceCommand, IntersectionCommand, UnionCommand } from "./boolean/BooleanCommand";
+import { CutCommand, BooleanCommand } from "./boolean/BooleanCommand";
 import { CenterBoxCommand, CornerBoxCommand, ThreePointBoxCommand } from "./box/BoxCommand";
 import { CharacterCurveCommand } from "./character-curve/CharacterCurveCommand";
 import { CenterCircleCommand, CenterPointArcCommand, EditCircleCommand, ThreePointCircleCommand, TwoPointCircleCommand } from "./circle/CircleCommand";
@@ -60,9 +60,7 @@ export {
     MoveCommand,
     RotateCommand,
     ScaleCommand,
-    UnionCommand,
-    IntersectionCommand,
-    DifferenceCommand,
+    BooleanCommand,
     CutCommand,
     DraftSolidCommand,
     ActionFaceCommand,
@@ -100,4 +98,3 @@ export {
     RadialArrayCommand,
     SlotCommand,
 };
-

@@ -1,24 +1,26 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
-import { Prompt } from "../../command/CommandPrompt";
+import { Prompt } from "../../components/dialog/CommandPrompt";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from '../translate/MoveGizmo';
 import { BooleanDialog, CutDialog } from "./BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './BooleanFactory';
+import { BooleanKeyboardGizmo } from "./BooleanKeyboardGizmo";
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
+import c3d from '../../../build/Release/c3d.node';
 
-abstract class BooleanCommand extends Command {
-    protected abstract factory: MovingBooleanFactory;
-
+export class BooleanCommand extends Command {
     async execute(): Promise<void> {
-        const { factory, editor } = this;
+        const { editor } = this;
+        const factory = new MovingBooleanFactory(editor.db, editor.materials, editor.signals);
         factory.resource(this);
 
         const dialog = new BooleanDialog(factory, editor.signals);
         const gizmo = new MoveGizmo(factory, editor);
+        const keyboard = new BooleanKeyboardGizmo(this.editor);
 
         dialog.execute(async (params) => {
             factory.update();
@@ -28,15 +30,25 @@ abstract class BooleanCommand extends Command {
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
-        const solids = await Prompt(
-            this.title, "Select target body", editor.signals,
+        const solids = await dialog.prompt("Select target bodies",
             objectPicker.shift(SelectionMode.Solid, 1)).resource(this);
         factory.target = [...solids][0];
 
-        const tools = await Prompt(
-            this.title, "Select tool body", editor.signals,
+        const tools = await dialog.prompt("Select tool bodies",
             objectPicker.slice(SelectionMode.Solid, 1, Number.MAX_SAFE_INTEGER)).resource(this);
         factory.tools = [...tools];
+
+        keyboard.execute(e => {
+            let operationType;
+            switch (e) {
+                case 'union': operationType = c3d.OperationType.Union; break;
+                case 'difference': operationType = c3d.OperationType.Difference; break;
+                case 'intersect': operationType = c3d.OperationType.Intersect; break;
+                default: throw new Error('invalid case');
+            }
+            factory.operationType = operationType;
+            factory.update();
+        }).resource(this);
 
         for (const object of tools) bbox.expandByObject(object);
         bbox.getCenter(centroid);

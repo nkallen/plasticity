@@ -2,14 +2,12 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { Editor } from '../../editor/Editor';
 import { createRef, render } from 'preact';
+import { CancellablePromise } from '../../util/CancellablePromise';
 
 export default (editor: Editor) => {
     class Dialog extends HTMLElement {
         private readonly disposable = new CompositeDisposable();
-
-        constructor() {
-            super();
-        }
+        disconnectedCallback() { this.disposable.dispose() }
 
         connectedCallback() {
             editor.signals.dialogAdded.add(this.render);
@@ -25,12 +23,8 @@ export default (editor: Editor) => {
                 editor.signals.factoryUpdated.remove(this.render);
                 editor.signals.factoryCancelled.remove(this.reset);
                 editor.signals.factoryCommitted.remove(this.reset);
-                }));
+            }));
             this.render();
-        }
-
-        disconnectedCallback() {
-            this.disposable.dispose();
         }
 
         render = (dialog?: AbstractDialog<any>) => {

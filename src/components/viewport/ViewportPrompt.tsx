@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { createRef, render } from 'preact';
-import { CommandPrompt } from '../../command/CommandPrompt';
+import { CommandPrompt } from '../dialog/CommandPrompt';
 import { Editor } from '../../editor/Editor';
 
 export default (editor: Editor) => {

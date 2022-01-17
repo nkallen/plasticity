@@ -3,7 +3,7 @@ import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
-import { BooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
+import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './BoxFactory';
 import LineFactory from '../line/LineFactory';
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from '../rect/RectangleFactory';
@@ -34,7 +34,7 @@ export class ThreePointBoxCommand extends Command {
         }).resource(this);
         rect.cancel();
 
-        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);
 
         box.p1 = p1;
@@ -81,7 +81,7 @@ export class CornerBoxCommand extends Command {
         box.p2 = p2;
         box.orientation = orientation;
 
-        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);
 
         pointPicker = new PointPicker(this.editor);
@@ -126,7 +126,7 @@ export class CenterBoxCommand extends Command {
         box.p2 = p2;
         box.orientation = orientation;
 
-        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);
 
         pointPicker = new PointPicker(this.editor);

@@ -36,21 +36,14 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
 
         render(
             <>
-                <div class="my-1">
-                    <ol class="pb-3 m-3 space-y-1 border-b border-neutral-900">
-                        <li class="flex items-center px-1 space-x-2">
-                            <i data-feather="check" class="w-4 h-4 p-1 bg-green-600 rounded-full stroke-2 stroke-black"></i>
-                            <div class=""><span class="text-xs font-bold text-neutral-200">Select edges</span> <span
-                                class="text-xs text-neutral-500">to
-                                fillet or chamfer</span></div>
-                        </li>
-                        {/* <li class="flex items-center px-1 space-x-2 rounded-full bg-neutral-800">
-                            <i class="w-4 h-4 p-1 rounded-full stroke-2 stroke-black bg-neutral-600"></i>
-                            <div class=""><span class="text-xs font-bold text-neutral-200">Select tool bodies</span> <span
-                                class="text-xs text-neutral-500">to cut or join with</span></div>
-                        </li> */}
-                    </ol>
-                </div>
+                <ol class="prompts">
+                    <li class="flex items-center px-1 space-x-2">
+                        <plasticity-icon name="check"></plasticity-icon>
+                        <div><span class="text-xs font-bold text-neutral-200">Select edges</span> <span
+                            class="text-xs text-neutral-500">to
+                            fillet or chamfer</span></div>
+                    </li>
+                </ol>
 
                 <ul>
                     <li>

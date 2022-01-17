@@ -2,7 +2,7 @@ import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
-import { BooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
+import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { CenterCircleFactory } from '../circle/CircleFactory';
 import { PossiblyBooleanCylinderFactory } from './CylinderFactory';
 
@@ -31,7 +31,7 @@ export class CylinderCommand extends Command {
         cylinder.base = p1;
         cylinder.radius = p2;
 
-        const keyboard = new BooleanKeyboardGizmo("cylinder", this.editor);
+        const keyboard = new PossiblyBooleanKeyboardGizmo("cylinder", this.editor);
         keyboard.prepare(cylinder).resource(this);
 
         pointPicker = new PointPicker(this.editor);
