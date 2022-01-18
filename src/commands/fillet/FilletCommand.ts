@@ -29,8 +29,6 @@ export class FilletSolidCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const objectPicker = new ObjectPicker(this.editor, undefined, 'viewport-selector');
-        const revert = this.editor.highlighter.useTemporary(objectPicker.selection);
-        this.ensure(() => revert.dispose());
 
         objectPicker.mode.set(SelectionMode.CurveEdge);
         objectPicker.copy(this.editor.selection);

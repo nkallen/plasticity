@@ -39,8 +39,6 @@ export class BooleanCommand extends Command {
 
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
-        objectPicker.mode.set(SelectionMode.Solid);
-
         const getTarget = dialog.prompt("Select target bodies",
             () => objectPicker.shift(SelectionMode.Solid, 1).resource(this));
         const solids = await getTarget();
@@ -48,15 +46,19 @@ export class BooleanCommand extends Command {
         await factory.update();
 
         dialog.replace("Select target bodies",
-            () => objectPicker.execute(selection => {
-                const targets = [...selection.solids];
-                factory.target = targets[0];
-                factory.update();
-            }, 1, Number.MAX_SAFE_INTEGER).resource(this));
+            () => {
+                const objectPicker = new ObjectPicker(this.editor);
+                return objectPicker.execute(selection => {
+                    const targets = [...selection.solids];
+                    factory.target = targets[0];
+                    factory.update();
+                }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+            });
 
         let g: CancellablePromise<void> | undefined = undefined;
-        const getTools = dialog.prompt("Select tool bodies", () =>
-            objectPicker.execute(async selection => {
+        const getTools = dialog.prompt("Select tool bodies", () => {
+            const objectPicker = new ObjectPicker(this.editor);
+            return objectPicker.execute(async selection => {
                 const tools = [...selection.solids];
 
                 const bbox = new THREE.Box3();
@@ -73,8 +75,8 @@ export class BooleanCommand extends Command {
 
                 factory.tools = tools;
                 await factory.update();
-            }, 0, Number.MAX_SAFE_INTEGER).resource(this)
-        );
+            }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        });
         getTools();
 
         await this.finished;

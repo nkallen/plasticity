@@ -28,10 +28,7 @@ export interface BooleanParams {
 export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory, BooleanParams {
     private _operationType = c3d.OperationType.Difference;
     get operationType() { return this._operationType }
-    set operationType(operationType: c3d.OperationType) {
-        this.refresh();
-        this._operationType = operationType
-    }
+    set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
 
     mergingFaces = true;
     mergingEdges = true;
@@ -47,11 +44,9 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     protected toolModels: c3d.Solid[] = [];
     get tools() { return this._tools }
     set tools(tools: visual.Solid[]) {
-        this.refresh();
         this._tools = tools;
         this.toolModels = tools.map(t => this.db.lookup(t));
     }
-    protected refresh() { }
 
     set tool(solid: visual.Solid | c3d.Solid) {
         this.toolModels = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
@@ -116,6 +111,24 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     move = new THREE.Vector3();
     pivot = new THREE.Vector3();
 
+    override get operationType() { return super.operationType }
+    override set operationType(operationType: c3d.OperationType) {
+        this.dirty();
+        super.operationType = operationType;
+    }
+
+    override get target(): visual.Solid { return super.target }
+    override set target(target: visual.Solid | c3d.Solid) {
+        super.target = target;
+        this.dirty();
+    }
+
+    override get tools() { return super.tools }
+    override set tools(tools: visual.Solid[]) {
+        super.tools = tools;
+        this.dirty();
+    }
+
     async calculate() {
         const { _target: { model: solid }, names, mergingFaces, mergingEdges, toolModels } = this;
         if (toolModels.length === 0) return solid;
@@ -165,7 +178,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
             const targetPhantom = await this.db.addPhantom(targetInfo.phantom, targetInfo.material);
             let toolPhantoms = await Promise.all(promises);
             if (value?.dirty) {
-                value.tools.forEach(t=>t.cancel());
+                value.tools.forEach(t => t.cancel());
                 value.target.cancel();
             }
             this.phantoms.compareAndSet(clock, { tools: toolPhantoms, target: targetPhantom, dirty: false });
@@ -179,7 +192,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
         return this.showTemps([...tools, target]);
     }
 
-    protected override refresh() {
+    private dirty() {
         const phantoms = this.phantoms.get().value;
         if (phantoms !== undefined) {
             phantoms.dirty = true;

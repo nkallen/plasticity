@@ -61,4 +61,25 @@ describe('useTemporary', () => {
         dispose.dispose();
         expect([...highlighter.outlineSelection]).toEqual([solid]);
     })
+
+    test('it bridges hover events', () => {
+        const temp = selection.makeTemporary();
+        const dispose = highlighter.useTemporary(temp);
+        
+        const hoverDelta = jest.fn();
+        signals.hoverDelta.add(hoverDelta);
+
+        selection.hovered.addSolid(solid);
+        expect(hoverDelta).toHaveBeenCalledTimes(1);
+        selection.hovered.removeSolid(solid);
+        expect(hoverDelta).toHaveBeenCalledTimes(1);
+
+        hoverDelta.mockReset();
+        dispose.dispose();
+
+        selection.hovered.addSolid(solid);
+        expect(hoverDelta).toHaveBeenCalledTimes(0);
+        selection.hovered.removeSolid(solid);
+        expect(hoverDelta).toHaveBeenCalledTimes(0);
+    })
 })

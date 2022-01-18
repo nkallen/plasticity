@@ -84,6 +84,17 @@ describe(ObjectPicker, () => {
         await promise;
     })
 
+    test('adds and removes temporary selection for highlighter', async () => {
+        const objectPicker = new ObjectPicker(editor);
+
+        const useTemporary = jest.spyOn(editor.highlighter, 'useTemporary');
+        const promise = objectPicker.execute(() => { });
+        expect(useTemporary).toBeCalledTimes(1);
+
+        promise.finish();
+        await promise;
+    })
+
     test('allows for locally scoped signals', async () => {
         const temp = selection.makeTemporary();
         const objectPicker = new ObjectPicker(editor, temp);
@@ -100,7 +111,7 @@ describe(ObjectPicker, () => {
     test('when an object is deleted, it is also removed from the selection', async () => {
         const temp = selection.makeTemporary();
         const objectPicker = new ObjectPicker(editor, temp);
-        const promise = objectPicker.execute(() => { });
+        const promise = objectPicker.execute(() => { }, 1, Number.MAX_SAFE_INTEGER);
         temp.selected.addCurve(curve1);
         expect(temp.selected.curves.size).toBe(1);
         await db.removeItem(curve1);

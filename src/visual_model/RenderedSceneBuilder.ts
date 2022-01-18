@@ -35,7 +35,7 @@ export class RenderedSceneBuilder {
         bindings.push(signals.modifiersLoaded.add(this.highlight));
         bindings.push(signals.historyChanged.add(this.highlight));
         bindings.push(signals.quasimodeChanged.add(this.highlight));
-        bindings.push(signals.hoverChanged.add(({ added, removed }) => {
+        bindings.push(signals.hoverDelta.add(({ added, removed }) => {
             this.unhover(removed);
             this.hover(added);
         }));
@@ -269,9 +269,12 @@ export class RenderedSceneBuilder {
         }
         this.signals.selectionChanged.dispatch();
         const bindings: signals.SignalBinding[] = [];
-        bindings.push(selection.signals.selectionChanged.add(() => this.highlight()));
-        bindings.push(selection.signals.objectSelected.add(() => this.highlight()));
-        bindings.push(selection.signals.objectDeselected.add(() => this.highlight()));
+        bindings.push(selection.signals.selectionDelta.add(() => this.highlight()));
+        bindings.push(selection.signals.hoverDelta.add(({ added, removed }) => {
+            this.unhover(removed);
+            this.hover(added);
+            this.signals.hoverDelta.dispatch({ added, removed });
+        }));
         return new Disposable(() => {
             bindings.forEach(x => x.detach());
             this.state = { tag: 'none' };
@@ -287,7 +290,7 @@ export class RenderedSceneBuilder {
         line_unselected.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
         region_hovered.color.setStyle(theme.colors.blue[200]).convertSRGBToLinear();
         region_highlighted.color.setStyle(theme.colors.blue[300]).convertSRGBToLinear();
-        region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();        
+        region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
 }
 

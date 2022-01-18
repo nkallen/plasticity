@@ -75,6 +75,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
     protected temps: TemporaryObject[] = [];
     private phants: TemporaryObject[] = [];
+    private hidden: THREE.Object3D[] = [];
 
     protected async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
         const infos = await this.calculatePhantoms();
@@ -98,16 +99,14 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     async doUpdate(abortEarly: () => boolean, options?: any): Promise<TemporaryObject[]> {
         const temps: Promise<TemporaryObject>[] = [];
 
-        // 1. Make sure original items are visible if we're not going to remove them
-        if (!this.shouldRemoveOriginalItemOnCommit) this.restoreOriginalItems();
-
-        // 2. Asynchronously compute the geometry
+        // 1. Asynchronously compute the geometry
         let result;
         try {
             performance.mark('begin-factory-calculate');
             result = await this.calculate(options);
         } catch (e) {
             if (e instanceof ValidationError) this.cleanupTemps();
+            this.restoreOriginalItems();
             this.signals.factoryUpdated.dispatch();
             throw e;
         } finally {
@@ -117,26 +116,32 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             return Promise.resolve([]);
         }
 
-        // 3. Asynchronously compute the mesh for temporary items.
+        // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
         const zipped = this.zip(this.originalItems, geometries, this.shouldHideOriginalItemDuringUpdate);
 
+        const toHide = [];
         for (const [from, to] of zipped) {
             if (from === undefined) {
                 temps.push(this.db.addTemporaryItem(to!));
             } else if (to === undefined) {
-                from.visible = false;
+                toHide.push(from);
             } else {
                 temps.push(this.db.replaceWithTemporaryItem(from, to));
             }
         }
 
-        // 4. When all async work is complete, we can safely show/hide items to the user;
+        // 3. When all async work is complete, we can safely show/hide items to the user;
         // The specific order of operations is designed to avoid any flicker: compute
         // everything async, then sync show/hide objects when all data is ready.
         const finished = await Promise.all(temps);
 
-        // 4.a. remove any previous temporary items.
+        // 3.a. Bring the original items to the correct state
+        this.restoreOriginalItems();
+        toHide.forEach(h => h.visible = false);
+        this.hidden = toHide;
+
+        // 3.b. remove any previous temporary items.
         this.cleanupTemps();
 
         if (abortEarly()) {
@@ -144,7 +149,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             return Promise.resolve([]);
         }
 
-        // 4.b. show the newly created temporary items.
+        // 3.c. show the newly created temporary items.
         return this.temps = this.showTemps(finished);
     }
 
@@ -204,7 +209,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     }
 
     protected restoreOriginalItems() {
-        for (const i of this.originalItems) i.visible = true;
+        for (const i of this.hidden) i.visible = true;
     }
 
     protected cleanupTemps() {

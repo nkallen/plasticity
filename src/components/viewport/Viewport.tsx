@@ -182,7 +182,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.factoryUpdated.add(this.outlineSelection);
         this.editor.signals.factoryCancelled.add(this.outlineSelection);
         this.editor.signals.factoryCommitted.add(this.outlineSelection);
-        this.editor.signals.hoverChanged.add(this.outlineHover);
+        this.editor.signals.hoverDelta.add(this.outlineHover);
 
         this.editor.signals.selectionChanged.add(this.setNeedsRender);
         this.editor.signals.sceneGraphChanged.add(this.setNeedsRender);
@@ -191,7 +191,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.pointPickerChanged.add(this.setNeedsRender);
         this.editor.signals.gizmoChanged.add(this.setNeedsRender);
         this.editor.signals.quasimodeChanged.add(this.setNeedsRender);
-        this.editor.signals.hoverChanged.add(this.setNeedsRender);
+        this.editor.signals.hoverDelta.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
         this.editor.signals.commandEnded.add(this.setNeedsRender);
         this.editor.signals.moduleReloaded.add(this.setNeedsRender);
@@ -211,7 +211,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.disposable.add(new Disposable(() => {
             this.editor.signals.selectionChanged.remove(this.outlineSelection);
             this.editor.signals.historyChanged.remove(this.outlineSelection);
-            this.editor.signals.hoverChanged.remove(this.outlineHover);
+            this.editor.signals.hoverDelta.remove(this.outlineHover);
             this.editor.signals.factoryUpdated.remove(this.outlineSelection);
             this.editor.signals.factoryCancelled.remove(this.outlineSelection);
             this.editor.signals.factoryCommitted.remove(this.outlineSelection);
@@ -222,7 +222,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.factoryCancelled.remove(this.setNeedsRender);
             this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
             this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
-            this.editor.signals.hoverChanged.remove(this.setNeedsRender);
+            this.editor.signals.hoverDelta.remove(this.setNeedsRender);
             this.editor.signals.historyChanged.remove(this.setNeedsRender);
             this.editor.signals.moduleReloaded.remove(this.setNeedsRender);
 
@@ -486,6 +486,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     restoreFromMemento(m: ViewportMemento): void {
         this.camera.restoreFromMemento(m.camera);
         this.navigationControls.target.copy(m.target);
+        this.navigationControls.update();
         this.isXRay = m.isXRay;
         this.changed.dispatch();
     }

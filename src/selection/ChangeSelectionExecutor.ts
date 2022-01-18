@@ -103,24 +103,37 @@ export class ChangeSelectionExecutor {
     }
 
     // TODO: aggregate selection as well
-    private aggregateHovers<R>(f: () => R): R {
+    private aggregate<R>(f: () => R): R {
         const { signals } = this;
-        const added = new Set<Selectable>(), removed = new Set<Selectable>();
-        const add = (s: Selectable) => added.add(s);
-        const remove = (s: Selectable) => removed.add(s);
-        signals.objectHovered.add(add);
-        signals.objectUnhovered.add(remove);
+        const hoverAdded = new Set<Selectable>(), hoverRemoved = new Set<Selectable>();
+        const addHovered = (s: Selectable) => hoverAdded.add(s);
+        const removeHovered = (s: Selectable) => hoverRemoved.add(s);
+
+        const selectedAdded = new Set<Selectable>(), selectedRemoved = new Set<Selectable>();
+        const addSelected = (s: Selectable) => selectedAdded.add(s);
+        const removeSelected = (s: Selectable) => selectedRemoved.add(s);
+
+        signals.objectHovered.add(addHovered);
+        signals.objectUnhovered.add(removeHovered);
+        signals.objectSelected.add(addSelected);
+        signals.objectDeselected.add(removeSelected);
+
         let result: R;
         try { result = f() }
         finally {
-            signals.objectHovered.remove(add);
-            signals.objectUnhovered.remove(remove);
+            signals.objectHovered.remove(addHovered);
+            signals.objectUnhovered.remove(removeHovered);
+            signals.objectSelected.remove(addSelected);
+            signals.objectDeselected.remove(removeSelected);
         }
-        if (added.size > 0 || removed.size > 0) this.signals.hoverChanged.dispatch({ added, removed });
+
+        if (hoverAdded.size > 0 || hoverRemoved.size > 0) this.signals.hoverDelta.dispatch({ added: hoverAdded, removed: hoverRemoved });
+        if (selectedAdded.size > 0 || selectedRemoved.size > 0) this.signals.selectionDelta.dispatch({ added: selectedAdded, removed: selectedRemoved });
+
         return result;
     }
 
     private wrapFunction<A extends any[], R>(f: (...args: A) => R): (...args: A) => R {
-        return (...args: A): R => this.aggregateHovers(() => f.call(this, ...args));
+        return (...args: A): R => this.aggregate(() => f.call(this, ...args));
     }
 }

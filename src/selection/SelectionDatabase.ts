@@ -1,4 +1,4 @@
-import { CompositeDisposable } from 'event-kit';
+import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
@@ -423,28 +423,26 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         selectionChanged: this.signals.selectionChanged
     }
     readonly selected = new Selection(this.db, this.selectedSignals);
-    readonly hovered: Selection;
+    readonly hovered = new Selection(this.db, this.hoveredSignals);;
 
     constructor(
         private readonly db: DatabaseLike,
         private readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
         readonly mode = new ToggleableSet(SelectionModeAll, signals),
-        hovered?: Selection
     ) {
-        this.clearHovered = this.clearHovered.bind(this);
-        signals.historyChanged.add(this.clearHovered);
-        this.hovered = hovered ?? new Selection(this.db, this.hoveredSignals);
+        const removeSignal = signals.historyChanged.add(this.clearHovered);
+        this.disposable.add(new Disposable(() => { removeSignal.detach() }));
     }
 
     // Hover state is not preserved in undo history. So when the user performs undo/redo
     // the data could potentially be invalid. Hover state is volatile. Just clear it without
     // any notifications.
-    private clearHovered() { this.hovered.clearSilently() }
+    private clearHovered = () => { this.hovered.clearSilently() }
 
     makeTemporary(): SelectionDatabase {
         const signals = new EditorSignals();
-        return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals), this.hovered)
+        return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals))
     }
 
     copy(that: HasSelectedAndHovered, ...modes: SelectionMode[]) {

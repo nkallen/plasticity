@@ -8,7 +8,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { Intersection } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
-import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from '../../src/selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from '../../src/selection/ChangeSelectionExecutor';
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -307,11 +307,12 @@ describe('onClick', () => {
         expect(selectionDb.selected.edges.size).toBe(0);
     });
 
-    test("signals", () => {
-        const sel = jest.fn();
+    test("basic signals", () => {
+        const sel = jest.fn(), desel = jest.fn(), delta = jest.fn();
         signals.objectSelected.add(sel);
-        const desel = jest.fn();
         signals.objectDeselected.add(desel);
+        signals.selectionDelta.add(delta);
+
         const intersections = [];
         intersections.push({
             point: new THREE.Vector3(),
@@ -321,12 +322,48 @@ describe('onClick', () => {
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(sel).toHaveBeenCalledWith(solid);
         expect(desel).not.toHaveBeenCalled();
+        expect(delta).toHaveBeenCalled();
 
         sel.mockReset();
+        desel.mockRestore();
+        delta.mockReset();
 
         changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(sel).not.toHaveBeenCalled();
         expect(desel).toHaveBeenCalledWith(solid);
+        expect(delta).toHaveBeenCalled();
+    })
+
+    test("signal aggregation", () => {
+        const sel = jest.fn(), desel = jest.fn(), delta = jest.fn();
+        signals.objectSelected.add(sel);
+        signals.objectDeselected.add(desel);
+        signals.selectionDelta.add(delta);
+
+        let intersections = [];
+        intersections = [{
+            point: new THREE.Vector3(),
+            object: solid.faces.get(0)
+        }];
+
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        expect(sel).toHaveBeenCalledTimes(1);
+        expect(desel).toHaveBeenCalledTimes(0);
+        expect(delta).toHaveBeenCalledTimes(1);
+
+        sel.mockReset();
+        desel.mockRestore();
+        delta.mockReset();
+
+        intersections = [{
+            point: new THREE.Vector3(),
+            object: circle.underlying
+        }];
+
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        expect(sel).toHaveBeenCalledTimes(1);
+        expect(desel).toHaveBeenCalledTimes(1);
+        expect(delta).toHaveBeenCalledTimes(1);
     })
 })
 

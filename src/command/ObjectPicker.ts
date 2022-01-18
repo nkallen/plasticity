@@ -12,6 +12,7 @@ import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import { Executable } from './Quasimode';
+import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -22,10 +23,11 @@ interface EditorLike {
     layers: LayerManager;
     keymaps: AtomKeymap.KeymapManager;
     selection: HasSelectedAndHovered;
+    highlighter: RenderedSceneBuilder;
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
-    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.editor.signals);
+    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.selection.signals);
 
     constructor(
         viewport: Viewport,
@@ -40,7 +42,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
-        if (intersections.length === 0) return; 
+        if (intersections.length === 0) return;
         this.changeSelection.onClick(intersections, this.event2modifier(upEvent), this.event2option(upEvent));
     }
 
@@ -82,33 +84,38 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
 
     get mode() { return this.selection.mode }
 
-    execute(cb?: (o: HasSelection) => void, min = this.min, max = this.max, callbackImmediately = false): CancellablePromise<HasSelection> {
+    execute(cb?: (o: HasSelection) => void, min = this.min, max = this.max, mode?: SelectionMode): CancellablePromise<HasSelection> {
         const { editor, selection, selection: { signals } } = this;
         const disposables = new CompositeDisposable();
         if (signals !== editor.signals) {
-            editor.signals.objectRemoved.add(a => signals.objectRemoved.dispatch(a));
-            disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
+            const bridgeRemoved = editor.signals.objectRemoved.add(a => signals.objectRemoved.dispatch(a));
+            disposables.add(new Disposable(() => bridgeRemoved.detach()));
         }
 
         if (cb !== undefined) {
             const k = () => cb(selection.selected);
-            signals.objectSelected.add(k);
-            signals.objectDeselected.add(k);
+            signals.selectionDelta.add(k);
             disposables.add(new Disposable(() => {
-                signals.objectSelected.remove(k);
-                signals.objectDeselected.remove(k);
+                signals.selectionDelta.remove(k);
             }));
         }
+
+        if (mode !== undefined) this.mode.set(mode);
+
+        disposables.add(editor.highlighter.useTemporary(selection));
 
         const cancellable = new CancellablePromise<HasSelection>((resolve, reject) => {
             const finish = () => cancellable.finish();
 
             let count = 0;
-            signals.objectSelected.add(() => {
-                count++;
-                if (count >= min && count >= max) finish();
+            const selected = signals.objectSelected.add(() => {
+                count++; if (count >= min && count >= max) finish();
             });
-            disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
+            const deselected = signals.objectDeselected.add(() => count--);
+            disposables.add(new Disposable(() => {
+                selected.detach();
+                deselected.detach();
+            }));
 
             for (const viewport of this.editor.viewports) {
                 const reenable = viewport.disableControls(viewport.navigationControls); // FIXME: is this correct?
@@ -126,7 +133,6 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
             };
         });
 
-        if (cb !== undefined && callbackImmediately) cb(selection.selected);
         return cancellable;
     }
 
