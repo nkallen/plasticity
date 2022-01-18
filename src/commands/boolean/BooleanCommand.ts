@@ -3,6 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { HasSelection } from "../../selection/SelectionDatabase";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from '../translate/MoveGizmo';
@@ -15,14 +16,16 @@ import { CutGizmo } from "./CutGizmo";
 export class BooleanCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;
-        const factory = new MovingBooleanFactory(editor.db, editor.materials, editor.signals);
-        factory.resource(this);
+        const boolean = new MovingBooleanFactory(editor.db, editor.materials, editor.signals);
+        boolean.resource(this);
 
-        const dialog = new BooleanDialog(factory, editor.signals);
+        const dialog = new BooleanDialog(boolean, editor.signals);
         const keyboard = new BooleanKeyboardGizmo(this.editor);
+        const objectPicker = new ObjectPicker(this.editor);
+        objectPicker.copy(this.editor.selection);
 
         dialog.execute(async (params) => {
-            factory.update();
+            boolean.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         keyboard.execute(e => {
@@ -33,55 +36,67 @@ export class BooleanCommand extends Command {
                 case 'intersect': operationType = c3d.OperationType.Intersect; break;
                 default: throw new Error('invalid case');
             }
-            factory.operationType = operationType;
-            factory.update();
+            boolean.operationType = operationType;
+            boolean.update();
         }).resource(this);
 
-        const objectPicker = new ObjectPicker(this.editor);
-        objectPicker.copy(this.editor.selection);
-        const getTarget = dialog.prompt("Select target bodies",
-            () => objectPicker.shift(SelectionMode.Solid, 1).resource(this));
-        const solids = await getTarget();
-        factory.target = [...solids][0];
-        await factory.update();
-
-        dialog.replace("Select target bodies",
-            () => {
-                const objectPicker = new ObjectPicker(this.editor);
-                return objectPicker.execute(selection => {
-                    const targets = [...selection.solids];
-                    factory.target = targets[0];
-                    factory.update();
-                }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        GetFirstTargetBody: {
+            const getTarget = dialog.prompt("Select target bodies", () => {
+                return objectPicker.shift(SelectionMode.Solid, 1).resource(this)
             });
+            const solids = await getTarget();
+            boolean.target = [...solids][0];
+        }
 
         let g: CancellablePromise<void> | undefined = undefined;
+        const setToolsAndGizmo = async (selection: HasSelection) => {
+            const tools = [...selection.solids];
+            if (tools.length === 0) return false;
+
+            const bbox = new THREE.Box3();
+            for (const object of tools) bbox.expandByObject(object);
+            bbox.getCenter(centroid);
+
+            ReplaceGizmo: {
+                g?.cancel();
+                const gizmo = new MoveGizmo(boolean, editor);
+                gizmo.position.copy(centroid);
+                g = gizmo.execute(s => {
+                    boolean.update();
+                }).resource(this);
+            }
+            
+            boolean.move.set(0, 0, 0);
+            boolean.tools = tools;
+            await boolean.update();
+            return true;
+        }
+
+        GetToolsIfAlreadySelected: {
+            const set = await setToolsAndGizmo(objectPicker.selection.selected);
+            if (!set) await boolean.update();
+        }
+
+        dialog.replace("Select target bodies", () => {
+            const objectPicker = new ObjectPicker(this.editor);
+            return objectPicker.execute(selection => {
+                const targets = [...selection.solids];
+                boolean.target = targets[0];
+                boolean.update();
+            }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        });
+
         const getTools = dialog.prompt("Select tool bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
             return objectPicker.execute(async selection => {
-                const tools = [...selection.solids];
-
-                const bbox = new THREE.Box3();
-                for (const object of tools) bbox.expandByObject(object);
-                bbox.getCenter(centroid);
-
-                g?.cancel();
-                const gizmo = new MoveGizmo(factory, editor);
-                gizmo.position.copy(centroid);
-                g = gizmo.execute(s => {
-                    factory.update();
-                }).resource(this);
-                factory.move.set(0, 0, 0);
-
-                factory.tools = tools;
-                await factory.update();
+                await setToolsAndGizmo(selection);
             }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
         });
         getTools();
 
         await this.finished;
 
-        const result = await factory.commit() as visual.Solid;
+        const result = await boolean.commit() as visual.Solid;
         editor.selection.selected.addSolid(result);
     }
 }
