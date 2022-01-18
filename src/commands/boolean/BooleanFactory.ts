@@ -131,6 +131,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
 
     async calculate() {
         const { _target: { model: solid }, names, mergingFaces, mergingEdges, toolModels } = this;
+        if (solid === undefined) throw new NoOpError();
         if (toolModels.length === 0) return solid;
 
         const tools = this.moveTools();
