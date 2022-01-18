@@ -1,12 +1,14 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { Prompt } from "../components/dialog/Prompt";
 import { EditorSignals } from "../editor/EditorSignals";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Executable } from "./Quasimode";
 
-export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
+type PromptState = { tag: 'none' } | { tag: 'executing', cancellable: CancellablePromise<any> }
+type DialogState<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void>, prompt: PromptState } | { tag: 'finished' }
 
 export abstract class AbstractDialog<T> extends HTMLElement implements Executable<T, void> {
-    private state: State<T> = { tag: 'none' };
+    private state: DialogState<T> = { tag: 'none' };
     protected abstract readonly params: T;
 
     connectedCallback() { this.render() }
@@ -20,7 +22,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
     abstract get title(): string;
     abstract render(): void;
 
-    onChange = (e: Event) => {
+    protected onChange = (e: Event) => {
         e.stopPropagation();
         switch (this.state.tag) {
             case 'executing':
@@ -63,7 +65,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
 
             return { dispose: () => disposables.dispose(), finish: resolve };
         });
-        this.state = { tag: 'executing', cb, cancellable };
+        this.state = { tag: 'executing', cb, cancellable, prompt: { tag: 'none' } };
         return cancellable;
     }
 
@@ -84,12 +86,36 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
         }
     }
 
-    prompt<T>(key: string, promise: CancellablePromise<T>): CancellablePromise<T> {
-        const element = this.querySelector(`plasticity-prompt[name='${key}']`);
-        if (element === null) throw new Error("invalid prompt: " + key);
-        const prompt = element as unknown as { execute(): CancellablePromise<T> };
-        const p = prompt.execute();
-        promise.then(() => p.finish(), () => p.finish());
-        return promise;
+    prompt<T>(key: string, execute: () => CancellablePromise<T>, replace = false): () => CancellablePromise<T> {
+        switch (this.state.tag) {
+            case 'executing':
+                const element = this.querySelector(`plasticity-prompt[name='${key}']`);
+                if (element === null) throw new Error("invalid prompt: " + key);
+                const prompt = element as Prompt;
+                if (!replace && prompt.onclick !== null) throw new Error("Already bound");
+                const trigger = () => {
+                    switch (this.state.tag) {
+                        case 'executing':
+                            switch (this.state.prompt.tag) {
+                                case 'executing':
+                                    this.state.prompt.cancellable.finish();
+                                case 'none':
+                                    const p = prompt.execute();
+                                    const executed = execute();
+                                    executed.then(() => p.finish(), () => p.finish());
+                                    this.state.prompt = { tag: 'executing', cancellable: executed }
+                                    return executed;
+                            }
+                        default: throw new Error('invalid state');
+                    }
+                }
+                prompt.onclick = trigger;
+                return trigger;
+            default: throw new Error('invalid state');
+        }
+    }
+
+    replace<T>(key: string, execute: () => CancellablePromise<T>): () => CancellablePromise<T> {
+        return this.prompt(key, execute, true);
     }
 }

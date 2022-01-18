@@ -99,7 +99,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         const temps: Promise<TemporaryObject>[] = [];
 
         // 1. Make sure original items are visible if we're not going to remove them
-        if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems) i.visible = true;
+        if (!this.shouldRemoveOriginalItemOnCommit) this.restoreOriginalItems();
 
         // 2. Asynchronously compute the geometry
         let result;

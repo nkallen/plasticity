@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
-import { IntersectionFactory } from '../src/commands/boolean/BooleanFactory';
+import { BooleanFactory } from "../src/commands/boolean/BooleanFactory";
 import { ThreePointBoxFactory } from "../src/commands/box/BoxFactory";
 import CylinderFactory from "../src/commands/cylinder/CylinderFactory";
 import { FaceCollector } from "../src/commands/modifyface/OffsetFaceFactory";
@@ -12,7 +12,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let db: GeometryDatabase;
-let intersect: IntersectionFactory;
+let intersect: BooleanFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 
@@ -20,7 +20,8 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-    intersect = new IntersectionFactory(db, materials, signals);
+    intersect = new BooleanFactory(db, materials, signals);
+    intersect.operationType = c3d.OperationType.Difference;
 })
 
 describe(FaceCollector, () => {

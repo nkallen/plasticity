@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { EditorLike } from "../../src/command/CommandKeyboardInput";
-import { IntersectionFactory } from '../../src/commands/boolean/BooleanFactory';
-import { BooleanKeyboardGizmo } from "../../src/commands/boolean/BooleanKeyboardGizmo";
+import { BooleanFactory } from "../../src/commands/boolean/BooleanFactory";
+import c3d from '../../build/Release/c3d.node';
+import { PossiblyBooleanKeyboardGizmo } from "../../src/commands/boolean/BooleanKeyboardGizmo";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -13,7 +14,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let intersect: IntersectionFactory;
+let intersect: BooleanFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 
@@ -21,10 +22,11 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-    intersect = new IntersectionFactory(db, materials, signals);
+    intersect = new BooleanFactory(db, materials, signals);
+    intersect.operationType = c3d.OperationType.Intersect;
 })
 
-describe(IntersectionFactory, () => {
+describe("Intersection", () => {
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
             let makeSphere = new SphereFactory(db, materials, signals);
@@ -45,8 +47,8 @@ describe(IntersectionFactory, () => {
     })
 })
 
-describe(BooleanKeyboardGizmo, () => {
-    let keyboard: BooleanKeyboardGizmo;
+describe(PossiblyBooleanKeyboardGizmo, () => {
+    let keyboard: PossiblyBooleanKeyboardGizmo;
     let editor: EditorLike;
     let execute: jest.Mock<any>;
     let keybindingsRegistered: jest.Mock<any>;
@@ -57,7 +59,7 @@ describe(BooleanKeyboardGizmo, () => {
             viewports: [],
             signals: signals,
         } as unknown as EditorLike;
-        keyboard = new BooleanKeyboardGizmo("whatever", editor);
+        keyboard = new PossiblyBooleanKeyboardGizmo("whatever", editor);
 
         execute = jest.fn();
         keybindingsRegistered = jest.fn();

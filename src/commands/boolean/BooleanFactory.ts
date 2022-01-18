@@ -26,7 +26,13 @@ export interface BooleanParams {
 }
 
 export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory, BooleanParams {
-    operationType: c3d.OperationType = c3d.OperationType.Difference;
+    private _operationType = c3d.OperationType.Difference;
+    get operationType() { return this._operationType }
+    set operationType(operationType: c3d.OperationType) {
+        this.refresh();
+        this._operationType = operationType
+    }
+
     mergingFaces = true;
     mergingEdges = true;
 
@@ -45,7 +51,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         this._tools = tools;
         this.toolModels = tools.map(t => this.db.lookup(t));
     }
-    protected refresh() {}
+    protected refresh() { }
 
     set tool(solid: visual.Solid | c3d.Solid) {
         this.toolModels = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
@@ -67,8 +73,13 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        const { operationType, toolModels: tools, _target: { model: solid } } = this;
-        if (operationType === c3d.OperationType.Union) return [];
+        const result = await this.calculateToolPhantoms();
+        result.push(await this.calculateTargetPhantom());
+        return result;
+    }
+
+    async calculateToolPhantoms(): Promise<PhantomInfo[]> {
+        const { operationType, toolModels: tools } = this;
 
         let material: MaterialOverride;
         if (operationType === c3d.OperationType.Difference) material = phantom_red
@@ -79,10 +90,12 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         for (const phantom of tools) {
             result.push({ phantom, material })
         }
-        if (operationType === c3d.OperationType.Intersect) {
-            result.push({ phantom: solid, material: phantom_blue });
-        }
         return result;
+    }
+
+    async calculateTargetPhantom(): Promise<PhantomInfo> {
+        const { _target: { model: solid } } = this;
+        return { phantom: solid, material: phantom_blue }
     }
 
     get originalItem() {
@@ -93,31 +106,21 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     get shouldRemoveOriginalItemOnCommit() {
-        return this._isOverlapping;
+        return true;
     }
 }
 
-export class UnionFactory extends BooleanFactory {
-    operationType = c3d.OperationType.Union;
-}
-
-export class IntersectionFactory extends BooleanFactory {
-    operationType = c3d.OperationType.Intersect;
-}
-
-export class DifferenceFactory extends BooleanFactory {
-    operationType = c3d.OperationType.Difference;
-}
+type ToolAndTargetPhantoms = { tools: TemporaryObject[], target: TemporaryObject, dirty: boolean };
 
 export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     move = new THREE.Vector3();
     pivot = new THREE.Vector3();
 
     async calculate() {
-        if (this.toolModels.length === 0) throw new NoOpError();
+        const { _target: { model: solid }, names, mergingFaces, mergingEdges, toolModels } = this;
+        if (toolModels.length === 0) return solid;
 
         const tools = this.moveTools();
-        const { _target: { model: solid }, names, mergingFaces, mergingEdges } = this;
 
         const flags = new c3d.MergingFlags();
         flags.SetMergingFaces(mergingFaces);
@@ -149,50 +152,41 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
         return tools;
     }
 
-    private readonly phantoms = new AtomicRef<TemporaryObject[] | undefined>(undefined);
+    private readonly phantoms = new AtomicRef<ToolAndTargetPhantoms | undefined>(undefined);
     protected async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
         const { clock, value } = this.phantoms.get();
-        if (value === undefined) {
-            const infos = await super.calculatePhantoms();
+        if (value === undefined || value.dirty) {
+            const toolInfos = await super.calculateToolPhantoms();
+            const targetInfo = await super.calculateTargetPhantom();
             const promises: Promise<TemporaryObject>[] = [];
-            for (const { phantom, material } of infos) {
+            for (const { phantom, material } of toolInfos) {
                 promises.push(this.db.addPhantom(phantom, material));
             }
-            let phantoms = await Promise.all(promises);
-            this.phantoms.compareAndSet(clock, phantoms);
+            const targetPhantom = await this.db.addPhantom(targetInfo.phantom, targetInfo.material);
+            let toolPhantoms = await Promise.all(promises);
+            if (value?.dirty) {
+                value.tools.forEach(t=>t.cancel());
+                value.target.cancel();
+            }
+            this.phantoms.compareAndSet(clock, { tools: toolPhantoms, target: targetPhantom, dirty: false });
         }
-        const phantoms = this.phantoms.get().value!;
+        const { tools, target } = this.phantoms.get().value!;
         MovePhantomsOnUpdate: {
-            const lastIndex = phantoms.length - 1;
-            for (const [i, phantom] of phantoms.entries()) {
-                // Don't move the original item phantom
-                if (i === lastIndex && this.operationType === c3d.OperationType.Intersect) break;
-
+            for (const phantom of tools) {
                 phantom.underlying.position.copy(this.move);
             }
         }
-        return this.showTemps(phantoms);
+        return this.showTemps([...tools, target]);
     }
 
     protected override refresh() {
-        this.restoreOriginalItems();
         const phantoms = this.phantoms.get().value;
-        if (phantoms !== undefined) for (const phantom of phantoms) phantom.cancel();
-        this.phantoms.set(undefined);
+        if (phantoms !== undefined) {
+            phantoms.dirty = true;
+        }
     }
 }
 
-export class MovingUnionFactory extends MovingBooleanFactory {
-    operationType = c3d.OperationType.Union;
-}
-
-export class MovingIntersectionFactory extends MovingBooleanFactory {
-    operationType = c3d.OperationType.Intersect;
-}
-
-export class MovingDifferenceFactory extends MovingBooleanFactory {
-    operationType = c3d.OperationType.Difference;
-}
 
 export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
     protected abstract bool: BooleanLikeFactory;
@@ -230,7 +224,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         this.bool.isSurface = isSurface;
     }
 
-    protected async beforeCalculate(fast = false) {
+    private async beforeCalculate(fast = false) {
         const phantom = await this.fantom.calculate() as c3d.Solid;
         let isOverlapping, isSurface;
         if (this.target === undefined) {

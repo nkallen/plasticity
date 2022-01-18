@@ -1,16 +1,16 @@
 import * as THREE from "three";
+import c3d from '../../../build/Release/c3d.node';
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from '../translate/MoveGizmo';
 import { BooleanDialog, CutDialog } from "./BooleanDialog";
-import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './BooleanFactory';
+import { MovingBooleanFactory } from './BooleanFactory';
 import { BooleanKeyboardGizmo } from "./BooleanKeyboardGizmo";
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
-import c3d from '../../../build/Release/c3d.node';
-import { CancellablePromise } from "../../util/CancellablePromise";
 
 export class BooleanCommand extends Command {
     async execute(): Promise<void> {
@@ -25,16 +25,37 @@ export class BooleanCommand extends Command {
             factory.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
+        keyboard.execute(e => {
+            let operationType;
+            switch (e) {
+                case 'union': operationType = c3d.OperationType.Union; break;
+                case 'difference': operationType = c3d.OperationType.Difference; break;
+                case 'intersect': operationType = c3d.OperationType.Intersect; break;
+                default: throw new Error('invalid case');
+            }
+            factory.operationType = operationType;
+            factory.update();
+        }).resource(this);
+
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
         objectPicker.mode.set(SelectionMode.Solid);
 
-        const solids = await dialog.prompt("Select target bodies",
-            objectPicker.shift(SelectionMode.Solid, 1)).resource(this);
+        const getTarget = dialog.prompt("Select target bodies",
+            () => objectPicker.shift(SelectionMode.Solid, 1).resource(this));
+        const solids = await getTarget();
         factory.target = [...solids][0];
+        await factory.update();
+
+        dialog.replace("Select target bodies",
+            () => objectPicker.execute(selection => {
+                const targets = [...selection.solids];
+                factory.target = targets[0];
+                factory.update();
+            }, 1, Number.MAX_SAFE_INTEGER).resource(this));
 
         let g: CancellablePromise<void> | undefined = undefined;
-        dialog.prompt("Select tool bodies",
+        const getTools = dialog.prompt("Select tool bodies", () =>
             objectPicker.execute(async selection => {
                 const tools = [...selection.solids];
 
@@ -48,23 +69,13 @@ export class BooleanCommand extends Command {
                 g = gizmo.execute(s => {
                     factory.update();
                 }).resource(this);
-        
+                factory.move.set(0, 0, 0);
+
                 factory.tools = tools;
                 await factory.update();
-            }, 0, Number.MAX_SAFE_INTEGER, true)
-        ).resource(this);
-
-        keyboard.execute(e => {
-            let operationType;
-            switch (e) {
-                case 'union': operationType = c3d.OperationType.Union; break;
-                case 'difference': operationType = c3d.OperationType.Difference; break;
-                case 'intersect': operationType = c3d.OperationType.Intersect; break;
-                default: throw new Error('invalid case');
-            }
-            factory.operationType = operationType;
-            factory.update();
-        }).resource(this);
+            }, 0, Number.MAX_SAFE_INTEGER).resource(this)
+        );
+        getTools();
 
         await this.finished;
 
