@@ -14,9 +14,12 @@ export interface Executable<I, O> {
 }
 
 export class Quasimode<I> implements Executable<I, void> {
-    constructor(private readonly name: string, private readonly editor: EditorLike, private readonly factory: GeometryFactory, private readonly executable: Executable<I, any>) {
-
-    }
+    constructor(
+        private readonly name: string,
+        private readonly editor: EditorLike,
+        private readonly factory: GeometryFactory,
+        private readonly executable: Executable<I, any>
+    ) { }
 
     execute(cb: (i: I) => any, ...args: any[]): CancellablePromise<void> {
         const { factory, executable, editor: { registry, signals }, name } = this;

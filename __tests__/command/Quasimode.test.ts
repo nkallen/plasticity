@@ -9,6 +9,7 @@ import FilletFactory from "../../src/commands/fillet/FilletFactory";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from "../../src/selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
@@ -30,10 +31,14 @@ let fillet: FilletFactory;
 let objectPicker: ObjectPicker;
 
 let selection: HasSelectedAndHovered;
+let changeSelection: ChangeSelectionExecutor;
 beforeEach(() => {
     fillet = new FilletFactory(db, editor.materials, editor.signals);
-    selection = editor.selection.makeTemporary();
-    objectPicker = new ObjectPicker(editor, selection);
+    objectPicker = new ObjectPicker(editor);
+    objectPicker.min = 1; objectPicker.max = Number.MAX_SAFE_INTEGER;
+    selection = objectPicker.selection;
+    selection.mode.set(SelectionMode.Curve);
+    changeSelection = new ChangeSelectionExecutor(selection, db, selection.signals);
 })
 
 let item: visual.SpaceInstance<visual.Curve3D>;
@@ -89,7 +94,7 @@ test('add to selection', async () => {
     document.body.dispatchEvent(start);
 
     expect(count).toBe(0);
-    selection.selected.add(item);
+    changeSelection.onClick([{ object: item.underlying, point: new THREE.Vector3() }], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
     expect(count).toBe(1);
 
     promise.finish();

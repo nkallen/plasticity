@@ -21,7 +21,7 @@ export class ClickStrategy {
         if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
-
+        
         return this.modify(modifier,
             () => {
                 this.writeable.addCurve(parentItem);

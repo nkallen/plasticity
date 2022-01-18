@@ -14,6 +14,7 @@ import './matchers';
 import { SelectionDatabase } from '../src/selection/SelectionDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import theme from '../src/startup/default-theme';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from '../src/selection/ChangeSelectionExecutor';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -53,11 +54,11 @@ describe('useTemporary', () => {
     test('it uses a new selection and can be rolled back', () => {
         selection.selected.addSolid(solid);
         expect([...highlighter.outlineSelection]).toEqual([solid]);
-    
+
         const temp = selection.makeTemporary();
         const dispose = highlighter.useTemporary(temp);
         expect([...highlighter.outlineSelection]).toEqual([]);
-    
+
         dispose.dispose();
         expect([...highlighter.outlineSelection]).toEqual([solid]);
     })
@@ -65,21 +66,19 @@ describe('useTemporary', () => {
     test('it bridges hover events', () => {
         const temp = selection.makeTemporary();
         const dispose = highlighter.useTemporary(temp);
-        
+
         const hoverDelta = jest.fn();
         signals.hoverDelta.add(hoverDelta);
 
-        selection.hovered.addSolid(solid);
-        expect(hoverDelta).toHaveBeenCalledTimes(1);
-        selection.hovered.removeSolid(solid);
+        temp.mode.set(SelectionMode.Solid);
+        const changeSelection = new ChangeSelectionExecutor(temp, db, temp.signals);
+        changeSelection.onBoxHover(new Set([solid]), ChangeSelectionModifier.Replace);
         expect(hoverDelta).toHaveBeenCalledTimes(1);
 
         hoverDelta.mockReset();
         dispose.dispose();
 
-        selection.hovered.addSolid(solid);
-        expect(hoverDelta).toHaveBeenCalledTimes(0);
-        selection.hovered.removeSolid(solid);
+        temp.signals.hoverDelta.dispatch({ added: new Set([solid]), removed: new Set() });
         expect(hoverDelta).toHaveBeenCalledTimes(0);
     })
 })
