@@ -2,12 +2,12 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import { ObjectPickerViewportSelector } from "../../src/command/ObjectPicker";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { ViewportControlMultiplexer } from "../../src/components/viewport/ViewportControlMultiplexer";
 import { ViewportPointControl } from "../../src/components/viewport/ViewportPointControl";
 import { Editor } from "../../src/editor/Editor";
 import { ViewportSelector } from "../../src/selection/ViewportSelector";
-import { Intersection } from "../../src/visual_model/Intersectable";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
@@ -47,6 +47,26 @@ describe(ViewportControlMultiplexer, () => {
         multiplexer.delete(selector);
         multiplexer.delete(pointControl);
     });
+
+    test('only', () => {
+        multiplexer.push(selector);
+        multiplexer.push(pointControl);
+        expect(selector.enabled).toBe(true);
+        expect(pointControl.enabled).toBe(true);
+
+        const only = new ObjectPickerViewportSelector(viewport, editor, editor.selection, {});
+        const dispose = multiplexer.only(only);
+        expect(selector.enabled).toBe(false);
+        expect(pointControl.enabled).toBe(false);
+
+        const startHover = jest.spyOn(only, 'startHover');
+        multiplexer.startHover([], moveEvent);
+        expect(startHover).toBeCalledTimes(1);
+
+        dispose.dispose();
+        expect(selector.enabled).toBe(true);
+        expect(pointControl.enabled).toBe(true);
+    })
 
     test('hover multiplexes', () => {
         multiplexer.push(selector);

@@ -170,6 +170,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.scene.background = this.backgroundColor;
         this.scene.autoUpdate = false;
+        this.multiplexer.push(this.points, this.selector);
     }
 
     private started = false;
@@ -199,7 +200,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
-        this.multiplexer.push(this.points, this.selector);
         this.multiplexer.addEventListener('start', this.controlStart);
         this.multiplexer.addEventListener('end', this.controlEnd);
 

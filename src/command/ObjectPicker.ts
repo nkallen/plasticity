@@ -118,12 +118,8 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
             }));
 
             for (const viewport of this.editor.viewports) {
-                const reenable = viewport.disableControls(viewport.navigationControls); // FIXME: is this correct?
-                disposables.add(reenable);
-
                 const selector = new ObjectPickerViewportSelector(viewport, editor, selection, this.raycasterParams, this.keymapSelector);
-                selector.addEventLiseners();
-
+                disposables.add(viewport.multiplexer.only(selector));
                 disposables.add(new Disposable(() => selector.dispose()));
             }
 

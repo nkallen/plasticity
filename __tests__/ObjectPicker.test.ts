@@ -54,20 +54,26 @@ beforeEach(async () => {
 });
 
 describe(ObjectPicker, () => {
-    test('execute disabled & re-enables viewport controls', async () => {
+    test.only('execute disables & re-enables viewport controls', async () => {
         expect(viewport.multiplexer.enabled).toBe(true);
+        expect(viewport.selector.enabled).toBe(true);
+        expect(viewport.points.enabled).toBe(true);
         expect(viewport.navigationControls.enabled).toBe(true);
 
         const objectPicker = new ObjectPicker(editor);
         const promise = objectPicker.execute(() => { });
 
-        expect(viewport.multiplexer.enabled).toBe(false);
+        expect(viewport.multiplexer.enabled).toBe(true);
+        expect(viewport.selector.enabled).toBe(false);
+        expect(viewport.points.enabled).toBe(false);
         expect(viewport.navigationControls.enabled).toBe(true);
 
         promise.finish();
         await promise;
 
         expect(viewport.multiplexer.enabled).toBe(true);
+        expect(viewport.selector.enabled).toBe(true);
+        expect(viewport.points.enabled).toBe(true);
         expect(viewport.navigationControls.enabled).toBe(true);
     })
 
