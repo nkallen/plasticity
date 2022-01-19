@@ -2,7 +2,8 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, point2point } from '../../util/Conversion';
-import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanFactory } from "../boolean/BooleanFactory";
+import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 import { GeometryFactory } from '../../command/GeometryFactory';
 
 const X = new THREE.Vector3(1, 0, 0);

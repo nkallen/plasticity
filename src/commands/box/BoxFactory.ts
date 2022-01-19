@@ -3,7 +3,8 @@ import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 import { composeMainName, point2point } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanFactory } from "../boolean/BooleanFactory";
+import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }

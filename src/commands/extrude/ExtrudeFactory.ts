@@ -5,7 +5,8 @@ import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanLikeFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanLikeFactory } from "../boolean/BooleanFactory";
+import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 
 export interface ExtrudeParams {
     distance1: number;
