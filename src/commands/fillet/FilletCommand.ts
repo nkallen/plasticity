@@ -70,15 +70,15 @@ export class FilletSolidCommand extends Command {
             const quasiPicker = new ObjectPicker(this.editor, objectPicker.selection, 'viewport-selector[quasimode]');
             const quasimode = new Quasimode("modify-selection", this.editor, fillet, quasiPicker);
             quasiPicker.mode.set(SelectionMode.CurveEdge);
-            quasimode.execute(selection => {
-                fillet.edges = [...selection.edges];
+            quasimode.execute(delta => {
+                fillet.edges = [...objectPicker.selection.selected.edges];
                 gizmo.showEdges();
             }, 1, Number.MAX_SAFE_INTEGER).resource(this);
         })
 
         if (this.agent == 'user') {
-            const task = objectPicker.execute(selection => {
-                fillet.edges = [...selection.edges];
+            const task = objectPicker.execute(delta => {
+                fillet.edges = [...objectPicker.selection.selected.edges];
                 gizmo.showEdges();
             }, 1, Number.MAX_SAFE_INTEGER).resource(this);
             this.factoryChanged.addOnce(() => task.finish());

@@ -5,7 +5,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ChangeSelectionExecutor, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, SelectionDelta, SelectionMode } from '../selection/ChangeSelectionExecutor';
 import { HasSelectedAndHovered, HasSelection } from '../selection/SelectionDatabase';
 import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
@@ -63,7 +63,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
 
 type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellablePromise<EdgeSelection> | CancellablePromise<SolidSelection> | CancellablePromise<CurveSelection> | CancellablePromise<ControlPointSelection>
 
-export class ObjectPicker implements Executable<HasSelection, HasSelection> {
+export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     readonly selection: HasSelectedAndHovered;
     min = 1;
     max = 1;
@@ -80,7 +80,7 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
 
     get mode() { return this.selection.mode }
 
-    execute(cb?: (o: HasSelection) => void, min = this.min, max = this.max, mode?: SelectionMode): CancellablePromise<HasSelection> {
+    execute(cb?: (o: SelectionDelta) => void, min = this.min, max = this.max, mode?: SelectionMode): CancellablePromise<HasSelection> {
         const { editor, selection, selection: { signals } } = this;
         const disposables = new CompositeDisposable();
         if (signals !== editor.signals) {
@@ -89,10 +89,9 @@ export class ObjectPicker implements Executable<HasSelection, HasSelection> {
         }
 
         if (cb !== undefined) {
-            const k = () => cb(selection.selected);
-            signals.selectionDelta.add(k);
+            signals.selectionDelta.add(cb);
             disposables.add(new Disposable(() => {
-                signals.selectionDelta.remove(k);
+                signals.selectionDelta.remove(cb);
             }));
         }
 

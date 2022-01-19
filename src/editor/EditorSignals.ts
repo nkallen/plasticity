@@ -7,6 +7,7 @@ import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionD
 import * as visual from '../visual_model/VisualModel';
 import { Replacement } from './ModifierManager';
 import { Agent } from "./DatabaseLike";
+import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
@@ -19,8 +20,8 @@ export class EditorSignals {
     objectHovered: signals.Signal<Selectable> = new signals.Signal();
     objectUnhovered: signals.Signal<Selectable> = new signals.Signal();
     selectionChanged: signals.Signal = new signals.Signal();
-    selectionDelta: signals.Signal<{ added: Set<Selectable>,removed: Set<Selectable> }> = new signals.Signal();
-    hoverDelta: signals.Signal<{ added: Set<Selectable>,removed: Set<Selectable> }> = new signals.Signal();
+    selectionDelta: signals.Signal<SelectionDelta> = new signals.Signal();
+    hoverDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     modifiersLoaded: signals.Signal = new signals.Signal();
     snapped: signals.Signal<{ position: Readonly<THREE.Vector3>, names: readonly string[] } | undefined> = new signals.Signal();

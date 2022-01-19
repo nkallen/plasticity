@@ -50,14 +50,12 @@ abstract class AbstractMirrorCommand extends Command {
             }
         }).resource(this);
 
-        objectPicker.max = Number.POSITIVE_INFINITY;
-        objectPicker.mode.set(SelectionMode.Face);
-        objectPicker.execute(async (selection) => {
-            if (selection.faces.size === 0)
-                return;
+        objectPicker.execute(async delta => {
+            const selection = objectPicker.selection.selected;
+            if (selection.faces.size === 0) return;
             mirror.plane = selection.faces.first;
             mirror.update();
-        }).resource(this);
+        }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Face).resource(this);
 
         await this.finished;
 

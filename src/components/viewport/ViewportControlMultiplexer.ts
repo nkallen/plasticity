@@ -3,52 +3,54 @@ import * as intersectable from "../../visual_model/Intersectable";
 import { ViewportControl } from "./ViewportControl";
 
 export class ViewportControlMultiplexer extends ViewportControl {
-    private readonly controls: Set<ViewportControl> = new Set();
+    private readonly _controls: Set<ViewportControl> = new Set();
+    get controls(): ReadonlySet<ViewportControl> { return this._controls }
+
     private winner?: ViewportControl;
 
     only(control: ViewportControl) {
         const disposable = new CompositeDisposable();
-        for (const control of this.controls) disposable.add(control.enable(false));
+        for (const control of this._controls) disposable.add(control.enable(false));
 
-        this.controls.add(control);
-        disposable.add(new Disposable(() => this.controls.delete(control)));
+        this._controls.add(control);
+        disposable.add(new Disposable(() => this._controls.delete(control)));
 
         return disposable;
     }
 
     unshift(first: ViewportControl) {
-        const ordered = [...this.controls];
-        this.controls.clear();
-        this.controls.add(first);
-        for (const c of ordered) this.controls.add(c);
+        const ordered = [...this._controls];
+        this._controls.clear();
+        this._controls.add(first);
+        for (const c of ordered) this._controls.add(c);
     }
 
     push(...controls: ViewportControl[]) {
         for (const control of controls) {
-            this.controls.add(control);
+            this._controls.add(control);
         }
     }
 
     delete(control: ViewportControl) {
-        this.controls.delete(control);
+        this._controls.delete(control);
     }
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
-        for (const control of this.controls) {
+        for (const control of this._controls) {
             if (!control.enabled) continue;
             control.startHover(intersections, moveEvent);
         }
     }
 
     continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
-        for (const control of this.controls) {
+        for (const control of this._controls) {
             if (!control.enabled) continue;
             control.continueHover(intersections, moveEvent);
         }
     }
 
     endHover() {
-        for (const control of this.controls) {
+        for (const control of this._controls) {
             if (!control.enabled) continue;
             control.endHover();
         }
@@ -70,7 +72,7 @@ export class ViewportControlMultiplexer extends ViewportControl {
     }
 
     startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
-        for (const control of this.controls) {
+        for (const control of this._controls) {
             if (!control.enabled) continue;
             if (control.startClick(intersections, downEvent)) {
                 this.winner = control;

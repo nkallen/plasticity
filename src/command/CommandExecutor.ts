@@ -1,17 +1,16 @@
-import { CompositeDisposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import ContourManager from "../editor/curves/ContourManager";
-import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from "../editor/EditorSignals";
 import { EditorOriginator, History } from "../editor/History";
+import { CachingMeshCreator } from "../editor/MeshCreator";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { GConstructor } from "../util/Util";
 import Command from "./Command";
 import { NoOpError, ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
-import { CachingMeshCreator, MeshCreator } from "../editor/MeshCreator";
 
 export interface EditorLike {
     db: DatabaseLike;
@@ -86,11 +85,17 @@ export class CommandExecutor {
             let selectionChanged = false;
             signals.objectSelected.addOnce(() => selectionChanged = true);
             signals.objectDeselected.addOnce(() => selectionChanged = true);
-            command.factoryChanged.addOnce(() => {
+            if (command.agent === 'automatic') {
+                command.factoryChanged.addOnce(() => {
+                    for (const viewport of this.editor.viewports) {
+                        viewport.selector.enable(false);
+                    }
+                });
+            } else {
                 for (const viewport of this.editor.viewports) {
                     viewport.selector.enable(false);
                 }
-            });
+            }
             await contours.transaction(async () => {
                 await meshCreator.caching(async () => {
                     await command.execute();

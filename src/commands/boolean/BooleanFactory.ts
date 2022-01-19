@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, vec2vec } from '../../util/Conversion';
+import { delegate, derive } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
-import { MoveParams } from "../translate/TranslateFactory";
+import { MultiGeometryFactory } from "../../command/MultiFactory";
+import { DatabaseLike, MaterialOverride, TemporaryObject } from "../../editor/DatabaseLike";
+import { composeMainName, vec2vec } from '../../util/Conversion';
 import { AtomicRef } from "../../util/Util";
-import { derive } from "../../command/FactoryBuilder";
-import { MaterialOverride, TemporaryObject } from "../../editor/DatabaseLike";
+import * as visual from '../../visual_model/VisualModel';
+import { MoveParams } from "../translate/TranslateFactory";
 
 export interface BooleanLikeFactory extends GeometryFactory {
     set target(target: visual.Solid | c3d.Solid);
@@ -40,29 +41,28 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     @derive(visual.Solid) get target(): visual.Solid { throw '' }
     set target(solid: visual.Solid | c3d.Solid) { }
 
-    private _tools: visual.Solid[] = [];
-    protected toolModels: c3d.Solid[] = [];
-    get tools() { return this._tools }
+    protected _tools: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
+    get tools() { return this._tools.views }
     set tools(tools: visual.Solid[]) {
-        this._tools = tools;
-        this.toolModels = tools.map(t => this.db.lookup(t));
+        const models = tools.map(t => this.db.lookup(t));
+        this._tools = { views: tools, models };
     }
 
     set tool(solid: visual.Solid | c3d.Solid) {
-        this.toolModels = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
+        this._tools.models = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
     }
 
     protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.BooleanSolid, this.db.version), c3d.ESides.SideNone, 0);
     protected _isOverlapping = false;
 
     async calculate() {
-        const { _target: { model: solid }, toolModels, names, mergingFaces, mergingEdges } = this;
+        const { _target: { model: solid }, _tools: { models: tools }, names, mergingFaces, mergingEdges } = this;
 
         const flags = new c3d.MergingFlags();
         flags.SetMergingFaces(mergingFaces);
         flags.SetMergingEdges(mergingEdges);
 
-        const { result } = await c3d.ActionSolid.UnionResult_async(solid, c3d.CopyMode.Copy, toolModels, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
+        const { result } = await c3d.ActionSolid.UnionResult_async(solid, c3d.CopyMode.Copy, tools, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
         this._isOverlapping = true;
         return result;
     }
@@ -74,7 +74,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     async calculateToolPhantoms(): Promise<PhantomInfo[]> {
-        const { operationType, toolModels: models, tools: views } = this;
+        const { operationType, _tools: { models, views } } = this;
 
         let material: MaterialOverride;
         if (operationType === c3d.OperationType.Difference) material = phantom_red
@@ -102,10 +102,12 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
 
     get shouldRemoveOriginalItemOnCommit() {
         return true;
+        //         return this._isOverlapping;
+
     }
 }
 
-type ToolAndTargetPhantoms = { tools: TemporaryObject[], target: TemporaryObject, dirty: boolean };
+type ToolAndTargetPhantoms = { tools: TemporaryObject[], targets: TemporaryObject[], dirty: boolean };
 
 export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     move = new THREE.Vector3();
@@ -113,24 +115,24 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
 
     override get operationType() { return super.operationType }
     override set operationType(operationType: c3d.OperationType) {
-        this.dirty();
+        this.phantoms.dirty();
         super.operationType = operationType;
     }
 
     override get target(): visual.Solid { return super.target }
     override set target(target: visual.Solid | c3d.Solid) {
         super.target = target;
-        this.dirty();
+        this.phantoms.dirty();
     }
 
     override get tools() { return super.tools }
     override set tools(tools: visual.Solid[]) {
         super.tools = tools;
-        this.dirty();
+        this.phantoms.dirty();
     }
 
     async calculate() {
-        const { _target: { model: solid }, names, mergingFaces, mergingEdges, toolModels } = this;
+        const { _target: { model: solid }, names, mergingFaces, mergingEdges, _tools: { models: toolModels, views } } = this;
         if (solid === undefined) throw new NoOpError();
         if (toolModels.length === 0) return solid;
 
@@ -153,51 +155,147 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
 
     private moveTools() {
         let tools = [];
-        const { move, toolModels } = this;
+        const { move, _tools: { models } } = this;
         if (move.manhattanLength() > 10e-6) {
             const transform = new c3d.TransformValues();
             transform.Move(vec2vec(move));
             const names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.TransformedSolid, this.db.version), c3d.ESides.SideNone, 0);
-            for (const tool of toolModels) {
+            for (const tool of models) {
                 const transformed = c3d.ActionDirect.TransformedSolid(tool, c3d.CopyMode.Copy, transform, names);
                 tools.push(transformed);
             }
-        } else tools = toolModels;
+        } else tools = models;
         return tools;
     }
 
-    private readonly phantoms = new AtomicRef<ToolAndTargetPhantoms | undefined>(undefined);
+    private readonly phantoms = new BooleanPhantomStrategy(this.db);
     protected async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
+        const { phantoms } = this;
+        phantoms.operationType = this.operationType;
+        phantoms.tools = this._tools;
+        phantoms.targets = { models: [this._target.model], views: [this._target.view]};
+        phantoms.move = this.move;
+        const temps = await phantoms.doPhantoms(abortEarly);
+        return this.showTemps(temps);
+    }
+}
+
+class BooleanPhantomStrategy {
+    operationType!: c3d.OperationType;
+    tools!: { views: visual.Solid[], models: c3d.Solid[] };
+    targets!: { views: visual.Solid[], models: c3d.Solid[] };
+    move!: THREE.Vector3;
+
+    constructor(private readonly db: DatabaseLike) { }
+
+    async calculateToolPhantoms(): Promise<PhantomInfo[]> {
+        const { operationType, tools: { models, views } } = this;
+
+        let material: MaterialOverride;
+        if (operationType === c3d.OperationType.Difference) material = phantom_red
+        else if (operationType === c3d.OperationType.Intersect) material = phantom_green;
+        else material = phantom_blue;
+
+        const result: PhantomInfo[] = [];
+        for (const [i, phantom] of models.entries()) {
+            result.push({ phantom, material, ancestor: views[i] })
+        }
+        return result;
+    }
+
+    async calculateTargetPhantoms(): Promise<PhantomInfo[]> {
+        return this.targets.models.map((target, i) => ({ phantom: target, material: phantom_blue, ancestor: this.targets.views[i] }));
+    }
+
+    private readonly phantoms = new AtomicRef<ToolAndTargetPhantoms | undefined>(undefined);
+
+    async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
         const { clock, value } = this.phantoms.get();
         if (value === undefined || value.dirty) {
-            const toolInfos = await super.calculateToolPhantoms();
-            const targetInfo = await super.calculateTargetPhantom();
-            const promises: Promise<TemporaryObject>[] = [];
-            for (const { phantom, material, ancestor } of toolInfos) {
-                promises.push(this.db.addPhantom(phantom, material, ancestor));
+            const toolInfos = await this.calculateToolPhantoms();
+            const targetInfos = await this.calculateTargetPhantoms();
+            const toolPromises: Promise<TemporaryObject>[] = [];
+            const targetPromises: Promise<TemporaryObject>[] = [];
+            for (const { phantom, material } of toolInfos) {
+                toolPromises.push(this.db.addPhantom(phantom, material, undefined, true));
             }
-            const targetPhantom = await this.db.addPhantom(targetInfo.phantom, targetInfo.material);
-            let toolPhantoms = await Promise.all(promises);
+            for (const { phantom, material } of targetInfos) {
+                targetPromises.push(this.db.addPhantom(phantom, material, undefined, true));
+            }
+            const toolPhantoms = await Promise.all(toolPromises);
+            const targetPhantoms = await Promise.all(targetPromises);
             if (value?.dirty) {
                 value.tools.forEach(t => t.cancel());
-                value.target.cancel();
+                value.targets.forEach(t => t.cancel());
             }
-            this.phantoms.compareAndSet(clock, { tools: toolPhantoms, target: targetPhantom, dirty: false });
+            this.phantoms.compareAndSet(clock, { tools: toolPhantoms, targets: targetPhantoms, dirty: false });
         }
-        const { tools, target } = this.phantoms.get().value!;
+        const { tools, targets } = this.phantoms.get().value!;
         MovePhantomsOnUpdate: {
             for (const phantom of tools) {
                 phantom.underlying.position.copy(this.move);
             }
         }
-        return this.showTemps([...tools, target]);
+        return [...tools, ...targets];
     }
 
-    private dirty() {
+    dirty() {
         const phantoms = this.phantoms.get().value;
         if (phantoms !== undefined) {
             phantoms.dirty = true;
         }
+    }
+}
+
+export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFactory> implements BooleanParams, MoveParams {
+    @delegate.default(new THREE.Vector3()) move!: THREE.Vector3;
+    @delegate.default(new THREE.Vector3()) pivot!: THREE.Vector3;
+    @delegate.default(true) mergingFaces!: boolean;
+    @delegate.default(true) mergingEdges!: boolean;
+
+    private _operationType = c3d.OperationType.Difference;
+    get operationType() { return this._operationType} 
+    set operationType(operationType: c3d.OperationType) {
+        this._operationType = operationType;
+        for (const factory of this.factories) factory.operationType = operationType;
+        this.phantoms.dirty();
+    }
+
+    private _targets: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
+    @delegate.update
+    get targets() { return this._targets.views }
+    set targets(targets: visual.Solid[]) {
+        for (const factory of this.factories) factory.cancel();
+        const models = targets.map(t => this.db.lookup(t));
+        this._targets = { views: targets, models };
+        const individuals = [];
+        for (const target of targets) {
+            const individual = new MovingBooleanFactory(this.db, this.materials, this.signals);
+            individual.target = target;
+            individuals.push(individual);
+        }
+        this.factories = individuals;
+        this.phantoms.dirty();
+    }
+
+    private _tools: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
+    get tools() { return this._tools.views }
+    set tools(tools: visual.Solid[]) {
+        const models = tools.map(t => this.db.lookup(t));
+        for (const factory of this.factories) factory['_tools'] = { models, views: tools };
+        this._tools = { views: tools, models };
+        this.phantoms.dirty();
+    }
+
+    private readonly phantoms = new BooleanPhantomStrategy(this.db);
+    protected override async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
+        const { phantoms } = this;
+        phantoms.operationType = this.operationType;
+        phantoms.tools = this._tools;
+        phantoms.targets = this._targets;
+        phantoms.move = this.move;
+        const temps = await phantoms.doPhantoms(abortEarly);
+        return this.showTemps(temps);
     }
 }
 

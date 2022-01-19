@@ -55,15 +55,6 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
 
         return transformed;
     }
-
-
-    get shouldHideOriginalItemDuringUpdate(): boolean {
-        return super.shouldHideOriginalItemDuringUpdate;
-    }
-
-    get shouldRemoveOriginalItemOnCommit(): boolean {
-        return super.shouldRemoveOriginalItemOnCommit;
-    }
 }
 
 export class SymmetryFactory extends GeometryFactory {

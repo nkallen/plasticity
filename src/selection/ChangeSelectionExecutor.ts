@@ -137,3 +137,9 @@ export class ChangeSelectionExecutor {
         return (...args: A): R => this.aggregate(() => f.call(this, ...args));
     }
 }
+
+
+export type SelectionDelta = {
+    added: Set<Selectable>;
+    removed: Set<Selectable>;
+};

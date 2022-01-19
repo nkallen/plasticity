@@ -54,7 +54,7 @@ beforeEach(async () => {
 });
 
 describe(ObjectPicker, () => {
-    test.only('execute disables & re-enables viewport controls', async () => {
+    test('execute disables & re-enables viewport controls', async () => {
         expect(viewport.multiplexer.enabled).toBe(true);
         expect(viewport.selector.enabled).toBe(true);
         expect(viewport.points.enabled).toBe(true);
@@ -77,17 +77,15 @@ describe(ObjectPicker, () => {
         expect(viewport.navigationControls.enabled).toBe(true);
     })
 
-    test('adds and removes event listeners', async () => {
+    test('adds and removes to multiplexer', async () => {
         const objectPicker = new ObjectPicker(editor);
 
-        const addEventListener = jest.spyOn(viewport.renderer.domElement, 'addEventListener');
+        expect(viewport.multiplexer.controls.size).toBe(2);
         const promise = objectPicker.execute(() => { });
-        expect(addEventListener).toBeCalledTimes(3);
-
-        const removeEventListener = jest.spyOn(viewport.renderer.domElement, 'removeEventListener');
+        expect(viewport.multiplexer.controls.size).toBe(3);
         promise.finish();
-        expect(removeEventListener).toBeCalledTimes(3);
         await promise;
+        expect(viewport.multiplexer.controls.size).toBe(2);
     })
 
     test('adds and removes temporary selection for highlighter', async () => {

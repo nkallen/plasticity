@@ -28,6 +28,7 @@ delegate.default = function (initial?: any) {
     return _delegate(initial);
 }
 
+// Call when adding a subfactory: copy over all the other parameters that are delegated
 delegate.update = function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: string, descriptor: PropertyDescriptor) {
     const old = descriptor.set;
     descriptor.set = function(this: typeof target, value: any) {

@@ -36,8 +36,8 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.duplicate(item);
     }
 
-    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item): Promise<TemporaryObject> {
-        return this.db.addPhantom(object, materials, ancestor);
+    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item, selectable?: boolean): Promise<TemporaryObject> {
+        return this.db.addPhantom(object, materials, ancestor, selectable);
     }
 
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {

@@ -63,8 +63,8 @@ export class OffsetFaceCommand extends Command {
             }
         }).resource(this);
 
-        quasimode.execute(selection => {
-            offset.faces = [...selection.faces];
+        quasimode.execute(delta => {
+            offset.faces = [...objectPicker.selection.selected.faces];
         }).resource(this)
 
         await this.finished;

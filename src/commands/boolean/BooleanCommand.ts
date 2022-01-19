@@ -8,7 +8,7 @@ import { CancellablePromise } from "../../util/CancellablePromise";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from '../translate/MoveGizmo';
 import { BooleanDialog, CutDialog } from "./BooleanDialog";
-import { MovingBooleanFactory } from './BooleanFactory';
+import { MultiBooleanFactory } from './BooleanFactory';
 import { BooleanKeyboardGizmo } from "./BooleanKeyboardGizmo";
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
@@ -16,7 +16,7 @@ import { CutGizmo } from "./CutGizmo";
 export class BooleanCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;
-        const boolean = new MovingBooleanFactory(editor.db, editor.materials, editor.signals);
+        const boolean = new MultiBooleanFactory(editor.db, editor.materials, editor.signals);
         boolean.resource(this);
 
         const dialog = new BooleanDialog(boolean, editor.signals);
@@ -45,7 +45,7 @@ export class BooleanCommand extends Command {
                 return objectPicker.shift(SelectionMode.Solid, 1).resource(this)
             });
             const solids = await getTarget();
-            boolean.target = [...solids][0];
+            boolean.targets = [...solids];
         }
 
         let g: CancellablePromise<void> | undefined = undefined;
@@ -65,8 +65,8 @@ export class BooleanCommand extends Command {
                     boolean.update();
                 }).resource(this);
             }
-            
-            boolean.move.set(0, 0, 0);
+
+            boolean.move = new THREE.Vector3();
             boolean.tools = tools;
             await boolean.update();
             return true;
@@ -80,8 +80,8 @@ export class BooleanCommand extends Command {
         dialog.replace("Select target bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
             return objectPicker.execute(selection => {
-                const targets = [...selection.solids];
-                boolean.target = targets[0];
+                const targets = [...objectPicker.selection.selected.solids];
+                boolean.targets = targets;
                 boolean.update();
             }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
         });
@@ -89,7 +89,7 @@ export class BooleanCommand extends Command {
         const getTools = dialog.prompt("Select tool bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
             return objectPicker.execute(async selection => {
-                await setToolsAndGizmo(selection);
+                await setToolsAndGizmo(objectPicker.selection.selected);
             }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
         });
         getTools();
@@ -126,9 +126,10 @@ export class CutCommand extends Command {
 
         objectPicker = new ObjectPicker(this.editor);
         objectPicker.mode.set(SelectionMode.Face, SelectionMode.Curve);
-        objectPicker.execute(async (selection) => {
-            cut.surfaces = [...selection.faces];
-            cut.curves = [...selection.curves];
+        objectPicker.execute(async delta => {
+            const selected = objectPicker.selection.selected;
+            cut.surfaces = [...selected.faces];
+            cut.curves = [...selected.curves];
             cut.update();
         }, 1, Number.MAX_SAFE_INTEGER).resource(this);
 

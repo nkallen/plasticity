@@ -45,7 +45,7 @@ export interface DatabaseLike {
     duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
     duplicate(model: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
 
-    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item): Promise<TemporaryObject>;
+    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item, selectable?: boolean): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
     replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;

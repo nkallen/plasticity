@@ -36,7 +36,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     ) { }
 
     private positiveCounter = 1; // ids must be positive to distinguish real objects from temps/phantoms
-    private anonId = 0;
     private negativeCounter = -1;
 
     get version() { return this.positiveCounter }
@@ -95,8 +94,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
     }
 
-    async addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item): Promise<TemporaryObject> {
-        return this.addTemporaryItem(object, ancestor, materials, this.phantomObjects);
+    async addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item, selectable = false): Promise<TemporaryObject> {
+        return this.addTemporaryItem(object, ancestor, materials, selectable, this.phantomObjects);
     }
 
     async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
@@ -108,13 +107,13 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return fast();
     }
 
-    async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
-        const { phantomGeometryModel, anonId } = this;
+    async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, selectable = false, into = this.temporaryObjects): Promise<TemporaryObject> {
+        const { phantomGeometryModel } = this;
         const note = new c3d.FormNote(true, true, false, false, false);
-        const tempId = ancestor !== undefined ? this.negativeCounter-- : anonId;
+        const tempId = this.negativeCounter--;
         const view = await this.meshes(model, tempId, note, this.precisionAndDistanceFor(model, 'temporary'), materials);
         into.add(view);
-        if (tempId !== anonId) phantomGeometryModel.set(tempId, { view, model: model });
+        if (selectable) phantomGeometryModel.set(tempId, { view, model: model });
 
         view.visible = false;
         return {
