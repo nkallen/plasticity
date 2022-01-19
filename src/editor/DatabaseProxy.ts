@@ -1,7 +1,6 @@
 import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from "../util/Util";
-import { ControlPointData, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
-import { Agent, DatabaseLike } from "./DatabaseLike";
+import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./DatabaseLike";
 import * as visual from "../visual_model/VisualModel";
 
 export class DatabaseProxy implements DatabaseLike {
@@ -37,8 +36,8 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.duplicate(item);
     }
 
-    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
-        return this.db.addPhantom(object, materials);
+    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item): Promise<TemporaryObject> {
+        return this.db.addPhantom(object, materials, ancestor);
     }
 
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
@@ -104,6 +103,10 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.visibleObjects;
     }
 
+    get selectableObjects(): visual.Item[] {
+        return this.db.selectableObjects;        
+    }
+    
     hide(item: visual.Item): Promise<void> {
         return this.db.hide(item);
     }

@@ -1,10 +1,30 @@
 import * as THREE from 'three';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
-import {  MaterialOverride, TemporaryObject, TopologyData, ControlPointData } from './GeometryDatabase';
+import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
 
 export type Agent = 'user' | 'automatic';
+
+export interface TemporaryObject {
+    get underlying(): THREE.Object3D;
+    cancel(): void;
+    show(): void;
+    hide(): void;
+}
+
+export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
+export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
+
+export interface MaterialOverride {
+    region?: THREE.Material;
+    line?: LineMaterial;
+    lineDashed?: LineMaterial;
+    controlPoint?: BetterRaycastingPointsMaterial;
+    mesh?: THREE.Material;
+    surface?: THREE.Material;
+}
 
 export interface DatabaseLike {
     get version(): number; addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -25,7 +45,7 @@ export interface DatabaseLike {
     duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
     duplicate(model: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
 
-    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
+    addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
     replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;
@@ -53,6 +73,8 @@ export interface DatabaseLike {
     find(): { view: visual.Item; model: c3d.Solid; }[];
 
     get visibleObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;
+    get selectableObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;
+
     unhide(item: visual.Item): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
 

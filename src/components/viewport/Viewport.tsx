@@ -10,6 +10,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/LoadTheme";
@@ -319,15 +320,20 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     private outlineSelection() {
-        const selection = this.editor.highlighter.outlineSelection;
-        const toOutline = [...selection].flatMap(item => item.outline);
-        this.outlinePassSelection.selectedObjects = toOutline;
+        this.outlinePassSelection.selectedObjects = this.collectOutline(this.editor.highlighter.outlineSelection);
     }
 
     private outlineHover() {
-        const hover = this.editor.highlighter.outlineHover;
-        const toOutline = [...hover].flatMap(item => item.outline);
-        this.outlinePassHover.selectedObjects = toOutline;
+        this.outlinePassHover.selectedObjects = this.collectOutline(this.editor.highlighter.outlineHover);
+    }
+
+    private collectOutline(selection: SolidSelection) {
+        const toOutline = [];
+        for (const item of selection) {
+            const outline = item.outline;
+            if (outline !== undefined) toOutline.push(outline);
+        }
+        return toOutline;
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {

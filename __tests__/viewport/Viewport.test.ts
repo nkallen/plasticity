@@ -58,8 +58,7 @@ test("item selected outlines", () => {
     interaction.onClick([{ object: sphere.faces.get(0), point }], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toHaveLength(1);
-    expect(viewport.outlinePassSelection.selectedObjects[0].geometry.attributes).toEqual(sphere.outline[0].geometry.attributes);
-    expect(viewport.outlinePassSelection.selectedObjects[0].geometry.groups).toEqual([]);
+    expect(viewport.outlinePassSelection.selectedObjects[0]).toEqual(sphere.outline!);
     interaction.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
@@ -70,8 +69,7 @@ test("item hovered outlines", () => {
     const point = new THREE.Vector3();
     interaction.onHover([{ object: sphere.faces.get(0), point }], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
     expect(viewport.outlinePassHover.selectedObjects).toHaveLength(1);
-    expect(viewport.outlinePassHover.selectedObjects[0].geometry.attributes).toEqual(sphere.outline[0].geometry.attributes);
-    expect(viewport.outlinePassHover.selectedObjects[0].geometry.groups).toEqual([]);
+    expect(viewport.outlinePassHover.selectedObjects[0]).toEqual(sphere.outline!);
     interaction.onHover([], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });

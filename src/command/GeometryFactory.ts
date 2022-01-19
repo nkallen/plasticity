@@ -1,8 +1,7 @@
 import { Signal } from "signals";
 import c3d from '../../build/Release/c3d.node';
-import { DatabaseLike } from "../editor/DatabaseLike";
+import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
-import { MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { zip } from '../util/Util';
@@ -17,7 +16,7 @@ type State = { tag: 'none', last: undefined }
     | { tag: 'cancelled' }
     | { tag: 'committed' }
 
-export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
+export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride, ancestor?: visual.Item }
 
 /**
  * A GeometryFactory is an object responsible for making and transforming geometrical objects, like
@@ -82,7 +81,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         if (abortEarly()) return Promise.resolve([]);
 
         const promises: Promise<TemporaryObject>[] = [];
-        for (const { phantom, material } of infos) {
+        for (const { phantom, material, ancestor } of infos) {
             promises.push(this.db.addPhantom(phantom, material));
         }
         const phantoms = await Promise.all(promises);

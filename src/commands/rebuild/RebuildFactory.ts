@@ -1,8 +1,8 @@
 import c3d from '../../../build/Release/c3d.node';
-import { MaterialOverride } from '../../editor/GeometryDatabase';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import * as THREE from "three";
+import { MaterialOverride } from '../../editor/DatabaseLike';
 
 export class RebuildFactory extends GeometryFactory {
     dup!: c3d.Item;

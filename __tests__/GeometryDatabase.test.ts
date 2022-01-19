@@ -12,7 +12,6 @@ import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
-let sprites: SpriteDatabase;
 let signals: EditorSignals;
 let box: c3d.Solid;
 
@@ -27,7 +26,6 @@ const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.Sid
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    sprites = new FakeSprites();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
 
@@ -151,16 +149,54 @@ describe("addTemporaryItem", () => {
     test("cancel", async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(0);
+        expect(db.selectableObjects.length).toBe(0);
 
         const temp = await db.addTemporaryItem(box);
         expect(db.temporaryObjects.children.length).toBe(1);
         expect(db.visibleObjects.length).toBe(0);
+        expect(db.selectableObjects.length).toBe(0);
 
         temp.cancel();
 
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(0);
+        expect(db.selectableObjects.length).toBe(0);
     });
+
+    test("when a temp is added with an ancestor, it is selectable", async () => {
+        const exists = await db.addItem(c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names));
+
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
+        expect(db.selectableObjects.length).toBe(1);
+        
+        const temp = await db.addTemporaryItem(box, exists);
+
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.visibleObjects.length).toBe(1);
+        expect(db.selectableObjects.length).toBe(2);
+
+        db.clearTemporaryObjects();
+
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
+        expect(db.selectableObjects.length).toBe(1);
+    })
+
+    test("when a temp is added with an ancestor, it is lookupable", async () => {
+        const exists = await db.addItem(c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names));
+
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
+        expect(db.selectableObjects.length).toBe(1);
+
+        const temp1 = await db.addTemporaryItem(box);
+        expect(() => db.lookupItemById((temp2.underlying as visual.Item).simpleName)).toThrow();
+        
+        const temp2 = await db.addTemporaryItem(box, exists);
+        expect(db.lookupItemById((temp2.underlying as visual.Item).simpleName).view).toBe(temp2.underlying);
+    })
+
 });
 
 test("lookupTopologyItemById", async () => {

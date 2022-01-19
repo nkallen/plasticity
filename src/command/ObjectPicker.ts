@@ -46,16 +46,12 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         this.changeSelection.onClick(intersections, this.event2modifier(upEvent), this.event2option(upEvent));
     }
 
-    protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) {
-
-    }
+    protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) { }
 
     processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
         this.changeSelection.onBoxSelect(selected, this.event2modifier(upEvent));
     }
 
-    // NOTE: while the selection.selected is a temporary collection just for this class,
-    // typically it will use the real selection.hovered to provide user feedback.
     processHover(intersects: Intersection[], moveEvent?: MouseEvent) {
         this.changeSelection.onHover(intersects, this.event2modifier(moveEvent), this.event2option(moveEvent));
     }

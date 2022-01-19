@@ -6,10 +6,9 @@ import { SelectionProxy } from "../selection/SelectionProxy";
 import { ItemSelection } from "../selection/TypedSelection";
 import { GConstructor } from "../util/Util";
 import * as visual from "../visual_model/VisualModel";
-import { Agent, DatabaseLike } from "./DatabaseLike";
+import { Agent, DatabaseLike, TemporaryObject } from "./DatabaseLike";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
-import { TemporaryObject } from "./GeometryDatabase";
 import { MementoOriginator, ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
 

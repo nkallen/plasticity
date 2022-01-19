@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { delegate } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { MultiGeometryFactory } from "../../command/MultiFactory";
-import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase';
+import { MaterialOverride, TemporaryObject } from "../../editor/DatabaseLike";
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 

@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { MoveParams } from "../translate/TranslateFactory";
 import { AtomicRef } from "../../util/Util";
 import { derive } from "../../command/FactoryBuilder";
+import { MaterialOverride, TemporaryObject } from "../../editor/DatabaseLike";
 
 export interface BooleanLikeFactory extends GeometryFactory {
     set target(target: visual.Solid | c3d.Solid);
@@ -74,7 +74,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     async calculateToolPhantoms(): Promise<PhantomInfo[]> {
-        const { operationType, toolModels: tools } = this;
+        const { operationType, toolModels: models, tools: views } = this;
 
         let material: MaterialOverride;
         if (operationType === c3d.OperationType.Difference) material = phantom_red
@@ -82,15 +82,15 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         else material = phantom_blue;
 
         const result: PhantomInfo[] = [];
-        for (const phantom of tools) {
-            result.push({ phantom, material })
+        for (const [i, phantom] of models.entries()) {
+            result.push({ phantom, material, ancestor: views[i] })
         }
         return result;
     }
 
     async calculateTargetPhantom(): Promise<PhantomInfo> {
         const { _target: { model: solid } } = this;
-        return { phantom: solid, material: phantom_blue }
+        return { phantom: solid, material: phantom_blue, ancestor: this.target }
     }
 
     get originalItem() {
@@ -173,8 +173,8 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
             const toolInfos = await super.calculateToolPhantoms();
             const targetInfo = await super.calculateTargetPhantom();
             const promises: Promise<TemporaryObject>[] = [];
-            for (const { phantom, material } of toolInfos) {
-                promises.push(this.db.addPhantom(phantom, material));
+            for (const { phantom, material, ancestor } of toolInfos) {
+                promises.push(this.db.addPhantom(phantom, material, ancestor));
             }
             const targetPhantom = await this.db.addPhantom(targetInfo.phantom, targetInfo.material);
             let toolPhantoms = await Promise.all(promises);

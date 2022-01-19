@@ -72,21 +72,27 @@ export class Solid extends Item {
     get edges() { return this.lod.high.edges }
     get faces() { return this.lod.high.faces }
 
-    private _outline?: THREE.Mesh[];
-    get outline(): THREE.Mesh[] {
-        if (!this.visible || this.isTemporaryOptimization) return [];
+    private _outline?: THREE.Object3D;
+    get outline(): THREE.Object3D | undefined {
+        if (!this.visible) return;
         if (this._outline === undefined) this._outline = this.computeOutline();
-        return this._outline!;
+        this.matrixWorld.decompose(this._outline.position, this._outline.quaternion, this._outline.scale);
+        return this._outline;
     }
 
     private computeOutline() {
         const mesh = this.faces.mesh;
         const faces = mesh.clone();
-        const material = faces.material as THREE.Material[];
-        faces.material = material[0];
+        if (Array.isArray(faces.material)) {
+            faces.material = faces.material[0];
+        }
         faces.geometry = faces.geometry.clone();
         faces.geometry.clearGroups();
-        return [faces];
+
+        // We parent this ONLY so we can apply Solid-level transformations
+        const parentShim = new THREE.Object3D();
+        parentShim.add(faces);
+        return parentShim;
     }
 
     get allEdges() {
