@@ -4,7 +4,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Executable } from "./Quasimode";
 
-type PromptState = { tag: 'none' } | { tag: 'executing', cancellable: CancellablePromise<any> }
+type PromptState = { tag: 'none' } | { tag: 'executing', finish: () => void }
 type DialogState<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void>, prompt: PromptState } | { tag: 'finished' }
 
 export abstract class AbstractDialog<T> extends HTMLElement implements Executable<T, void> {
@@ -98,12 +98,11 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                         case 'executing':
                             switch (this.state.prompt.tag) {
                                 case 'executing':
-                                    this.state.prompt.cancellable.finish();
+                                    this.state.prompt.finish();
                                 case 'none':
                                     const p = prompt.execute();
                                     const executed = execute();
-                                    executed.then(() => p.finish(), () => p.finish());
-                                    this.state.prompt = { tag: 'executing', cancellable: executed }
+                                    this.state.prompt = { tag: 'executing', finish: () => { p.finish(); executed.finish() } }
                                     return executed;
                             }
                         default: throw new Error('invalid state');

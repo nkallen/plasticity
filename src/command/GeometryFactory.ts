@@ -196,6 +196,18 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         }
     }
 
+    // NOTE: Some factories mutate the original items as an optimization; it's safer to rollback here rather
+    // than ad hoc, as the following is basically a global invariant:
+    private ensureTemporaryModificationsToOriginalItemsAreRolledBack() {
+        for (const item of this.originalItems) {
+            item.matrixAutoUpdate = true;
+            item.position.set(0, 0, 0);
+            item.quaternion.identity();
+            item.scale.set(1, 1, 1);
+            item.updateMatrixWorld();
+        }
+    }
+
     doCancel(): void {
         this.finalize();
     }
@@ -209,6 +221,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
     protected restoreOriginalItems() {
         for (const i of this.hidden) i.visible = true;
+        this.ensureTemporaryModificationsToOriginalItemsAreRolledBack();
     }
 
     protected cleanupTemps() {

@@ -31,7 +31,7 @@ export class Prompt extends HTMLElement {
             default: icon = <div class="w-4 h-4 rounded-full bg-transparent"> </div>; break;;
         }
 
-        render(<li class={`flex items-center py-1 px-1 space-x-2 text-xs rounded-full ${tag === 'executing' ? 'bg-neutral-800' : ''} cursor-pointer`}>
+        render(<li class={`flex items-center py-1 px-1 space-x-2 text-xs rounded-full ${tag === 'executing' ? 'bg-neutral-800' : 'cursor-pointer'}`}>
             {icon}
             <div class="font-bold text-neutral-200">{name}</div> <div class="text-neutral-500">{description}</div>
         </li>, this);

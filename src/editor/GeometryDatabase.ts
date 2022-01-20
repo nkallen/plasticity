@@ -26,7 +26,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
-    private readonly phantomGeometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     readonly queue = new SequentialExecutor();
 
     constructor(
@@ -94,8 +93,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
     }
 
-    async addPhantom(object: c3d.Item, materials?: MaterialOverride, ancestor?: visual.Item, selectable = false): Promise<TemporaryObject> {
-        return this.addTemporaryItem(object, ancestor, materials, selectable, this.phantomObjects);
+    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+        return this.addTemporaryItem(object, undefined, materials, this.phantomObjects);
     }
 
     async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
@@ -107,13 +106,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return fast();
     }
 
-    async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, selectable = false, into = this.temporaryObjects): Promise<TemporaryObject> {
-        const { phantomGeometryModel } = this;
+    async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
+        const { signals } = this;
         const note = new c3d.FormNote(true, true, false, false, false);
         const tempId = this.negativeCounter--;
         const view = await this.meshes(model, tempId, note, this.precisionAndDistanceFor(model, 'temporary'), materials);
         into.add(view);
-        if (selectable) phantomGeometryModel.set(tempId, { view, model: model });
 
         view.visible = false;
         return {
@@ -130,7 +128,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 view.dispose();
                 into.remove(view);
                 if (ancestor !== undefined) ancestor.visible = true;
-                phantomGeometryModel.delete(tempId);
+                signals.objectRemoved.dispatch([view, 'automatic']);
             }
         }
     }
@@ -138,7 +136,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     clearTemporaryObjects() {
         this.temporaryObjects.clear();
         this.phantomObjects.clear();
-        this.phantomGeometryModel.clear();
     }
 
     async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
@@ -160,10 +157,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
-        const result = id > 0
-            ? this.geometryModel.get(id)
-            : this.phantomGeometryModel.get(id);
-
+        const result = this.geometryModel.get(id)
         if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from geometry model`);
         return result;
     }
@@ -236,12 +230,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get selectableObjects(): visual.Item[] {
-        const { phantomGeometryModel } = this;
-        const visible = this.visibleObjects;
-        for (const { view } of phantomGeometryModel.values()) {
-            visible.push(view);
-        }
-        return visible;
+        return this.visibleObjects;
     }
 
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {

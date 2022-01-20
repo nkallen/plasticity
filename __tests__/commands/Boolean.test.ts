@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { EditorLike } from "../../src/command/CommandKeyboardInput";
-import { BooleanFactory } from "../../src/commands/boolean/BooleanFactory";
+import { BooleanFactory, MultiBooleanFactory } from "../../src/commands/boolean/BooleanFactory";
 import c3d from '../../build/Release/c3d.node';
 import { PossiblyBooleanKeyboardGizmo } from "../../src/commands/boolean/BooleanKeyboardGizmo";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
@@ -12,9 +12,9 @@ import { Cancel } from "../../src/util/Cancellable";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 
 let db: GeometryDatabase;
-let intersect: BooleanFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 
@@ -22,11 +22,15 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-    intersect = new BooleanFactory(db, materials, signals);
-    intersect.operationType = c3d.OperationType.Intersect;
 })
 
 describe("Intersection", () => {
+    let intersect: BooleanFactory;
+    beforeEach(() => {
+        intersect = new BooleanFactory(db, materials, signals);
+        intersect.operationType = c3d.OperationType.Intersect;
+    })
+
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
             let makeSphere = new SphereFactory(db, materials, signals);
@@ -143,4 +147,93 @@ describe(PossiblyBooleanKeyboardGizmo, () => {
             await expect(active).rejects.toBe(Cancel);
         });
     });
+});
+
+describe(MultiBooleanFactory, () => {
+    let difference: MultiBooleanFactory;
+    beforeEach(() => {
+        difference = new MultiBooleanFactory(db, materials, signals);
+    })
+
+    let box1: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box1 = await makeBox.commit() as visual.Solid;
+    })
+
+    let box2: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3(0.5, 0, 0);
+        makeBox.p2 = new THREE.Vector3(1.5, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1.5, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1.5, 1, 1);
+        box2 = await makeBox.commit() as visual.Solid;
+    });
+
+    let box3: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(-1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(-1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(-1, 1, 1);
+        box3 = await makeBox.commit() as visual.Solid;
+    });
+
+
+    test('a - (b + c)', async () => {
+        difference.targets = [box1];
+        difference.tools = [box2, box3];
+        difference.move = new THREE.Vector3(0.25, 0, 0);
+
+        const results = await difference.commit() as visual.Item[];
+        expect(results.length).toBe(1);
+
+        const bbox = new THREE.Box3().setFromObject(results[0]);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0.25, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.75, 1, 1));
+    })
+
+    test('a - c; b - c', async () => {
+        difference.targets = [box1, box2];
+        difference.tools = [box3];
+        difference.move = new THREE.Vector3(0.25, 0, 0);
+
+        const results = await difference.commit() as visual.Item[];
+        expect(results.length).toBe(2);
+
+        const bbox = new THREE.Box3().setFromObject(results[0]);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.625, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0.25, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+        bbox.setFromObject(results[1]);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+    })
+
+    test('ensure original position/etc does not change after commit/cancel', async () => {
+        difference.targets = [box1];
+        difference.tools = [box2, box3];
+        difference.move = new THREE.Vector3(0.25, 0, 0);
+
+        await difference.update();
+        await difference.commit();
+
+        expect(box1.position).toApproximatelyEqual(new THREE.Vector3())
+        expect(box2.position).toApproximatelyEqual(new THREE.Vector3())
+        expect(box3.position).toApproximatelyEqual(new THREE.Vector3())
+    })
 });

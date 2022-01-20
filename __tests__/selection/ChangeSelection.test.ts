@@ -670,3 +670,35 @@ describe(SelectionDatabase, () => {
     })
 });
 
+describe('prohibit', () => {
+    test('selectionmode=object, clicking on a face of a prohibited solid will not select the object', () => {
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+
+        const face = solid.faces.get(0);
+        const intersections = [];
+        intersections.push({
+            point: new THREE.Vector3(),
+            object: face
+        });
+
+        expect(selectionDb.selected.solids.size).toBe(0);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        expect(selectionDb.selected.solids.size).toBe(0);
+    });
+
+    test('selectionmode=face, clicking on a face of a prohibited solid will not select the face', () => {
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+        selectionDb.mode.set(SelectionMode.Face);
+
+        const face = solid.faces.get(0);
+        const intersections = [];
+        intersections.push({
+            point: new THREE.Vector3(),
+            object: face
+        });
+
+        expect(selectionDb.selected.faces.size).toBe(0);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        expect(selectionDb.selected.faces.size).toBe(0);
+    });
+})

@@ -101,13 +101,6 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     private reset() {
-        for (const item of this.items) {
-            item.matrixAutoUpdate = true;
-            item.position.set(0, 0, 0);
-            item.quaternion.identity();
-            item.scale.set(1, 1, 1);
-            item.updateMatrixWorld();
-        }
         for (const phantom of this._phantoms) {
             phantom.cancel();
         }

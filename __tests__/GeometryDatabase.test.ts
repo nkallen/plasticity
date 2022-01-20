@@ -162,41 +162,6 @@ describe("addTemporaryItem", () => {
         expect(db.visibleObjects.length).toBe(0);
         expect(db.selectableObjects.length).toBe(0);
     });
-
-    test("when a temp selectable=true, it is selectable", async () => {
-        const exists = await db.addItem(c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names));
-
-        expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
-        expect(db.selectableObjects.length).toBe(1);
-
-        const temp = await db.addTemporaryItem(box, exists, undefined, true);
-
-        expect(db.temporaryObjects.children.length).toBe(1);
-        expect(db.visibleObjects.length).toBe(1);
-        expect(db.selectableObjects.length).toBe(2);
-
-        db.clearTemporaryObjects();
-
-        expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
-        expect(db.selectableObjects.length).toBe(1);
-    })
-
-    test("only when a temp selectable=true, it is lookupable", async () => {
-        const exists = await db.addItem(c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names));
-
-        expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
-        expect(db.selectableObjects.length).toBe(1);
-
-        const temp1 = await db.addTemporaryItem(box, exists, undefined, false);
-        expect(() => db.lookupItemById((temp1.underlying as visual.Item).simpleName)).toThrow();
-
-        const temp2 = await db.addTemporaryItem(box, exists, undefined, true);
-        expect(db.lookupItemById((temp2.underlying as visual.Item).simpleName).view).toBe(temp2.underlying);
-    })
-
 });
 
 test("lookupTopologyItemById", async () => {

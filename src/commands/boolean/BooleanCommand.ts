@@ -21,6 +21,7 @@ export class BooleanCommand extends Command {
 
         const dialog = new BooleanDialog(boolean, editor.signals);
         const keyboard = new BooleanKeyboardGizmo(this.editor);
+        const gizmo = new MoveGizmo(boolean, editor);
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
 
@@ -49,37 +50,41 @@ export class BooleanCommand extends Command {
         }
 
         let g: CancellablePromise<void> | undefined = undefined;
-        const setToolsAndGizmo = async (selection: HasSelection) => {
-            const tools = [...selection.solids];
-            if (tools.length === 0) return false;
-
+        const setToolsAndGizmo = async (tools: visual.Solid[]) => {
             const bbox = new THREE.Box3();
             for (const object of tools) bbox.expandByObject(object);
             bbox.getCenter(centroid);
 
             ReplaceGizmo: {
-                g?.cancel();
-                const gizmo = new MoveGizmo(boolean, editor);
-                gizmo.position.copy(centroid);
-                g = gizmo.execute(s => {
-                    boolean.update();
-                }).resource(this);
+                if (g === undefined) {
+                    if (tools.length > 0) {
+                        gizmo.position.copy(centroid);
+                        g = gizmo.execute(s => {
+                            boolean.update();
+                        }).resource(this);
+                    }
+                } else if (tools.length === 0) {
+                    g.finish();
+                    g = undefined;
+                    boolean.move = new THREE.Vector3();
+                }
             }
 
-            boolean.move = new THREE.Vector3();
             boolean.tools = tools;
             await boolean.update();
             return true;
         }
 
         GetToolsIfAlreadySelected: {
-            const set = await setToolsAndGizmo(objectPicker.selection.selected);
+            const set = await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
             if (!set) await boolean.update();
         }
 
         dialog.replace("Select target bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
-            return objectPicker.execute(selection => {
+            objectPicker.selection.selected.add(boolean.targets);
+            objectPicker.prohibit(boolean.tools);
+            return objectPicker.execute(delta => {
                 const targets = [...objectPicker.selection.selected.solids];
                 boolean.targets = targets;
                 boolean.update();
@@ -88,16 +93,18 @@ export class BooleanCommand extends Command {
 
         const getTools = dialog.prompt("Select tool bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
-            return objectPicker.execute(async selection => {
-                await setToolsAndGizmo(objectPicker.selection.selected);
+            objectPicker.selection.selected.add(boolean.tools);
+            objectPicker.prohibit(boolean.targets);
+            return objectPicker.execute(async delta => {
+                await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
             }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
         });
         getTools();
 
         await this.finished;
 
-        const result = await boolean.commit() as visual.Solid;
-        editor.selection.selected.addSolid(result);
+        const results = await boolean.commit() as visual.Solid[];
+        editor.selection.selected.add(results);
     }
 }
 

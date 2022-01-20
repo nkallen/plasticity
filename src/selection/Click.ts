@@ -21,7 +21,7 @@ export class ClickStrategy {
         if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
-        
+
         return this.modify(modifier,
             () => {
                 this.writeable.addCurve(parentItem);
@@ -221,6 +221,11 @@ export class ClickStrategy {
         }
         return false;
     }
+}
+
+
+export class NonemptyClickStrategy extends ClickStrategy {
+    override emptyIntersection(modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void { }
 }
 
 export class HoverStrategy extends ClickStrategy {

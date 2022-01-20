@@ -18,8 +18,7 @@ export class GeometryPicker {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
-        const visible = objects.filter(o => o.visible);
-        let intersections = raycaster.intersectObjects(visible, false) as THREE.Intersection<intersectable.Intersectable>[];
+        let intersections = raycaster.intersectObjects(objects, false) as THREE.Intersection<intersectable.Intersectable>[];
         if (!isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }

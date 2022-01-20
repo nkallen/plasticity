@@ -24,17 +24,16 @@ export enum ChangeSelectionOption {
 }
 
 export class ChangeSelectionExecutor {
-    private readonly clickStrategy: ClickStrategy;
-    private readonly hoverStrategy: ClickStrategy;
     private readonly conversionStrategy: SelectionConversionStrategy;
 
     constructor(
         selection: HasSelectedAndHovered,
         db: DatabaseLike,
         private readonly signals: EditorSignals,
+        private readonly prohibitions: ReadonlySet<Selectable> = new Set(),
+        private readonly clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected),
+        private readonly hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered)
     ) {
-        this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected);
-        this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered);
         this.conversionStrategy = new SelectionConversionStrategy(selection, db);
 
         this.onClick = this.wrapFunction(this.onClick);
@@ -46,6 +45,8 @@ export class ChangeSelectionExecutor {
     }
 
     private onIntersection(intersections: Intersection[], strategy: ClickStrategy, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): Intersection | undefined {
+        const { prohibitions } = this;
+
         if (intersections.length == 0) {
             strategy.emptyIntersection(modifier, option);
             return;
@@ -53,7 +54,11 @@ export class ChangeSelectionExecutor {
 
         for (const intersection of intersections) {
             const object = intersection.object;
+            if (prohibitions.has(object.parentItem)) continue;
+
             if (object instanceof Face || object instanceof CurveEdge) {
+                if (prohibitions.has(object)) continue;
+
                 if (strategy.solid(object, modifier, option)) return intersection;
                 if (strategy.topologicalItem(object, modifier, option)) return intersection;
             } else if (object instanceof Curve3D) {
@@ -61,6 +66,8 @@ export class ChangeSelectionExecutor {
             } else if (object instanceof Region) {
                 if (strategy.region(object, modifier, option)) return intersection;
             } else if (object instanceof ControlPoint) {
+                if (prohibitions.has(object)) continue;
+
                 if (strategy.controlPoint(object, modifier, option)) return intersection;
             } else {
                 console.error(object);

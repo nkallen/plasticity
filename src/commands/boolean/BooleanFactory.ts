@@ -217,10 +217,10 @@ class BooleanPhantomStrategy {
             const toolPromises: Promise<TemporaryObject>[] = [];
             const targetPromises: Promise<TemporaryObject>[] = [];
             for (const { phantom, material } of toolInfos) {
-                toolPromises.push(this.db.addPhantom(phantom, material, undefined, true));
+                toolPromises.push(this.db.addPhantom(phantom, material));
             }
             for (const { phantom, material } of targetInfos) {
-                targetPromises.push(this.db.addPhantom(phantom, material, undefined, true));
+                targetPromises.push(this.db.addPhantom(phantom, material));
             }
             const toolPhantoms = await Promise.all(toolPromises);
             const targetPhantoms = await Promise.all(targetPromises);
@@ -232,8 +232,9 @@ class BooleanPhantomStrategy {
         }
         const { tools, targets } = this.phantoms.get().value!;
         MovePhantomsOnUpdate: {
-            for (const phantom of tools) {
+            for (const [i, phantom] of tools.entries()) {
                 phantom.underlying.position.copy(this.move);
+                this.tools.views[i].position.copy(this.move);
             }
         }
         return [...tools, ...targets];
@@ -272,6 +273,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
         for (const target of targets) {
             const individual = new MovingBooleanFactory(this.db, this.materials, this.signals);
             individual.target = target;
+            individual['_tools'] = this._tools;
             individuals.push(individual);
         }
         this.factories = individuals;
@@ -296,6 +298,10 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
         phantoms.move = this.move;
         const temps = await phantoms.doPhantoms(abortEarly);
         return this.showTemps(temps);
+    }
+
+    protected get originalItem(): visual.Item[] {
+        return [...this._targets.views, ...this._tools.views];
     }
 }
 

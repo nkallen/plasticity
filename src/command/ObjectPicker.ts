@@ -5,14 +5,16 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ChangeSelectionExecutor, SelectionDelta, SelectionMode } from '../selection/ChangeSelectionExecutor';
-import { HasSelectedAndHovered, HasSelection } from '../selection/SelectionDatabase';
+import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { HasSelectedAndHovered, HasSelection, Selectable } from '../selection/SelectionDatabase';
 import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import { Executable } from './Quasimode';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
+import * as visual from '../visual_model/VisualModel';
+import { NonemptyClickStrategy } from '../selection/Click';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -27,13 +29,14 @@ interface EditorLike {
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
-    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.selection.signals);
+    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.selection.signals, this.prohibitions, new NonemptyClickStrategy(this.selection.mode, this.selection.selected, this.selection.hovered, this.selection.selected));
 
     constructor(
         viewport: Viewport,
         private readonly editor: EditorLike,
         private readonly selection: HasSelectedAndHovered,
         raycasterParams: THREE.RaycasterParameters,
+        private readonly prohibitions: ReadonlySet<Selectable>,
         keymapSelector?: string,
     ) {
         super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals, raycasterParams, keymapSelector);
@@ -42,8 +45,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
-        if (intersections.length === 0) return;
-        this.changeSelection.onClick(intersections, this.event2modifier(upEvent), this.event2option(upEvent));
+        this.changeSelection.onClick(intersections, this.event2modifier(upEvent), ChangeSelectionOption.None);
     }
 
     protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) { }
@@ -53,7 +55,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 
     processHover(intersects: Intersection[], moveEvent?: MouseEvent) {
-        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent), this.event2option(moveEvent));
+        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent), ChangeSelectionOption.None);
     }
 
     processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {
@@ -65,8 +67,11 @@ type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellableP
 
 export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     readonly selection: HasSelectedAndHovered;
-    min = 1;
-    max = 1;
+
+    min = 1; max = 1;
+    get mode() { return this.selection.mode }
+    private prohibitions: ReadonlySet<Selectable> = new Set();
+
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Mesh: { threshold: 0 },
         Line: { threshold: 0.1 },
@@ -77,8 +82,6 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     constructor(private readonly editor: EditorLike, selection?: HasSelectedAndHovered, private readonly keymapSelector?: string) {
         this.selection = selection ?? editor.selection.makeTemporary();
     }
-
-    get mode() { return this.selection.mode }
 
     execute(cb?: (o: SelectionDelta) => void, min = this.min, max = this.max, mode?: SelectionMode): CancellablePromise<HasSelection> {
         const { editor, selection, selection: { signals } } = this;
@@ -113,7 +116,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             }));
 
             for (const viewport of this.editor.viewports) {
-                const selector = new ObjectPickerViewportSelector(viewport, editor, selection, this.raycasterParams, this.keymapSelector);
+                const selector = new ObjectPickerViewportSelector(viewport, editor, selection, this.raycasterParams, this.prohibitions, this.keymapSelector);
                 disposables.add(viewport.multiplexer.only(selector));
                 disposables.add(new Disposable(() => selector.dispose()));
             }
@@ -125,6 +128,10 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
         });
 
         return cancellable;
+    }
+
+    prohibit(prohibitions: Iterable<Selectable>) {
+        this.prohibitions = new Set(prohibitions);
     }
 
     private get(mode: SelectionMode.Face, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<FaceSelection>;

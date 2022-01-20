@@ -85,17 +85,7 @@ export class CommandExecutor {
             let selectionChanged = false;
             signals.objectSelected.addOnce(() => selectionChanged = true);
             signals.objectDeselected.addOnce(() => selectionChanged = true);
-            if (command.agent === 'automatic') {
-                command.factoryChanged.addOnce(() => {
-                    for (const viewport of this.editor.viewports) {
-                        viewport.selector.enable(false);
-                    }
-                });
-            } else {
-                for (const viewport of this.editor.viewports) {
-                    viewport.selector.enable(false);
-                }
-            }
+            this.disableViewportSelector(command);
             await contours.transaction(async () => {
                 await meshCreator.caching(async () => {
                     await command.execute();
@@ -112,7 +102,6 @@ export class CommandExecutor {
             originator.restoreFromMemento(state);
             throw e;
         } finally {
-            // meshCache.dispose();
             document.body.removeAttribute("command");
             for (const viewport of this.editor.viewports) {
                 viewport.enableControls();
@@ -127,6 +116,20 @@ export class CommandExecutor {
                 viewport.validate();
             }
             console.groupEnd();
+        }
+    }
+
+    private disableViewportSelector(command: Command) {
+        if (command.agent === 'automatic') {
+            command.factoryChanged.addOnce(() => {
+                for (const viewport of this.editor.viewports) {
+                    viewport.selector.enable(false);
+                }
+            });
+        } else {
+            for (const viewport of this.editor.viewports) {
+                viewport.selector.enable(false);
+            }
         }
     }
 

@@ -9,7 +9,6 @@ import { Editor } from '../../editor/Editor';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { AbstractViewportSelector } from '../../selection/ViewportSelector';
 import * as visual from '../../visual_model/VisualModel';
-import { icons } from '../toolbar/icons';
 import { pointerEvent2keyboardEvent } from '../viewport/KeyboardEventManager';
 
 export class Model {
