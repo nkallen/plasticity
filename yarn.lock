@@ -15890,7 +15890,7 @@ resolve@1.1.7:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: e67db62af09690bc7d9f2fd01b54d492aae8ab137ffd7c3748c6f0da36835aa52686625a77c838115914dd3f601438ac30d28aa420741b6374fe9513d5ae8e59
+  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
   languageName: node
   linkType: hard
 
