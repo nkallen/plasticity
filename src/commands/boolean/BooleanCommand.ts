@@ -89,6 +89,9 @@ export class BooleanCommand extends Command {
                 boolean.targets = targets;
                 boolean.update();
             }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        }, () => {
+            boolean.targets = [];
+            boolean.update();
         });
 
         const getTools = dialog.prompt("Select tool bodies", () => {
@@ -98,7 +101,7 @@ export class BooleanCommand extends Command {
             return objectPicker.execute(async delta => {
                 await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
             }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
-        });
+        }, () => setToolsAndGizmo([]));
         getTools();
 
         await this.finished;

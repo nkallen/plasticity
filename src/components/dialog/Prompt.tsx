@@ -19,21 +19,34 @@ export class Prompt extends HTMLElement {
     get description() { return this._description }
     set description(description: string) { this._description = description }
 
+    private _onclear?: () => void;
+    get onclear() { return this._onclear }
+    set onclear(onclear: (() => void) | undefined) { this._onclear = onclear }
+
     connectedCallback() { this.render() }
     disconnectedCallback() { }
 
     render() {
-        const { name, description, state: { tag } } = this;
+        const { name, description, state: { tag }, onclear } = this;
         let icon;
         switch (tag) {
             case 'executing': icon = <div class="w-4 h-4 rounded-full bg-neutral-600"> <div class="w-full h-full rounded-full bg-neutral-600 animate-ping"> </div></div>; break;
             case 'finished': icon = <plasticity-icon name="check" class="bg-green-600 rounded-full"></plasticity-icon>; break;
             default: icon = <div class="w-4 h-4 rounded-full bg-transparent"> </div>; break;;
         }
+        const clear = onclear !== undefined
+            ? <button class="rounded-full group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={() => onclear()}>
+                <plasticity-icon name="cancel"></plasticity-icon>
+            </button>
+            : <></>;
 
-        render(<li class={`flex items-center py-1 px-1 space-x-2 text-xs rounded-full ${tag === 'executing' ? 'bg-neutral-800' : 'cursor-pointer'}`}>
-            {icon}
-            <div class="font-bold text-neutral-200">{name}</div> <div class="text-neutral-500">{description}</div>
+        render(<li class={`flex items-center py-1 pl-1 pr-2 justify-between text-xs rounded-full ${tag === 'executing' ? 'bg-neutral-800' : 'cursor-pointer'}`}>
+            <div class="flex items-center space-x-2">
+                {icon}
+                <div class="font-bold text-neutral-200">{name}</div>
+                <div class="text-neutral-500">{description}</div>
+            </div>
+            {clear}
         </li>, this);
     }
 

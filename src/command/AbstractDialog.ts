@@ -86,7 +86,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
         }
     }
 
-    prompt<T>(key: string, execute: () => CancellablePromise<T>, replace = false): () => CancellablePromise<T> {
+    prompt<T>(key: string, execute: () => CancellablePromise<T>, clear?: () => void, replace = false): () => CancellablePromise<T> {
         switch (this.state.tag) {
             case 'executing':
                 const element = this.querySelector(`plasticity-prompt[name='${key}']`);
@@ -109,12 +109,14 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                     }
                 }
                 prompt.onclick = trigger;
+                prompt.onclear = clear;
+                prompt.render();
                 return trigger;
             default: throw new Error('invalid state');
         }
     }
 
-    replace<T>(key: string, execute: () => CancellablePromise<T>): () => CancellablePromise<T> {
-        return this.prompt(key, execute, true);
+    replace<T>(key: string, execute: () => CancellablePromise<T>, clear?: () => void): () => CancellablePromise<T> {
+        return this.prompt(key, execute, clear, true);
     }
 }
