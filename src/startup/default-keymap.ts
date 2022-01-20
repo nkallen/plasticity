@@ -87,8 +87,11 @@ export default {
         "X": "gizmo:move:yz",
         "Y": "gizmo:move:xz",
         "g": "gizmo:move:screen",
-        "f": "gizmo:move:free",
-        "w": "gizmo:move:pivot"
+    },
+
+    "[command='move'] plasticity-viewport": {
+        "f": "keyboard:move:free",
+        "w": "keyboard:move:pivot"
     },
 
     "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
@@ -99,8 +102,8 @@ export default {
         "X": "gizmo:scale:yz",
         "Y": "gizmo:scale:xz",
         "s": "gizmo:scale:xyz",
-        "f": "gizmo:scale:free",
-        "w": "gizmo:scale:pivot"
+        "f": "keyboard:scale:free",
+        "w": "keyboard:scale:pivot"
     },
 
     "[command='fillet-solid'] plasticity-viewport": {
@@ -120,8 +123,8 @@ export default {
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",
         "r": "gizmo:rotate:screen",
-        "f": "gizmo:rotate:free",
-        "w": "gizmo:rotate:pivot"
+        "f": "keyboard:rotate:free",
+        "w": "keyboard:rotate:pivot"
     },
 
     "[command='curve'] plasticity-viewport": {

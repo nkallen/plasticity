@@ -30,9 +30,9 @@ export class Prompt extends HTMLElement {
         const { name, description, state: { tag }, onclear } = this;
         let icon;
         switch (tag) {
-            case 'executing': icon = <div class="w-4 h-4 rounded-full bg-neutral-600"> <div class="w-full h-full rounded-full bg-neutral-600 animate-ping"> </div></div>; break;
+            case 'executing': icon = <div class="w-4 h-4 rounded-full bg-neutral-600"> <div class="w-full h-full rounded-full animate-ping bg-neutral-600"> </div></div>; break;
             case 'finished': icon = <plasticity-icon name="check" class="bg-green-600 rounded-full"></plasticity-icon>; break;
-            default: icon = <div class="w-4 h-4 rounded-full bg-transparent"> </div>; break;;
+            default: icon = <div class="w-4 h-4 bg-transparent rounded-full"> </div>; break;;
         }
         const clear = onclear !== undefined
             ? <button class="rounded-full group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={() => onclear()}>

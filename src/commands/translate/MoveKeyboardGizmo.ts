@@ -8,8 +8,8 @@ interface EditorLike extends cmd.EditorLike, pp.EditorLike {
 export class MoveKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
         super('move', editor, [
-            'gizmo:move:free',
-            'gizmo:move:pivot',
+            'keyboard:move:free',
+            'keyboard:move:pivot',
         ]);
     }
 }

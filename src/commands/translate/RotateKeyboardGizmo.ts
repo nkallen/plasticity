@@ -8,8 +8,8 @@ interface EditorLike extends cmd.EditorLike, pp.EditorLike {
 export class RotateKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
         super('rotate', editor, [
-            'gizmo:rotate:free',
-            'gizmo:rotate:pivot',
+            'keyboard:rotate:free',
+            'keyboard:rotate:pivot',
         ]);
     }
 }

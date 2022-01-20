@@ -55,11 +55,12 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     private _reject!: (reason?: any) => void;
     private readonly promise: Promise<T>;
 
-    dispose() { this._dispose(); }
+    dispose() { this._dispose() }
 
     constructor(executor: Executor<T>) {
         super();
         const that = this;
+        that._dispose = () => { console.error("Cancellable disposed of before initialization finished") };
         this.promise = new Promise<T>((resolve, reject) => {
             const { dispose, finish } = executor(
                 t => {
