@@ -88,6 +88,7 @@ export default {
         "Y": "gizmo:move:xz",
         "g": "gizmo:move:screen",
         "f": "gizmo:move:free",
+        "w": "gizmo:move:pivot"
     },
 
     "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
@@ -99,6 +100,7 @@ export default {
         "Y": "gizmo:scale:xz",
         "s": "gizmo:scale:xyz",
         "f": "gizmo:scale:free",
+        "w": "gizmo:scale:pivot"
     },
 
     "[command='fillet-solid'] plasticity-viewport": {

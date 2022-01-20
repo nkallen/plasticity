@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
+import { GeometryFactory } from "../../command/GeometryFactory";
 import { PointPicker } from "../../command/PointPicker";
 import { point2point, vec2vec } from "../../util/Conversion";
+import { GConstructor } from "../../util/Util";
 import * as visual from "../../visual_model/VisualModel";
 import { DraftSolidFactory } from "../modifyface/DraftSolidFactory";
 import { ActionFaceCommand } from "../modifyface/ModifyFaceCommand";
@@ -68,13 +70,7 @@ export class MoveItemCommand extends Command {
             dialog.render();
         }).resource(this);
 
-        keyboard.execute(async (s) => {
-            switch (s) {
-                case 'free':
-                    this.finish();
-                    this.editor.enqueue(new FreestyleMoveItemCommand(this.editor), false);
-            }
-        }).resource(this);
+        keyboard.execute(onKeyPress(move, gizmo, FreestyleMoveItemCommand).bind(this)).resource(this);
 
         await this.finished;
 
@@ -127,13 +123,7 @@ export class ScaleItemCommand extends Command {
             dialog.render();
         }).resource(this);
 
-        keyboard.execute(async (s) => {
-            switch (s) {
-                case 'free':
-                    this.finish();
-                    this.editor.enqueue(new FreestyleItemScaleCommand(this.editor), false);
-            }
-        }).resource(this);
+        keyboard.execute(onKeyPress(scale, gizmo, FreestyleItemScaleCommand).bind(this)).resource(this);
 
         await this.finished;
 
@@ -187,13 +177,7 @@ export class RotateItemCommand extends Command {
             dialog.render();
         }).resource(this);
 
-        keyboard.execute(async (s) => {
-            switch (s) {
-                case 'free':
-                    this.finish();
-                    this.editor.enqueue(new FreestyleRotateItemCommand(this.editor), false);
-            }
-        }).resource(this);
+        keyboard.execute(onKeyPress(rotate, gizmo, FreestyleRotateItemCommand).bind(this)).resource(this);
 
         await this.finished;
 
@@ -226,28 +210,33 @@ export class DraftSolidCommand extends Command {
             draftSolid.update();
         }).resource(this);
 
-        keyboard.execute(async (s) => {
-            switch (s) {
-                case 'pivot': {
-                    gizmo.disable();
-                    const pointPicker = new PointPicker(this.editor);
-                    await pointPicker.execute(({ point: pivot, info: { snap } }) => {
-                        const { position, orientation } = snap.project(pivot);
-                        gizmo.position.copy(pivot);
-                        gizmo.quaternion.copy(orientation);
-                        draftSolid.pivot = position;
-                    }).resource(this);
-                    gizmo.enable();
-                    break;
-                }
-                case 'free':
-                    this.finish();
-                    this.editor.enqueue(new FreestyleDraftSolidCommand(this.editor), false);
-            }
-        }).resource(this);
+        keyboard.execute(onKeyPress(draftSolid, gizmo, FreestyleDraftSolidCommand).bind(this)).resource(this);
 
         await this.finished;
 
         await draftSolid.commit();
+    }
+}
+
+function onKeyPress(factory: GeometryFactory & { pivot: THREE.Vector3 }, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo, freestyle: GConstructor<Command>) {
+    return async function (this: Command, s: string) {
+        switch (s) {
+            case 'pivot': {
+                gizmo.disable();
+                const pointPicker = new PointPicker(this.editor);
+                const { point: pivot } = await pointPicker.execute(({ point: pivot, info: { snap } }) => {
+                    const { position, orientation } = snap.project(pivot);
+                    gizmo.position.copy(pivot);
+                    gizmo.quaternion.copy(orientation);
+                }).resource(this);
+                gizmo.pivot.copy(pivot);
+                factory.pivot = pivot;
+                gizmo.enable();
+                break;
+            }
+            case 'free':
+                this.finish();
+                this.editor.enqueue(new freestyle(this.editor), false);
+        }
     }
 }

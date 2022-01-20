@@ -27,6 +27,8 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
     private readonly trigger = new AdvancedGizmoTriggerStrategy<any, void>(this.editor);
 
+    get pivot() { return this.position }
+
     constructor(params: RotateParams, editor: EditorLike) {
         super(params, editor);
 

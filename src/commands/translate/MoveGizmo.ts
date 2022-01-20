@@ -32,7 +32,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     private readonly xz = new PlanarMoveGizmo("move:xz", this.editor, this.magenta);
     private readonly screen = new CircleMoveGizmo("move:screen", this.editor);
 
-    private readonly originalPosition = new THREE.Vector3();
+    readonly pivot = new THREE.Vector3();
 
     protected prepare(mode: Mode) {
         const { x, y, z, xy, yz, xz, screen } = this;
@@ -48,7 +48,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
 
-        this.originalPosition.copy(this.position);
+        this.pivot.copy(this.position);
     }
 
     execute(cb: (params: MoveParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
@@ -56,12 +56,13 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
         const set = () => {
             const delta = new THREE.Vector3(x.value, y.value, z.value);
-            delta.add(screen.value);
             delta.add(xy.value);
             delta.add(yz.value);
             delta.add(xz.value);
+            delta.applyQuaternion(this.quaternion);
+            delta.add(screen.value);
             params.move = delta;
-            this.position.copy(this.originalPosition).add(delta);
+            this.position.copy(this.pivot).add(delta);
         }
 
         this.addGizmo(x, set);
@@ -79,7 +80,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         this.x.value = params.move.x;
         this.y.value = params.move.y;
         this.z.value = params.move.z;
-        this.position.copy(this.originalPosition).add(params.move);
+        this.position.copy(this.pivot).add(params.move);
     }
 }
 

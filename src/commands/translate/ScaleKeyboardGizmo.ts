@@ -9,6 +9,7 @@ export class ScaleKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
         super('scale', editor, [
             'gizmo:scale:free',
+            'gizmo:scale:pivot',
         ]);
     }
 }
