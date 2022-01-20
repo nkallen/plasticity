@@ -81,7 +81,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         if (abortEarly()) return Promise.resolve([]);
 
         const promises: Promise<TemporaryObject>[] = [];
-        for (const { phantom, material, ancestor } of infos) {
+        for (const { phantom, material } of infos) {
             promises.push(this.db.addPhantom(phantom, material));
         }
         const phantoms = await Promise.all(promises);
@@ -278,14 +278,16 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     phantoms.then(() => {
                         if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
                         else state.step = 'all-completed';
+                        // ensure phantoms are rendered as soon as they're ready:
+                        if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
                     }, () => { });
                     temps.then(() => {
                         if (state.step === 'begin') state.step = 'calculate-completed';
                         else state.step = 'all-completed';
+                        // rerender now that we're done calculating the temps:
+                        if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
                     }, () => { });
                     await Promise.all([phantoms, temps]);
-                    // @ts-expect-error
-                    if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
                 } catch (e) {
                     this.state.failed = e ?? new Error("unknown error");
                 } finally {

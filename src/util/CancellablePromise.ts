@@ -154,3 +154,5 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
         return this.onFinish(reject => reject(Finish));
     }
 }
+
+export class AlreadyFinishedError extends Error { }

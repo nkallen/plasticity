@@ -7,6 +7,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { CachingMeshCreator } from "../editor/MeshCreator";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
+import { AlreadyFinishedError } from "../util/CancellablePromise";
 import { GConstructor } from "../util/Util";
 import Command from "./Command";
 import { NoOpError, ValidationError } from "./GeometryFactory";
@@ -64,7 +65,7 @@ export class CommandExecutor {
                     if (command !== undefined) await this.enqueue(command, false, false);
                 }
             } catch (e) {
-                if (e !== Cancel && e !== Finish && e !== Interrupt && !(e instanceof NoOpError)) {
+                if (e !== Cancel && e !== Finish && e !== Interrupt && !(e instanceof NoOpError) && !(e instanceof AlreadyFinishedError)) {
                     if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);
                     else console.warn(e);
                 }

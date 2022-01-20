@@ -20,7 +20,6 @@ export class BooleanCommand extends Command {
 
         const dialog = new BooleanDialog(boolean, editor.signals);
         const keyboard = new BooleanKeyboardGizmo(this.editor);
-        const gizmo = new MoveGizmo(boolean, editor);
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
 
@@ -50,6 +49,7 @@ export class BooleanCommand extends Command {
 
         let g: CancellablePromise<void> | undefined = undefined;
         const setToolsAndGizmo = async (tools: visual.Solid[]) => {
+            console.log("here")
             const bbox = new THREE.Box3();
             for (const object of tools) bbox.expandByObject(object);
             bbox.getCenter(centroid);
@@ -57,6 +57,7 @@ export class BooleanCommand extends Command {
             ReplaceGizmo: {
                 if (g === undefined) {
                     if (tools.length > 0) {
+                        const gizmo = new MoveGizmo(boolean, editor);
                         gizmo.position.copy(centroid);
                         g = gizmo.execute(s => {
                             boolean.update();

@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { Prompt } from "../components/dialog/Prompt";
 import { EditorSignals } from "../editor/EditorSignals";
-import { CancellablePromise } from "../util/CancellablePromise";
+import { AlreadyFinishedError, CancellablePromise } from "../util/CancellablePromise";
 import { Executable } from "./Quasimode";
 
 type PromptState = { tag: 'none' } | { tag: 'executing', finish: () => void } | { tag: 'end' }
@@ -112,6 +112,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                 prompt.onclear = clear;
                 prompt.render();
                 return trigger;
+            case 'finished': throw new AlreadyFinishedError();
             default: throw new Error('invalid state: ' + this.state.tag);
         }
     }
