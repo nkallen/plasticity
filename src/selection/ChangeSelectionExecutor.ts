@@ -93,12 +93,12 @@ export class ChangeSelectionExecutor {
         this.onIntersection(intersections, this.hoverStrategy, modifier, option);
     }
 
-    onBoxHover(hover: Set<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
-        this.hoverStrategy.box(hover, modifier);
+    onBoxHover(hover: ReadonlySet<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
+        this.hoverStrategy.box(this.filterProhibited(hover), modifier);
     }
 
-    onBoxSelect(select: Set<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
-        this.clickStrategy.box(select, modifier);
+    onBoxSelect(select: ReadonlySet<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
+        this.clickStrategy.box(this.filterProhibited(select), modifier);
     }
 
     onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
@@ -107,6 +107,26 @@ export class ChangeSelectionExecutor {
 
     onConvert(mode: SelectionMode, modifier: ChangeSelectionModifier) {
         this.conversionStrategy.convert(mode, modifier);
+    }
+
+    private filterProhibited(select: ReadonlySet<Intersectable | visual.Solid>) {
+        const { prohibitions } = this;
+        if (prohibitions.size === 0) return select;
+        const result = new Set(select);
+        if (prohibitions.size > 0) {
+            for (const intersectable of select) {
+                if (intersectable instanceof visual.Solid) {
+                    if (!prohibitions.has(intersectable)) continue;
+                } else if (intersectable instanceof visual.TopologyItem) {
+                    if (!prohibitions.has(intersectable.parentItem) && !prohibitions.has(intersectable)) continue;
+                } else if (intersectable instanceof visual.ControlPoint) {
+                    if (prohibitions.has(intersectable)) continue;
+                }
+
+                result.delete(intersectable);
+            }
+        }
+        return result;
     }
 
     // TODO: aggregate selection as well

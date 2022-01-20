@@ -701,4 +701,15 @@ describe('prohibit', () => {
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(0);
     });
+
+    test('selectionmode=object, box selecting a face of a prohibited solid will not select the object', () => {
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+
+        const face = solid.faces.get(0);
+        const intersections = new Set([face]);
+
+        expect(selectionDb.selected.solids.size).toBe(0);
+        changeSelection.onBoxSelect(intersections, ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(0);
+    });
 })

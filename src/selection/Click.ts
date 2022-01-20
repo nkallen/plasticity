@@ -123,7 +123,7 @@ export class ClickStrategy {
             });
     }
 
-    box(set: Set<Intersectable | Solid>, modifier: ChangeSelectionModifier): void {
+    box(set: ReadonlySet<Intersectable | Solid>, modifier: ChangeSelectionModifier): void {
         const { hovered } = this;
         hovered.removeAll();
 

@@ -4,7 +4,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Executable } from "./Quasimode";
 
-type PromptState = { tag: 'none' } | { tag: 'executing', finish: () => void }
+type PromptState = { tag: 'none' } | { tag: 'executing', finish: () => void } | { tag: 'end' }
 type DialogState<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void>, prompt: PromptState } | { tag: 'finished' }
 
 export abstract class AbstractDialog<T> extends HTMLElement implements Executable<T, void> {
@@ -58,7 +58,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
     execute(cb: (sv: T) => void) {
         const cancellable = new CancellablePromise<void>((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            disposables.add(new Disposable(() => this.state = { tag: 'none' }));
+            disposables.add(new Disposable(() => this.state = { tag: 'finished' }));
 
             this.signals.dialogAdded.dispatch(this);
             disposables.add(new Disposable(() => this.signals.dialogRemoved.dispatch()));
@@ -112,7 +112,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                 prompt.onclear = clear;
                 prompt.render();
                 return trigger;
-            default: throw new Error('invalid state');
+            default: throw new Error('invalid state: ' + this.state.tag);
         }
     }
 
