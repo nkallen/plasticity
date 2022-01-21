@@ -10,7 +10,7 @@ import * as visual from '../../visual_model/VisualModel';
 import { MoveParams } from "../translate/TranslateFactory";
 
 export interface BooleanLikeFactory extends GeometryFactory {
-    set target(target: visual.Solid | c3d.Solid);
+    set targets(targets: visual.Solid[]);
     set tool(target: visual.Solid | c3d.Solid);
 
     operationType: c3d.OperationType;
@@ -26,7 +26,7 @@ export interface BooleanParams {
     mergingEdges: boolean;
 }
 
-export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory, BooleanParams {
+export class BooleanFactory extends GeometryFactory implements BooleanParams {
     private _operationType = c3d.OperationType.Difference;
     get operationType() { return this._operationType }
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
@@ -173,7 +173,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
         const { phantoms } = this;
         phantoms.operationType = this.operationType;
         phantoms.tools = this._tools;
-        phantoms.targets = { models: [this._target.model], views: [this._target.view]};
+        phantoms.targets = { models: [this._target.model], views: [this._target.view] };
         phantoms.move = this.move;
         const temps = await phantoms.doPhantoms(abortEarly);
         return this.showTemps(temps);
@@ -254,8 +254,14 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     @delegate.default(true) mergingFaces!: boolean;
     @delegate.default(true) mergingEdges!: boolean;
 
+    isOverlapping = false;
+    isSurface = false;
+    set tool(solid: visual.Solid | c3d.Solid) {
+        this._tools.models = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
+    }
+
     private _operationType = c3d.OperationType.Difference;
-    get operationType() { return this._operationType} 
+    get operationType() { return this._operationType }
     set operationType(operationType: c3d.OperationType) {
         this._operationType = operationType;
         for (const factory of this.factories) factory.operationType = operationType;
@@ -302,6 +308,26 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
 
     protected get originalItem(): visual.Item[] {
         return [...this._targets.views, ...this._tools.views];
+    }
+
+    private readonly unionSingleton =  new MovingBooleanFactory(this.db, this.materials, this.signals);
+
+    async calculate() {
+        const { operationType, _targets: { models: targets }, _tools: { models: tools } } = this;
+        if (targets.length === 0) return [];
+        if (tools.length === 0) return [];
+
+        if (operationType === c3d.OperationType.Union) {
+            const { unionSingleton } = this;
+            unionSingleton.operationType = operationType;
+            const [first, ...rest] = targets;
+            unionSingleton.target = first;
+            unionSingleton['_tools'] = { models: [...tools, ...rest], views: [] };
+            return [await unionSingleton.calculate()];
+        } else {
+            return super.calculate();
+        }
+
     }
 }
 

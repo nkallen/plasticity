@@ -102,15 +102,16 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
         })
 
         test('basic union', async () => {
-            makeBox.target = sphere;
+            makeBox.targets = [sphere];
             makeBox.p1 = new THREE.Vector3(0, 0, 0);
             makeBox.p2 = new THREE.Vector3(1, 1, 0);
             makeBox.p3 = new THREE.Vector3(0, 0, 3);
             makeBox.operationType = c3d.OperationType.Union;
 
-            const result = await makeBox.commit() as visual.SpaceItem;
+            const results = await makeBox.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1)
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
@@ -123,8 +124,10 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
             makeBox.p2 = new THREE.Vector3(1, 1, 0);
             makeBox.p3 = new THREE.Vector3(0, 0, 1);
 
-            const item = await makeBox.commit() as visual.SpaceItem;
-            const bbox = new THREE.Box3().setFromObject(item);
+            const items = await makeBox.commit() as visual.SpaceItem[];
+            expect(items.length).toBe(1);
+
+            const bbox = new THREE.Box3().setFromObject(items[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.5));
@@ -143,7 +146,9 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
             makeBox1.p1 = new THREE.Vector3(0, 0, 0);
             makeBox1.p2 = new THREE.Vector3(1, 1, 0);
             makeBox1.p3 = new THREE.Vector3(0, 0, 1);
-            box = await makeBox1.commit() as visual.Solid;
+            const results = await makeBox1.commit() as visual.Solid[];
+            expect(results.length).toBe(1);
+            box = results[0];
 
             bbox.setFromObject(box);
             bbox.getCenter(center);
@@ -155,7 +160,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 
         test.skip('when projecting out, union', async () => {
             const makeBox2 = new PossiblyBooleanCornerBoxFactory(db, materials, signals);
-            makeBox2.target = box;
+            makeBox2.targets = [box];
             makeBox2.p1 = new THREE.Vector3(1, 0, 0);
             makeBox2.p2 = new THREE.Vector3(2, 1, 0);
             makeBox2.p3 = new THREE.Vector3(0, 0, 1);
@@ -169,12 +174,13 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 
         test('when projecting in, intersection', async () => {
             const makeBox2 = new PossiblyBooleanCornerBoxFactory(db, materials, signals);
-            makeBox2.target = box;
+            makeBox2.targets = [box];
             makeBox2.p1 = new THREE.Vector3(1, 0, 0);
             makeBox2.p2 = new THREE.Vector3(0.5, 1, 0);
             makeBox2.p3 = new THREE.Vector3(0, 0, 1);
-            const item = await makeBox2.commit() as visual.Solid;
-            bbox.setFromObject(item);
+            const results = await makeBox2.commit() as visual.Solid[];
+            expect(results.length).toBe(1)
+            bbox.setFromObject(results[0]);
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.25, 0.5, 0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));

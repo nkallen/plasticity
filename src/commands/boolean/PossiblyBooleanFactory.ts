@@ -15,15 +15,12 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType; }
     get defaultOperationType() { return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference; }
 
-    protected _target?: visual.Solid;
-    protected model?: c3d.Solid;
-    get target() { return this._target; }
-    set target(target: visual.Solid | undefined) {
-        this._target = target;
-        if (target !== undefined) {
-            this.bool.target = target;
-            this.model = this.db.lookup(target);
-        }
+    private _targets: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
+    get targets() { return this._targets.views }
+    set targets(targets: visual.Solid[]) {
+        const models = targets.map(t => this.db.lookup(t));
+        this._targets = { views: targets, models };
+        this.bool.targets = targets;
     }
 
     protected _isOverlapping = false;
@@ -43,17 +40,26 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     private async beforeCalculate(fast = false) {
         const phantom = await this.fantom.calculate() as c3d.Solid;
         let isOverlapping, isSurface;
-        if (this.target === undefined) {
+        if (this.targets.length === 0) {
             isOverlapping = false;
             isSurface = false;
         } else {
-            const cube1 = this.model!.GetCube();
-            const cube2 = phantom.GetCube();
-            if (!cube1.Intersect(cube2)) {
+            const cube1 = phantom.GetCube();
+            const possible = [];
+            for (const model of this._targets.models) {
+                const cube2 = model.GetCube();
+                if (cube1.Intersect(cube2)) {
+                    possible.push(model);
+                }
+            }
+            if (possible.length === 0) {
                 isOverlapping = false;
                 isSurface = false;
             } else {
-                isOverlapping = await c3d.Action.IsSolidsIntersectionFast_async(this.model!, phantom, new c3d.SNameMaker(0, c3d.ESides.SideNone, 0));
+                const names = new c3d.SNameMaker(0, c3d.ESides.SideNone, 0);
+                const promises = possible.map(p => c3d.Action.IsSolidsIntersectionFast_async(p, phantom, names));
+                const intersections = await Promise.all(promises);
+                isOverlapping = intersections.some(x => x);
                 isSurface = false;
             }
         }
@@ -63,13 +69,14 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     async calculate() {
         const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
         this.isOverlapping = isOverlapping; this.isSurface = isSurface;
+
         if (isOverlapping && !this.newBody) {
             this.bool.operationType = this.operationType;
             this.bool.tool = phantom;
-            const result = await this.bool.calculate() as c3d.Solid;
+            const result = await this.bool.calculate() as c3d.Solid[];
             return result;
         } else {
-            return phantom;
+            return [phantom];
         }
     }
 
@@ -77,7 +84,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         const phantom = await this.fantom.calculate() as c3d.Solid;
         const isOverlapping = this.isOverlapping;
 
-        if (this.target === undefined)
+        if (this.targets.length === 0)
             return [];
         if (this.newBody)
             return [];
@@ -97,9 +104,9 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         return [{ phantom, material }];
     }
 
-    get originalItem() { return this.target; }
+    get originalItem() { return this.targets }
 
     get shouldRemoveOriginalItemOnCommit() {
-        return this.isOverlapping && this.target !== undefined && !this.newBody;
+        return this.isOverlapping && this.targets.length !== 0 && !this.newBody;
     }
 }

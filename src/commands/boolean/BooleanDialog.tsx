@@ -15,13 +15,7 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
         const { mergingFaces, mergingEdges, operationType } = this.params;
         render(
             <>
-                <ol class="flex flex-col py-2 m-3 my-1 space-y-1.5 text-xs border-b border-neutral-900">
-                    {/* <li class="flex items-center px-1 space-x-2">
-                        <plasticity-icon name="check" class="bg-green-600 rounded-full"></plasticity-icon>
-                        <div class="text-xs font-bold text-neutral-200">Select target bodies</div> <div
-                            class="text-xs text-neutral-500">to
-                            cut or join into</div>
-                    </li> */}
+                <ol>
                     <plasticity-prompt name="Select target bodies" description="to cut or join into"></plasticity-prompt>
                     <plasticity-prompt name="Select tool bodies" description="to cut or join with"></plasticity-prompt>
                 </ol>

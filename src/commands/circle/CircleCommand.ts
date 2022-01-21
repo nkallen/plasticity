@@ -47,7 +47,7 @@ export class EditCircleCommand extends Command {
     remember = false;
 
     async execute(): Promise<void> {
-        const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         edit.circle = this.circle;
 
         const dialog = new EditCircleDialog(edit, this.editor.signals);

@@ -97,15 +97,16 @@ describe(PossiblyBooleanCylinderFactory, () => {
 
     describe('commit', () => {
         test('basic union', async () => {
-            makeCylinder.target = sphere;
+            makeCylinder.targets = [sphere];
             makeCylinder.base = new THREE.Vector3();
             makeCylinder.radius = new THREE.Vector3(0.5, 0, 0);
             makeCylinder.height = new THREE.Vector3(0, 0, 10);
             makeCylinder.operationType = c3d.OperationType.Union;
 
-            const result = await makeCylinder.commit() as visual.SpaceItem;
+            const results = await makeCylinder.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1)
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 4.5));
@@ -117,8 +118,9 @@ describe(PossiblyBooleanCylinderFactory, () => {
             makeCylinder.base = new THREE.Vector3();
             makeCylinder.radius = new THREE.Vector3(1, 0, 0);
             makeCylinder.height = new THREE.Vector3(0, 0, 10);
-            const item = await makeCylinder.commit() as visual.SpaceItem;
-            const bbox = new THREE.Box3().setFromObject(item);
+            const items = await makeCylinder.commit() as visual.SpaceItem[];
+            expect(items.length).toBe(1)
+            const bbox = new THREE.Box3().setFromObject(items[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 5));

@@ -4,9 +4,12 @@
 
 ### Backlog
 
+- variable fillet broken (gizmo disappears) when adjust main distance  
 - bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
 - objectpicker sends events for deselect and select rather than aggregating -- causes update to be called twice where used  
 - creating sphere 2nd point on vertical z axis errors  
+- escape out of fillet command to restart  
+- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
 - make objectpicker construction more terse  
 - convert selectionmode to bitmap  
 - turn on --noimplicitoverride  
@@ -95,15 +98,12 @@
 
 ### Todo
 
+- array curve  
+- mirror curve freestyle  
+- solid mirror freestyle broken  
 - start fillet a priori  
-- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
-- escape out of fillet command to restart  
 - gizmos for elementary solids  
-- make all movement pivot changeable  
-- all gizmos not scaling pickers  
 - boolean with multitarget  
-- audit snap precision with pointpicker -- i recently dropped threshold for line2, but it doesn't make sense why  
-- variable fillet broken (gizmo disappears) when adjust main distance  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 
@@ -112,6 +112,8 @@
 
 ### Done ✓
 
+- all gizmos not scaling pickers  
+- make all movement pivot changeable  
 - Moving points is not respecting construction plane  
 - open ticket for huge fillet on box  
 - ctrl to add to a command - offset  

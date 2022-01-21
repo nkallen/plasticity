@@ -5,7 +5,7 @@ import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanLikeFactory } from "../boolean/BooleanFactory";
+import { BooleanLikeFactory, MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 
 export interface ExtrudeParams {
@@ -17,7 +17,7 @@ export interface ExtrudeParams {
     thickness2: number;
 }
 
-abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams, BooleanLikeFactory {
+abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     distance1 = 0;
     distance2 = 0;
     race1 = 0;
@@ -219,7 +219,9 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         bbox.getCenter(this._center);
     }
 
-    get defaultOperationType() { return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference }
+    get defaultOperationType() {
+        return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference
+    }
 
     get direction(): THREE.Vector3 {
         const placement = this._placement;
@@ -234,9 +236,9 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
 }
 
 export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<AbstractExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
-    readonly factories = [this.fantom, this.bool];
+    readonly factories = [this.fantom];
 
-    constructor(readonly bool: AbstractExtrudeFactory, readonly fantom: AbstractExtrudeFactory) {
+    constructor(readonly bool: MultiBooleanFactory, readonly fantom: AbstractExtrudeFactory) {
         super(bool['db'], bool['materials'], bool['signals']);
     }
 
@@ -250,7 +252,7 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Abstra
     @delegate.get center!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
 
-    get defaultOperationType() { return this.bool.defaultOperationType }
+    get defaultOperationType() { return this.fantom.defaultOperationType }
 }
 
 export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
@@ -259,7 +261,7 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExt
         if (factories.length === 0) throw new Error('invalid precondition');
     }
 
-    @delegate target!: visual.Solid;
+    @delegate targets!: visual.Solid[];
     @delegate.default(0) distance1!: number;
     @delegate.default(0) distance2!: number;
     @delegate.default(0) race1!: number;

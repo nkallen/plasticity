@@ -2,8 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 import { composeMainName, point2point } from "../../util/Conversion";
-import * as visual from '../../visual_model/VisualModel';
-import { BooleanFactory } from "../boolean/BooleanFactory";
+import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
 
@@ -110,14 +109,8 @@ export class CenterBoxFactory extends DiagonalBoxFactory {
 }
 
 abstract class PossiblyBooleanBoxFactory<B extends BoxFactory> extends PossiblyBooleanFactory<B> implements BoxParams {
-    protected bool = new BooleanFactory(this.db, this.materials, this.signals);
+    protected bool = new MultiBooleanFactory(this.db, this.materials, this.signals);
     protected abstract fantom: B;
-
-    get target() { return this._target }
-    set target(solid: visual.Solid | undefined) {
-        super.target = solid;
-        if (solid !== undefined) this.bool.target = solid;
-    }
 
     get p1() { return this.fantom.p1 }
     get p2() { return this.fantom.p2 }

@@ -155,6 +155,11 @@ export default {
         "d": "gizmo:thin-solid:thickness",
     },
 
+    "[command='edit-cylinder'] plasticity-viewport": {
+        "r": "gizmo:edit-cylinder:radius",
+        "d": "gizmo:edit-cylinder:height",
+    },
+
     "plasticity-viewport": {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",

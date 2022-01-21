@@ -41,7 +41,7 @@ export class CommandExecutor {
         if (remember && command.remember) this.lastCommand = command.constructor as GConstructor<Command>;
 
         this.next = command;
-        const isActive = !!this.active;
+        const isActive = this.active !== undefined;
         if (interrupt) this.active?.interrupt();
 
         if (!isActive) await this.dequeue();

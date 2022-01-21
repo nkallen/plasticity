@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { composeMainName, point2point } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanFactory, MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 
 interface SphereParams {
@@ -38,14 +38,8 @@ export default class SphereFactory extends GeometryFactory implements SpherePara
 }
 
 export class PossiblyBooleanSphereFactory extends PossiblyBooleanFactory<SphereFactory> implements SphereParams {
-    protected bool = new BooleanFactory(this.db, this.materials, this.signals);
+    protected bool = new MultiBooleanFactory(this.db, this.materials, this.signals);
     protected fantom = new SphereFactory(this.db, this.materials, this.signals);
-
-    get target() { return this._target }
-    set target(solid: visual.Solid | undefined) {
-        super.target = solid;
-        if (solid !== undefined) this.bool.target = solid;
-    }
 
     get center() { return this.fantom.center }
     get radius() { return this.fantom.radius }

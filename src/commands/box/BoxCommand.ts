@@ -12,8 +12,7 @@ export class ThreePointBoxCommand extends Command {
     async execute(): Promise<void> {
         const box = new PossiblyBooleanThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
-        if (selection.solids.size > 0)
-            box.target = selection.solids.first;
+        if (selection.solids.size > 0) box.targets = [...selection.solids];
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const pointPicker = new PointPicker(this.editor);
@@ -45,7 +44,9 @@ export class ThreePointBoxCommand extends Command {
             box.update();
             keyboard.toggle(box.isOverlapping);
         }).resource(this);
-        await box.commit();
+
+        const results = await box.commit() as visual.Solid[];
+        selection.add(results);
     }
 }
 
@@ -54,7 +55,7 @@ export class CornerBoxCommand extends Command {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0)
-            box.target = selection.solids.first;
+            box.targets = [...selection.solids];
 
         let pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
@@ -92,8 +93,8 @@ export class CornerBoxCommand extends Command {
             keyboard.toggle(box.isOverlapping);
         }).resource(this);
 
-        const result = await box.commit() as visual.Solid;
-        selection.addSolid(result);
+        const results = await box.commit() as visual.Solid[];
+        selection.add(results);
     }
 }
 
@@ -101,8 +102,7 @@ export class CenterBoxCommand extends Command {
     async execute(): Promise<void> {
         const box = new PossiblyBooleanCenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
-        if (selection.solids.size > 0)
-            box.target = selection.solids.first;
+        box.targets = [...selection.solids];
 
         let pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.X);
@@ -137,7 +137,7 @@ export class CenterBoxCommand extends Command {
             keyboard.toggle(box.isOverlapping);
         }).resource(this);
 
-        const result = await box.commit() as visual.Solid;
-        selection.addSolid(result);
+        const results = await box.commit() as visual.Solid[];
+        selection.add(results);
     }
 }

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { MultiBooleanFactory } from "../../src/commands/boolean/BooleanFactory";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
@@ -165,20 +166,21 @@ describe(PossiblyBooleanExtrudeFactory, () => {
 
     describe('region', () => {
         beforeEach(() => {
-            const factory = new RegionExtrudeFactory(db, materials, signals);
+            const bool = new MultiBooleanFactory(db, materials, signals);
             const phantom = new RegionExtrudeFactory(db, materials, signals);
-            factory.region = phantom.region = region;
-            extrude = new PossiblyBooleanExtrudeFactory(factory, phantom);
+            phantom.region = region;
+            extrude = new PossiblyBooleanExtrudeFactory(bool, phantom);
         });
 
         test('basic union', async () => {
-            extrude.target = sphere;
+            extrude.targets = [sphere];
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Union;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1);
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.5));
@@ -189,14 +191,15 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         })
 
         test('newBody=true', async () => {
-            extrude.target = sphere;
+            extrude.targets = [sphere];
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.newBody = true;
             extrude.operationType = c3d.OperationType.Union;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1);
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1.25));
@@ -210,9 +213,10 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Union;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1)
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1.25));
@@ -223,13 +227,14 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         })
 
         test('basic difference', async () => {
-            extrude.target = sphere;
+            extrude.targets = [sphere];
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Difference;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1)
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
@@ -241,7 +246,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         
         describe('phantom', () => {
             test('basic difference', async () => {
-                extrude.target = sphere;
+                extrude.targets = [sphere];
                 extrude.distance1 = 0;
                 extrude.distance2 = 1.5;
                 extrude.operationType = c3d.OperationType.Difference;
@@ -273,18 +278,19 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         });
 
         beforeEach(() => {
-            const factory = new FaceExtrudeFactory(db, materials, signals);
+            const bool = new MultiBooleanFactory(db, materials, signals);
             const phantom = new FaceExtrudeFactory(db, materials, signals);
-            factory.face = phantom.face = box.faces.get(1);
-            extrude = new PossiblyBooleanExtrudeFactory(factory, phantom);
+            phantom.face = box.faces.get(1);
+            extrude = new PossiblyBooleanExtrudeFactory(bool, phantom);
         });
 
         test('face direction positive is union', async () => {
-            extrude.target = box;
+            extrude.targets = [box];
             extrude.distance1 = 0.2;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1)
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.6));
@@ -293,11 +299,12 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         });
 
         test('face direction negative is difference', async () => {
-            extrude.target = box;
+            extrude.targets = [box];
             extrude.distance1 = -0.2;
-            const result = await extrude.commit() as visual.SpaceItem;
+            const results = await extrude.commit() as visual.SpaceItem[];
+            expect(results.length).toBe(1);
 
-            const bbox = new THREE.Box3().setFromObject(result);
+            const bbox = new THREE.Box3().setFromObject(results[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.4));

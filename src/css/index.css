@@ -101,6 +101,10 @@
         @apply block;
     }
 
+    plasticity-dialog ol {
+        @apply flex flex-col py-2 m-3 my-1 space-y-1.5 text-xs border-b border-neutral-900;
+    }
+
     plasticity-dialog ul {
         @apply flex flex-col mx-3 my-2 space-y-1;
     }
