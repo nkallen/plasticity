@@ -119,7 +119,7 @@ export default (editor: Editor) => {
                 return;
             }
 
-            const result = <ol class="h-[42px] absolute bottom-0 w-full pl-2 py-0.5 flex flex-row justify-start space-x-0.5 items-center">
+            const result = <ol class="h-[42px] absolute bottom-0 w-full pl-2 py-0.5 flex flex-row justify-start space-x-0.5 items-center overflow-x-auto">
                 {creators.map((creator, index) => {
                     const Z = `plasticity-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                     // @ts-expect-error("not sure how to type this")

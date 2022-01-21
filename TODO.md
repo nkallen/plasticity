@@ -98,7 +98,7 @@
 
 ### Todo
 
-- array curve  
+- radial array curve  
 - mirror curve freestyle  
 - solid mirror freestyle broken  
 - start fillet a priori  
