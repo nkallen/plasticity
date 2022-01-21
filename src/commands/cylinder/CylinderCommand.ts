@@ -59,15 +59,15 @@ export class CylinderCommand extends Command {
         dialog.prompt("Select target bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);
             objectPicker.selection.selected.add(cylinder.targets);
-            return objectPicker.execute(delta => {
+            return objectPicker.execute(async delta => {
                 const targets = [...objectPicker.selection.selected.solids];
                 cylinder.targets = targets;
-                cylinder.update();
+                await cylinder.update();
                 keyboard.toggle(cylinder.isOverlapping);
             }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
-        }, () => {
+        }, async () => {
             cylinder.targets = [];
-            cylinder.update();
+            await cylinder.update();
             keyboard.toggle(cylinder.isOverlapping);
         });
 

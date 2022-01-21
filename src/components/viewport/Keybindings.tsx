@@ -47,7 +47,7 @@ export default (editor: Editor) => {
                     })}
                 </ul>
             );
-            render(<div class="flex absolute bottom-3 right-24 space-x-2 pointer-events-none">
+            render(<div class="flex absolute bottom-3 right-14 space-x-2 pointer-events-none">
                 {result}
             </div>, this);
         }

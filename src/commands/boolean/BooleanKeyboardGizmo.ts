@@ -77,6 +77,6 @@ function commands(name: string) {
     map[`keyboard:${name}:difference`] = c3d.OperationType.Difference;
     map[`keyboard:${name}:intersect`] = c3d.OperationType.Intersect;
     for (const key in map) commands.push(key);
-    commands.push(`gizmo:${name}:new-body`);
+    commands.push(`keyboard:${name}:new-body`);
     return { commands, map }
 }

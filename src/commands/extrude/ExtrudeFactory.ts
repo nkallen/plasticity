@@ -255,6 +255,19 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Abstra
     get defaultOperationType() { return this.fantom.defaultOperationType }
 }
 
+export class PossiblyBooleanFaceExtrudeFactory extends PossiblyBooleanExtrudeFactory {
+    private parentItem!: visual.Solid;
+    set face(face: visual.Face) {
+        this.parentItem = face.parentItem;
+    }
+    override get targets(): visual.Solid[] {
+        return super.targets;
+    }
+    override set targets(targets: visual.Solid[]) {
+        super.targets = [this.parentItem, ...targets];
+    }
+}
+
 export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
     constructor(readonly factories: PossiblyBooleanExtrudeFactory[]) {
         super(factories[0]['db'], factories[0]['materials'], factories[0]['signals']);

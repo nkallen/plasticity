@@ -15,6 +15,10 @@ export class ExtrudeDialog extends AbstractDialog<ExtrudeParams> {
 
         render(
             <>
+                <ol>
+                    <plasticity-prompt name="Select target bodies" description="to cut or join into"></plasticity-prompt>
+                </ol>
+
                 <ul>
                     <li>
                         <label for="distance">Distance</label>

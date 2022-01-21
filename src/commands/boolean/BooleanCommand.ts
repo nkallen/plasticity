@@ -49,7 +49,6 @@ export class BooleanCommand extends Command {
 
         let g: CancellablePromise<void> | undefined = undefined;
         const setToolsAndGizmo = async (tools: visual.Solid[]) => {
-            console.log("here")
             const bbox = new THREE.Box3();
             for (const object of tools) bbox.expandByObject(object);
             bbox.getCenter(centroid);
