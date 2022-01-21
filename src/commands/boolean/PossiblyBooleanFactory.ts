@@ -25,17 +25,9 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
 
     protected _isOverlapping = false;
     get isOverlapping() { return this._isOverlapping; }
-    set isOverlapping(isOverlapping: boolean) {
-        this._isOverlapping = isOverlapping;
-        this.bool.isOverlapping = isOverlapping;
-    }
 
     protected _isSurface = false;
     get isSurface() { return this._isSurface; }
-    set isSurface(isSurface: boolean) {
-        this._isSurface = isSurface;
-        this.bool.isSurface = isSurface;
-    }
 
     private async beforeCalculate(fast = false) {
         const phantom = await this.fantom.calculate() as c3d.Solid;
@@ -68,7 +60,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
 
     async calculate() {
         const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
-        this.isOverlapping = isOverlapping; this.isSurface = isSurface;
+        this._isOverlapping = isOverlapping; this._isSurface = isSurface;
 
         if (isOverlapping && !this.newBody) {
             this.bool.operationType = this.operationType;
@@ -81,8 +73,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        const phantom = await this.fantom.calculate() as c3d.Solid;
-        const isOverlapping = this.isOverlapping;
+        const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
 
         if (this.targets.length === 0)
             return [];

@@ -14,10 +14,6 @@ export interface BooleanLikeFactory extends GeometryFactory {
     set tool(target: visual.Solid | c3d.Solid);
 
     operationType: c3d.OperationType;
-
-    // NOTE: These are hints for the factory to infer which operation
-    isOverlapping: boolean;
-    isSurface: boolean;
 }
 
 export interface BooleanParams {
@@ -149,7 +145,11 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
         } catch (e) {
             const error = e as { isC3dError: boolean, code: number };
             if (error.isC3dError && error.code === 25) return solid;
-            else throw e;
+            else {
+                const classification = await solid.SolidClassification_async(toolModels[0]);
+                if (classification === c3d.ItemLocation.ByItem) return solid;
+                else throw e;
+            }
         }
     }
 
@@ -315,7 +315,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     async calculate() {
         const { operationType, _targets: { models: targets }, _tools: { models: tools } } = this;
         if (targets.length === 0) return [];
-        if (tools.length === 0) return [];
+        if (tools.length === 0) return targets;
 
         if (operationType === c3d.OperationType.Union) {
             const { unionSingleton } = this;
@@ -327,7 +327,6 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
         } else {
             return super.calculate();
         }
-
     }
 }
 

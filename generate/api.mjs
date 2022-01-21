@@ -236,6 +236,7 @@ export default {
                 "const MbCube GetCube()",
                 "void SetOwnChangedThrough(MbeChangedType type)",
                 "void MakeRight()",
+                "MbeItemLocation SolidClassification(const MbSolid & solid, double epsilon = Math::metricRegion)"
             ]
         },
         Assembly: {
