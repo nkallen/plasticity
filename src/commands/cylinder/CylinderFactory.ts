@@ -2,17 +2,22 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { composeMainName, point2point } from '../../util/Conversion';
-import * as visual from "../../visual_model/VisualModel";
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 
-export default class CylinderFactory extends GeometryFactory {
-    base!: THREE.Vector3;
-    radius!: THREE.Vector3;
-    height!: THREE.Vector3;
+interface CylinderFactoryLike extends GeometryFactory {
+    p0: THREE.Vector3;
+    p1: THREE.Vector3;
+    p2: THREE.Vector3;
+}
+
+export default class CylinderFactory extends GeometryFactory implements CylinderFactoryLike {
+    p0!: THREE.Vector3;
+    p1!: THREE.Vector3;
+    p2!: THREE.Vector3;
 
     private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
 
@@ -20,12 +25,12 @@ export default class CylinderFactory extends GeometryFactory {
     private readonly _radius = new THREE.Vector3();
 
     async calculate() {
-        const { base, height } = this;
+        const { p0: base, p2: height } = this;
 
         const { Z, _radius } = this;
 
-        Z.copy(this.height).sub(this.base);
-        const radius = _radius.copy(this.radius).sub(this.base).length();
+        Z.copy(this.p2).sub(this.p0);
+        const radius = _radius.copy(this.p1).sub(this.p0).length();
 
         _radius.copy(Z).cross(X);
         if (_radius.lengthSq() < 10e-5) _radius.copy(Z).cross(Y);
@@ -39,79 +44,83 @@ export default class CylinderFactory extends GeometryFactory {
     }
 }
 
-export class PossiblyBooleanCylinderFactory extends PossiblyBooleanFactory<CylinderFactory> {
-    protected bool = new MultiBooleanFactory(this.db, this.materials, this.signals);
-    protected fantom = new CylinderFactory(this.db, this.materials, this.signals);
-
-    get base() { return this.fantom.base }
-    get radius() { return this.fantom.radius }
-    get height() { return this.fantom.height }
-
-    set base(base: THREE.Vector3) { this.fantom.base = base }
-    set radius(radius: THREE.Vector3) { this.fantom.radius = radius }
-    set height(height: THREE.Vector3) { this.fantom.height = height }
-}
-
 export interface EditCylinderParams {
     radius: number;
     height: number;
 }
 
-export class EditCylinderFactory extends GeometryFactory implements EditCylinderParams {
+export class EditableCylinderFactory extends GeometryFactory implements CylinderFactoryLike, EditCylinderParams {
+    private readonly cylinder = new CylinderFactory(this.db, this.materials, this.signals);
+
     get height() {
-        const { data, _p0: p0, p1 } = this;
-        return p0.distanceTo(p1);
+        const { p0, _height } = this;
+        return _height.distanceTo(p0);
     }
     private readonly _height = new THREE.Vector3();
     set height(h: number) {
-        const { data, _axis: axis, _height, _p0: p0  } = this;
+        const { _height, axis, p0 } = this;
         _height.copy(axis).multiplyScalar(h).add(p0);
-        data.SetPoint(1, point2point(_height));
-        data.ResetIndex();
     }
 
     get radius() {
-        const { data, _p0: p0, p2 } = this;
-        return p0.distanceTo(p2);
+        const { p0, _radius } = this;
+        return _radius.distanceTo(p0);
     }
     private readonly _radius = new THREE.Vector3();
     set radius(r: number) {
-        const { data, _p0: p0, p2, _radius: _radius } = this;
-        _radius.copy(p2).sub(p0).normalize().multiplyScalar(r).add(p0);
-        data.SetPoint(2, point2point(_radius));
-        data.ResetIndex();
+        const { _radius, radialAxis, p0, p1 } = this;
+        _radius.copy(radialAxis).multiplyScalar(r).add(p0);
     }
 
-    private _axis = new THREE.Vector3();
-    get axis() { return this._axis }
+    readonly axis = new THREE.Vector3();
+    private radialAxis = new THREE.Vector3();
 
     private _p0!: THREE.Vector3;
     get p0() { return this._p0 }
+    set p0(p0: THREE.Vector3) { this._p0 = p0 }
 
-    private _cylinder!: { view: visual.Solid, model: c3d.Solid };
-    private data!: c3d.ControlData3D;
-    private p1!: THREE.Vector3;
-    private p2!: THREE.Vector3;
-    set cylinder(solid: visual.Solid) {
-        let model = this.db.lookup(solid)
-        model = model.Duplicate().Cast<c3d.Solid>(c3d.SpaceType.Solid);
-        this._cylinder = { view: solid, model };
-        const data = model.GetBasisPoints();
-        this.data = data;
+    private _p1!: THREE.Vector3;
+    get p1() { return this._p1 }
+    set p1(p1: THREE.Vector3) {
+        this._p1 = p1;
+        this._radius.copy(p1);
+        this.radialAxis.copy(p1).sub(this.p0).normalize();
+    }
 
-        this._p0 = point2point(data.GetPoint(0));
-        this.p1 = point2point(data.GetPoint(1));
-        this.p2 = point2point(data.GetPoint(2));
-        this._axis.copy(this.p1).sub(this._p0).normalize();
+    private _p2!: THREE.Vector3;
+    get p2() { return this._p2 }
+    set p2(p2: THREE.Vector3) {
+        this._p2 = p2;
+        this._height.copy(p2);
+        this.axis.copy(p2).sub(this.p0).normalize();
     }
 
     async calculate() {
-        const { _cylinder: { model }, data } = this;
-        model.SetBasisPoints(data);
-        model.RebuildItem(c3d.CopyMode.Same);
-        model.Refresh();
-        return model;
+        const { cylinder, p0, _radius, _height } = this;
+        cylinder.p0 = p0;
+        cylinder.p1 = _radius;
+        cylinder.p2 = _height;
+        return cylinder.calculate();
     }
+}
 
-    get originalItem() { return this._cylinder.view }
+export class PossiblyBooleanCylinderFactory extends PossiblyBooleanFactory<CylinderFactoryLike> implements EditCylinderParams {
+    protected bool = new MultiBooleanFactory(this.db, this.materials, this.signals);
+    protected fantom = new EditableCylinderFactory(this.db, this.materials, this.signals);
+
+    get p0() { return this.fantom.p0 }
+    get p1() { return this.fantom.p1 }
+    get p2() { return this.fantom.p2 }
+
+    set p0(base: THREE.Vector3) { this.fantom.p0 = base }
+    set p1(radius: THREE.Vector3) { this.fantom.p1 = radius }
+    set p2(height: THREE.Vector3) { this.fantom.p2 = height }
+
+    get axis() { return this.fantom.axis }
+
+    get radius() { return this.fantom.radius }
+    get height() { return this.fantom.height }
+
+    set radius(radius: number) { this.fantom.radius = radius }
+    set height(height: number) { this.fantom.height = height }
 }

@@ -101,14 +101,14 @@
 - radial array curve  
 - mirror curve freestyle  
 - solid mirror freestyle broken  
-- start fillet a priori  
-- gizmos for elementary solids  
 - boolean with multitarget  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 
 ### In Progress
 
+- gizmos for elementary solids  
+- start fillet a priori  
 
 ### Done ✓
 

@@ -28,9 +28,9 @@ describe(CylinderFactory, () => {
     })
 
     test('upright cylinder', async () => {
-        makeCylinder.base = new THREE.Vector3();
-        makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-        makeCylinder.height = new THREE.Vector3(0, 0, 10);
+        makeCylinder.p0 = new THREE.Vector3();
+        makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+        makeCylinder.p2 = new THREE.Vector3(0, 0, 10);
         const item = await makeCylinder.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
@@ -41,9 +41,9 @@ describe(CylinderFactory, () => {
     });
 
     test('sideways that starts off vertical but ends sideways X cylinder', async () => {
-        makeCylinder.base = new THREE.Vector3();
-        makeCylinder.radius = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
-        makeCylinder.height = new THREE.Vector3(10, 0, 0); // but actualyl we turn towards X
+        makeCylinder.p0 = new THREE.Vector3();
+        makeCylinder.p1 = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
+        makeCylinder.p2 = new THREE.Vector3(10, 0, 0); // but actualyl we turn towards X
         const item = await makeCylinder.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
@@ -54,9 +54,9 @@ describe(CylinderFactory, () => {
     });
 
     test('sideways that starts off vertical but ends sideways Y cylinder', async () => {
-        makeCylinder.base = new THREE.Vector3();
-        makeCylinder.radius = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
-        makeCylinder.height = new THREE.Vector3(0, 10, 0); // but actualyl we turn towards X
+        makeCylinder.p0 = new THREE.Vector3();
+        makeCylinder.p1 = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
+        makeCylinder.p2 = new THREE.Vector3(0, 10, 0); // but actualyl we turn towards X
         const item = await makeCylinder.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
@@ -67,9 +67,9 @@ describe(CylinderFactory, () => {
     });
 
     test('sideways but not based in origin and going diagonal', async () => {
-        makeCylinder.base = new THREE.Vector3(1, 1, 1); // start off not at origin
-        makeCylinder.radius = new THREE.Vector3(); // radius set as if we were going in Z
-        makeCylinder.height = new THREE.Vector3(9, 0, 0); // but actualyl we turn towards X
+        makeCylinder.p0 = new THREE.Vector3(1, 1, 1); // start off not at origin
+        makeCylinder.p1 = new THREE.Vector3(); // radius set as if we were going in Z
+        makeCylinder.p2 = new THREE.Vector3(9, 0, 0); // but actualyl we turn towards X
         const item = await makeCylinder.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
@@ -98,9 +98,9 @@ describe(PossiblyBooleanCylinderFactory, () => {
     describe('commit', () => {
         test('basic union', async () => {
             makeCylinder.targets = [sphere];
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(0.5, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 10);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(0.5, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 10);
             makeCylinder.operationType = c3d.OperationType.Union;
 
             const results = await makeCylinder.commit() as visual.SpaceItem[];
@@ -115,9 +115,9 @@ describe(PossiblyBooleanCylinderFactory, () => {
         })
 
         test('solid=undefined', async () => {
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 10);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 10);
             const items = await makeCylinder.commit() as visual.SpaceItem[];
             expect(items.length).toBe(1)
             const bbox = new THREE.Box3().setFromObject(items[0]);

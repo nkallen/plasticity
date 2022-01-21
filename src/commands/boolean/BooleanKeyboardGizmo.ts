@@ -23,7 +23,7 @@ export class PossiblyBooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(
 
     protected resolve(cb: (e: BooleanKeyboardEvent) => void, command: string) {
         switch (command) {
-            case `gizmo:${this.name}:new-body`:
+            case `keyboard:${this.name}:new-body`:
                 cb({ tag: 'new-body' });
                 break;
             default:
@@ -73,9 +73,9 @@ function commands(name: string) {
     const commands = new Array<string>();
     const map: Record<string, number> = {};
 
-    map[`gizmo:${name}:union`] = c3d.OperationType.Union;
-    map[`gizmo:${name}:difference`] = c3d.OperationType.Difference;
-    map[`gizmo:${name}:intersect`] = c3d.OperationType.Intersect;
+    map[`keyboard:${name}:union`] = c3d.OperationType.Union;
+    map[`keyboard:${name}:difference`] = c3d.OperationType.Difference;
+    map[`keyboard:${name}:intersect`] = c3d.OperationType.Intersect;
     for (const key in map) commands.push(key);
     commands.push(`gizmo:${name}:new-body`);
     return { commands, map }

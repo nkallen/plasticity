@@ -29,9 +29,9 @@ describe(FaceCollector, () => {
     describe("singly filletted cylinder", () => {
         beforeEach(async () => {
             const makeCylinder = new CylinderFactory(db, materials, signals);
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 1);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 1);
             solid = await makeCylinder.calculate();
 
             const edges = solid.GetEdges();
@@ -77,9 +77,9 @@ describe(FaceCollector, () => {
     describe("doubly filletted cylinder", () => {
         beforeEach(async () => {
             const makeCylinder = new CylinderFactory(db, materials, signals);
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 1);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 1);
             solid = await makeCylinder.calculate();
 
             const edges = solid.GetEdges();
@@ -130,9 +130,9 @@ describe(FaceCollector, () => {
     describe("unfilletted cylinder", () => {
         beforeEach(async () => {
             const makeCylinder = new CylinderFactory(db, materials, signals);
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 1);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 1);
             solid = await makeCylinder.calculate();
         });
 

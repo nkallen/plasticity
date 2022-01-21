@@ -32,24 +32,27 @@ export default {
     },
 
     "[command='center-box'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='three-point-box'] plasticity-viewport": {
-        "q": "gizmo:box:union",
-        "w": "gizmo:box:difference",
-        "e": "gizmo:box:intersect",
-        "r": "gizmo:box:new-body",
+        "q": "keyboard:box:union",
+        "w": "keyboard:box:difference",
+        "e": "keyboard:box:intersect",
+        "r": "keyboard:box:new-body",
     },
 
     "[command='cylinder'] plasticity-viewport": {
-        "q": "gizmo:cylinder:union",
-        "w": "gizmo:cylinder:difference",
-        "e": "gizmo:cylinder:intersect",
-        "r": "gizmo:cylinder:new-body",
+        "q": "keyboard:cylinder:union",
+        "w": "keyboard:cylinder:difference",
+        "e": "keyboard:cylinder:intersect",
+        "r": "keyboard:cylinder:new-body",
+
+        "d": "gizmo:cylinder:height",
+        "f": "gizmo:cylinder:radius",
     },
 
     "[command='sphere'] plasticity-viewport": {
-        "q": "gizmo:sphere:union",
-        "w": "gizmo:sphere:difference",
-        "e": "gizmo:sphere:intersect",
-        "r": "gizmo:sphere:new-body",
+        "q": "keyboard:sphere:union",
+        "w": "keyboard:sphere:difference",
+        "e": "keyboard:sphere:intersect",
+        "r": "keyboard:sphere:new-body",
     },
 
     "[command='extrude'] plasticity-viewport": {
@@ -59,10 +62,10 @@ export default {
         "f": "gizmo:extrude:distance2",
         "t": "gizmo:extrude:thickness",
 
-        "q": "gizmo:extrude:union",
-        "w": "gizmo:extrude:difference",
-        "e": "gizmo:extrude:intersect",
-        "r": "gizmo:extrude:new-body",
+        "q": "keyboard:extrude:union",
+        "w": "keyboard:extrude:difference",
+        "e": "keyboard:extrude:intersect",
+        "r": "keyboard:extrude:new-body",
     },
 
     "[command='offset-face'] plasticity-viewport": {
@@ -153,11 +156,6 @@ export default {
 
     "[command='thin-solid'] plasticity-viewport": {
         "d": "gizmo:thin-solid:thickness",
-    },
-
-    "[command='edit-cylinder'] plasticity-viewport": {
-        "r": "gizmo:edit-cylinder:radius",
-        "d": "gizmo:edit-cylinder:height",
     },
 
     "plasticity-viewport": {

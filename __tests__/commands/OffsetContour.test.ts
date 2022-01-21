@@ -36,9 +36,9 @@ describe(OffsetFaceFactory, () => {
 
         beforeEach(async () => {
             const makeCylinder = new CylinderFactory(db, materials, signals);
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 10);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 10);
             cylinder = await makeCylinder.commit() as visual.Solid;
         })
 
@@ -238,9 +238,9 @@ describe(OffsetCurveFactory, () => {
 
         beforeEach(async () => {
             const makeCylinder = new CylinderFactory(db, materials, signals);
-            makeCylinder.base = new THREE.Vector3();
-            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-            makeCylinder.height = new THREE.Vector3(0, 0, 10);
+            makeCylinder.p0 = new THREE.Vector3();
+            makeCylinder.p1 = new THREE.Vector3(1, 0, 0);
+            makeCylinder.p2 = new THREE.Vector3(0, 0, 10);
             cylinder = await makeCylinder.commit() as visual.Solid;
         })
 

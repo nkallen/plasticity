@@ -1,11 +1,13 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
+import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
+import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { CenterCircleFactory } from '../circle/CircleFactory';
-import { EditCylinderFactory, PossiblyBooleanCylinderFactory } from './CylinderFactory';
+import { PossiblyBooleanCylinderFactory } from './CylinderFactory';
 import { EditCylinderGizmo } from "./CylinderGizmo";
 import { EditCylinderDialog } from "./EditCylinderDialog";
 
@@ -16,6 +18,9 @@ export class CylinderCommand extends Command {
         const cylinder = new PossiblyBooleanCylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         cylinder.targets = [...selection.solids];
+
+        const dialog = new EditCylinderDialog(cylinder, this.editor.signals);
+        const gizmo = new EditCylinderGizmo(cylinder, this.editor);
 
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         let pointPicker = new PointPicker(this.editor);
@@ -31,8 +36,8 @@ export class CylinderCommand extends Command {
         }).resource(this);
         circle.cancel();
 
-        cylinder.base = p1;
-        cylinder.radius = p2;
+        cylinder.p0 = p1;
+        cylinder.p1 = p2;
 
         const keyboard = new PossiblyBooleanKeyboardGizmo("cylinder", this.editor);
         keyboard.prepare(cylinder).resource(this);
@@ -41,46 +46,42 @@ export class CylinderCommand extends Command {
         pointPicker.addSnap(...snap.additionalSnapsFor(p1));
         pointPicker.addAxesAt(p1);
         await pointPicker.execute(({ point: p3 }) => {
-            cylinder.height = p3;
+            cylinder.p2 = p3;
             cylinder.update();
             keyboard.toggle(cylinder.isOverlapping);
         }).resource(this);
 
-        const results = await cylinder.commit() as visual.Solid[];
-        selection.add(results);
-
-        const next = new EditCylinderCommand(this.editor);
-        next.cylinder = results[0];
-        this.editor.enqueue(next, false);
-    }
-}
-
-export class EditCylinderCommand extends Command {
-    cylinder!: visual.Solid;
-    remember = false;
-
-    async execute(): Promise<void> {
-        const edit = new EditCylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        edit.cylinder = this.cylinder;
-
-        const dialog = new EditCylinderDialog(edit, this.editor.signals);
-        const gizmo = new EditCylinderGizmo(edit, this.editor);
-
         dialog.execute(params => {
             gizmo.render(params);
-            edit.update();
-        }).rejectOnInterrupt().resource(this);
+            cylinder.update();
+        }).resource(this);
 
-        gizmo.quaternion.setFromUnitVectors(Z, edit.axis);
-        gizmo.position.copy(edit.p0);
+        dialog.prompt("Select target bodies", () => {
+            const objectPicker = new ObjectPicker(this.editor);
+            objectPicker.selection.selected.add(cylinder.targets);
+            return objectPicker.execute(delta => {
+                const targets = [...objectPicker.selection.selected.solids];
+                cylinder.targets = targets;
+                cylinder.update();
+                keyboard.toggle(cylinder.isOverlapping);
+            }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        }, () => {
+            cylinder.targets = [];
+            cylinder.update();
+            keyboard.toggle(cylinder.isOverlapping);
+        });
+
+        gizmo.quaternion.setFromUnitVectors(Z, cylinder.axis);
+        gizmo.position.copy(cylinder.p0);
         gizmo.execute(async (params) => {
             dialog.render();
-            await edit.update();
+            await cylinder.update();
+            keyboard.toggle(cylinder.isOverlapping);
         }).resource(this);
 
         await this.finished;
 
-        const result = await edit.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(result);
+        const results = await cylinder.commit() as visual.Solid[];
+        selection.add(results);
     }
 }
