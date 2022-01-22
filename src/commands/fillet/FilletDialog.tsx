@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import { AbstractDialog } from "../../command/AbstractDialog";
+import { Agent } from '../../editor/DatabaseLike';
 import { EditorSignals } from "../../editor/EditorSignals";
 import FilletFactory, { FilletParams, Mode } from "./FilletFactory";
 import beginningLength from './img/begLength.png';
@@ -17,11 +18,11 @@ import span1 from './img/span1.jpg';
 import span2 from './img/span2.jpg';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
-    title = "Fillet";
+    name = "Fillet";
 
     private mode: Mode = c3d.CreatorType.FilletSolid;
 
-    constructor(protected readonly params: FilletParams, signals: EditorSignals) {
+    constructor(protected readonly params: FilletParams, private readonly agent: Agent, signals: EditorSignals) {
         super(signals);
     }
 
@@ -31,19 +32,17 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
     }
 
     render() {
+        const { agent } = this;
         const { conic, begLength, endLength, form, smoothCorner, prolong, keepCant } = this.params;
         let { distance1, distance2 } = this.params;
 
         render(
             <>
-                <ol class="prompts">
-                    <li class="flex items-center px-1 space-x-2">
-                        <plasticity-icon name="check"></plasticity-icon>
-                        <div><span class="text-xs font-bold text-neutral-200">Select edges</span> <span
-                            class="text-xs text-neutral-500">to
-                            fillet or chamfer</span></div>
-                    </li>
-                </ol>
+                {agent === 'user' &&
+                    <ol>
+                        <plasticity-prompt name="Select edges" description="to fillet or chamfer"></plasticity-prompt>
+                    </ol>
+                }
 
                 <ul>
                     <li>

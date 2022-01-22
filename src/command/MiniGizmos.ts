@@ -508,7 +508,7 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
 
                 this.state = 'started';
                 break;
-            default: throw new Error("invalid state");
+            default: throw new Error("invalid state: " + this.state);
         }
     }
 

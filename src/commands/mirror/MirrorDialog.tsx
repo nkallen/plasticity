@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { MirrorParams } from "./MirrorFactory";
 
 export class MirrorDialog extends AbstractDialog<MirrorParams> {
-    title = "Mirror";
+    name = "Mirror";
 
     constructor(protected readonly params: MirrorParams, signals: EditorSignals) {
         super(signals);

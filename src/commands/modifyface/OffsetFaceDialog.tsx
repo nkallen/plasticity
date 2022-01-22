@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { OffsetFaceParams } from "./OffsetFaceFactory";
 
 export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
-    title = "Offset face";
+    name = "Offset face";
 
     constructor(protected readonly params: OffsetFaceParams, signals: EditorSignals) {
         super(signals);

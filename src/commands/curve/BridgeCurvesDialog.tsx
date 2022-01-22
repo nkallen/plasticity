@@ -5,7 +5,7 @@ import { BridgeCurvesParams } from './BridgeCurvesFactory';
 import c3d from '../../../build/Release/c3d.node';
 
 export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
-    title = "Bridge curves";
+    name = "Bridge curves";
 
     constructor(protected readonly params: BridgeCurvesParams, signals: EditorSignals) {
         super(signals);

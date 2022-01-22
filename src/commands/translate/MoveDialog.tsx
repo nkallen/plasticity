@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { MoveParams } from "./TranslateFactory";
 
 export class MoveDialog extends AbstractDialog<MoveParams> {
-    title = "Move";
+    name = "Move";
 
     constructor(protected readonly params: MoveParams, signals: EditorSignals) {
         super(signals);

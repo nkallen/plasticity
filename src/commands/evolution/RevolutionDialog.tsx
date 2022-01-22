@@ -4,7 +4,7 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { RevolutionParams } from "./RevolutionFactory";
 
 export class RevolutionDialog extends AbstractDialog<RevolutionParams> {
-    title = "Revolution";
+    name = "Revolution";
 
     constructor(protected readonly params: RevolutionParams, signals: EditorSignals) {
         super(signals);

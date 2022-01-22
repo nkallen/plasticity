@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { RotateParams } from "./TranslateFactory";
 
 export class RotateDialog extends AbstractDialog<RotateParams> {
-    title = "Rotate";
+    name = "Rotate";
 
     constructor(protected readonly params: RotateParams, signals: EditorSignals) {
         super(signals);

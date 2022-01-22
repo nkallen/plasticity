@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ScaleParams } from "./TranslateFactory";
 
 export class ScaleDialog extends AbstractDialog<ScaleParams> {
-    title = "Scale";
+    name = "Scale";
 
     constructor(protected readonly params: ScaleParams, signals: EditorSignals) {
         super(signals);

@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ArrayParams } from "./ArrayFactory";
 
 export class RadialArrayDialog extends AbstractDialog<ArrayParams> {
-    title = "Array";
+    name = "Array";
 
     constructor(protected readonly params: ArrayParams, signals: EditorSignals) {
         super(signals);

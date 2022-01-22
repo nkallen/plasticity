@@ -1,8 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
+import { createRef, render } from 'preact';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { Editor } from '../../editor/Editor';
-import { createRef, render } from 'preact';
-import { CancellablePromise } from '../../util/CancellablePromise';
 
 export default (editor: Editor) => {
     class Dialog extends HTMLElement {
@@ -34,7 +33,7 @@ export default (editor: Editor) => {
                     <div class="my-1 border-b border-neutral-900 m">
                         <div class="flex justify-between items-center px-2">
                             <div class="flex items-center m-3 space-x-4 text-xs font-bold text-neutral-100">
-                                <div>{dialog.title}</div>
+                                <div>{dialog.name}</div>
                                 <plasticity-icon name="alert" class="text-red-700 alert"></plasticity-icon>
                             </div>
 

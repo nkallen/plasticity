@@ -5,7 +5,7 @@ import { SlotParams } from "./SlotFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class SlotDialog extends AbstractDialog<SlotParams> {
-    title = "Slot";
+    name = "Slot";
 
     constructor(protected readonly params: SlotParams, signals: EditorSignals) {
         super(signals);

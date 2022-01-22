@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditCylinderParams } from "./CylinderFactory";
 
 export class EditCylinderDialog extends AbstractDialog<EditCylinderParams> {
-    title = "Cylinder";
+    name = "Cylinder";
 
     constructor(protected readonly params: EditCylinderParams, signals: EditorSignals) {
         super(signals);

@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ExportParams } from "./ExportFactory";
 
 export class ExportDialog extends AbstractDialog<ExportParams> {
-    title = "Export";
+    name = "Export";
 
     constructor(protected readonly params: ExportParams, signals: EditorSignals) {
         super(signals);

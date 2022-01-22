@@ -5,7 +5,7 @@ import { BooleanParams } from "./BooleanFactory";
 import { CutParams } from "./CutFactory";
 
 export class BooleanDialog extends AbstractDialog<BooleanParams> {
-    title = "Boolean";
+    name = "Boolean";
 
     constructor(protected readonly params: BooleanParams, signals: EditorSignals) {
         super(signals);
@@ -37,7 +37,7 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
 customElements.define('boolean-dialog', BooleanDialog);
 
 export class CutDialog extends AbstractDialog<CutParams> {
-    title = "Cut";
+    name = "Cut";
 
     constructor(protected readonly params: CutParams, signals: EditorSignals) {
         super(signals);

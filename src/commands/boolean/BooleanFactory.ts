@@ -318,7 +318,6 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
         if (tools.length === 0) return targets;
 
         if (operationType === c3d.OperationType.Union) {
-            console.log(1);
             const { unionSingleton } = this;
             unionSingleton.operationType = operationType;
             const [first, ...rest] = targets;

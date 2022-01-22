@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ThinSolidParams } from "./ThinSolidFactory";
 
 export class ThinSolidDialog extends AbstractDialog<ThinSolidParams> {
-    title = "Thin solid";
+    name = "Thin solid";
 
     constructor(protected readonly params: ThinSolidParams, signals: EditorSignals) {
         super(signals);

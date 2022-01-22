@@ -28,7 +28,7 @@ export default (editor: Editor) => {
                 section.push(name);
             }
             const result = [...sections].map(([prefix, values]) =>
-                <ul class="bg-transparent text-neutral-100 w-44">
+                <dl class="grid grid-cols-2 auto-rows-[1.25rem] w-52 text-xs bg-transparent text-neutral-100 min-h-24 min-w-[6rem] first-of-type:mr-8">
                     {[...values].map(postfix => {
                         const command = `${prefix}:${postfix}`;
                         const bindings = keymaps.findKeyBindings({ command });
@@ -40,14 +40,16 @@ export default (editor: Editor) => {
                         const desc = keybindings.get(command);
                         if (desc === undefined) console.error("Description missing from (icons.ts)", command);
 
-                        return <li class="flex items-center m-1 text-xs text-neutral-100">
-                            <label class="flex justify-center items-center p-1 mr-1 w-7 h-5 text-xs font-extrabold border text-neutral-50 border-neutral-200">{keystroke}</label>
-                            <div>{desc}</div>
-                        </li>
+                        return <>
+                            <dt class="px-1">
+                                <label class="text-center px-1 mr-1 text-xs font-extrabold border min-w-[1.5rem] text-neutral-50 border-neutral-200 float-right">{keystroke}</label>
+                            </dt>
+                            <dd>{desc}</dd>
+                        </>
                     })}
-                </ul>
+                </dl>
             );
-            render(<div class="flex absolute bottom-3 right-14 space-x-2 pointer-events-none">
+            render(<div class="flex absolute right-3 bottom-3 space-x-2 pointer-events-none">
                 {result}
             </div>, this);
         }

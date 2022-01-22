@@ -5,7 +5,7 @@ import { ExtensionShellParams } from "./ExtensionShellFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class ExtensionShellDialog extends AbstractDialog<ExtensionShellParams> {
-    title = "Extension shell";
+    name = "Extension shell";
 
     constructor(protected readonly params: ExtensionShellParams, signals: EditorSignals) {
         super(signals);

@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { CharacterCurveParams } from './CharacterCurveFactory';
 
 export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
-    title = "Character curve";
+    name = "Character curve";
 
     constructor(protected readonly params: CharacterCurveParams, signals: EditorSignals) {
         super(signals);

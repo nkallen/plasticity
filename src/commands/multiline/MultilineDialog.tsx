@@ -5,7 +5,7 @@ import { MultilineParams } from './MultilineFactory';
 import c3d from '../../../build/Release/c3d.node';
 
 export class MultilineDialog extends AbstractDialog<MultilineParams> {
-    title = "Multiline";
+    name = "Multiline";
 
     constructor(protected readonly params: MultilineParams, signals: EditorSignals) {
         super(signals);

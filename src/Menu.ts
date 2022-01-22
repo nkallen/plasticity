@@ -24,10 +24,10 @@ export function buildMenu() {
     template.push({
         label: 'File',
         submenu: [
-            { label: 'New...' },
-            { label: 'Open...' },
-            { label: 'Open Recent...' },
-            { role: 'redo' },
+            { label: 'New...', accelerator: "CommandOrControl+N", enabled: false },
+            { label: 'Open...', accelerator: "CommandOrControl+O", enabled: false },
+            { label: 'Save as...', accelerator: "CommandOrControl+S", enabled: false },
+            // { label: 'Open Recent...' },
 
             isMac ? { role: 'close' } : { role: 'quit' }
         ]
@@ -37,26 +37,44 @@ export function buildMenu() {
         template.push({
             label: 'Edit',
             submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
+                { role: 'undo', accelerator: "CommandOrControl+Z", enabled: false },
+                { role: 'redo', accelerator: "Shift+CommandOrControl+Z", enabled: false },
                 { type: 'separator' },
-                { role: 'delete' },
-                { role: 'selectAll' },
+                { role: 'delete', accelerator: "X", enabled: false },
+                // { role: 'selectAll' },
             ]
         });
     } else {
         template.push({
             label: 'Edit',
             submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
+                { role: 'undo', accelerator: "CommandOrControl+Z", enabled: false },
+                { role: 'redo', accelerator: "Shift+CommandOrControl+Z" , enabled: false},
+                { label: 'Repeat last command', accelerator: "Shift+R", enabled: false },
                 { type: 'separator' },
-                { role: 'delete' },
+                { role: 'delete', accelerator: "X", enabled: false },
                 { type: 'separator' },
-                { role: 'selectAll' }
+                // { role: 'selectAll' }
             ]
         });
     }
+    template.push({
+        label: 'Selection',
+        submenu: [
+            { label: 'Hide selected', accelerator: "H", enabled: false },
+            { label: 'Unhide hidden', accelerator: "Alt+H", enabled: false },
+            { label: 'Hide everything other than selected', accelerator: "Shift+H", enabled: false },
+            { type: 'separator' },
+            { label: 'Focus camera on selected', accelerator: "/", enabled: false },
+            { type: 'separator' },
+            { label: 'Deselect all', accelerator: "Alt+A", enabled: false },
+            { type: 'separator' },
+            { label: 'Convert selection to points', accelerator: "Control+1", enabled: false },
+            { label: 'Convert selection to edges', accelerator: "Control+2", enabled: false },
+            { label: 'Convert selection to faces', accelerator: "Control+3", enabled: false },
+            { label: 'Convert selection to solids', accelerator: "Control+4", enabled: false },
+        ]
+    });
     // { role: 'viewMenu' }
     template.push({
         label: 'View',

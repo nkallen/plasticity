@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditCircleParams } from './CircleFactory';
 
 export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
-    title = "Circle";
+    name = "Circle";
 
     constructor(protected readonly params: EditCircleParams, signals: EditorSignals) {
         super(signals);

@@ -19,7 +19,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
         this.render = this.render.bind(this);
     }
 
-    abstract get title(): string;
+    abstract get name(): string;
     abstract render(): void;
 
     protected onChange = (e: Event) => {
@@ -103,6 +103,15 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                                     const p = prompt.execute();
                                     const executed = execute();
                                     this.state.prompt = { tag: 'executing', finish: () => { p.finish(); executed.finish() } }
+                                    executed.then(() => {
+                                        switch (this.state.tag) {
+                                            case 'executing':
+                                                switch (this.state.prompt.tag) {
+                                                    case 'executing':
+                                                        this.state.prompt.finish();
+                                                }
+                                        }
+                                    }, () => {});
                                     return executed;
                             }
                         default: throw new Error('invalid state');

@@ -4,7 +4,7 @@ import { AbstractDialog } from "../../command/AbstractDialog";
 import { ExtrudeParams } from './ExtrudeFactory';
 
 export class ExtrudeDialog extends AbstractDialog<ExtrudeParams> {
-    title = "Extrude";
+    name = "Extrude";
 
     constructor(protected readonly params: ExtrudeParams, signals: EditorSignals) {
         super(signals);
