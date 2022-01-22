@@ -90,9 +90,7 @@ export default {
         "X": "gizmo:move:yz",
         "Y": "gizmo:move:xz",
         "g": "gizmo:move:screen",
-    },
 
-    "[command='move'] plasticity-viewport": {
         "f": "keyboard:move:free",
         "w": "keyboard:move:pivot"
     },
