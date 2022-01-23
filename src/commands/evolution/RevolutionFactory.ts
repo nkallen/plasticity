@@ -25,7 +25,7 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
         this.thickness1 = this.thickness2 = Math.max(0, thickness);
     }
 
-    side1 = Math.PI;
+    side1 = 2 * Math.PI;
     side2 = 0;
 
     protected surface!: c3d.Surface;

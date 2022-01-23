@@ -20,10 +20,10 @@ export class ThreePointArcCommand extends Command {
             line.update();
         }).resource(this);
         line.cancel();
-        arc.p2 = p2;
+        arc.p3 = p2;
 
         await pointPicker.execute(({ point: p3 }) => {
-            arc.p3 = p3;
+            arc.p2 = p3;
             arc.update();
         }).resource(this);
 

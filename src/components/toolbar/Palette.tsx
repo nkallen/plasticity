@@ -193,8 +193,8 @@ export default (editor: Editor) => {
                             <plasticity-command name="three-point-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="center-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                             <plasticity-command name="three-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="center-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="center-ellipse" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
