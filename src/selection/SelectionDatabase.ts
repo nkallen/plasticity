@@ -33,7 +33,7 @@ export interface HasSelection {
 }
 
 export interface ModifiesSelection extends HasSelection {
-    add(items: visual.Item | visual.Item[]): void;
+    add(items: Selectable | Selectable[]): void;
     remove(selectables: Selectable | Selectable[]): void;
 
     removeFace(object: visual.Face): void;
@@ -114,7 +114,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.addEdge(item);
             } else if (item instanceof visual.ControlPoint) {
                 this.addControlPoint(item);
-            } else throw new Error("invalid type");
+            } else throw new Error("invalid type: " + item.constructor.name);
         }
     }
 

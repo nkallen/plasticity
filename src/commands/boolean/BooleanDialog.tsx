@@ -47,6 +47,11 @@ export class CutDialog extends AbstractDialog<CutParams> {
         const { mergingFaces, mergingEdges } = this.params;
         render(
             <>
+                <ol>
+                    <plasticity-prompt name="Select target bodies" description="to cut or join into"></plasticity-prompt>
+                    <plasticity-prompt name="Select cutters" description="— curves or faces to cut with"></plasticity-prompt>
+                </ol>
+
                 <ul>
                     <li>
                         <label for="mergingFaces">Merge</label>

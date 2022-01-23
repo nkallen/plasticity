@@ -257,12 +257,19 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
     private _surfaces: c3d.Surface[] = [];
     set surfaces(faces: visual.Face[]) {
         this._surfaces = faces.map(face => this.db.lookupTopologyItem(face).GetSurface().GetSurface());
+        this._faces = faces;
     }
 
-    private _curves: ContourAndPlacement[] = [];
-    set curves(insts: visual.SpaceInstance<visual.Curve3D>[]) {
+    private _faces: visual.Face[] = [];
+    get faces() { return this._faces }
+
+    private contours_placements: ContourAndPlacement[] = [];
+    private _curves: visual.SpaceInstance<visual.Curve3D>[] = [];
+    get curves() { return this._curves }
+    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        this._curves = curves;
         const result = [];
-        for (const inst of insts) {
+        for (const inst of curves) {
             const instance = this.db.lookup(inst);
             const item = instance.GetSpaceItem()!;
             const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
@@ -270,7 +277,7 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
             if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
             result.push(planar);
         }
-        this._curves = result;
+        this.contours_placements = result;
     }
 
     private _axes: ('X' | 'Y' | 'Z')[] = [];
@@ -279,7 +286,7 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
     }
 
     async calculate() {
-        const { _surfaces: surfaces, _curves: curves, models: solids, _axes: axes } = this;
+        const { _surfaces: surfaces, contours_placements: curves, models: solids, _axes: axes } = this;
         if (solids.length === 0) return [];
 
         const cutters = [...surfaces, ...curves, ...axes];
@@ -299,10 +306,10 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        const { _surfaces: surfaces, _curves: curves, models: solids, _axes: axes } = this;
+        const { _surfaces: surfaces, contours_placements: curves, models: solids, _axes: axes } = this;
         if (solids.length === 0) return [];
         const cutters = [...surfaces, ...curves, ...axes];
-        
+
         const first = solids[0];
         const promises = [];
         for (const cutter of cutters) {

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
-import { HasSelectedAndHovered, ModifiesSelection, SelectionDatabase } from "../selection/SelectionDatabase";
+import { HasSelectedAndHovered, ModifiesSelection, Selectable, SelectionDatabase } from "../selection/SelectionDatabase";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { ItemSelection } from "../selection/TypedSelection";
 import { GConstructor } from "../util/Util";
@@ -447,8 +447,8 @@ class ModifierSelection extends SelectionProxy {
         super(selection);
     }
 
-    add(items: visual.Item | visual.Item[]) {
-        if (items instanceof visual.Item) items = [items];
+    add(items: Selectable | Selectable[]) {
+        if (!Array.isArray(items)) items = [items];
         for (const item of items) {
             if (item instanceof visual.Solid) {
                 this.addSolid(item);
@@ -456,6 +456,10 @@ class ModifierSelection extends SelectionProxy {
                 this.addCurve(item);
             } else if (item instanceof visual.PlaneInstance) {
                 this.addRegion(item);
+            } else if (item instanceof visual.Face) {
+                this.addFace(item);
+            } else if (item instanceof visual.CurveEdge) {
+                this.addEdge(item);
             } else throw new Error("invalid type");
         }
     }

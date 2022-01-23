@@ -101,9 +101,9 @@
 - radial array curve  
 - mirror curve freestyle  
 - solid mirror freestyle broken  
-- boolean with multitarget  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
+- bug: space-to-focus puts in wrong place  
 
 ### In Progress
 
@@ -112,6 +112,7 @@
 
 ### Done ✓
 
+- boolean with multitarget  
 - all gizmos not scaling pickers  
 - make all movement pivot changeable  
 - Moving points is not respecting construction plane  

@@ -1,11 +1,11 @@
 import { SelectionMemento } from "../editor/History";
-import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../visual_model/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ModifiesSelection, Selectable } from "./SelectionDatabase";
 
 export class SelectionProxy implements ModifiesSelection {
     constructor(protected readonly selection: ModifiesSelection) { }
 
-    add(items: Item | Item[]) {
+    add(items: Item | Item[] | TopologyItem[]) {
         this.selection.add(items);
     }
     remove(selectables: Selectable[]) {
