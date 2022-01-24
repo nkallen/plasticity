@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
+import { composeMainName, point2point, unit, vec2vec, normalizePlacement } from '../../util/Conversion';
 import { GeometryFactory } from '../../command/GeometryFactory';
 
 export interface RevolutionParams {
@@ -15,7 +15,7 @@ export interface RevolutionParams {
     side2: number;
 }
 
-export default class RevolutionFactory extends GeometryFactory implements RevolutionParams {
+class AbstractRevolutionFactory extends GeometryFactory implements RevolutionParams {
     origin!: THREE.Vector3;
     axis!: THREE.Vector3;
 
@@ -28,15 +28,51 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
     side1 = 2 * Math.PI;
     side2 = 0;
 
+    protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveRevolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
+
     protected surface!: c3d.Surface;
+    protected contours2d: c3d.Contour[] = [];
+    protected curves3d: c3d.Curve3D[] = [];
+
+    async calculate() {
+        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2 } = this;
+
+        const sweptData = contours2d.length > 0
+            ? new c3d.SweptData(surface, contours2d)
+            : new c3d.SweptData(curves3d[0]);
+
+        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
+
+        const axis = new c3d.Axis3D(point2point(origin), vec2vec(direction, 1));
+        const params = new c3d.RevolutionValues();
+        params.shellClosed = true;
+        params.thickness1 = unit(thickness1);
+        params.thickness2 = unit(thickness2);
+
+        const { side1, side2 } = params;
+        side1.way = c3d.SweptWay.scalarValue;
+        side1.scalarValue = scalarValue1;
+
+        side2.way = c3d.SweptWay.scalarValue;
+        side2.scalarValue = scalarValue2;
+        params.side1 = side1;
+        params.side2 = side2;
+
+        return c3d.ActionSolid.RevolutionSolid_async(sweptData, axis, params, names, ns);
+    }
+}
+
+export default class RevolutionFactory extends AbstractRevolutionFactory {
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
-    protected contours2d!: c3d.Contour[];
-    protected curves3d!: c3d.Curve3D[];
     get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        if (curves.length === 0) return;
+
         this._curves = curves;
         const contours2d: c3d.Contour[] = [];
         const curves3d: c3d.Curve3D[] = [];
+        const placements = new Set<c3d.Placement3D>();
+
         for (const curve of curves) {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
@@ -47,7 +83,8 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
             } else if (item.IsA() === c3d.SpaceType.Contour3D) {
                 const model = item.Cast<c3d.Contour3D>(item.IsA());
                 if (model.IsPlanar()) {
-                    const { curve2d } = model.GetPlaneCurve(false);
+                    const { curve2d, placement } = model.GetPlaneCurve(false);
+                    normalizePlacement(curve2d, placement, placements);
                     contours2d.push(new c3d.Contour([curve2d], true));
                 } else {
                     curves3d.push(model);
@@ -55,7 +92,8 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
             } else {
                 const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                 if (model.IsPlanar()) {
-                    const { curve2d } = model.GetPlaneCurve(false);
+                    const { curve2d, placement } = model.GetPlaneCurve(false);
+                    normalizePlacement(curve2d, placement, placements);
                     contours2d.push(new c3d.Contour([curve2d], true));
                 } else {
                     curves3d.push(model);
@@ -88,33 +126,27 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
         }
     }
 
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveRevolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
+    private _regions!: visual.PlaneInstance<visual.Region>[];
+    get regions() { return this._regions }
+    set regions(regions: visual.PlaneInstance<visual.Region>[]) {
+        if (regions.length === 0) return;
 
-    async calculate() {
-        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2 } = this;
-
-        const sweptData = contours2d.length > 0
-            ? new c3d.SweptData(surface, contours2d)
-            : new c3d.SweptData(curves3d[0]);
-
-        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
-
-        const axis = new c3d.Axis3D(point2point(origin), vec2vec(direction, 1));
-        const params = new c3d.RevolutionValues();
-        params.shellClosed = true;
-        params.thickness1 = unit(thickness1);
-        params.thickness2 = unit(thickness2);
-
-        const { side1, side2 } = params;
-        side1.way = c3d.SweptWay.scalarValue;
-        side1.scalarValue = scalarValue1;
-
-        side2.way = c3d.SweptWay.scalarValue;
-        side2.scalarValue = scalarValue2;
-        params.side1 = side1;
-        params.side2 = side2;
-
-        const result = c3d.ActionSolid.RevolutionSolid(sweptData, axis, params, names, ns);
-        return result;
+        this._regions = regions;
+        const contours = [];
+        const placements = new Set<c3d.Placement3D>();
+        for (const region of regions) {
+            const inst = this.db.lookup(region);
+            const item = inst.GetPlaneItem()!;
+            const model = item.Cast<c3d.Region>(c3d.PlaneType.Region);
+            const placement = inst.GetPlacement();
+            for (let i = 0, l = model.GetContoursCount(); i < l; i++) {
+                const contour = model.GetContour(i)!;
+                normalizePlacement(contour, placement, placements);
+                contours.push(contour);
+            }
+        }
+        if (placements.size > 1) throw new Error("All regions must be on same placement");
+        this.contours2d = contours;
+        this.surface = new c3d.Plane([...placements][0], 0);
     }
 }

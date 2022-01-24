@@ -1,10 +1,10 @@
+import * as THREE from "three";
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import { PhantomLineFactory } from "../line/LineFactory";
 import { RevolutionDialog } from "./RevolutionDialog";
 import RevolutionFactory from "./RevolutionFactory";
 import { RevolutionGizmo } from "./RevolutionGizmo";
-import * as THREE from "three";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -14,7 +14,9 @@ export class RevolutionCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;
         const curves = [...editor.selection.selected.curves];
+        const regions = [...editor.selection.selected.regions];
         const revolution = new RevolutionFactory(editor.db, editor.materials, editor.signals);
+        revolution.regions = regions;
         revolution.curves = curves;
 
         const dialog = new RevolutionDialog(revolution, editor.signals);

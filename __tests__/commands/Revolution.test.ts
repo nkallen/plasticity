@@ -3,6 +3,7 @@ import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import RevolutionFactory from "../../src/commands/evolution/RevolutionFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
+import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -84,5 +85,37 @@ describe("Composite planar contour", () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3());
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.14, -1.14, -1.14));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.14, 1.14, 1.14));
+    })
+});
+
+describe("Regions", () => {
+    let region: visual.PlaneInstance<visual.Region>;
+    
+    beforeEach(async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3(1, 0, 0);
+        makeCircle.radius = 0.25;
+        const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeRegion = new RegionFactory(db, materials, signals);
+        makeRegion.contours = [circle];
+        const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
+        region = items[0];
+    })
+
+    test('it works', async () => {
+        const makeRevolution = new RevolutionFactory(db, materials, signals);
+        makeRevolution.regions = [region];
+        makeRevolution.origin = new THREE.Vector3();
+        makeRevolution.axis = new THREE.Vector3(0, 1, 0);
+        makeRevolution.thickness = 0.1;
+        makeRevolution.side1 = 2 * Math.PI;
+        const item = await makeRevolution.commit() as visual.Solid;
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3());
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.35, -0.35, -1.35));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.35, 0.35, 1.35));
     })
 });
