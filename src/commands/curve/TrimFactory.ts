@@ -37,6 +37,8 @@ export default class TrimFactory extends GeometryFactory {
 
     private async trimPolyline() {
         const { curve, start, stop } = this;
+        if (start === -1 && stop === -1) return [];
+
         const polyline = curve.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
         const allPoints = polyline.GetPoints();
         const startPoint = polyline.PointOn(start);

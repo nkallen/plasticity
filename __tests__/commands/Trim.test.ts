@@ -269,5 +269,35 @@ describe(TrimFactory, () => {
             })
 
         })
+
+        describe("trimming the whole line", () => {
+            let line: visual.SpaceInstance<visual.Curve3D>;
+
+            beforeEach(async () => {
+                const makeLine = new CurveFactory(db, materials, signals);
+                makeLine.type = c3d.SpaceType.Polyline3D;
+                makeLine.points.push(new THREE.Vector3());
+                makeLine.points.push(new THREE.Vector3(0, 1, 0));
+                line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+                await curves.add(line);
+
+                const model = db.lookup(line);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(2);
+                expect(curve.IsClosed()).toBe(false);
+            })
+
+            test("fragment=0", async () => {
+                expect(db.visibleObjects.length).toBe(2);
+
+                const { fragments } = curves.lookup(line);
+                const fragment = await fragments[0];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(0);
+
+                expect(db.visibleObjects.length).toBe(1);
+            });
+        })
     })
 });

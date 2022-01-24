@@ -20,6 +20,7 @@ import { ObjectPicker } from '../../command/ObjectPicker';
 import { ValidationError } from '../../command/GeometryFactory';
 import MultilineFactory from '../multiline/MultilineFactory';
 import { MultilineDialog } from '../multiline/MultilineDialog';
+import { TrimDialog } from './TrimDialog';
 
 const Y = new THREE.Vector3(0, 1, 0);
 
@@ -101,19 +102,28 @@ export class JoinCurvesCommand extends Command {
 
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
+        const dialog = new TrimDialog({}, this.editor.signals);
+
+        dialog.execute(async (params) => {
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         this.editor.layers.showFragments();
         this.ensure(() => this.editor.layers.hideFragments());
 
         const objectPicker = new ObjectPicker(this.editor);
         objectPicker.mode.set(SelectionMode.Curve);
         objectPicker.raycasterParams.Line2.threshold = 30;
-        const selection = await objectPicker.execute().resource(this);
-        const fragment = selection.curves.first;
-        if (fragment === undefined) return;
 
-        const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        factory.fragment = fragment;
-        await factory.commit();
+        const selected = await dialog.prompt("Select curve segments", () => {
+            return objectPicker.execute(delta => {
+            }).resource(this);
+        })();
+
+        for (const curve of selected.curves) {
+            const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            factory.fragment = curve;
+            await factory.commit();
+        }
 
         this.editor.enqueue(new TrimCommand(this.editor), false);
     }
