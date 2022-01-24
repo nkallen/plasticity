@@ -13,6 +13,7 @@ export interface ArrayParams {
     dir2: THREE.Vector3;
     step2: number;
     num2: number;
+    degrees: number;
 
     center: THREE.Vector3;
     isAlongAxis: boolean;
@@ -22,7 +23,7 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
     private model!: c3d.Solid;
     private _solid!: visual.Solid;
     get solid() { return this._solid }
-    set solid(solid: visual.Solid){
+    set solid(solid: visual.Solid) {
         this._solid = solid;
         this.model = this.db.lookup(solid);
     }
@@ -33,8 +34,20 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
     num1 = 2;
 
     dir2!: THREE.Vector3;
+
+    private _num2 = 0;
+    get num2() { return this._num2 }
+    set num2(num2: number) {
+        const degrees = this.degrees;
+        this._num2 = Math.floor(num2);
+        this.degrees = degrees;
+    }
+
     step2 = 0;
-    num2 = 0;
+    get degrees() { return this.step2 * this.num2 / Math.PI * 180 }
+    set degrees(degrees: number) {
+        this.step2 = 2 * Math.PI * (degrees / 360) / this.num2;
+    }
 
     center = new THREE.Vector3();
     isAlongAxis = false;

@@ -19,6 +19,10 @@ export default (editor: Editor) => {
     class Scrubber extends HTMLElement {
         static get observedAttributes() { return ['value']; }
 
+        private _precision = 3;
+        get precision() { return this._precision }
+        set precision(precision: number) { this._precision = precision }
+
         private state: ScrubberState = { tag: 'none' };
 
         constructor() {
@@ -116,6 +120,7 @@ export default (editor: Editor) => {
                     break;
                 }
                 case 'dragging':
+                    const { precision } = this;
                     const { downEvent, startEvent } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
@@ -123,10 +128,9 @@ export default (editor: Editor) => {
 
                     // Speed up (10x) when Shift is held. Slow down (0.1x) when alt is held.
                     const precisionSpeedMod = e.shiftKey ? -1 : e.altKey ? 1 : 0;
-                    const precisionDigits = 3; // FIXME
-                    const precision = precisionDigits + precisionSpeedMod;
+                    const precisionAndSpeed = precision + precisionSpeedMod;
 
-                    this.state.currentValue += delta * Math.pow(10, -precision);
+                    this.state.currentValue += delta * Math.pow(10, -precisionAndSpeed);
                     const value = this.state.currentValue;
                     try { this.scrub(value) }
                     catch (e) { console.error(e) }
@@ -210,11 +214,11 @@ export default (editor: Editor) => {
         render() {
             const stringValue = this.getAttribute('value')!;
             const startValue = +stringValue;
-            const precisionDigits = 2;
+            const precisionDigits = this.precision - 1;
             const displayValue = startValue.toFixed(precisionDigits);
             const decimalIndex = stringValue.lastIndexOf(".");
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
-            const full = this.isDisabled ? '' : `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
+            const full = this.isDisabled ? '' : `${displayValue}${precisionDigits > 0 && precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
             const stringMin = this.getAttribute('min');
             const min = stringMin !== null ? +stringMin : undefined;

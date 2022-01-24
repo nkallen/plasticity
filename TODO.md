@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- allow multi select during trim  
 - variable fillet broken (gizmo disappears) when adjust main distance  
 - bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
 - objectpicker sends events for deselect and select rather than aggregating -- causes update to be called twice where used  
