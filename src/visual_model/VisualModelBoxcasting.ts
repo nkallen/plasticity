@@ -95,7 +95,7 @@ Solids: {
         return true;
     }
 
-        FaceGroup.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
+    FaceGroup.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
         const { matrixWorld, geometry } = this.mesh;
         const { drawRange } = geometry;
         const index = geometry.index!;
@@ -407,10 +407,10 @@ Curves: {
         const start = group.start / 3 / 2;
         const end = (group.start + group.count) / 3 / 2;
 
-        for (let i = start; i <= end; i++) {
+        for (let i = start; i < end; i++) {
             _line.start.fromBufferAttribute(instanceStart, i);
             _line.end.fromBufferAttribute(instanceEnd, i);
-
+            
             if (_frustum.containsPoint(_line.start)) return true;
             if (_frustum.containsPoint(_line.end)) return true;
             if (_frustum.intersectsLine(_line)) return true;
