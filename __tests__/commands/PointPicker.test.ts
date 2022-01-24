@@ -12,6 +12,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -23,6 +24,7 @@ let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let presenter: SnapIndicator;
+let snaps: SnapManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -32,6 +34,7 @@ beforeEach(() => {
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();
     const registry = new CommandRegistry();
+    snaps = new SnapManager(db, crosses, signals);
     pointPicker = new Model(db, crosses, registry, signals);
 });
 
@@ -247,13 +250,17 @@ describe('addPickedPoint', () => {
 
     test("snaps", () => {
         const snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(6);
-        expect(snaps[0].name).toBe("x");
-        expect(snaps[1].name).toBe("y");
-        expect(snaps[2].name).toBe("z");
-        expect(snaps[3].name).toBe("Normal");
-        expect(snaps[4].name).toBe("Binormal");
-        expect(snaps[5].name).toBe("Tangent");
+        expect(snaps.length).toBe(10);
+        expect(snaps.map(s => s.name).sort()).toEqual(["Binormal", "Intersection", "Intersection", "Intersection", "Intersection", "Normal", "Tangent", "x", "y", "z",]);
+    })
+
+    test("a point with intersection snaps", () => {
+        pointPicker.addPickedPoint({
+            point: new THREE.Vector3(0, 10, 0),
+            info: { snap: constructionPlane, constructionPlane, orientation: new THREE.Quaternion() }
+        });
+        const snaps = pointPicker.snaps;
+        expect(snaps.map(s => s.name).sort()).toEqual(["Intersection", "Intersection", "x", "y", "z"]);
     })
 })
 
@@ -320,7 +327,7 @@ describe('activateSnapped', () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap]);
         const snaps = pointPicker.snaps;
-        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z']);
+        expect(snaps.map(s => s.name).sort()).toEqual(['x', 'y', 'z']);
     });
 
     test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
@@ -333,7 +340,7 @@ describe('activateSnapped', () => {
         pointPicker.activateSnapped([snap]);
 
         const snaps = pointPicker.snaps;
-        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z', 'Tangent']);
+        expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
     });
 
     test("activateSnapped respects undo", async () => {
@@ -346,7 +353,7 @@ describe('activateSnapped', () => {
         pointPicker.activateSnapped([snap]);
 
         let snaps = pointPicker.snaps;
-        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z', 'Tangent']);
+        expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
 
         pointPicker.undo();
         snaps = pointPicker.snaps;
@@ -358,7 +365,7 @@ describe('activateSnapped', () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap]);
         const snaps = pointPicker.snaps;
-        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z']);
+        expect(snaps.map(s => s.name)).toEqual(['x', 'y', 'z']);
     })
 });
 
@@ -398,18 +405,13 @@ describe('for curves', () => {
             info: { snap: new CurveSnap(circle2, model2), constructionPlane, orientation: new THREE.Quaternion() }
         });
         snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(6);
+        expect(snaps.length).toBe(10);
 
-        const orientation = new THREE.Quaternion();
         const snap = new CurveSnap(circle1, model1);
         pointPicker.activateMutualSnaps([snap]);
 
         snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(12);
-        expect(snaps[8]).toBeInstanceOf(TanTanSnap);
-        expect(snaps[9]).toBeInstanceOf(TanTanSnap);
-        expect(snaps[10]).toBeInstanceOf(TanTanSnap);
-        expect(snaps[11]).toBeInstanceOf(TanTanSnap);
+        expect(snaps.map(s => s.name).sort()).toEqual(["Binormal", "Intersection", "Intersection", "Intersection", "Intersection", "Normal", "Tan/Tan", "Tan/Tan", "Tan/Tan", "Tan/Tan", "Tangent", "Tangent", "Tangent", "x", "y", "z"]);
     });
 });
 

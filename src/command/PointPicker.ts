@@ -51,15 +51,20 @@ export class Model {
     private restrictionPoint?: THREE.Vector3;
     private restrictionPlane?: PlaneSnap;
 
+    private readonly originalCrosses: CrossPointDatabase;
     private crosses: CrossPointDatabase;
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly originalCrosses: CrossPointDatabase,
+        originalCrosses: CrossPointDatabase,
         private readonly registry: CommandRegistry,
         private readonly signals: EditorSignals,
     ) {
-        this.crosses = new CrossPointDatabase(originalCrosses);
+        this.originalCrosses = new CrossPointDatabase(originalCrosses);
+        this.addAxisCrosses(AxisSnap.X, this.originalCrosses);
+        this.addAxisCrosses(AxisSnap.Y, this.originalCrosses);
+        this.addAxisCrosses(AxisSnap.Z, this.originalCrosses);
+        this.crosses = new CrossPointDatabase(this.originalCrosses);
     }
 
     restrictionSnapsFor(baseConstructionPlane: PlaneSnap): Snap[] {
@@ -99,11 +104,14 @@ export class Model {
         let results: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
-            results = results.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
-            results = results.concat(last.info.snap.additionalSnapsFor(last.point));
-            for (const result of results) {
-                if (result instanceof PointAxisSnap) { // Such as normal/binormal/tangent
-                    this.addAxis(result, this.snapsForLastPickedPoint, []);
+            let work: Snap[] = [];
+            work = work.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
+            work = work.concat(last.info.snap.additionalSnapsFor(last.point));
+            for (const snap of work) {
+                if (snap instanceof PointAxisSnap) { // Such as normal/binormal/tangent
+                    this.addAxis(snap, results, []);
+                } else {
+                    results.push(snap);
                 }
             }
         }
@@ -161,9 +169,9 @@ export class Model {
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
     private readonly cross2axis = new Map<c3d.SimpleName, AxisSnap>();
-    private addAxisCrosses(axis: AxisSnap): Set<CrossPoint> {
+    private addAxisCrosses(axis: AxisSnap, into = this.crosses): Set<CrossPoint> {
         const counter = this.counter--;
-        const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
+        const crosses = into.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
         this.cross2axis.set(counter, axis);
         return crosses;
     }
@@ -171,7 +179,6 @@ export class Model {
     private addAxis(axis: PointAxisSnap, into: Snap[], other: Snap[]) {
         into.push(axis); other.push(axis);
         const crosses = this.addAxisCrosses(axis);
-        console.log(crosses);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
             const antecedentAxis = this.cross2axis.get(cross.on2.id);
