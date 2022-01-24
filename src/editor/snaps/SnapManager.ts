@@ -186,6 +186,19 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const endPt = item.GetLimitPoint(2);
             const end = new CurveEndPointSnap("End", point2point(endPt), curveSnap, item.NearPointProjection(endPt, false).t)
             into.add(end);
+        } else if (item instanceof c3d.Arc3D) {
+            const zeroPt = point2point(item.PointOn(0));
+            const quartPt = point2point(item.PointOn(2 * Math.PI / 4));
+            const halfPt = point2point(item.PointOn(Math.PI));
+            const threeQuartPt = point2point(item.PointOn(Math.PI * 3 / 2));
+            const zeroSnap = new CurvePointSnap("zero", zeroPt, curveSnap, item.NearPointProjection(point2point(zeroPt), false).t);
+            const quartSnap = new CurvePointSnap("1/4", quartPt, curveSnap, item.NearPointProjection(point2point(quartPt), false).t);
+            const halfSnap = new CurvePointSnap("1/2", halfPt, curveSnap, item.NearPointProjection(point2point(halfPt), false).t);
+            const threeQuartSnap = new CurvePointSnap("3/4", threeQuartPt, curveSnap, item.NearPointProjection(point2point(threeQuartPt), false).t);
+            into.add(zeroSnap);
+            into.add(quartSnap);
+            into.add(halfSnap);
+            into.add(threeQuartSnap);
         } else {
             if (item.IsClosed()) return;
 

@@ -5,10 +5,10 @@ import CommandRegistry from '../components/atom/CommandRegistry';
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
-import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
@@ -171,6 +171,7 @@ export class Model {
     private addAxis(axis: PointAxisSnap, into: Snap[], other: Snap[]) {
         into.push(axis); other.push(axis);
         const crosses = this.addAxisCrosses(axis);
+        console.log(crosses);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
             const antecedentAxis = this.cross2axis.get(cross.on2.id);
