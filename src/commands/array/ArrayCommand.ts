@@ -21,14 +21,16 @@ export class RadialArrayCommand extends Command {
             array.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const solids = await dialog.prompt("Select solid", () => {
+        const selected = await dialog.prompt("Select solids or curves", () => {
             const objectPicker = new ObjectPicker(this.editor);
             objectPicker.copy(this.editor.selection);
-            return objectPicker.shift(SelectionMode.Solid, 1).resource(this)
+            const min = 1 - objectPicker.selection.selected.curves.size - objectPicker.selection.selected.solids.size;
+            return objectPicker.execute(() => { }, min, Number.MAX_SAFE_INTEGER).resource(this)
         })();
-        array.solid = solids.first;
+        if (selected.solids.size > 0) array.solid = selected.solids.first;
+        else if (selected.curves.size > 0) array.curve = selected.curves.first;
 
-        bbox.setFromObject(array.solid);
+        bbox.setFromObject(array.object);
         const centroid = bbox.getCenter(new THREE.Vector3());
 
         const { point: p1, info: { constructionPlane } } = await dialog.prompt("Select center point", () => {
@@ -36,11 +38,13 @@ export class RadialArrayCommand extends Command {
             pointPicker.restrictToPlaneThroughPoint(centroid);
             return pointPicker.execute().resource(this);
         })();
-        centroid.sub(p1);
-        array.step1 = centroid.length();
-        array.dir1 = centroid.normalize();
+
+        const step1 = centroid.sub(p1);
+        array.step1 = step1.length();
+        array.dir1 = step1.normalize();
         array.dir2 = constructionPlane.n.clone().normalize();
         array.center = p1;
+        dialog.render();
 
         await array.update();
 

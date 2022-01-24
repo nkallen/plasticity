@@ -16,7 +16,7 @@ export class RadialArrayDialog extends AbstractDialog<ArrayParams> {
         render(
             <>
                 <ol>
-                    <plasticity-prompt name="Select solid" description="to duplicate"></plasticity-prompt>
+                    <plasticity-prompt name="Select solids or curves" description="to duplicate"></plasticity-prompt>
                     <plasticity-prompt name="Select center point" description="to orient around"></plasticity-prompt>
                 </ol>
 

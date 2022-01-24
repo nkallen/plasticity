@@ -63,7 +63,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 }
 
-type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellablePromise<EdgeSelection> | CancellablePromise<SolidSelection> | CancellablePromise<CurveSelection> | CancellablePromise<ControlPointSelection>
+type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellablePromise<EdgeSelection> | CancellablePromise<SolidSelection> | CancellablePromise<CurveSelection> | CancellablePromise<ControlPointSelection> | CancellablePromise<EdgeSelection | FaceSelection | SolidSelection | CurveSelection | ControlPointSelection>
 
 export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     readonly selection: HasSelectedAndHovered;
@@ -84,6 +84,8 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     }
 
     execute(cb?: (o: SelectionDelta) => void, min = this.min, max = this.max, mode?: SelectionMode): CancellablePromise<HasSelection> {
+        if (min <= 0) return CancellablePromise.resolve(this.selection.selected);
+
         const { editor, selection, selection: { signals } } = this;
         const disposables = new CompositeDisposable();
         if (signals !== editor.signals) {

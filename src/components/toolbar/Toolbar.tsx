@@ -47,7 +47,7 @@ export class Model {
             misc.add(cmd.ExtrudeCommand);
             misc.add(cmd.RevolutionCommand);
         }
-        if (selection.solids.size > 0) {
+        if (selection.solids.size > 0 || selection.curves.size > 0) {
             misc.add(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {

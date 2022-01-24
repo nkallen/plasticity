@@ -12,7 +12,15 @@
         <%_ if (arg.elementType.rawType === "double") { _%>
             arr_<%- arg.name %>[i] = (*<%- arg.name %>)[i];
         <%_ } else { _%>
-            arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, <%- (arg.isStructArray && !arg.elementType.klass?.isPOD) ? "&" : '' %>(*<%- arg.name %>)[i]);
+            arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env,
+                <% if (arg.elementType.klass?.isPOD) { %>
+                    (*<%- arg.name %>)[i]
+                <% } else if (arg.isStructArray) { %>
+                    new <%- arg.elementType.rawType %>((*<%- arg.name %>)[i])
+                <% } else { %>
+                    (*<%- arg.name %>)[i]
+                <% } %>
+            );
         <%_ } _%>
     }
     _to = arr_<%- arg.name %>;

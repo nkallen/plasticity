@@ -53,7 +53,7 @@ export default {
                 "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
                 "void Refresh()",
                 // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
-                { signature: "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)", return: { isOnStack: false } },
+                { signature: "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)", return: isOnHeap },
                 "void AddYourGabaritTo(MbCube & cube)",
             ]
         },
@@ -823,7 +823,9 @@ export default {
                 "const MbVector3D & GetAxisZ()",
                 "const MbVector3D & GetOrigin()",
                 "double El(size_t i, size_t j)",
-                { signature: "void GetOffset(MbCartPoint3D & p)", p: isReturn }
+                { signature: "void GetOffset(MbCartPoint3D & p)", p: isReturn },
+                "MbMatrix3D & Div(MbMatrix3D & from)",
+                "void Adj()",
             ]
         },
         TopologyItem: {
@@ -1631,6 +1633,10 @@ export default {
             cppClassName: "_DuplicationValues",
             rawClassName: "DuplicationValues",
             jsClassName: "DuplicationValues",
+            dependencies: ["Matrix3D.h"],
+            functions: [
+                { signature: "void GenerateTransformMatrices(std::vector<MbMatrix3D> & matrices)", matrices: isReturn }
+            ]
         },
         DuplicationMeshValues: {
             rawHeader: "op_duplication_parameter.h",

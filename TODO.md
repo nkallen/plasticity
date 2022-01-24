@@ -99,7 +99,6 @@
 
 ### Todo
 
-- radial array curve  
 - mirror curve freestyle  
 - solid mirror freestyle broken  
 - icons normalized <use href="#circle-arrow-left" />  
@@ -112,6 +111,7 @@
 
 ### Done ✓
 
+- radial array curve  
 - start fillet a priori  
 - boolean with multitarget  
 - all gizmos not scaling pickers  

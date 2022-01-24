@@ -330,7 +330,7 @@ class TypeDeclaration {
     }
 
     get isStructArray() {
-        return /SArray/.test(this.rawType);
+        return /SArray/.test(this.rawType) || (/std::vector/.test(this.rawType) && !/[&*]/.test(this.elementType));
     }
 
     get isIterator() {

@@ -1,6 +1,7 @@
 import { GeometryFactory } from './GeometryFactory';
 import * as visual from '../visual_model/VisualModel';
 import c3d from '../../build/Release/c3d.node';
+import { inst2curve } from '../util/Conversion';
 
 function _delegate(initial?: any) {
     return function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
@@ -31,7 +32,7 @@ delegate.default = function (initial?: any) {
 // Call when adding a subfactory: copy over all the other parameters that are delegated
 delegate.update = function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: string, descriptor: PropertyDescriptor) {
     const old = descriptor.set;
-    descriptor.set = function(this: typeof target, value: any) {
+    descriptor.set = function (this: typeof target, value: any) {
         if (old !== undefined) old.call(this, value);
         const delegated = ((target as any)['delegated'] as (keyof typeof target)[]) ?? [];
         for (const delegation of delegated) {
@@ -57,7 +58,7 @@ delegate.get = function <T extends GeometryFactory>(target: GeometryFactory & { 
     })
 }
 
-type Derivable = typeof visual.Solid | typeof visual.Face;
+type Derivable = typeof visual.Solid | typeof visual.Face | typeof visual.Curve3D;
 
 export function derive<T extends Derivable>(type: T) {
     return function <T extends GeometryFactory>(target: T, propertyKey: keyof T, descriptor: PropertyDescriptor) {
@@ -85,6 +86,18 @@ export function derive<T extends Derivable>(type: T) {
                     else {
                         value.view = t;
                         value.model = this.db.lookupTopologyItem(t);
+                    }
+                    // @ts-ignore
+                    this['_' + propertyKey] = value;
+                }
+                break;
+            case visual.Curve3D:
+                descriptor.set = function (this: GeometryFactory, t: any) {
+                    const value: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D } = {};
+                    if (t instanceof c3d.Curve3D) value.model = t;
+                    else {
+                        value.view = t;
+                        value.model = inst2curve(this.db.lookup(t));
                     }
                     // @ts-ignore
                     this['_' + propertyKey] = value;

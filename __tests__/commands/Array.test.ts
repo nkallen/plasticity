@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { ArrayFactory } from "../../src/commands/array/ArrayFactory";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -21,30 +22,67 @@ beforeEach(() => {
 
 describe(ArrayFactory, () => {
     let array: ArrayFactory;
-    let box: visual.Solid;
-
     beforeEach(() => {
         array = new ArrayFactory(db, materials, signals);
     })
 
-    beforeEach(async () => {
-        const makeBox = new ThreePointBoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        box = await makeBox.commit() as visual.Solid;
+    describe(visual.Solid, () => {
+        let box: visual.Solid;
+
+        beforeEach(async () => {
+            const makeBox = new ThreePointBoxFactory(db, materials, signals);
+            makeBox.p1 = new THREE.Vector3(0, 10, 0);
+            makeBox.p2 = new THREE.Vector3(1, 10, 0);
+            makeBox.p3 = new THREE.Vector3(1, 11, 0);
+            makeBox.p4 = new THREE.Vector3(1, 11, 1);
+            box = await makeBox.commit() as visual.Solid;
+        })
+
+        test('isPolar = true', async () => {
+            array.solid = box;
+            array.isPolar = true;
+            array.step1 = 10;
+            array.dir1 = new THREE.Vector3(0, 1, 0);
+            array.dir2 = new THREE.Vector3(0, 0, 1);
+            array.num1 = 1;
+            array.num2 = 12;
+            array.degrees = 360;
+            array.center = new THREE.Vector3();
+            const items = await array.commit() as visual.Solid[];
+            const item = items[0];
+
+            const bbox = new THREE.Box3();
+            const center = new THREE.Vector3();
+            bbox.setFromObject(item);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 10, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 9.5, -0.5));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 0.5));
+        });
     })
 
-    test('isPolar = true', async () => {
-        array.solid = box;
-        array.isPolar = true;
-        array.dir1 = new THREE.Vector3(1, 0, 0);
-        array.dir2 = new THREE.Vector3(1, 1, 0);
-        array.num1 = 5;
-        array.num2 = 12;
-        array.center = new THREE.Vector3();
-        const item = await array.commit() as visual.Solid[];
-    });
+    describe(visual.Curve3D, () => {
+        let circle: visual.SpaceInstance<visual.Curve3D>;
 
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3(0, 10, 0);
+            makeCircle.radius = 1;
+            circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        })
+
+        test('isPolar = true', async () => {
+            array.curve = circle;
+            array.isPolar = true;
+            array.step1 = 10;
+            array.dir1 = new THREE.Vector3(0, 1, 0);
+            array.dir2 = new THREE.Vector3(0, 0, 1);
+            array.num1 = 1;
+            array.num2 = 12;
+            array.degrees = 360;
+            array.center = new THREE.Vector3();
+            const item = await array.commit() as visual.Solid[];
+            expect(item.length).toBe(13);
+        })
+    })
 })

@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
+import { composeMainName, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
 import { GeometryFactory } from '../../command/GeometryFactory';
 import * as visual from "../../visual_model/VisualModel";
+import { derive } from "../../command/FactoryBuilder";
 
 export interface ArrayParams {
     isPolar: boolean;
@@ -20,12 +21,16 @@ export interface ArrayParams {
 }
 
 export class ArrayFactory extends GeometryFactory implements ArrayParams {
-    private model!: c3d.Solid;
-    private _solid!: visual.Solid;
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid) {
-        this._solid = solid;
-        this.model = this.db.lookup(solid);
+    protected _solid!: { view?: visual.Solid, model?: c3d.Solid };
+    @derive(visual.Solid) get solid(): visual.Solid { throw '' }
+    set solid(solid: visual.Solid | c3d.Solid) { }
+
+    protected _curve!: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D };
+    @derive(visual.Curve3D) get curve(): visual.SpaceInstance<visual.Curve3D> { throw '' }
+    set curve(curve: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) { }
+
+    get object() {
+        return this.solid ?? this.curve;
     }
 
     isPolar = true;
@@ -43,7 +48,7 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
         this.degrees = degrees;
     }
 
-    step2 = 0;
+    step2 = 2 * Math.PI;
     get degrees() { return this.step2 * this.num2 / Math.PI * 180 }
     set degrees(degrees: number) {
         this.step2 = 2 * Math.PI * (degrees / 360) / this.num2;
@@ -54,14 +59,34 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
 
     private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.DuplicationSolid, this.db.version), c3d.ESides.SideNone, 0);
 
-    async calculate() {
+    private get params() {
         const { isPolar, dir1, step1, num1, dir2, step2, num2, center, isAlongAxis } = this;
-        const params = new c3d.DuplicationMeshValues(isPolar, vec2vec(dir1, 1), unit(step1), num1, vec2vec(dir2, 1), step2, num2, point2point(center), isAlongAxis);
+        return new c3d.DuplicationMeshValues(isPolar, vec2vec(dir1, 1), unit(step1), num1, vec2vec(dir2, 1), step2, num2, point2point(center), isAlongAxis);
+    }
 
-        return c3d.ActionSolid.DuplicationSolid_async(this.model, params, this.names);
+    async calculate() {
+        const { params, names, _solid: { model: solid }, _curve: { model: curve }, num1, num2 } = this;
+
+        if (solid !== undefined) {
+            return [await c3d.ActionSolid.DuplicationSolid_async(solid, params, names)];
+        } else if (curve !== undefined) {
+            const result = [];
+            let matrices = params.GenerateTransformMatrices();
+            matrices = matrices.slice(0, 100); // NOTE: a bit paranoid about users making a mistake
+            let normalize = matrices[1];
+            normalize = normalize.Div(new c3d.Matrix3D());
+            const normalized = curve.Duplicate().Cast<c3d.Curve3D>(curve.IsA());
+            normalized.Transform(normalize);
+            for (const matrix of matrices) {
+                const dup = normalized.Duplicate().Cast<c3d.Curve3D>(normalized.IsA());
+                dup.Transform(matrix);
+                result.push(new c3d.SpaceInstance(dup));
+            }
+            return result;
+        } else throw new Error("invalid precondition");
     }
 
     get originalItem() {
-        return this.solid;
+        return this.object;
     }
 }
