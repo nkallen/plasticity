@@ -46,7 +46,12 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
                 contours2d.push(model.GetContour());
             } else if (item.IsA() === c3d.SpaceType.Contour3D) {
                 const model = item.Cast<c3d.Contour3D>(item.IsA());
-                curves3d.push(model);
+                if (model.IsPlanar()) {
+                    const { curve2d } = model.GetPlaneCurve(false);
+                    contours2d.push(new c3d.Contour([curve2d], true));
+                } else {
+                    curves3d.push(model);
+                }
             } else {
                 const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                 if (model.IsPlanar()) {

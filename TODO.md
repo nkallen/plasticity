@@ -108,10 +108,10 @@
 ### In Progress
 
 - gizmos for elementary solids  
-- start fillet a priori  
 
 ### Done ✓
 
+- start fillet a priori  
 - boolean with multitarget  
 - all gizmos not scaling pickers  
 - make all movement pivot changeable  

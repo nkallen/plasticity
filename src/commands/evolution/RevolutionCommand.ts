@@ -4,6 +4,11 @@ import { PhantomLineFactory } from "../line/LineFactory";
 import { RevolutionDialog } from "./RevolutionDialog";
 import RevolutionFactory from "./RevolutionFactory";
 import { RevolutionGizmo } from "./RevolutionGizmo";
+import * as THREE from "three";
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class RevolutionCommand extends Command {
     async execute(): Promise<void> {
@@ -30,11 +35,13 @@ export class RevolutionCommand extends Command {
         await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
-            revolution.axis = p2.clone().sub(p1);
+            revolution.axis = p2.clone().sub(p1).normalize();
             revolution.update();
         }).resource(this);
         line.cancel();
 
+        gizmo.quaternion.setFromUnitVectors(Z, revolution.axis);
+        gizmo.position.copy(revolution.origin);
         gizmo.execute(params => {
             revolution.update();
             dialog.render();
