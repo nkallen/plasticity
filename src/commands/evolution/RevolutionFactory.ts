@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, point2point, unit, vec2vec, normalizePlacement } from '../../util/Conversion';
 import { GeometryFactory } from '../../command/GeometryFactory';
+import { composeMainName, normalizePlacement, point2point, unit, vec2vec } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 
 export interface RevolutionParams {
     origin: THREE.Vector3;
@@ -13,7 +13,11 @@ export interface RevolutionParams {
     thickness2: number;
     side1: number;
     side2: number;
+
+    shape: Shape;
 }
+
+export enum Shape { Torus = 0, Sphere = 1 }
 
 class AbstractRevolutionFactory extends GeometryFactory implements RevolutionParams {
     origin!: THREE.Vector3;
@@ -27,6 +31,7 @@ class AbstractRevolutionFactory extends GeometryFactory implements RevolutionPar
 
     side1 = 2 * Math.PI;
     side2 = 0;
+    shape = Shape.Torus;
 
     protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveRevolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
@@ -35,7 +40,7 @@ class AbstractRevolutionFactory extends GeometryFactory implements RevolutionPar
     protected curves3d: c3d.Curve3D[] = [];
 
     async calculate() {
-        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2 } = this;
+        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2, shape } = this;
 
         const sweptData = contours2d.length > 0
             ? new c3d.SweptData(surface, contours2d)
@@ -48,7 +53,7 @@ class AbstractRevolutionFactory extends GeometryFactory implements RevolutionPar
         params.shellClosed = true;
         params.thickness1 = unit(thickness1);
         params.thickness2 = unit(thickness2);
-        // params.shape = 0;
+        params.shape = shape;
 
         const { side1, side2 } = params;
         side1.way = c3d.SweptWay.scalarValue;
