@@ -28,6 +28,9 @@ export default class TrimFactory extends GeometryFactory {
     }
 
     async calculate() {
+        const { start, stop } = this;
+        if (start === -1 && stop === -1) return [];
+
         if (this.curve.IsA() === c3d.SpaceType.Polyline3D) {
             return this.trimPolyline();
         } else {
@@ -37,8 +40,6 @@ export default class TrimFactory extends GeometryFactory {
 
     private async trimPolyline() {
         const { curve, start, stop } = this;
-        if (start === -1 && stop === -1) return [];
-
         const polyline = curve.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
         const allPoints = polyline.GetPoints();
         const startPoint = polyline.PointOn(start);

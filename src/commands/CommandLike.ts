@@ -64,7 +64,7 @@ export class HideUnselectedCommand extends cmd.CommandLike {
         const db = this.editor.db;
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = new Set([...solids.ids, ...curves.ids, ...regions.ids]);
-        for (const { view, model } of db.find()) {
+        for (const { view } of db.findAll()) {
             if (!selectedItems.has(view.simpleName)) this.editor.db.hide(view);
         }
     }

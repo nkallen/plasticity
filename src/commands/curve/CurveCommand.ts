@@ -119,6 +119,8 @@ export class TrimCommand extends Command {
             }).resource(this);
         })();
 
+        console.log("lkjasdf?")
+
         for (const curve of selected.curves) {
             const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
             factory.fragment = curve;

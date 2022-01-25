@@ -90,13 +90,16 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.lookupControlPointById(id);
     }
 
-    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
-    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
-    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
-    find(): { view: visual.Item, model: c3d.Solid }[];
-    find<T extends visual.Item>(klass?: GConstructor<T>): { view: T, model: c3d.Item }[] {
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.PlaneInstance }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.SpaceInstance }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.Solid }[];
+    find<T extends visual.Item>(klass?: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.Item }[] {
         // @ts-expect-error('typescript cant type polymorphism like this')
-        return this.db.find(klass);
+        return this.db.find(klass, includeAutomatics);
+    }
+
+    findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[] {
+        return this.db.findAll(includeAutomatics);
     }
 
     get visibleObjects(): visual.Item[] {
@@ -104,9 +107,9 @@ export class DatabaseProxy implements DatabaseLike {
     }
 
     get selectableObjects(): visual.Item[] {
-        return this.db.selectableObjects;        
+        return this.db.selectableObjects;
     }
-    
+
     hide(item: visual.Item): Promise<void> {
         return this.db.hide(item);
     }

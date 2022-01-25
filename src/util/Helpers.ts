@@ -70,7 +70,7 @@ export class Helpers {
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
         axes.renderOrder = -1;
-        axes.position.set(0, 0, 0.001);
+        axes.position.set(0, 0, 0.005);
         const material = axes.material as THREE.Material;
         material.fog = false;
         axes.setColors(

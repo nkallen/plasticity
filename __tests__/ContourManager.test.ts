@@ -78,8 +78,8 @@ test("transactions batch add and removes", async () => {
         await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
     });
 
-    expect(_db.find(visual.SpaceInstance).length).toBe(4);
-    expect(_db.find(visual.PlaneInstance).length).toBe(0);
+    expect(_db.find(visual.SpaceInstance, true).length).toBe(4);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(0);
     expect(added).toBe(7);
     expect(removed).toBe(3);
 });
@@ -89,18 +89,18 @@ test("two overlapping coplanar circles, adding and removing creates the right re
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await contours.removeItem(circle2);
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await contours.removeItem(circle1);
-    expect(_db.find(visual.PlaneInstance).length).toBe(0);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(0);
 });
 
 test("two overlapping coplanar circles, adding and hiding creates the right regions", async () => {
@@ -108,19 +108,19 @@ test("two overlapping coplanar circles, adding and hiding creates the right regi
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await contours.hide(circle2);
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await contours.hide(circle1);
-    expect(_db.find(visual.PlaneInstance).length).toBe(0);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(0);
 
     await contours.unhideAll();
-    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+    expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 });

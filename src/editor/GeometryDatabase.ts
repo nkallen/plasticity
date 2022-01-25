@@ -186,23 +186,31 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.lookupTopologyItemById(object.simpleName).model;
     }
 
-    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
-    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
-    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
-    find(): { view: visual.Item, model: c3d.Solid }[];
-    find<T extends visual.Item>(klass?: GConstructor<T>): { view: T, model: c3d.Item }[] {
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.PlaneInstance }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.SpaceInstance }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.Solid }[];
+    find<T extends visual.Solid>(klass: undefined, includeAutomatics?: boolean): { view: T, model: c3d.Solid }[];
+    find<T extends visual.Item>(klass?: GConstructor<T>, includeAutomatics?: boolean): { view: T, model: c3d.Item }[] {
+        const automatics = this.automatics;
         const result: { view: visual.Item, model: c3d.Item }[] = [];
         if (klass === undefined) {
-            for (const { view, model } of this.geometryModel.values()) {
+            for (const [id, { view, model }] of this.geometryModel.entries()) {
+                if (!includeAutomatics && automatics.has(id)) continue;
                 result.push({ view, model });
             }
         } else {
-            for (const { view, model } of this.geometryModel.values()) {
+            for (const [id, { view, model }] of this.geometryModel.entries()) {
+                if (!includeAutomatics && automatics.has(id)) continue;
                 if (view instanceof klass) result.push({ view, model });
             }
         }
         return result as { view: T, model: c3d.Item }[];
     }
+
+    findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[] {
+        return this.find(undefined, includeAutomatics);
+    }
+
 
     async duplicate(model: visual.Solid): Promise<visual.Solid>;
     async duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;

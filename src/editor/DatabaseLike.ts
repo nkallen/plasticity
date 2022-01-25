@@ -67,10 +67,10 @@ export interface DatabaseLike {
     lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
     lookupControlPointById(id: string): ControlPointData;
 
-    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T; model: c3d.PlaneInstance; }[];
-    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T; model: c3d.SpaceInstance; }[];
-    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T; model: c3d.Solid; }[];
-    find(): { view: visual.Item; model: c3d.Solid; }[];
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T; model: c3d.PlaneInstance; }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T; model: c3d.SpaceInstance; }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T; model: c3d.Solid; }[];
+    findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[];
 
     get visibleObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;
     get selectableObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;

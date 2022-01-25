@@ -48,17 +48,17 @@ test("two overlapping coplanar circles", async () => {
     const placement2 = curves.lookup(circle1).placement;
     await regions.updatePlacement(placement2);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(1);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await curves.remove(circle2);
     await regions.updatePlacement(placement2);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(1);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await curves.remove(circle1);
     await regions.updatePlacement(placement1);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(0);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(0);
 });
 
 test("two parallel circles, not coplanar (i.e., off on Z)", async () => {
@@ -76,15 +76,15 @@ test("two parallel circles, not coplanar (i.e., off on Z)", async () => {
     const placement2 = curves.lookup(circle2).placement;
     await regions.updatePlacement(placement2);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(2);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(2);
 
     await curves.remove(circle2);
     await regions.updatePlacement(placement2);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(1);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(1);
 
     await curves.remove(circle1);
     await regions.updatePlacement(placement1);
 
-    expect(db.find(visual.PlaneInstance).length).toBe(0);
+    expect(db.find(visual.PlaneInstance, true).length).toBe(0);
 });

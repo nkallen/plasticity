@@ -26,7 +26,7 @@ export class RegionManager {
     }
 
     private removeOnPlacement(placement: c3d.Placement3D) {
-        const oldRegions = this.db.find(visual.PlaneInstance);
+        const oldRegions = this.db.find(visual.PlaneInstance, true);
         for (const { model, view } of oldRegions) {
             const p = model.GetPlacement();
             if (isSamePlacement(p, placement)) {
