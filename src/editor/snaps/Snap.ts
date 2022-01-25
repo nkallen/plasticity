@@ -85,6 +85,10 @@ export class PointSnap extends Snap {
     isValid(pt: THREE.Vector3): boolean {
         return this.snapper.position.manhattanDistanceTo(pt) < 10e-6;
     }
+
+    restrictionFor(point: THREE.Vector3): Restriction | undefined {
+        return new PlaneSnap(this.normal, this.position);
+    }
 }
 
 export class CircleCenterPointSnap extends PointSnap {
@@ -175,7 +179,7 @@ export class EdgePointSnap extends PointSnap {
         this.helper = edgeSnap.helper;
     }
 
-    restrictionFor(point: THREE.Vector3) {
+    override restrictionFor(point: THREE.Vector3) {
         return this.edgeSnap.restrictionFor(point);
     }
 }
@@ -183,10 +187,6 @@ export class EdgePointSnap extends PointSnap {
 export class FaceCenterPointSnap extends PointSnap {
     constructor(position: THREE.Vector3, normal: THREE.Vector3, readonly faceSnap: FaceSnap) {
         super("Center", position, normal);
-    }
-
-    restrictionFor(point: THREE.Vector3) {
-        return this.faceSnap.restrictionFor(point);
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
@@ -234,7 +234,7 @@ export class CurveEdgeSnap extends Snap {
         return result;
     }
 
-    restrictionFor(point: THREE.Vector3) {
+    restrictionFor(point: THREE.Vector3): Restriction | undefined {
         const facePlus = this.model.GetFacePlus();
         const faceMinus = this.model.GetFaceMinus();
         const planar = [];

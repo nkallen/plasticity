@@ -371,6 +371,7 @@ export default {
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 "void Inverse()",
                 "MbCurve * GetProjection(const MbPlacement3D &place, VERSION version = Math::DefaultMathVersion())",
+                { signature: "bool GetCircleAxis(MbAxis3D & axis)", axis: isReturn, return: { name: "success" } },
             ]
         },
         Rect2D: {
@@ -1165,7 +1166,6 @@ export default {
             dependencies: ["PolyCurve3D.h", "Placement3D.h", "Nurbs.h", "Axis3D.h"],
             functions: [
                 { signature: "MbNurbs3D * MbNurbs3D::Create(const MbNurbs & nurbs, const MbPlacement3D & place)", isStatic: true },
-                { signature: "bool GetCircleAxis(MbAxis3D & axis)", axis: isReturn, return: { name: "success" } },
             ]
         },
         Nurbs: {
