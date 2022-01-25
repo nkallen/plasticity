@@ -55,7 +55,7 @@
                                 "-Wl,-rpath,'$$ORIGIN'",
                             ],
                             'cflags_cc!': ['-fno-rtti'],
-                            'cflags_cc+': ['-frtti'],
+                            'cflags_cc+': ['-frtti', "-Wno-everything"],
                         },
                         "copies": [
                             {
