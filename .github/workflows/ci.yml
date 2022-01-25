@@ -55,18 +55,18 @@ jobs:
           git config user.name "GitHub Action"
           git commit -am "Update version"
           git push
-      # - name: Publish canary release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     yarn publish
-      # - name: Post
-      #   run: |
-      #     choco install curl --no-progress
-      #     yarn echo-version
-      #     cmd /c @"
-      #     curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
-      #     "@
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn publish
+      - name: Post
+        run: |
+          choco install curl --no-progress
+          yarn echo-version
+          cmd /c @"
+          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
+          "@
   linux-test:
     runs-on: ubuntu-latest
     steps:
@@ -88,6 +88,7 @@ jobs:
         run: |
           wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip
           7z x Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip -o'vendor/c3d/'
+          ls vendor/c3d
       - name: Setup license key
         run: |
           echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"

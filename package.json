@@ -157,7 +157,7 @@
         "@electron/remote": "^1.2.1",
         "@jest-runner/electron": "^3.0.1",
         "@types/assert": "^1.5.4",
-        "atom-keymap-plasticity": "^8.2.20",
+        "atom-keymap-plasticity": "9.0.0",
         "clear-cut": "^2.0.2",
         "crypto-browserify": "^3.12.0",
         "electron-squirrel-startup": "^1.0.0",

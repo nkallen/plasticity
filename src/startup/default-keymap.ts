@@ -190,10 +190,10 @@ export default {
         "ctrl-3": "selection:convert:face",
         "ctrl-4": "selection:convert:solid",
 
-        "!": "selection:mode:toggle:control-point",
-        "@": "selection:mode:toggle:edge",
-        "#": "selection:mode:toggle:face",
-        "$": "selection:mode:toggle:solid",
+        "shift-1": "selection:mode:toggle:control-point",
+        "shift-2": "selection:mode:toggle:edge",
+        "shift-3": "selection:mode:toggle:face",
+        "shift-4": "selection:mode:toggle:solid",
 
         "c": "command:cut",
         "g": "command:move",
