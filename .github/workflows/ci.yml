@@ -87,7 +87,7 @@ jobs:
       - name: Download c3d libraries
         run: |
           wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip
-          apt-get install p7zip-full
+          sudo apt-get install p7zip-full
           7z x Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip -o vendor/c3d/
       - name: Setup license key
         run: |
@@ -106,7 +106,7 @@ jobs:
       - name: Codegen C++ and build
         # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
-          apt-get install install astyle --no-progress 
+          sudo apt-get install install astyle --no-progress 
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
@@ -121,11 +121,11 @@ jobs:
       #     git config user.name "GitHub Action"
       #     git commit -am "Update version"
       #     git push
-      # - name: Publish canary release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     yarn publish
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn publish
       # - name: Post
       #   run: |
       #     choco install curl --no-progress
