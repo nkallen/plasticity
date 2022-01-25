@@ -14,7 +14,7 @@ jobs:
       - name: Cache c3d libraries
         uses: actions/cache@v2
         env:
-          cache-name: cache-c3d-libraries-windows
+          cache-name: cache-c3d-libraries
         with:
           path: Win64_Visual_Studio_2019_Unicode.zip
           key: ${{ runner.os }}-build-${{ env.cache-name }}
@@ -80,7 +80,7 @@ jobs:
       - name: Cache c3d libraries
         uses: actions/cache@v2
         env:
-          cache-name: cache-c3d-libraries-ubuntu
+          cache-name: cache-c3d-libraries
         with:
           path: Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip
           key: ${{ runner.os }}-build-${{ env.cache-name }}

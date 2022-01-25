@@ -79,7 +79,7 @@ for (const klass of declarations) {
 
 // Pretty-print the c++ just so we can debug more easily (optional)
 
-const astyle = process.platform == 'darwin' ? cp.execSync('command -v astyle') : cp.execSync('where astyle');
+const astyle = (process.platform == 'darwin' || process.platform == 'linux') ? cp.execSync('command -v astyle') : cp.execSync('where astyle');
 if (astyle) {
     cp.execSync(
         'astyle --options=".astylerc" ' + tempSrcDirPath + '/*.cc ' +
