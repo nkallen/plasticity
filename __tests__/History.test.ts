@@ -2,30 +2,26 @@
  * @jest-environment jsdom
  */
 import * as THREE from 'three';
-import * as visual from '../src/visual_model/VisualModel';
-import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { GizmoMaterialDatabase } from '../src/command/GizmoMaterials';
+import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
+import { SymmetryFactory } from '../src/commands/mirror/MirrorFactory';
+import { Viewport } from '../src/components/viewport/Viewport';
+import ContourManager from '../src/editor/curves/ContourManager';
+import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
+import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
+import { History } from '../src/editor/History';
+import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, ViewportMemento } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import ModifierManager, { ModifierStack } from '../src/editor/ModifierManager';
-import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
 import { Selection, SelectionDatabase } from '../src/selection/SelectionDatabase';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import './matchers';
-import { SymmetryFactory } from '../src/commands/mirror/MirrorFactory';
-import ContourManager from '../src/editor/curves/ContourManager';
-import { RegionManager } from '../src/editor/curves/RegionManager';
-import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
-import { Viewport } from '../src/components/viewport/Viewport';
+import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from '../__mocks__/FakeViewport';
-import { Editor } from '../src/editor/Editor';
-import KeymapManager from 'atom-keymap-plasticity';
-import CommandRegistry from '../src/components/atom/CommandRegistry';
-import LayerManager from '../src/editor/LayerManager';
-import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import './matchers';
 
 describe(EditorOriginator, () => {
     let db: GeometryDatabase;
@@ -41,9 +37,11 @@ describe(EditorOriginator, () => {
     let selection: SelectionDatabase;
     let crosses: CrossPointDatabase;
     let viewports: Viewport[];
+    let history: History;
 
     beforeEach(() => {
         const editor = new Editor();
+        history = editor.history;
         materials = editor.materials;
         signals = editor.signals;
         db = editor._db;
@@ -84,6 +82,17 @@ describe(EditorOriginator, () => {
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);
     });
+
+    test("undo & redo", async () => {
+        history.add("Initial", originator.saveToMemento());
+        expect(db.visibleObjects.length).toBe(2);
+        await db.removeItem(box);
+        expect(db.visibleObjects.length).toBe(1);
+        history.undo();
+        expect(db.visibleObjects.length).toBe(2);
+        history.redo();
+        expect(db.visibleObjects.length).toBe(2);
+    })
 
     test("serialize & deserialize", async () => {
         const data = await originator.serialize();
