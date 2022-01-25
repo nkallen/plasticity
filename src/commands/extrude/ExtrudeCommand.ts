@@ -3,10 +3,10 @@ import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
-import { MultiBooleanFactory } from "../boolean/BooleanFactory";
+import { BooleanFactory, MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { ExtrudeDialog } from "./ExtrudeDialog";
-import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, PossiblyBooleanFaceExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
+import { CurveExtrudeFactory, FaceExtrudeFactory, MultiBooleanExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, PossiblyBooleanFaceExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -17,7 +17,6 @@ export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const { selection: { selected } } = this.editor;
 
-        // @ts-ignore
         let extrude = ExtrudeFactory(this.editor).resource(this);
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
@@ -70,28 +69,25 @@ function ExtrudeFactory(editor: EditorLike) {
     const factories = [];
     const targets = [...selected.solids];
     for (const region of selected.regions) {
-        const bool = new MultiBooleanFactory(db, materials, signals);
         const phantom = new RegionExtrudeFactory(db, materials, signals);
         phantom.region = region;
-        const possibly = new PossiblyBooleanExtrudeFactory(bool, phantom);
-        factories.push(possibly);
+        factories.push(phantom);
     }
+    const faceParents = new Set<visual.Solid>();
     for (const face of selected.faces) {
-        const bool = new MultiBooleanFactory(db, materials, signals);
         const phantom = new FaceExtrudeFactory(db, materials, signals);
         phantom.face = face;
-        const possibly = new PossiblyBooleanFaceExtrudeFactory(bool, phantom);
-        possibly.face = face;
-        factories.push(possibly);
+        faceParents.add(face.parentItem);
+        factories.push(phantom);
     }
     if (selected.curves.size > 0) {
-        const bool = new MultiBooleanFactory(db, materials, signals);
         const phantom = new CurveExtrudeFactory(db, materials, signals);
         phantom.curves = [...selected.curves];
-        const possibly = new PossiblyBooleanExtrudeFactory(bool, phantom);
-        factories.push(possibly);
+        factories.push(phantom);
     }
-    const extrude = new MultiExtrudeFactory(factories);
-    extrude.targets = targets;
+    const phantom = new MultiExtrudeFactory(factories);
+    const bool = new MultiBooleanFactory(db, materials, signals);
+    const extrude = new PossiblyBooleanExtrudeFactory(bool, phantom);
+    extrude.targets = [...faceParents, ...targets];
     return extrude;
 }

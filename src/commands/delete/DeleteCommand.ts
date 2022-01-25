@@ -6,6 +6,8 @@ import { RemoveContourPointFactory } from "../modify_contour/ModifyContourPointF
 
 
 export class DeleteCommand extends Command {
+    remember = false;
+    
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         if (selected.faces.size > 0) {

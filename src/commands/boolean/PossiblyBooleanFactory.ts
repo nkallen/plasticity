@@ -2,10 +2,11 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import { MaterialOverride } from "../../editor/DatabaseLike";
-import { BooleanLikeFactory, phantom_red, phantom_green, phantom_blue } from "./BooleanFactory";
+import { MultiBooleanLikeFactory, phantom_red, phantom_green, phantom_blue } from "./BooleanFactory";
+import { toArray } from '../../util/Conversion';
 
 export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
-    protected abstract bool: BooleanLikeFactory;
+    protected abstract bool: MultiBooleanLikeFactory;
     protected abstract fantom: GF;
 
     newBody = false;
@@ -30,18 +31,20 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     get isSurface() { return this._isSurface; }
 
     private async beforeCalculate(fast = false) {
-        const phantom = await this.fantom.calculate() as c3d.Solid;
+        const phantoms = toArray(await this.fantom.calculate()) as c3d.Solid[];
         let isOverlapping, isSurface;
         if (this.targets.length === 0) {
             isOverlapping = false;
             isSurface = false;
         } else {
-            const cube1 = phantom.GetCube();
             const possible = [];
-            for (const model of this._targets.models) {
-                const cube2 = model.GetCube();
-                if (cube1.Intersect(cube2)) {
-                    possible.push(model);
+            for (const phantom of phantoms) {
+                const cube1 = phantom.GetCube();
+                for (const model of this._targets.models) {
+                    const cube2 = model.GetCube();
+                    if (cube1.Intersect(cube2)) {
+                        possible.push({ phantom, model });
+                    }
                 }
             }
             if (possible.length === 0) {
@@ -49,31 +52,31 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
                 isSurface = false;
             } else {
                 const names = new c3d.SNameMaker(0, c3d.ESides.SideNone, 0);
-                const promises = possible.map(p => c3d.Action.IsSolidsIntersectionFast_async(p, phantom, names));
+                const promises = possible.map(({ phantom, model }) => c3d.Action.IsSolidsIntersectionFast_async(phantom, model, names));
                 const intersections = await Promise.all(promises);
                 isOverlapping = intersections.some(x => x);
                 isSurface = false;
             }
         }
-        return { phantom, isOverlapping, isSurface };
+        return { phantoms, isOverlapping, isSurface };
     }
 
     async calculate() {
-        const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
+        const { phantoms, isOverlapping, isSurface } = await this.beforeCalculate();
         this._isOverlapping = isOverlapping; this._isSurface = isSurface;
 
         if (isOverlapping && !this.newBody) {
             this.bool.operationType = this.operationType;
-            this.bool.tool = phantom;
+            this.bool.tools = phantoms;
             const result = await this.bool.calculate() as c3d.Solid[];
             return result;
         } else {
-            return [phantom];
+            return phantoms;
         }
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        const { phantom, isOverlapping, isSurface } = await this.beforeCalculate();
+        const { phantoms, isOverlapping, isSurface } = await this.beforeCalculate();
 
         if (this.targets.length === 0)
             return [];
@@ -92,7 +95,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         else
             material = phantom_blue;
 
-        return [{ phantom, material }];
+        return phantoms.map(phantom => ({ phantom, material }));
     }
 
     get originalItem() { return this.targets }

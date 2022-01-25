@@ -9,9 +9,10 @@ import { AtomicRef } from "../../util/Util";
 import * as visual from '../../visual_model/VisualModel';
 import { MoveParams } from "../translate/TranslateFactory";
 
-export interface BooleanLikeFactory extends GeometryFactory {
+export interface MultiBooleanLikeFactory extends GeometryFactory {
     set targets(targets: visual.Solid[]);
     set tool(target: visual.Solid | c3d.Solid);
+    set tools(target: visual.Solid[] | c3d.Solid[]);
 
     operationType: c3d.OperationType;
 }
@@ -38,10 +39,12 @@ export class BooleanFactory extends GeometryFactory implements BooleanParams {
     set target(solid: visual.Solid | c3d.Solid) { }
 
     protected _tools: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
-    get tools() { return this._tools.views }
-    set tools(tools: visual.Solid[]) {
-        const models = tools.map(t => this.db.lookup(t));
-        this._tools = { views: tools, models };
+    get tools(): visual.Solid[] { return this._tools.views }
+    set tools(tools: visual.Solid[] | c3d.Solid[]) {
+        const models = tools[0] instanceof visual.Solid
+            ? tools.map(t => this.db.lookup(t as visual.Solid))
+            : tools as c3d.Solid[];
+        this._tools = { views: [], models };
     }
 
     set tool(solid: visual.Solid | c3d.Solid) {
@@ -287,11 +290,18 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     }
 
     private _tools: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
-    get tools() { return this._tools.views }
-    set tools(tools: visual.Solid[]) {
-        const models = tools.map(t => this.db.lookup(t));
-        for (const factory of this.factories) factory['_tools'] = { models, views: tools };
-        this._tools = { views: tools, models };
+    get tools(): visual.Solid[] { return this._tools.views }
+    set tools(tools: visual.Solid[] | c3d.Solid[]) {
+        if (tools[0] instanceof visual.Solid) {
+            const views = tools as visual.Solid[];
+            const models = views.map(t => this.db.lookup(t));
+            for (const factory of this.factories) factory['_tools'] = { models, views };
+            this._tools = { views, models };
+        } else {
+            const models = tools as c3d.Solid[];
+            for (const factory of this.factories) factory['_tools'] = { models, views: [] };
+            this._tools = { views: [], models };
+        }
         this.phantoms.dirty();
     }
 
@@ -310,7 +320,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
         return [...this._targets.views, ...this._tools.views];
     }
 
-    private readonly unionSingleton =  new MovingBooleanFactory(this.db, this.materials, this.signals);
+    private readonly unionSingleton = new MovingBooleanFactory(this.db, this.materials, this.signals);
 
     async calculate() {
         const { operationType, _targets: { models: targets }, _tools: { models: tools } } = this;

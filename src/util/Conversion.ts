@@ -372,3 +372,9 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         throw new Error("Unsupported curve: " + cast.constructor.name);
     }
 }
+
+export function toArray<T>(x: T | T[] | undefined): T[] {
+    if (x === undefined) return [];
+    if (Array.isArray(x)) return x;
+    else return [x];
+}

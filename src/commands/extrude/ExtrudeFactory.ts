@@ -5,7 +5,7 @@ import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanLikeFactory, MultiBooleanFactory } from "../boolean/BooleanFactory";
+import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 
 export interface ExtrudeParams {
@@ -235,10 +235,10 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     }
 }
 
-export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<AbstractExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
+export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<AbstractExtrudeFactory | MultiExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
     readonly factories = [this.fantom];
 
-    constructor(readonly bool: MultiBooleanFactory, readonly fantom: AbstractExtrudeFactory) {
+    constructor(readonly bool: MultiBooleanFactory, readonly fantom: AbstractExtrudeFactory | MultiExtrudeFactory) {
         super(bool['db'], bool['materials'], bool['signals']);
     }
 
@@ -268,7 +268,7 @@ export class PossiblyBooleanFaceExtrudeFactory extends PossiblyBooleanExtrudeFac
     }
 }
 
-export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
+export class MultiBooleanExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
     constructor(readonly factories: PossiblyBooleanExtrudeFactory[]) {
         super(factories[0]['db'], factories[0]['materials'], factories[0]['signals']);
         if (factories.length === 0) throw new Error('invalid precondition');
@@ -290,3 +290,23 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExt
     @delegate.get center!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
 }
+
+export class MultiExtrudeFactory extends MultiGeometryFactory<AbstractExtrudeFactory> implements ExtrudeParams {
+    constructor(readonly factories: AbstractExtrudeFactory[]) {
+        super(factories[0]['db'], factories[0]['materials'], factories[0]['signals']);
+        if (factories.length === 0) throw new Error('invalid precondition');
+    }
+
+    @delegate.default(0) distance1!: number;
+    @delegate.default(0) distance2!: number;
+    @delegate.default(0) race1!: number;
+    @delegate.default(0) race2!: number;
+    @delegate.default(0) thickness1!: number;
+    @delegate.default(0) thickness2!: number;
+
+    @delegate.get center!: THREE.Vector3;
+    @delegate.get direction!: THREE.Vector3;
+
+    get defaultOperationType() { return this.factories[0].defaultOperationType }
+}
+

@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import signal from "signals";
 import { GeometryFactory } from "../command/GeometryFactory";
-import { CancellablePromise } from "./CancellablePromise";
+import { AlreadyFinishedError, CancellablePromise } from "./CancellablePromise";
 import { CancellableRegisterable } from "./CancellableRegisterable";
 import { Cancellable } from "./Cancellable";
 
@@ -24,7 +24,7 @@ export abstract class CancellableRegistor implements Cancellable {
     private disposable = new CompositeDisposable();
 
     cancel(): void {
-        if (this.state != 'None') return;
+        if (this.state !== 'None') return;
 
         for (const resource of this.resources) {
             if (resource instanceof CancellablePromise)
@@ -46,8 +46,8 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     interrupt(): void {
-        if (this.state != 'None') return;
-        
+        if (this.state !== 'None') return;
+
         for (const resource of this.resources) {
             resource.interrupt();
         }
@@ -56,6 +56,11 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     resource<T extends CancellableRegisterable>(x: T): T {
+        if (this.state !== 'None') {
+            x.cancel();
+            throw new AlreadyFinishedError();
+        }
+
         this.resources.push(x);
         if (x instanceof CancellablePromise)
             this.promises.push(x);

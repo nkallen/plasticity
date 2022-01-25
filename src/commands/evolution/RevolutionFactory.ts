@@ -48,6 +48,7 @@ class AbstractRevolutionFactory extends GeometryFactory implements RevolutionPar
         params.shellClosed = true;
         params.thickness1 = unit(thickness1);
         params.thickness2 = unit(thickness2);
+        // params.shape = 0;
 
         const { side1, side2 } = params;
         side1.way = c3d.SweptWay.scalarValue;

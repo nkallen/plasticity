@@ -15,7 +15,7 @@ export class RevolutionCommand extends Command {
         const { editor } = this;
         const curves = [...editor.selection.selected.curves];
         const regions = [...editor.selection.selected.regions];
-        const revolution = new RevolutionFactory(editor.db, editor.materials, editor.signals);
+        const revolution = new RevolutionFactory(editor.db, editor.materials, editor.signals).resource(this);
         revolution.regions = regions;
         revolution.curves = curves;
 

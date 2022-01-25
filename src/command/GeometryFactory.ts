@@ -4,6 +4,7 @@ import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/Datab
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
+import { toArray } from "../util/Conversion";
 import { zip } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 
@@ -459,12 +460,6 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     // NOTE: All factories should be explicitly commit or cancel.
     finish() { }
     interrupt() { }
-}
-
-function toArray<T>(x: T | T[] | undefined): T[] {
-    if (x === undefined) return [];
-    if (x instanceof Array) return x;
-    return [x];
 }
 
 function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
