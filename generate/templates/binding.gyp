@@ -54,8 +54,10 @@
                                 'libc3d.so',
                                 "-Wl,-rpath,'$$ORIGIN'",
                             ],
+                            "cflags+": [ "-std=c++11" ],
+                            "cflags_c+": [ "-std=c++11" ],
                             'cflags_cc!': ['-fno-rtti'],
-                            'cflags_cc+': ['-frtti', "-Wno-everything"],
+                            'cflags_cc+': ['-frtti', "-w", "-std=c++11"],
                         },
                         "copies": [
                             {
