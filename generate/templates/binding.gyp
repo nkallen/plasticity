@@ -46,6 +46,23 @@
                         ]
                     }
                  ],
+                ['OS=="linux"',
+                    {
+                        'link_settings': {
+                            'library_dirs': ['<(module_root_dir)/vendor/c3d/Debug'],
+                            'libraries': [
+                                'libc3d.so',
+                                "-Wl,-rpath,'$$ORIGIN'",
+                            ]
+                        },
+                        "copies": [
+                            {
+                                "destination": "<(module_root_dir)/build/Release/",
+                                "files": ["<(module_root_dir)/vendor/c3d/Release/libc3d.so"]
+                            }
+                        ]
+                    }
+                 ],
                 ['OS=="win"',
                     {
                         'link_settings': {
