@@ -49,9 +49,9 @@
                 ['OS=="linux"',
                     {
                         'link_settings': {
-                            'library_dirs': ['<(module_root_dir)/vendor/c3d/Debug'],
+                            'library_dirs': ['<(module_root_dir)/vendor/c3d/Release'],
                             'libraries': [
-                                'libc3d.so',
+                                '-Lvendor/c3d/Release', '-lc3d'
                                 "-Wl,-rpath,'$$ORIGIN'",
                             ],
                             "cflags+": [ "-std=c++11" ],
