@@ -67,7 +67,7 @@ jobs:
           cmd /c @"
           curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
           "@
-  test:
+  linux-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -86,8 +86,8 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}
       - name: Download c3d libraries
         run: |
-          wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
-          sudo apt-get install p7zip-full
+          wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip
+          apt-get install p7zip-full
           7z x Linux_Ubuntu_1604_CLANG_6.0.0_Unicode.zip -o vendor/c3d/
       - name: Setup license key
         run: |
@@ -106,7 +106,7 @@ jobs:
       - name: Codegen C++ and build
         # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
-          choco install astyle --no-progress 
+          apt-get install install astyle --no-progress 
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
