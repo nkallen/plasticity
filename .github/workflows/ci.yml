@@ -105,7 +105,7 @@ jobs:
       - name: Codegen C++ and build
         # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get install install astyle --no-progress 
+          sudo apt-get -qq install astyle
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
