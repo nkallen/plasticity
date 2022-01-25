@@ -91,7 +91,7 @@ export class CommandExecutor {
                 await meshCreator.caching(async () => {
                     await command.execute();
                 });
-                command.finish(); // FIXME: I'm not sure this is necessary
+                command.finish(); // ensure all resources are cleaned up
             })
             if (command.state == 'Finished') {
                 if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
@@ -100,7 +100,7 @@ export class CommandExecutor {
             }
         } catch (e) {
             command.cancel();
-            originator.restoreFromMemento(state);
+            originator.discardSideEffects(state);
             throw e;
         } finally {
             document.body.removeAttribute("command");
@@ -137,6 +137,7 @@ export class CommandExecutor {
     cancelActiveCommand() {
         const active = this.active;
         if (active) active.cancel();
+        return active;
     }
 
     async enqueueDefaultCommand() {

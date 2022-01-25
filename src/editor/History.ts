@@ -318,6 +318,12 @@ export class EditorOriginator {
         }
     }
 
+    discardSideEffects(m: Memento) {
+        if (this.version === m.version) {
+            this.restoreFromMemento(m);
+        }
+    }
+
     async serialize(): Promise<Buffer> {
         const db = await this.db.serialize();
         const modifiers = await this.modifiers.serialize();
