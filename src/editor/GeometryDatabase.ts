@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
+import { Measure } from "../components/stats/map";
 import { unit } from '../util/Conversion';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';
@@ -270,10 +271,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
-        performance.mark('begin-create-mesh');
+        const stats = Measure.get("create-mesh");
+        stats.begin();
         const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid);
-        performance.measure('create-mesh', 'begin-create-mesh');
-
+        stats.end();
+        
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
                 const instance = obj as c3d.SpaceInstance;

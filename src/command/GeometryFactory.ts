@@ -1,5 +1,6 @@
 import { Signal } from "signals";
 import c3d from '../../build/Release/c3d.node';
+import { Measure } from "../components/stats/map";
 import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
@@ -101,8 +102,9 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
         // 1. Asynchronously compute the geometry
         let result;
+        const stats = Measure.get('factory-calculate');
+        stats.begin();
         try {
-            performance.mark('begin-factory-calculate');
             result = await this.calculate(options);
         } catch (e) {
             if (e instanceof ValidationError) this.cleanupTemps();
@@ -110,7 +112,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             this.signals.factoryUpdated.dispatch();
             throw e;
         } finally {
-            performance.measure('factory-calculate', 'begin-factory-calculate');
+            stats.end();
         }
         if (abortEarly()) {
             return Promise.resolve([]);
