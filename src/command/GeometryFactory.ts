@@ -206,6 +206,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             item.quaternion.identity();
             item.scale.set(1, 1, 1);
             item.updateMatrixWorld();
+            item.visible = true;
         }
     }
 

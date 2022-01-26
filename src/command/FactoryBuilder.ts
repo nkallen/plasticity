@@ -54,6 +54,11 @@ delegate.get = function <T extends GeometryFactory>(target: GeometryFactory & { 
             const that = this as GeometryFactory & { factories: T[] };
             const factories = that['factories'] as T[];
             return factories[factories.length - 1][propertyKey];
+        },
+        set(t: any) {
+            const that = this as GeometryFactory & { factories: T[] };
+            const factories = that['factories'] as T[];
+            factories.forEach(i => i[propertyKey] = t);
         }
     })
 }

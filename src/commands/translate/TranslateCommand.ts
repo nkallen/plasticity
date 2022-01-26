@@ -47,8 +47,7 @@ export class MoveItemCommand extends Command {
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
-        for (const object of objects)
-            bbox.expandByObject(object);
+        for (const object of objects) bbox.expandByObject(object);
         const centroid = bbox.getCenter(new THREE.Vector3());
 
         const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);

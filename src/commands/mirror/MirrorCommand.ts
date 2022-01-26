@@ -4,6 +4,8 @@ import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { HasSelectedAndHovered, HasSelection, ModifiesSelection } from "../../selection/SelectionDatabase";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { PhantomLineFactory } from '../line/LineFactory';
 import { MirrorDialog } from "./MirrorDialog";
 import { MirrorFactory, MultiSymmetryFactory } from "./MirrorFactory";
@@ -12,13 +14,12 @@ import { MirrorKeyboardGizmo } from "./MirrorKeyboardGizmo";
 
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        const mirror = MakeMirrorFactory(this.editor);
-        mirror.origin = new THREE.Vector3();
+        let mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected).resource(this);
+        mirror.origin = new THREE.Vector3(); // FIXME: remove
 
         const gizmo = new MirrorGizmo(mirror, this.editor);
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         const keyboard = new MirrorKeyboardGizmo(this.editor);
-        const objectPicker = new ObjectPicker(this.editor);
 
         dialog.execute(async (params) => {
             await mirror.update();
@@ -36,10 +37,13 @@ export class MirrorCommand extends Command {
             }
         }).resource(this);
 
+        const objectPicker = new ObjectPicker(this.editor);
         objectPicker.execute(async delta => {
             const selection = objectPicker.selection.selected;
             if (selection.faces.size === 0) return;
+            mirror.move = 0;
             mirror.plane = selection.faces.first;
+            gizmo.render(mirror);
             mirror.update();
         }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Face).resource(this);
 
@@ -52,7 +56,7 @@ export class MirrorCommand extends Command {
 
 export class FreestyleMirrorCommand extends Command {
     async execute(): Promise<void> {
-        const mirror = MakeMirrorFactory(this.editor);
+        const mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected);
         mirror.origin = new THREE.Vector3();
 
         const dialog = new MirrorDialog(mirror, this.editor.signals);
@@ -84,8 +88,7 @@ export class FreestyleMirrorCommand extends Command {
     }
 }
 
-function MakeMirrorFactory(editor: EditorLike) {
-    const selected = editor.selection.selected;
+function MakeMirrorFactory(editor: EditorLike, selected: ModifiesSelection) {
     let mirror: MultiSymmetryFactory | MirrorFactory;
     if (selected.solids.size > 0) {
         mirror = new MultiSymmetryFactory(editor.db, editor.materials, editor.signals);

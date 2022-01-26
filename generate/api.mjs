@@ -827,6 +827,7 @@ export default {
                 { signature: "void GetOffset(MbCartPoint3D & p)", p: isReturn },
                 "MbMatrix3D & Div(MbMatrix3D & from)",
                 "void Adj()",
+                "void SetOffset(const MbCartPoint3D &p)",
             ]
         },
         TopologyItem: {

@@ -14,6 +14,7 @@ export interface MirrorParams {
     quaternion: THREE.Quaternion;
     normal: THREE.Vector3;
     plane: visual.Face;
+    move: number;
 }
 
 export interface MirrorFactoryLike extends GeometryFactory, MirrorParams {
@@ -29,6 +30,9 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
     normal!: THREE.Vector3;
     shouldCut = true;
     shouldUnion = false;
+    move = 0;
+
+    get items() { return [this.item] }
 
     set quaternion(orientation: THREE.Quaternion) {
         this.normal = Z.clone().applyQuaternion(orientation);
@@ -44,13 +48,14 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
     }
 
     async calculate() {
-        const { origin, normal } = this;
+        const { origin, normal, move } = this;
         if (origin === undefined || normal === undefined) throw new NoOpError();
 
         const model = this.db.lookup(this.item);
         const transformed = model.Duplicate().Cast<c3d.Item>(model.IsA());
         const mat = new c3d.Matrix3D();
         mat.Symmetry(point2point(origin), vec2vec(normal, 1));
+        mat.SetOffset(point2point(normal.clone().multiplyScalar(move)));
         transformed.Transform(mat);
 
         return transformed;
@@ -59,10 +64,15 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
 
 export class SymmetryFactory extends GeometryFactory {
     origin = new THREE.Vector3();
-    quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
     shouldCut = true;
     shouldUnion = false;
+    move = 0;
 
+    quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+
+    get normal() {
+        return Z.clone().applyQuaternion(this.quaternion);
+    }
     set normal(normal: THREE.Vector3) {
         normal = normal.clone().normalize();
         Z.set(0, 0, -1);
@@ -87,7 +97,7 @@ export class SymmetryFactory extends GeometryFactory {
         model.OrientPlacement(placement);
         placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
         this.origin = point2point(placement.GetOrigin());
-        const normal = vec2vec(placement.GetAxisY(), 1);
+        const normal = vec2vec(placement.GetAxisY(), -1);
         this.quaternion.setFromUnitVectors(Z, normal);
     }
 
@@ -98,8 +108,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async beforeCalculate() {
-        const { shouldCut, model, origin, quaternion, names } = this;
-
+        const { shouldCut, model, names } = this;
         const { params, mirrorPlacement } = this.shellCuttingParams;
 
         let original = model;
@@ -175,7 +184,7 @@ export class SymmetryFactory extends GeometryFactory {
                 mirrored.scale.reflect(Z.normalize());
                 temp.underlying.add(mirrored);
                 // mirrored.visible = true;
-                
+
                 this.cleanupTemps();
                 return this.temps = this.showTemps([temp]);
             } catch {
@@ -185,8 +194,11 @@ export class SymmetryFactory extends GeometryFactory {
         }, () => super.doUpdate(abortEarly));
     }
 
+    private readonly offsetOrigin = new THREE.Vector3();
     get shellCuttingParams() {
-        const { origin, quaternion: quaternion, names } = this;
+        const { origin, quaternion, move, names } = this;
+        const { offsetOrigin } = this;
+        offsetOrigin.set(0, 0, move / 2).applyQuaternion(quaternion).add(origin);
 
         const point1 = new c3d.CartPoint(0, -1000);
         const point2 = new c3d.CartPoint(0, 1000);
@@ -197,8 +209,9 @@ export class SymmetryFactory extends GeometryFactory {
         Z.set(0, 0, -1).applyQuaternion(quaternion);
         const z = vec2vec(Z, 1);
         const x = vec2vec(X, 1);
-        const cutPlacement = new c3d.Placement3D(point2point(origin), x, z, false);
-        const mirrorPlacement = new c3d.Placement3D(point2point(origin), z, x, false);
+        const c3d_offsetOrigin = point2point(offsetOrigin);
+        const cutPlacement = new c3d.Placement3D(c3d_offsetOrigin, x, z, false);
+        const mirrorPlacement = new c3d.Placement3D(c3d_offsetOrigin, z, x, false);
 
         const contour = new c3d.Contour([line], true);
         const direction = new c3d.Vector3D(0, 0, 0);
@@ -214,6 +227,7 @@ export class SymmetryFactory extends GeometryFactory {
             dataType: 'SymmetryFactory',
             params: {
                 origin: this.origin,
+                move: this.move,
                 quaternion: this.quaternion,
                 shouldCut: this.shouldCut,
                 shouldUnion: this.shouldUnion,
@@ -227,6 +241,7 @@ export class SymmetryFactory extends GeometryFactory {
         const quaternion = new THREE.Quaternion();
         Object.assign(quaternion, json.quaternion);
         this.origin = origin;
+        this.move = json.move;
         this.quaternion = quaternion;
         this.shouldCut = json.shouldCut;
         this.shouldUnion = json.shouldUnion;
@@ -234,7 +249,11 @@ export class SymmetryFactory extends GeometryFactory {
 }
 
 export class MultiSymmetryFactory extends MultiGeometryFactory<SymmetryFactory> implements MirrorParams {
+    get items() { return this.solids }
+    private _solids!: visual.Solid[];
+    get solids() { return this._solids }
     set solids(solids: visual.Solid[]) {
+        this._solids = solids;
         const factories = [];
         for (const solid of solids) {
             const factory = new SymmetryFactory(this.db, this.materials, this.signals);
@@ -244,11 +263,13 @@ export class MultiSymmetryFactory extends MultiGeometryFactory<SymmetryFactory> 
         this.factories = factories;
     }
 
+    @delegate.get normal!: THREE.Vector3;
+    @delegate.get origin!: THREE.Vector3;
+
+    @delegate move!: number;
     @delegate.default(true) shouldCut!: boolean;
     @delegate.default(false) shouldUnion!: boolean;
-    @delegate origin!: THREE.Vector3;
     @delegate quaternion!: THREE.Quaternion;
-    @delegate normal!: THREE.Vector3;
     @delegate plane!: visual.Face;
 
     get shouldHideOriginalItemDuringUpdate() { return this.shouldCut || this.shouldUnion }

@@ -69,7 +69,7 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
-    handleLength = 0.3;
+    override handleLength = 0.3;
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.default);

@@ -46,7 +46,6 @@ export class BooleanCommand extends Command {
             const solids = await getTarget();
             boolean.targets = [...solids];
 
-
             dialog.replace("Select target bodies", () => {
                 const objectPicker = new ObjectPicker(this.editor);
                 objectPicker.selection.selected.add(boolean.targets);
