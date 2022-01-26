@@ -34,6 +34,7 @@ abstract class AbstractMirrorCommand extends Command {
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         const keyboard = new MirrorKeyboardGizmo(this.editor);
         const objectPicker = new ObjectPicker(this.editor);
+
         dialog.execute(async (params) => {
             await mirror.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
@@ -92,6 +93,11 @@ export class FreestyleMirrorCommand extends Command {
         const mirror = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         mirror.solid = solid;
 
+        const dialog = new MirrorDialog(mirror, this.editor.signals);
+        dialog.execute(async (params) => {
+            await mirror.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         const pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
@@ -106,7 +112,7 @@ export class FreestyleMirrorCommand extends Command {
             line.p2 = p2;
             line.update();
 
-            mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n);
+            mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n).normalize();
             mirror.update();
         }).resource(this);
 

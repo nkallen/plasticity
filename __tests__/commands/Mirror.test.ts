@@ -114,8 +114,8 @@ describe(SymmetryFactory, () => {
 
     test('update', async () => {
         mirror.solid = sphere;
-        mirror.origin = new THREE.Vector3();
-        mirror.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        mirror.origin = new THREE.Vector3(0, 0, 0);
+        mirror.normal = new THREE.Vector3(1, 0, 0);
 
         await mirror.update();
         expect(db.temporaryObjects.children.length).toBe(1);
@@ -125,9 +125,9 @@ describe(SymmetryFactory, () => {
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.5, -1, -1));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(-0.25, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.86, -0.86));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 0.86, 0.86));
 
         expect(db.visibleObjects.length).toBe(1);
     });
@@ -201,7 +201,7 @@ describe(SymmetryFactory, () => {
         test('update: solids cut=true, union=true', async () => {
             mirror.origin = new THREE.Vector3();
             mirror.solid = box;
-            mirror.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            mirror.normal = new THREE.Vector3(Math.SQRT1_2, -Math.SQRT1_2, 0);
             mirror.shouldCut = true;
             mirror.shouldUnion = true;
 
@@ -212,8 +212,8 @@ describe(SymmetryFactory, () => {
             expect(db.visibleObjects.length).toBe(2);
             bbox.setFromObject(item);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
         })
     })

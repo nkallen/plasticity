@@ -65,9 +65,8 @@ export class SymmetryFactory extends GeometryFactory {
 
     set normal(normal: THREE.Vector3) {
         normal = normal.clone().normalize();
-        const { Z } = this;
-        // Z.set(0, 0, -1);
-        this.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
+        Z.set(0, 0, -1);
+        this.quaternion.setFromUnitVectors(Z, normal);
     }
 
     private model!: c3d.Solid;
@@ -89,7 +88,7 @@ export class SymmetryFactory extends GeometryFactory {
         placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
         this.origin = point2point(placement.GetOrigin());
         const normal = vec2vec(placement.GetAxisY(), 1);
-        this.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
+        this.quaternion.setFromUnitVectors(Z, normal);
     }
 
     private readonly X = new THREE.Vector3(1, 0, 0);
@@ -101,16 +100,8 @@ export class SymmetryFactory extends GeometryFactory {
     async beforeCalculate() {
         const { shouldCut, model, origin, quaternion, names } = this;
 
-        const { X, Z } = this;
-        Z.set(0, 0, -1).applyQuaternion(quaternion);
-        X.set(1, 0, 0).applyQuaternion(quaternion);
+        const { params, mirrorPlacement } = this.shellCuttingParams;
 
-        const z = vec2vec(Z, 1);
-        const x = vec2vec(X, 1);
-        const placement = new c3d.Placement3D(point2point(origin), z, x, false);
-
-        const { params } = this.shellCuttingParams;
-        
         let original = model;
         let cutAndMirrored = model
         if (shouldCut) {
@@ -120,23 +111,23 @@ export class SymmetryFactory extends GeometryFactory {
                 original = cutAndMirrored;
             } catch { }
         }
-        cutAndMirrored = await c3d.ActionSolid.MirrorSolid_async(cutAndMirrored, placement, names);
+        cutAndMirrored = await c3d.ActionSolid.MirrorSolid_async(cutAndMirrored, mirrorPlacement, names);
 
-        return { cutAndMirrored, cut: original, placement };
+        return { cutAndMirrored, cut: original, mirrorPlacement };
     }
 
     async calculate() {
         const { shouldCut, shouldUnion, model, names } = this;
 
-        const { cutAndMirrored, cut, placement } = await this.beforeCalculate();
+        const { cutAndMirrored, cut, mirrorPlacement } = await this.beforeCalculate();
 
         const mergeFlags = new c3d.MergingFlags(true, true);
 
         if (shouldCut && shouldUnion) {
             try {
-                return [await c3d.ActionSolid.SymmetrySolid_async(model, c3d.CopyMode.Copy, placement, names)];
+                return [await c3d.ActionSolid.SymmetrySolid_async(model, c3d.CopyMode.Copy, mirrorPlacement, names)];
             } catch (e) {
-                const mirrored = await c3d.ActionSolid.MirrorSolid_async(model, placement, names);
+                const mirrored = await c3d.ActionSolid.MirrorSolid_async(model, mirrorPlacement, names);
                 const { result } = await c3d.ActionSolid.UnionResult_async(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 return [result];
             }
@@ -165,8 +156,6 @@ export class SymmetryFactory extends GeometryFactory {
         return this.shouldCut || this.shouldUnion;
     }
 
-    private temp?: TemporaryObject;
-
     async doUpdate(abortEarly: () => boolean) {
         const { solid, model } = this;
 
@@ -180,20 +169,12 @@ export class SymmetryFactory extends GeometryFactory {
                 }
 
                 const temp = await this.db.replaceWithTemporaryItem(solid, result);
-                const view = temp.underlying;
-                const mirrored = view.clone();
-                mirrored.scale.reflect(Z);
-                view.add(mirrored);
+                this.cleanupTemps();
+                this.temps = this.showTemps([temp]);
 
-                this.temp?.cancel();
-                this.temp = temp;
-                temp.show();
-                temp.underlying.updateMatrixWorld();
-                mirrored.visible = true;
-
-                return [temp];
+                return this.temps;
             } catch {
-                this.temp?.cancel();
+                this.cleanupTemps();
                 return [];
             }
         }, () => super.doUpdate(abortEarly));
@@ -207,17 +188,18 @@ export class SymmetryFactory extends GeometryFactory {
         const line = c3d.ActionCurve.Segment(point1, point2);
 
         const { X, Z } = this;
-        Z.set(0, 0, -1).applyQuaternion(quaternion);
         X.set(1, 0, 0).applyQuaternion(quaternion);
+        Z.set(0, 0, -1).applyQuaternion(quaternion);
         const z = vec2vec(Z, 1);
         const x = vec2vec(X, 1);
-        const placement = new c3d.Placement3D(point2point(origin), x, z, false);
+        const cutPlacement = new c3d.Placement3D(point2point(origin), x, z, false);
+        const mirrorPlacement = new c3d.Placement3D(point2point(origin), z, x, false);
 
         const contour = new c3d.Contour([line], true);
         const direction = new c3d.Vector3D(0, 0, 0);
         const flags = new c3d.MergingFlags(true, true);
-        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, flags, true, names);
-        return { Z, placement, params };
+        const params = new c3d.ShellCuttingParams(cutPlacement, contour, false, direction, flags, true, names);
+        return { Z, mirrorPlacement, params };
     }
 
     get originalItem() { return this.solid }
@@ -256,7 +238,7 @@ export class MultiSymmetryFactory extends MultiGeometryFactory<SymmetryFactory> 
         }
         this.factories = factories;
     }
-    
+
     @delegate.default(true) shouldCut!: boolean;
     @delegate.default(false) shouldUnion!: boolean;
     @delegate origin!: THREE.Vector3;
