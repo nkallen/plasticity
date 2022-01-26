@@ -169,10 +169,15 @@ export class SymmetryFactory extends GeometryFactory {
                 }
 
                 const temp = await this.db.replaceWithTemporaryItem(solid, result);
+                // TODO: this mirrored object isn't temporarily invisible. Have to eventually
+                // investigate how it interacts with modifiers.
+                const mirrored = temp.underlying.clone();
+                mirrored.scale.reflect(Z.normalize());
+                temp.underlying.add(mirrored);
+                // mirrored.visible = true;
+                
                 this.cleanupTemps();
-                this.temps = this.showTemps([temp]);
-
-                return this.temps;
+                return this.temps = this.showTemps([temp]);
             } catch {
                 this.cleanupTemps();
                 return [];

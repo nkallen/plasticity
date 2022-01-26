@@ -125,9 +125,9 @@ describe(SymmetryFactory, () => {
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(-0.25, 0, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.86, -0.86));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 0.86, 0.86));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 0.86, 0.86));
 
         expect(db.visibleObjects.length).toBe(1);
     });
