@@ -55,7 +55,7 @@ export class MirrorCommand extends Command {
 
 export class FreestyleMirrorCommand extends Command {
     async execute(): Promise<void> {
-        const mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected);
+        const mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected).resource(this);
         mirror.origin = new THREE.Vector3();
 
         const dialog = new MirrorDialog(mirror, this.editor.signals);
