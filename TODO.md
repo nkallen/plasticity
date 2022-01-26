@@ -104,20 +104,9 @@
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 - bug: space-to-focus puts in wrong place  
-- modify contour undo not working  
 
 ### In Progress
 
 - gizmos for elementary solids  
 
 ### Done ✓
-
-- radial array curve  
-- start fillet a priori  
-- boolean with multitarget  
-- all gizmos not scaling pickers  
-- make all movement pivot changeable  
-- Moving points is not respecting construction plane  
-- open ticket for huge fillet on box  
-- ctrl to add to a command - offset  
-
