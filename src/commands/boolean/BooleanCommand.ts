@@ -98,7 +98,7 @@ export class BooleanCommand extends Command {
                 objectPicker.prohibit(boolean.targets);
                 return objectPicker.execute(async delta => {
                     await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
-                }, 0, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+                }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
             }, () => setToolsAndGizmo([]));
             getTools();
         }
