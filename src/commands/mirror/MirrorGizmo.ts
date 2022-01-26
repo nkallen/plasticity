@@ -67,11 +67,12 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
         const { x, y, z, _x, _y, _z, move, params } = this;
 
         const set = (mirrorQ: THREE.Quaternion, moveQ: THREE.Quaternion) => () => {
-            params.move = 0;
+            this.move.value = params.move = 0;
             params.origin = new THREE.Vector3();
+            move.position.copy(params.origin);
             params.quaternion = mirrorQ;
             move.quaternion.copy(moveQ);
-            this.render(params);
+            this.move.visible = true;
         };
 
         this.addGizmo(x, set(mirrorPosX, movePosX));
@@ -91,7 +92,6 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
 
     render(params: MirrorParams) {
         this.move.visible = true;
-        this.move.value = 0;
         this.move.position.copy(params.origin);
         this.move.quaternion.setFromUnitVectors(Y, params.normal);
     }
