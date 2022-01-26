@@ -92,15 +92,14 @@ export class BooleanCommand extends Command {
             const set = await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
             if (!set) await boolean.update();
 
-            const getTools = dialog.prompt("Select tool bodies", () => {
+            dialog.prompt("Select tool bodies", () => {
                 const objectPicker = new ObjectPicker(this.editor);
                 objectPicker.selection.selected.add(boolean.tools);
                 objectPicker.prohibit(boolean.targets);
                 return objectPicker.execute(async delta => {
                     await setToolsAndGizmo([...objectPicker.selection.selected.solids]);
                 }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
-            }, () => setToolsAndGizmo([]));
-            getTools();
+            }, () => setToolsAndGizmo([]))();
         }
 
         await this.finished;
