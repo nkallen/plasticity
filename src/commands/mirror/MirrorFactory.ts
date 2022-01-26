@@ -96,8 +96,8 @@ export class SymmetryFactory extends GeometryFactory {
         const placement = model.GetControlPlacement();
         model.OrientPlacement(placement);
         placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
-        this.origin = point2point(model.Point(0.5, 0.5));
         const normal = vec2vec(placement.GetAxisY(), -1);
+        this.origin = point2point(model.Point(0.5, 0.5));
         this.quaternion.setFromUnitVectors(Z, normal);
     }
 

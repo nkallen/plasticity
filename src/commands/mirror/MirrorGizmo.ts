@@ -9,29 +9,31 @@ import { CancellablePromise } from "../../util/CancellablePromise";
 import { MoveAxisGizmo } from "../translate/MoveGizmo";
 import { MirrorParams } from "./MirrorFactory";
 
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
+const freeze = Object.freeze;
 
-const _X = new THREE.Vector3(-1, 0, 0);
-const _Y = new THREE.Vector3(0, -1, 0);
-const _Z = new THREE.Vector3(0, 0, -1);
+const X = freeze(new THREE.Vector3(1, 0, 0));
+const Y = freeze(new THREE.Vector3(0, 1, 0));
+const Z = freeze(new THREE.Vector3(0, 0, 1));
 
-const mirrorPosX = new THREE.Quaternion().setFromUnitVectors(Z, X);
-const mirrorPosY = new THREE.Quaternion().setFromUnitVectors(Z, Y);
-const mirrorPosZ = new THREE.Quaternion().setFromUnitVectors(Z, Z);
+const _X = freeze(new THREE.Vector3(-1, 0, 0));
+const _Y = freeze(new THREE.Vector3(0, -1, 0));
+const _Z = freeze(new THREE.Vector3(0, 0, -1));
 
-const mirrorNegX = new THREE.Quaternion().setFromUnitVectors(Z, _X);
-const mirrorNegY = new THREE.Quaternion().setFromUnitVectors(Z, _Y);
-const mirrorNegZ = new THREE.Quaternion().setFromUnitVectors(Z, _Z);
+const mirrorPosX = freeze(new THREE.Quaternion().setFromUnitVectors(Z, X));
+const mirrorPosY = freeze(new THREE.Quaternion().setFromUnitVectors(Z, Y));
+const mirrorPosZ = freeze(new THREE.Quaternion().setFromUnitVectors(Z, Z));
 
-const movePosX = new THREE.Quaternion().setFromUnitVectors(Y, X);
-const movePosY = new THREE.Quaternion().setFromUnitVectors(Y, Y);
-const movePosZ = new THREE.Quaternion().setFromUnitVectors(Y, Z);
+const mirrorNegX = freeze(new THREE.Quaternion().setFromUnitVectors(Z, _X));
+const mirrorNegY = freeze(new THREE.Quaternion().setFromUnitVectors(Z, _Y));
+const mirrorNegZ = freeze(new THREE.Quaternion().setFromUnitVectors(Z, _Z));
 
-const moveNegX = new THREE.Quaternion().setFromUnitVectors(Y, _X);
-const moveNegY = new THREE.Quaternion().setFromUnitVectors(Y, _Y);
-const moveNegZ = new THREE.Quaternion().setFromUnitVectors(Y, _Z);
+const movePosX = freeze(new THREE.Quaternion().setFromUnitVectors(Y, X));
+const movePosY = freeze(new THREE.Quaternion().setFromUnitVectors(Y, Y));
+const movePosZ = freeze(new THREE.Quaternion().setFromUnitVectors(Y, Z));
+
+const moveNegX = freeze(new THREE.Quaternion().setFromUnitVectors(Y, _X));
+const moveNegY = freeze(new THREE.Quaternion().setFromUnitVectors(Y, _Y));
+const moveNegZ = freeze(new THREE.Quaternion().setFromUnitVectors(Y, _Z));
 
 export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     private readonly materials = this.editor.gizmos;
@@ -70,7 +72,7 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
             this.move.value = params.move = 0;
             params.origin = new THREE.Vector3();
             move.position.copy(params.origin);
-            params.quaternion = mirrorQ;
+            params.quaternion = mirrorQ.clone();
             move.quaternion.copy(moveQ);
             this.move.visible = true;
         };
