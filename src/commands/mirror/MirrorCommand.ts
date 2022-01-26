@@ -1,33 +1,18 @@
 import * as THREE from "three";
-import Command from "../../command/Command";
+import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { PhantomLineFactory } from '../line/LineFactory';
 import { MirrorDialog } from "./MirrorDialog";
-import { MirrorFactory, MirrorFactoryLike, MultiSymmetryFactory, SymmetryFactory } from "./MirrorFactory";
+import { MirrorFactory, MultiSymmetryFactory } from "./MirrorFactory";
 import { MirrorGizmo } from "./MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./MirrorKeyboardGizmo";
 
-
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
-        if (selected.solids.size > 0) {
-            const command = new MirrorSolidCommand(this.editor);
-            this.editor.enqueue(command, true)
-        } else if (selected.curves.size > 0) {
-            const command = new MirrorItemCommand(this.editor);
-            this.editor.enqueue(command, true)
-        }
-    }
-}
-
-
-abstract class AbstractMirrorCommand extends Command {
-    async execute(): Promise<void> {
-        const mirror = await this.makeFactory();
+        const mirror = MakeMirrorFactory(this.editor);
         mirror.origin = new THREE.Vector3();
 
         const gizmo = new MirrorGizmo(mirror, this.editor);
@@ -63,35 +48,12 @@ abstract class AbstractMirrorCommand extends Command {
         const result = await mirror.commit();
         this.editor.selection.selected.add(result);
     }
-
-    protected abstract makeFactory(): Promise<MirrorFactoryLike>;
-}
-
-export class MirrorSolidCommand extends AbstractMirrorCommand {
-    protected async makeFactory(): Promise<MirrorFactoryLike> {
-        const { editor } = this;
-        const mirror = new MultiSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.solids = [...editor.selection.selected.solids];
-
-        return mirror;
-    }
-}
-
-export class MirrorItemCommand extends AbstractMirrorCommand {
-    protected async makeFactory(): Promise<MirrorFactoryLike> {
-        const { editor } = this;
-        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.item = editor.selection.selected.curves.first;
-
-        return mirror;
-    }
 }
 
 export class FreestyleMirrorCommand extends Command {
     async execute(): Promise<void> {
-        const solid = this.editor.selection.selected.solids.first;
-        const mirror = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.solid = solid;
+        const mirror = MakeMirrorFactory(this.editor);
+        mirror.origin = new THREE.Vector3();
 
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         dialog.execute(async (params) => {
@@ -119,5 +81,21 @@ export class FreestyleMirrorCommand extends Command {
         line.cancel();
 
         await mirror.commit();
+    }
+}
+
+function MakeMirrorFactory(editor: EditorLike) {
+    const selected = editor.selection.selected;
+    let mirror: MultiSymmetryFactory | MirrorFactory;
+    if (selected.solids.size > 0) {
+        mirror = new MultiSymmetryFactory(editor.db, editor.materials, editor.signals);
+        mirror.solids = [...selected.solids];
+        return mirror;
+    } else if (selected.curves.size > 0) {
+        mirror = new MirrorFactory(editor.db, editor.materials, editor.signals);
+        mirror.item = selected.curves.first;
+        return mirror;
+    } else {
+        throw new Error("Invalid selection");
     }
 }

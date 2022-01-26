@@ -198,7 +198,7 @@ describe(ModifierManager, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
         });
 
-        test('creating a temporary object updates the modifier', async () => {
+        test.only('creating a temporary object updates the modifier', async () => {
             expect(db.temporaryObjects.children.length).toBe(0);
             expect(db.visibleObjects.length).toBe(2);
 

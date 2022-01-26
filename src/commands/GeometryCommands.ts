@@ -1,6 +1,6 @@
 import { ThreePointArcCommand } from "./arc/ThreePointArcCommand";
 import { RadialArrayCommand } from "./array/ArrayCommand";
-import { CutCommand, BooleanCommand } from "./boolean/BooleanCommand";
+import { BooleanCommand, CutCommand } from "./boolean/BooleanCommand";
 import { CenterBoxCommand, CornerBoxCommand, ThreePointBoxCommand } from "./box/BoxCommand";
 import { CharacterCurveCommand } from "./character-curve/CharacterCurveCommand";
 import { CenterCircleCommand, CenterPointArcCommand, EditCircleCommand, ThreePointCircleCommand, TwoPointCircleCommand } from "./circle/CircleCommand";
@@ -15,7 +15,7 @@ import { ExtrudeCommand } from "./extrude/ExtrudeCommand";
 import { FilletSolidCommand } from "./fillet/FilletCommand";
 import { SlotCommand } from "./hole/SlotCommand";
 import { LoftCommand } from "./loft/LoftCommand";
-import { FreestyleMirrorCommand, MirrorCommand, MirrorItemCommand, MirrorSolidCommand } from "./mirror/MirrorCommand";
+import { FreestyleMirrorCommand, MirrorCommand } from "./mirror/MirrorCommand";
 import { ActionFaceCommand, ModifyFaceCommand, OffsetFaceCommand, PurifyFaceCommand, RefilletFaceCommand } from "./modifyface/ModifyFaceCommand";
 import { FreestyleMoveControlPointCommand, FreestyleRotateControlPointCommand, FreestyleScaleControlPointCommand, ModifyContourCommand, MoveControlPointCommand, RotateControlPointCommand, ScaleControlPointCommand } from "./modify_contour/ModifyContourCommand";
 import { PolygonCommand } from "./polygon/PolygonCommand";
@@ -36,8 +36,6 @@ export {
     FreestyleRotateItemCommand,
     FreestyleDraftSolidCommand,
     PurifyFaceCommand,
-    MirrorSolidCommand,
-    MirrorItemCommand,
     RemoveItemCommand,
     RemoveControlPointCommand,
     RemoveFaceCommand,

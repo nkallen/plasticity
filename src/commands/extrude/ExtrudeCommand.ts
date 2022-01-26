@@ -3,10 +3,10 @@ import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
-import { BooleanFactory, MultiBooleanFactory } from "../boolean/BooleanFactory";
+import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { ExtrudeDialog } from "./ExtrudeDialog";
-import { CurveExtrudeFactory, FaceExtrudeFactory, MultiBooleanExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, PossiblyBooleanFaceExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
+import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
 
 const Y = new THREE.Vector3(0, 1, 0);

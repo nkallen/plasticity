@@ -142,7 +142,7 @@ export default {
         "ctrl-z": "gizmo:line:undo",
     },
 
-    "[command='mirror-solid'] plasticity-viewport, [command='mirror-item'] plasticity-viewport": {
+    "[command='mirror'] plasticity-viewport": {
         "x": "gizmo:mirror:x",
         "y": "gizmo:mirror:y",
         "z": "gizmo:mirror:z",

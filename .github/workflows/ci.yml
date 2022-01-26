@@ -103,15 +103,14 @@ jobs:
           path: build/Release
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Linux_Ubuntu_1804_GCC_7.4.0_Unicode.zip', 'generate/api.mjs') }}
       - name: Codegen C++ and build
-        # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
           sudo apt-get -qq install astyle
           yarn generate
           yarn run node-gyp configure
-          yarn electron-rebuild
-      - name: Run tests
-        run: |
-          yarn ci
+      #     yarn electron-rebuild
+      # - name: Run tests
+      #   run: |
+      #     yarn ci
       # - name: Increment version
       #   run: |
       #     yarn plugin import version
@@ -120,11 +119,11 @@ jobs:
       #     git config user.name "GitHub Action"
       #     git commit -am "Update version"
       #     git push
-      - name: Publish canary release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          yarn publish
+      # - name: Publish canary release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     yarn publish
       # - name: Post
       #   run: |
       #     choco install curl --no-progress
