@@ -93,6 +93,7 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     }
 
     render(params: MirrorParams) {
+        this.move.value = params.move;
         this.move.visible = true;
         this.move.position.copy(params.origin);
         this.move.quaternion.setFromUnitVectors(Y, params.normal);
