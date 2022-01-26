@@ -14,8 +14,7 @@ import { MirrorKeyboardGizmo } from "./MirrorKeyboardGizmo";
 
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        let mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected).resource(this);
-        mirror.origin = new THREE.Vector3(); // FIXME: remove
+        const mirror = MakeMirrorFactory(this.editor, this.editor.selection.selected).resource(this);
 
         const gizmo = new MirrorGizmo(mirror, this.editor);
         const dialog = new MirrorDialog(mirror, this.editor.signals);

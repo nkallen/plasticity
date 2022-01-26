@@ -6,7 +6,6 @@ import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AbstractAxisGizmo, AxisHelper, boxGeometry, lineGeometry } from "../../command/MiniGizmos";
 import { ProxyCamera } from "../../components/viewport/ProxyCamera";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { Helper } from "../../util/Helpers";
 import { MoveAxisGizmo } from "../translate/MoveGizmo";
 import { MirrorParams } from "./MirrorFactory";
 
@@ -69,18 +68,18 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
 
         const set = (mirrorQ: THREE.Quaternion, moveQ: THREE.Quaternion) => () => {
             params.move = 0;
+            params.origin = new THREE.Vector3();
             params.quaternion = mirrorQ;
             move.quaternion.copy(moveQ);
-            move.visible = true;
             this.render(params);
         };
 
         this.addGizmo(x, set(mirrorPosX, movePosX));
         this.addGizmo(y, set(mirrorPosY, movePosY));
         this.addGizmo(z, set(mirrorPosZ, movePosZ));
-        this.addGizmo(_x, set(mirrorPosX, movePosX));
-        this.addGizmo(_y, set(mirrorPosY, movePosY));
-        this.addGizmo(_z, set(mirrorPosZ, movePosZ));
+        this.addGizmo(_x, set(mirrorNegX, moveNegX));
+        this.addGizmo(_y, set(mirrorNegY, moveNegY));
+        this.addGizmo(_z, set(mirrorNegZ, moveNegZ));
 
         this.addGizmo(move, delta => {
             params.move = delta;
@@ -91,7 +90,8 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     }
 
     render(params: MirrorParams) {
-        this.move.value = params.move;
+        this.move.visible = true;
+        this.move.value = 0;
         this.move.position.copy(params.origin);
         this.move.quaternion.setFromUnitVectors(Y, params.normal);
     }
