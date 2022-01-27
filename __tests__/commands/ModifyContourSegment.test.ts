@@ -471,7 +471,7 @@ describe('A rectangle', () => {
             expect(model.GetSegmentsCount()).toBe(5);
         })
 
-        it('offsets the first segment', async () => {
+        it.only('offsets the first segment', async () => {
             modifyContour.contour = filleted;
             modifyContour.distance = 1;
             modifyContour.segment = 0;

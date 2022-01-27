@@ -119,9 +119,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(0, 1, 0),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         })
 
         test('weird numerical precision edge case', () => {
@@ -167,9 +167,22 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(0, 1, 1).normalize(),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.5));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 1));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(0, 1, 0.5));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 1));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.5));
         })
+
+        test('n=1,1,1', () => {
+            const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
+                new THREE.Vector3(1, 0, -1),
+                new THREE.Vector3(0, 1, -1),
+                new THREE.Vector3(1, 1, 1).normalize(),
+            )
+            expect(p1).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
+            expect(p3).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
+        })
+
     })
 })

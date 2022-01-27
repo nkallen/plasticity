@@ -56,32 +56,25 @@ export class ThreePointRectangleFactory extends RectangleFactory {
 export abstract class DiagonalRectangleFactory extends RectangleFactory {
     orientation = new THREE.Quaternion();
 
-    private static readonly quat = new THREE.Quaternion();
-    private static readonly toX = new THREE.Quaternion();
-    private static readonly inv = new THREE.Quaternion();
+    private static readonly inv = new THREE.Matrix4();
     private static readonly c1 = new THREE.Vector3();
     private static readonly c2 = new THREE.Vector3();
+    private static readonly mat = new THREE.Matrix4();
 
     static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3): FourCorners {
-        const { quat, toX, inv, c1, c2 } = this;
+        const { mat, inv, c1, c2 } = this;
 
-        // Reorient our points onto an XY plane that is axis aligned.
-        // First face straight z-up. Then, if necessary (i.e., both x and y are not zero) orient to x to straighten again
-        quat.setFromUnitVectors(normal, Z);
-        toX.setFromUnitVectors(normal, X);
-        const noX = Math.abs(normal.x) < 10e-6;
-        const noY = Math.abs(normal.y) < 10e-6;
-        if (!noX && !noY) quat.premultiply(toX);
-        inv.copy(quat).invert();
-
-        c1.copy(corner1).applyQuaternion(quat);
-        c2.copy(corner2).applyQuaternion(quat);
+        mat.lookAt(new THREE.Vector3(), normal, new THREE.Vector3(0, 0, 1));
+        inv.copy(mat).invert();
+        
+        c1.copy(corner1).applyMatrix4(inv);
+        c2.copy(corner2).applyMatrix4(inv);
 
         return {
             p1: corner1,
-            p2: new THREE.Vector3(c1.x, c2.y, c2.z).applyQuaternion(inv),
+            p2: new THREE.Vector3(c2.x, c1.y, c1.z).applyMatrix4(mat),
             p3: corner2,
-            p4: new THREE.Vector3(c2.x, c1.y, c1.z).applyQuaternion(inv)
+            p4: new THREE.Vector3(c1.x, c2.y, c2.z).applyMatrix4(mat),
         };
     }
 

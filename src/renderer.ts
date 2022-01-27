@@ -2,15 +2,17 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
+import { ThreePointBoxFactory } from './commands/box/BoxFactory';
 import * as cmd from './commands/GeometryCommands';
 import Creators from './components/creators/Creators';
-import Stats from './components/stats/Stats';
-import Planes from './components/planes/Planes';
-import Snaps from './components/snaps/Snaps';
 import Dialog from './components/dialog/Dialog';
 import NumberScrubber from './components/dialog/NumberScrubber';
+import Prompt from './components/dialog/Prompt';
 import Outliner from './components/outliner/Outliner';
 import './components/pane/Pane';
+import Planes from './components/planes/Planes';
+import Snaps from './components/snaps/Snaps';
+import Stats from './components/stats/Stats';
 import TitleBar from './components/title-bar/TitleBar';
 import Icon from './components/toolbar/Icon';
 import registerDefaultCommands from './components/toolbar/icons';
@@ -22,7 +24,6 @@ import Keybindings from './components/viewport/Keybindings';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
-import Prompt from './components/dialog/Prompt';
 import './css/index.css';
 import { Editor } from './editor/Editor';
 import { loadKeymap } from './startup/LoadKeymap';
@@ -53,7 +54,6 @@ Object.defineProperty(window, 'cmd', {
 loadKeymap();
 
 registerDefaultCommands(editor);
-
 
 Icon(editor);
 TitleBar(editor);
