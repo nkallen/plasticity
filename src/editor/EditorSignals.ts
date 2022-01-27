@@ -8,6 +8,7 @@ import { Selectable, ToggleableSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from './ModifierManager';
+import { ConstructionPlaneSnap } from "./snaps/Snap";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
@@ -50,4 +51,6 @@ export class EditorSignals {
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
     selectionModeChanged: signals.Signal<ToggleableSet> = new signals.Signal();
+    temporaryConstructionPlaneAdded: signals.Signal<ConstructionPlaneSnap> = new signals.Signal();
+    constructionPlanesChanged: signals.Signal = new signals.Signal();
 }

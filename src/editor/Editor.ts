@@ -79,7 +79,7 @@ export class Editor {
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
-    readonly planes = new PlaneDatabase();
+    readonly planes = new PlaneDatabase(this.signals);
 
     windowLoaded = false;
 

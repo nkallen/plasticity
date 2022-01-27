@@ -14,7 +14,7 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly interactiveObjects: THREE.Object3D[];
     private animating = false;
 
-    constructor(protected readonly controls: OrbitControls, private readonly planes: PlaneDatabase, private readonly container: HTMLElement, readonly dim: number) {
+    constructor(protected readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
         super();
 
         this.camera.position.set(0, 0, 2);
@@ -131,39 +131,39 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
     animateToOrientation(orientation: Orientation): ConstructionPlaneSnap {
-        const { targetPosition, targetQuaternion, planes } = this;
+        const { targetPosition, targetQuaternion } = this;
 
         let constructionPlane: ConstructionPlaneSnap;
         switch (orientation) {
             case Orientation.posX:
                 targetPosition.set(1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
-                constructionPlane = planes.YZ;
+                constructionPlane = PlaneDatabase.YZ;
                 break;
             case Orientation.posY:
                 targetPosition.set(0, 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(- Math.PI * 0.5, 0, 0));
-                constructionPlane = planes.XZ;
+                constructionPlane = PlaneDatabase.XZ;
                 break;
             case Orientation.posZ:
                 targetPosition.set(0, 0, 1);
                 targetQuaternion.setFromEuler(new THREE.Euler());
-                constructionPlane = planes.XY;
+                constructionPlane = PlaneDatabase.XY;
                 break;
             case Orientation.negX:
                 targetPosition.set(- 1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, - Math.PI * 0.5, 0));
-                constructionPlane = planes.YZ;
+                constructionPlane = PlaneDatabase.YZ;
                 break;
             case Orientation.negY:
                 targetPosition.set(0, - 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(Math.PI * 0.5, 0, 0));
-                constructionPlane = planes.XZ;
+                constructionPlane = PlaneDatabase.XZ;
                 break;
             case Orientation.negZ:
                 targetPosition.set(0, 0, - 1);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI, 0));
-                constructionPlane = planes.XY;
+                constructionPlane = PlaneDatabase.XY;
                 break;
         }
 

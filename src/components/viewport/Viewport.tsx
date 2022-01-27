@@ -566,24 +566,24 @@ export default (editor: EditorLike) => {
                 case "3d":
                     camera = new ProxyCamera();
                     camera.position.set(5, -5, 5);
-                    constructionPlane = editor.planes.XY;
+                    constructionPlane = PlaneDatabase.XY;
                     enableRotate = true;
                     break;
                 case "top":
                     camera = new ProxyCamera();
                     camera.position.set(0, 0, 10);
-                    constructionPlane = editor.planes.XY;
+                    constructionPlane = PlaneDatabase.XY;
                     break;
                 case "right":
                     camera = new ProxyCamera();
                     camera.position.set(10, 0, 0);
-                    constructionPlane = editor.planes.YZ;
+                    constructionPlane = PlaneDatabase.YZ;
                     break;
                 case "front":
                 default:
                     camera = new ProxyCamera();
                     camera.position.set(0, 10, 0);
-                    constructionPlane = editor.planes.XZ;
+                    constructionPlane = PlaneDatabase.XZ;
                     break;
             }
 

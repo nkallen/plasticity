@@ -11,16 +11,15 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
     constructor(
         private readonly db: DatabaseLike,
         controls: OrbitControls,
-        planes: PlaneDatabase,
+        private readonly planes: PlaneDatabase,
         container: HTMLElement,
         dim: number
     ) {
-        super(controls, planes, container, dim);
+        super(controls, container, dim);
     }
 
     navigate(to: Orientation | visual.Face): ConstructionPlaneSnap {
-        const { db } = this;
-        let constructionPlane;
+        const { db, planes } = this;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
             const placement = model.GetControlPlacement();
@@ -30,10 +29,9 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
             const target = point2point(model.Point(0.5, 0.5));
             this.controls.target.copy(target);
             this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
-            return new ConstructionPlaneSnap(normal, target);
+            return planes.temp(new ConstructionPlaneSnap(normal, target));
         } else {
             return this.animateToOrientation(to);
         }
-        return constructionPlane;
     }
 }
