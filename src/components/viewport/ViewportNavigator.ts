@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
+import { PlaneDatabase } from "../../editor/PlaneDatabase";
+import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import { OrbitControls } from "./OrbitControls";
 
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
@@ -12,7 +14,7 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly interactiveObjects: THREE.Object3D[];
     private animating = false;
 
-    constructor(protected readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
+    constructor(protected readonly controls: OrbitControls, private readonly planes: PlaneDatabase, private readonly container: HTMLElement, readonly dim: number) {
         super();
 
         this.camera.position.set(0, 0, 2);
@@ -128,53 +130,60 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    animateToOrientation(orientation: Orientation) {
-        const { targetPosition, targetQuaternion } = this;
+    animateToOrientation(orientation: Orientation): ConstructionPlaneSnap {
+        const { targetPosition, targetQuaternion, planes } = this;
 
+        let constructionPlane: ConstructionPlaneSnap;
         switch (orientation) {
             case Orientation.posX:
                 targetPosition.set(1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
+                constructionPlane = planes.YZ;
                 break;
             case Orientation.posY:
                 targetPosition.set(0, 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(- Math.PI * 0.5, 0, 0));
+                constructionPlane = planes.XZ;
                 break;
             case Orientation.posZ:
                 targetPosition.set(0, 0, 1);
                 targetQuaternion.setFromEuler(new THREE.Euler());
+                constructionPlane = planes.XY;
                 break;
             case Orientation.negX:
                 targetPosition.set(- 1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, - Math.PI * 0.5, 0));
+                constructionPlane = planes.YZ;
                 break;
             case Orientation.negY:
                 targetPosition.set(0, - 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(Math.PI * 0.5, 0, 0));
+                constructionPlane = planes.XZ;
                 break;
             case Orientation.negZ:
                 targetPosition.set(0, 0, - 1);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI, 0));
+                constructionPlane = planes.XY;
                 break;
-            default: console.error('ViewHelper: Invalid axis.');
         }
 
-        return this.animateToPositionAndQuaternion(targetPosition, targetQuaternion);
+        this.animateToPositionAndQuaternion(targetPosition, targetQuaternion);
+        return constructionPlane;
     }
 
-    animateToPositionAndQuaternion(targetPosition: THREE.Vector3, targetQuaternion: THREE.Quaternion) {
+    animateToPositionAndQuaternion(targetNormal: THREE.Vector3, targetQuaternion: THREE.Quaternion) {
         const { controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 
-        const result = targetPosition.clone();
+        const result = targetNormal.clone();
         this.radius = viewportCamera.position.distanceTo(target);
-        targetPosition.multiplyScalar(this.radius).add(target);
+        targetNormal.multiplyScalar(this.radius).add(target);
 
         dummy.position.copy(target);
         dummy.lookAt(viewportCamera.position);
         q1.copy(dummy.quaternion);
 
-        dummy.lookAt(targetPosition);
+        dummy.lookAt(targetNormal);
         q2.copy(dummy.quaternion);
 
         this.animating = true;

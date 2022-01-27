@@ -592,7 +592,7 @@ export class PlaneSnap extends Snap {
         return new PlaneSnap(n, origin);
     }
 
-    constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
+    constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3(), readonly name?: string) {
         super();
 
         n = n.clone();

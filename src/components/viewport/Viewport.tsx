@@ -8,6 +8,7 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
+import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
@@ -41,6 +42,7 @@ export interface EditorLike extends selector.EditorLike {
     highlighter: RenderedSceneBuilder,
     keymaps: AtomKeymap.KeymapManager,
     styles: Theme,
+    planes: PlaneDatabase,
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
@@ -72,7 +74,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.domElement, 128);
+    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.editor.planes, this.domElement, 128);
     private grid = new GridHelper(300, 300, this.gridColor, this.gridColor);
 
     constructor(
@@ -405,7 +407,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (this.orthoState === undefined) return;
         this.camera.setMode(this.orthoState.oldCameraMode);
         this.orthoState = undefined;
-        this.constructionPlane = new ConstructionPlaneSnap(Z);
+        this.constructionPlane = this.editor.planes.default;
         this.changed.dispatch();
     }
 
@@ -558,30 +560,30 @@ export default (editor: EditorLike) => {
             const view = this.getAttribute("view");
 
             let camera: ProxyCamera;
-            let n: THREE.Vector3;
+            let constructionPlane: ConstructionPlaneSnap;
             let enableRotate = false;
             switch (view) {
                 case "3d":
                     camera = new ProxyCamera();
                     camera.position.set(5, -5, 5);
-                    n = Z;
+                    constructionPlane = editor.planes.XY;
                     enableRotate = true;
                     break;
                 case "top":
                     camera = new ProxyCamera();
                     camera.position.set(0, 0, 10);
-                    n = Z;
+                    constructionPlane = editor.planes.XY;
                     break;
                 case "right":
                     camera = new ProxyCamera();
                     camera.position.set(10, 0, 0);
-                    n = X;
+                    constructionPlane = editor.planes.YZ;
                     break;
                 case "front":
                 default:
                     camera = new ProxyCamera();
                     camera.position.set(0, 10, 0);
-                    n = Y;
+                    constructionPlane = editor.planes.XZ;
                     break;
             }
 
@@ -591,8 +593,6 @@ export default (editor: EditorLike) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             camera.updateMatrixWorld();
-
-            const constructionPlane = new ConstructionPlaneSnap(n);
 
             this.model = new Viewport(
                 editor,

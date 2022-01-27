@@ -5,18 +5,20 @@ import { OrbitControls } from "./OrbitControls";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { PlaneDatabase } from "../../editor/PlaneDatabase";
 
 export class ViewportGeometryNavigator extends ViewportNavigator {
     constructor(
         private readonly db: DatabaseLike,
         controls: OrbitControls,
+        planes: PlaneDatabase,
         container: HTMLElement,
         dim: number
     ) {
-        super(controls, container, dim);
+        super(controls, planes, container, dim);
     }
 
-    navigate(to: Orientation | visual.Face) {
+    navigate(to: Orientation | visual.Face): ConstructionPlaneSnap {
         const { db } = this;
         let constructionPlane;
         if (to instanceof visual.Face) {
@@ -27,11 +29,10 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
             const normal = vec2vec(placement.GetAxisY(), 1);
             const target = point2point(model.Point(0.5, 0.5));
             this.controls.target.copy(target);
-            const n = this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
-            constructionPlane = new ConstructionPlaneSnap(n, target);
+            this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
+            return new ConstructionPlaneSnap(normal, target);
         } else {
-            const n = this.animateToOrientation(to);
-            constructionPlane = new ConstructionPlaneSnap(n);
+            return this.animateToOrientation(to);
         }
         return constructionPlane;
     }

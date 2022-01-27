@@ -34,6 +34,7 @@ import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import theme from '../startup/default-theme';
+import { PlaneDatabase } from "./PlaneDatabase";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -78,6 +79,7 @@ export class Editor {
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
+    readonly planes = new PlaneDatabase();
 
     windowLoaded = false;
 
