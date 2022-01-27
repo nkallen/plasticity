@@ -9,7 +9,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import '../matchers';
-import { ConstructionPlaneSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 
 let editor: Editor;
 let viewport: Viewport;

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { OrbitControls } from "./OrbitControls";
 
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };

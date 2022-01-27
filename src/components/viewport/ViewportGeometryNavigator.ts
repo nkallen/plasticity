@@ -4,8 +4,8 @@ import * as visual from '../../visual_model/VisualModel';
 import { OrbitControls } from "./OrbitControls";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
+import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 
 export class ViewportGeometryNavigator extends ViewportNavigator {
     constructor(

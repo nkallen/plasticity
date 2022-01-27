@@ -577,7 +577,7 @@ mat.side = THREE.DoubleSide;
 export class PlaneSnap extends Snap {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
-    readonly snapper = new THREE.Mesh(PlaneSnap.geometry, mat);
+    readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, mat);
 
     static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
     static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
@@ -624,19 +624,8 @@ export class PlaneSnap extends Snap {
         return Math.abs(this.valid.copy(pt).sub(p).dot(n)) < 10e-4;
     }
 
-    update(camera: THREE.Camera) { }
-
     get placement() {
         return new c3d.Placement3D(point2point(this.p), vec2vec(this.n, 1), false);
     }
 }
 
-// The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
-export class ConstructionPlaneSnap extends PlaneSnap {
-    move(pt: THREE.Vector3): PlaneSnap {
-        return new ConstructionPlaneSnap(this.n, pt);
-    }
-
-    // NOTE: A construction plane accepts all points, projecting them
-    isValid() { return true }
-}

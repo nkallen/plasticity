@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from '../src/components/viewport/OrbitControls';
 import { ProxyCamera } from '../src/components/viewport/ProxyCamera';
 import { EditorLike, Viewport } from '../src/components/viewport/Viewport';
-import { ConstructionPlaneSnap, PlaneSnap } from '../src/editor/snaps/Snap';
+import { ConstructionPlaneSnap } from '../src/editor/snaps/ConstructionPlaneSnap';
 
 class FakeWebGLRenderer implements THREE.Renderer {
     constructor(readonly domElement = document.createElement("canvas")) { }

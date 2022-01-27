@@ -1,9 +1,10 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
-import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/DatabaseLike";
-import { PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
+import { EditorSignals } from '../editor/EditorSignals';
+import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
+import { PointSnap, Snap } from "../editor/snaps/Snap";
 import { Helper, Helpers } from '../util/Helpers';
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
@@ -13,11 +14,13 @@ import { SnapIndicator } from './SnapIndicator';
 
 export interface SnapInfo {
     snap: Snap,
-    constructionPlane: PlaneSnap,
+    constructionPlane: ConstructionPlane,
     orientation: THREE.Quaternion
     position: THREE.Vector3;
     cursorPosition: THREE.Vector3;
     cursorOrientation: THREE.Quaternion;
+    cameraPosition: THREE.Vector3;
+    cameraOrientation: THREE.Quaternion;
 }
 
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
@@ -33,18 +36,18 @@ export class SnapPresentation {
         const indicator = new SnapIndicator(gizmos);
         const activatedHelpers = [...pointPicker.activatedHelpers].map(s => s.helper!).filter(h => h !== undefined);
 
-        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrthoMode, indicator, activatedHelpers);
+        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, viewport.camera, indicator, activatedHelpers);
         return { presentation, intersections, nearby };
     }
 
     static makeForGizmo(picker: GizmoSnapPicker, viewport: Viewport, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
-        const { constructionPlane, isOrthoMode } = viewport;
+        const { constructionPlane } = viewport;
 
         const nearby = picker.nearby(snapCache, db);
         const intersections = picker.intersect(snapCache, db);
         const indicators = new SnapIndicator(gizmos);
 
-        const presentation = new SnapPresentation(nearby, intersections, constructionPlane, isOrthoMode, indicators, []);
+        const presentation = new SnapPresentation(nearby, intersections, constructionPlane, viewport.camera, indicators, []);
         return { presentation, intersections, nearby };
     }
 
@@ -53,7 +56,7 @@ export class SnapPresentation {
     readonly names: readonly string[];
     readonly nearby: Helper[];
 
-    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapIndicator, activatedHelpers: THREE.Object3D[]) {
+    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: ConstructionPlane, camera: THREE.Camera, presenter: SnapIndicator, activatedHelpers: THREE.Object3D[]) {
         this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
         if (intersections.length === 0) {
@@ -64,7 +67,7 @@ export class SnapPresentation {
 
         // First match is assumed best
         const first = intersections[0];
-        this.info = { ...first, constructionPlane };
+        this.info = { ...first, constructionPlane, cameraOrientation: camera.quaternion.clone(), cameraPosition: camera.position.clone() };
 
         const indicator = presenter.snapIndicatorFor(first);
 

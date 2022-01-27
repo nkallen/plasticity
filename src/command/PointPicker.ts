@@ -8,6 +8,8 @@ import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatab
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
+import { PlaneDatabase } from '../editor/PlaneDatabase';
+import { ConstructionPlane, ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { CancellablePromise } from "../util/CancellablePromise";
@@ -34,7 +36,7 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase;
 }
 
-export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, orientation: THREE.Quaternion }
+export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orientation: THREE.Quaternion, cameraPosition: THREE.Vector3, cameraOrientation: THREE.Quaternion }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
@@ -71,7 +73,7 @@ export class Model {
         return this._restrictionSnaps;
     }
 
-    restrictionFor(baseConstructionPlane: PlaneSnap, isOrtho: boolean): Restriction | undefined {
+    restrictionFor(baseConstructionPlane: ConstructionPlane, isOrtho: boolean): Restriction | undefined {
         if (this._restriction === undefined && this.restrictionPoint !== undefined) {
             return baseConstructionPlane.move(this.restrictionPoint);
         } else if (this._restriction !== undefined && this.restrictionPoint !== undefined) {
@@ -81,7 +83,7 @@ export class Model {
         } else return this._restriction;
     }
 
-    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean): PlaneSnap {
+    actualConstructionPlaneGiven(baseConstructionPlane: ConstructionPlane, isOrtho: boolean): ConstructionPlane {
         const { pickedPointSnaps, restrictionPoint } = this;
         let constructionPlane = baseConstructionPlane;
         if (this.restrictionPlane !== undefined) {
@@ -426,6 +428,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 const point = info.position.clone();
                 const pointResult = { point, info };
                 model.addPickedPoint(pointResult);
+                PlaneDatabase.ScreenSpace.set(pointResult);
                 resolve(pointResult);
             }
 

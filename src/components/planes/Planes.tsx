@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
-import { ConstructionPlaneSnap } from '../../editor/snaps/Snap';
+import { ConstructionPlane, ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 
 export default (editor: Editor) => {
     class Anon extends HTMLElement {
@@ -40,7 +40,7 @@ export default (editor: Editor) => {
                 </div>, this);
         }
 
-        onClick = (event: MouseEvent, plane: ConstructionPlaneSnap) => {
+        onClick = (event: MouseEvent, plane: ConstructionPlane) => {
             if (editor.activeViewport !== undefined) editor.activeViewport.constructionPlane = plane;
             this.render();
         }

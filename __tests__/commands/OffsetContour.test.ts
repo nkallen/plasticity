@@ -9,7 +9,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
-import { ConstructionPlaneSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';

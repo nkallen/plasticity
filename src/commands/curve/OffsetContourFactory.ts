@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
-import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 
@@ -13,7 +13,7 @@ export default class OffsetCurveFactory extends GeometryFactory {
     private readonly offsetFace = new OffsetFaceFactory(this.db, this.materials, this.signals);
     private readonly offsetCurve = new OffsetSpaceCurveFactory(this.db, this.materials, this.signals);
 
-    set constructionPlane(constructionPlane: ConstructionPlaneSnap | undefined) {
+    set constructionPlane(constructionPlane: ConstructionPlane | undefined) {
         if (constructionPlane === undefined) return;
         this.offsetCurve.constructionPlane = constructionPlane
     }
@@ -107,7 +107,7 @@ export class OffsetFaceFactory extends GeometryFactory {
 }
 
 export class OffsetSpaceCurveFactory extends GeometryFactory {
-    constructionPlane: ConstructionPlaneSnap = new ConstructionPlaneSnap();
+    constructionPlane: ConstructionPlane = new ConstructionPlaneSnap();
     distance = 0;
 
     private _center!: THREE.Vector3;

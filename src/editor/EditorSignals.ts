@@ -8,7 +8,7 @@ import { Selectable, ToggleableSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from './ModifierManager';
-import { ConstructionPlaneSnap } from "./snaps/Snap";
+import { ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();

@@ -5,11 +5,12 @@ import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, ContourAndPlacement, curve3d2curve2d, deunit, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../../command/GeometryFactory';
+import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 
 export interface CutParams {
     mergingFaces: boolean;
     mergingEdges: boolean;
-    constructionPlane?: PlaneSnap;
+    constructionPlane?: ConstructionPlane;
     axes: ('X' | 'Y' | 'Z')[];
 }
 
@@ -243,7 +244,7 @@ export class CutAndSplitFactory extends GeometryFactory {
 export class MultiCutFactory extends GeometryFactory implements CutParams {
     mergingFaces = true;
     mergingEdges = true;
-    constructionPlane?: PlaneSnap | undefined;
+    constructionPlane?: ConstructionPlane | undefined;
 
     private _solids!: visual.Solid[];
     protected models!: c3d.Solid[];

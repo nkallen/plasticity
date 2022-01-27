@@ -9,7 +9,7 @@ import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import { ConstructionPlaneSnap, PlaneSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from "../../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';

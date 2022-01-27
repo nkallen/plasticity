@@ -5,6 +5,7 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
 import { EditorOriginator, History } from "../editor/History";
 import { CachingMeshCreator } from "../editor/MeshCreator";
+import { PlaneDatabase } from "../editor/PlaneDatabase";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { AlreadyFinishedError } from "../util/CancellablePromise";
@@ -109,6 +110,7 @@ export class CommandExecutor {
             }
             disposable.dispose();
             db.clearTemporaryObjects();
+            PlaneDatabase.ScreenSpace.reset();
             signals.commandEnded.dispatch(command);
             originator.validate();
             console.groupCollapsed(command.title);

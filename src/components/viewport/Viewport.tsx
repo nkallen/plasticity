@@ -9,7 +9,7 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -379,7 +379,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         switch (this.navigationState.tag) {
             case 'navigating':
                 this.transitionFromOrthoModeIfOrbitted(this.navigationState.quaternion);
-                this.constructionPlane.update(this.camera);
                 break;
             default: throw new Error("invalid state");
         }
@@ -407,7 +406,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (this.orthoState === undefined) return;
         this.camera.setMode(this.orthoState.oldCameraMode);
         this.orthoState = undefined;
-        this.constructionPlane = this.editor.planes.default;
+        this.constructionPlane = PlaneDatabase.XY;
         this.changed.dispatch();
     }
 
@@ -430,9 +429,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private controlEnd() { }
 
-    private _constructionPlane!: ConstructionPlaneSnap;
+    private _constructionPlane!: ConstructionPlane;
     get constructionPlane() { return this._constructionPlane }
-    set constructionPlane(plane: ConstructionPlaneSnap) {
+    set constructionPlane(plane: ConstructionPlane) {
         this._constructionPlane = plane;
         this.setNeedsRender();
     }

@@ -16,6 +16,7 @@ import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
+import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../src/editor/snaps/ConstructionPlaneSnap";
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
@@ -385,3 +386,29 @@ describe(PointSnap, () => {
         expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
     })
 });
+
+describe(ScreenSpaceConstructionPlaneSnap, () => {
+    test("delegates to basis when unset", () => {
+        const basis = new ConstructionPlaneSnap(new THREE.Vector3(1, 0, 0));
+        const ss = new ScreenSpaceConstructionPlaneSnap(basis);
+        expect(ss.n).toEqual(basis.n);
+        expect(ss.p).toEqual(basis.p);
+    });
+
+    test("uses new values when set", () => {
+        const basis = new ConstructionPlaneSnap(new THREE.Vector3(1, 0, 0));
+        const ss = new ScreenSpaceConstructionPlaneSnap(basis);
+        const point = new THREE.Vector3(10, 10, 10);
+        const X = new THREE.Vector3(1, 0, 0);
+        const Y = new THREE.Vector3(0, 1, 0);
+        const cameraOrientation = new THREE.Quaternion().setFromUnitVectors(X, Y);
+        ss.set({ point, info: { cameraOrientation } });
+        expect(ss.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(ss.p).toApproximatelyEqual(point);
+
+        ss.reset();
+        expect(ss.n).toEqual(basis.n);
+        expect(ss.p).toEqual(basis.p);
+    });
+
+})

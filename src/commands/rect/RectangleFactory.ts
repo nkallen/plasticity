@@ -12,7 +12,7 @@ abstract class RectangleFactory extends GeometryFactory {
     async calculate() {
         const { p1, p2, p3, p4 } = this.orthogonal();
 
-        const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4),]
+        const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4)];
 
         const line = new c3d.Polyline3D(points, true);
         return new c3d.SpaceInstance(line);
@@ -93,7 +93,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
 
     private readonly _normal = new THREE.Vector3();
     private get normal() {
-        return this._normal.copy(Z).applyQuaternion(this.orientation)
+        return this._normal.set(0, 0, 1).applyQuaternion(this.orientation);
     }
 
     abstract get corner1(): THREE.Vector3;
