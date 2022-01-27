@@ -72,8 +72,7 @@ export class CurveCommand extends Command {
                 makeCurve.snap = snap;
                 makeCurve.update();
             } catch (e) {
-                if (e !== Finish)
-                    throw e;
+                if (e !== Finish) throw e;
                 break;
             }
         }

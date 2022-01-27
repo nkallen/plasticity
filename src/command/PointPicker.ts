@@ -419,7 +419,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
             const finish = () => {
                 if (info === undefined) {
-                    reject(new Error("invalid state"));
+                    reject(new Error("invalid state. If the user did not move their mouse at all, this is ok"));
                     return;
                 }
                 const point = info.position.clone();
