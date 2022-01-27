@@ -4,11 +4,10 @@ import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
-import { HasSelectedAndHovered, HasSelection, ModifiesSelection } from "../../selection/SelectionDatabase";
-import { CancellablePromise } from "../../util/CancellablePromise";
+import { ModifiesSelection } from "../../selection/SelectionDatabase";
 import { PhantomLineFactory } from '../line/LineFactory';
 import { MirrorDialog } from "./MirrorDialog";
-import { MirrorFactory, MultiSymmetryFactory } from "./MirrorFactory";
+import { MirrorFactory, MultiSymmetryFactory, SymmetryFactory } from "./MirrorFactory";
 import { MirrorGizmo } from "./MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./MirrorKeyboardGizmo";
 
@@ -88,7 +87,7 @@ export class FreestyleMirrorCommand extends Command {
 }
 
 function MakeMirrorFactory(editor: EditorLike, selected: ModifiesSelection) {
-    let mirror: MultiSymmetryFactory | MirrorFactory;
+    let mirror: SymmetryFactory | MultiSymmetryFactory | MirrorFactory;
     if (selected.solids.size > 0) {
         mirror = new MultiSymmetryFactory(editor.db, editor.materials, editor.signals);
         mirror.solids = [...selected.solids];
