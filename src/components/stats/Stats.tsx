@@ -1,7 +1,7 @@
 import { Editor } from '../../editor/Editor';
 import { createRef, render } from 'preact';
 import { CompositeDisposable, Disposable } from 'event-kit';
-import { Measure } from './map';
+import { Measure } from './Measure';
 
 export default (editor: Editor) => {
     class Anon extends HTMLElement {

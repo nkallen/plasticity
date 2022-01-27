@@ -18,8 +18,10 @@ export class SnapManagerGeometryCache {
     private _points: THREE.Points[] = [];
     get points() { return this._points; }
 
-    private geometrySnaps: PointSnap[][] = [];
     private _snappers: THREE.Object3D[] = [];
+    get snappers() { return this._snappers }
+
+    private geometrySnaps: PointSnap[][] = [];
     update() {
         const { basicSnaps, geometrySnaps, crossSnaps } = this.snaps.all;
         const result = [];
@@ -43,15 +45,9 @@ export class SnapManagerGeometryCache {
             this.geometrySnaps.push([...points]);
             this._points.push(picker);
         }
-        for (const snap of basicSnaps)
-            result.push(snap.snapper);
-        for (const snap of crossSnaps)
-            result.push(snap.snapper);
+        for (const snap of basicSnaps) result.push(snap.snapper);
+        for (const snap of crossSnaps) result.push(snap.snapper);
         this._snappers = result;
-    }
-
-    get snappers() {
-        return this._snappers;
     }
 
     get(points: THREE.Points, index: number) {

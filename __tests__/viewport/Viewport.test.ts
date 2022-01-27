@@ -8,7 +8,6 @@ import { Orientation } from "../../src/components/viewport/ViewportNavigator";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
-import { IntersectableLayers, VisibleLayers } from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../src/editor/snaps/Snap";
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from "../../src/selection/ChangeSelectionExecutor";
@@ -158,11 +157,11 @@ test("togglePerspective", () => {
 test("toggleXRay", () => {
     const xray = new THREE.Layers();
     xray.set(visual.Layers.XRay);
-    expect(VisibleLayers.test(xray)).toBe(true);
-    expect(IntersectableLayers.test(xray)).toBe(true);
+    expect(editor.layers.visible.test(xray)).toBe(true);
+    expect(editor.layers.intersectable.test(xray)).toBe(true);
     viewport.toggleXRay();
-    expect(VisibleLayers.test(xray)).toBe(false);
-    expect(IntersectableLayers.test(xray)).toBe(false);
+    expect(editor.layers.visible.test(xray)).toBe(false);
+    expect(editor.layers.intersectable.test(xray)).toBe(false);
 });
 
 test("toggleOverlays", () => {

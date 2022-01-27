@@ -5,67 +5,71 @@ import { SelectionMode } from "../selection/ChangeSelectionExecutor";
 import { HasSelection, ToggleableSet } from '../selection/SelectionDatabase';
 import { EditorSignals } from './EditorSignals';
 
-// FIXME: make instance variables of LayerManager, and DI LayerManager where necessary
-
-export const VisibleLayers = new THREE.Layers();
-VisibleLayers.enableAll();
-VisibleLayers.disable(visual.Layers.CurveFragment);
-VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
-VisibleLayers.disable(visual.Layers.ControlPoint);
-
-export const IntersectableLayers = new THREE.Layers();
-IntersectableLayers.enableAll();
-IntersectableLayers.disable(visual.Layers.CurveFragment);
-IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
-IntersectableLayers.disable(visual.Layers.ControlPoint);
-IntersectableLayers.disable(visual.Layers.Unselectable);
-
 export default class LayerManager {
+    private readonly _visible = new THREE.Layers();
+    private readonly _intersectable = new THREE.Layers();
+
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
-    get intersectable() { return IntersectableLayers }
-    get visible() { return VisibleLayers }
+    get intersectable() { return this._intersectable }
+    get visible() { return this._visible }
 
     constructor(private readonly selection: HasSelection, signals: EditorSignals) {
         this.controlPoints = this.controlPoints.bind(this);
         this.selectionModeChanged = this.selectionModeChanged.bind(this);
 
+        const { _visible, _intersectable } = this;
+
+        _visible.enableAll();
+        _visible.disable(visual.Layers.CurveFragment);
+        _visible.disable(visual.Layers.CurveFragment_XRay);
+        _visible.disable(visual.Layers.ControlPoint);
+
+        _intersectable.enableAll();
+        _intersectable.disable(visual.Layers.CurveFragment);
+        _intersectable.disable(visual.Layers.CurveFragment_XRay);
+        _intersectable.disable(visual.Layers.ControlPoint);
+        _intersectable.disable(visual.Layers.Unselectable);
+
+
         signals.objectSelected.add(this.controlPoints);
         signals.objectDeselected.add(this.controlPoints);
         signals.selectionModeChanged.add(this.selectionModeChanged);
-        this.disposable.add(new Disposable(()=>{
+        this.disposable.add(new Disposable(() => {
             signals.objectSelected.remove(this.controlPoints);
-            signals.objectDeselected.remove(this.controlPoints);    
+            signals.objectDeselected.remove(this.controlPoints);
         }));
     }
 
     showFragments() {
-        VisibleLayers.enable(visual.Layers.CurveFragment);
-        VisibleLayers.enable(visual.Layers.CurveFragment_XRay);
-        VisibleLayers.disable(visual.Layers.Curve);
-        VisibleLayers.disable(visual.Layers.XRay);
+        const { _visible, _intersectable } = this;
+        _visible.enable(visual.Layers.CurveFragment);
+        _visible.enable(visual.Layers.CurveFragment_XRay);
+        _visible.disable(visual.Layers.Curve);
+        _visible.disable(visual.Layers.XRay);
 
-        IntersectableLayers.enable(visual.Layers.CurveFragment);
-        IntersectableLayers.enable(visual.Layers.CurveFragment_XRay);
-        IntersectableLayers.disable(visual.Layers.Curve);
-        IntersectableLayers.disable(visual.Layers.Region);
-        IntersectableLayers.disable(visual.Layers.Solid);
-        IntersectableLayers.disable(visual.Layers.Face);
+        _intersectable.enable(visual.Layers.CurveFragment);
+        _intersectable.enable(visual.Layers.CurveFragment_XRay);
+        _intersectable.disable(visual.Layers.Curve);
+        _intersectable.disable(visual.Layers.Region);
+        _intersectable.disable(visual.Layers.Solid);
+        _intersectable.disable(visual.Layers.Face);
     }
 
     hideFragments() {
-        VisibleLayers.disable(visual.Layers.CurveFragment);
-        VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
-        VisibleLayers.enable(visual.Layers.Curve);
-        VisibleLayers.enable(visual.Layers.XRay);
+        const { _visible, _intersectable } = this;
+        _visible.disable(visual.Layers.CurveFragment);
+        _visible.disable(visual.Layers.CurveFragment_XRay);
+        _visible.enable(visual.Layers.Curve);
+        _visible.enable(visual.Layers.XRay);
 
-        IntersectableLayers.disable(visual.Layers.CurveFragment);
-        IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
-        IntersectableLayers.enable(visual.Layers.Curve);
-        IntersectableLayers.enable(visual.Layers.Region);
-        IntersectableLayers.enable(visual.Layers.Solid);
-        IntersectableLayers.enable(visual.Layers.Face);
+        _intersectable.disable(visual.Layers.CurveFragment);
+        _intersectable.disable(visual.Layers.CurveFragment_XRay);
+        _intersectable.enable(visual.Layers.Curve);
+        _intersectable.enable(visual.Layers.Region);
+        _intersectable.enable(visual.Layers.Solid);
+        _intersectable.enable(visual.Layers.Face);
     }
 
     controlPoints() {
@@ -76,46 +80,51 @@ export default class LayerManager {
     }
 
     private selectionModeChanged(mode: ToggleableSet) {
+        const { _visible, _intersectable } = this;
         if (mode.has(SelectionMode.Solid)) {
-            IntersectableLayers.enable(visual.Layers.Face);
-            IntersectableLayers.enable(visual.Layers.CurveEdge);
+            _intersectable.enable(visual.Layers.Face);
+            _intersectable.enable(visual.Layers.CurveEdge);
         }
-        if (mode.has(SelectionMode.Face)) IntersectableLayers.enable(visual.Layers.Face);
-        if (mode.has(SelectionMode.CurveEdge)) IntersectableLayers.enable(visual.Layers.CurveEdge);
-        if (mode.has(SelectionMode.Curve)) IntersectableLayers.enable(visual.Layers.Curve);
-        if (mode.has(SelectionMode.ControlPoint)) IntersectableLayers.enable(visual.Layers.ControlPoint);
+        if (mode.has(SelectionMode.Face)) _intersectable.enable(visual.Layers.Face);
+        if (mode.has(SelectionMode.CurveEdge)) _intersectable.enable(visual.Layers.CurveEdge);
+        if (mode.has(SelectionMode.Curve)) _intersectable.enable(visual.Layers.Curve);
+        if (mode.has(SelectionMode.ControlPoint)) _intersectable.enable(visual.Layers.ControlPoint);
 
 
         if (!mode.has(SelectionMode.Solid)) {
-            if (!mode.has(SelectionMode.Face)) IntersectableLayers.disable(visual.Layers.Face);
-            if (!mode.has(SelectionMode.CurveEdge)) IntersectableLayers.disable(visual.Layers.CurveEdge);
+            if (!mode.has(SelectionMode.Face)) _intersectable.disable(visual.Layers.Face);
+            if (!mode.has(SelectionMode.CurveEdge)) _intersectable.disable(visual.Layers.CurveEdge);
         }
-        if (!mode.has(SelectionMode.Curve)) IntersectableLayers.disable(visual.Layers.Curve);
-        if (!mode.has(SelectionMode.ControlPoint)) IntersectableLayers.disable(visual.Layers.ControlPoint);
+        if (!mode.has(SelectionMode.Curve)) _intersectable.disable(visual.Layers.Curve);
+        if (!mode.has(SelectionMode.ControlPoint)) _intersectable.disable(visual.Layers.ControlPoint);
     }
 
     showControlPoints() {
-        VisibleLayers.enable(visual.Layers.ControlPoint);
-        IntersectableLayers.enable(visual.Layers.ControlPoint);
+        const { _visible, _intersectable } = this;
+        _visible.enable(visual.Layers.ControlPoint);
+        _intersectable.enable(visual.Layers.ControlPoint);
     }
 
     hideControlPoints() {
-        VisibleLayers.disable(visual.Layers.ControlPoint);
-        IntersectableLayers.disable(visual.Layers.ControlPoint);
+        const { _visible, _intersectable } = this;
+        _visible.disable(visual.Layers.ControlPoint);
+        _intersectable.disable(visual.Layers.ControlPoint);
     }
 
     setXRay(isSet: boolean) {
+        const { _visible, _intersectable } = this;
         if (isSet) {
-            VisibleLayers.enable(visual.Layers.XRay);
-            IntersectableLayers.enable(visual.Layers.XRay);
+            _visible.enable(visual.Layers.XRay);
+            _intersectable.enable(visual.Layers.XRay);
         } else {
-            VisibleLayers.disable(visual.Layers.XRay);
-            IntersectableLayers.disable(visual.Layers.XRay);
+            _visible.disable(visual.Layers.XRay);
+            _intersectable.disable(visual.Layers.XRay);
         }
     }
 
     toggleXRay() {
-        VisibleLayers.toggle(visual.Layers.XRay);
-        IntersectableLayers.toggle(visual.Layers.XRay);
+        const { _visible, _intersectable } = this;
+        _visible.toggle(visual.Layers.XRay);
+        _intersectable.toggle(visual.Layers.XRay);
     }
 }

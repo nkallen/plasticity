@@ -21,7 +21,6 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
         let constructionPlane;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
-            // model.UpdateSurfaceBounds(false);
             const placement = model.GetControlPlacement();
             model.OrientPlacement(placement);
             placement.Normalize(); // FIXME: for some reason necessary with curved faces

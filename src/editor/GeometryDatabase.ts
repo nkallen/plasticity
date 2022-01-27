@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { Measure } from "../components/stats/map";
+import { Measure } from "../components/stats/Measure";
 import { unit } from '../util/Conversion';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';

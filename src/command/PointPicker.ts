@@ -330,6 +330,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
             const picker = new SnapPicker(editor.layers, this.raycasterParams);
+            disposables.add(picker.disposable);
 
             let info: SnapInfo | undefined = undefined;
             for (const viewport of editor.viewports) {

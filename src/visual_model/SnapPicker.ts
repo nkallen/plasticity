@@ -1,3 +1,4 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Model } from "../command/PointPicker";
 import { SnapInfo } from "../command/SnapPresenter";
@@ -67,7 +68,7 @@ abstract class AbstractSnapPicker {
         const { raycaster, layers } = this;
 
         this.raycaster.params = this.nearbyParams;
-        raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
+        raycaster.layers.mask = layers.intersectable.mask;
     }
 
     protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
@@ -105,7 +106,7 @@ abstract class AbstractSnapPicker {
         const { raycaster, layers } = this;
 
         this.raycaster.params = this.intersectParams;
-        raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
+        raycaster.layers.mask = layers.intersectable.mask;
     }
 
 
@@ -158,17 +159,18 @@ abstract class AbstractSnapPicker {
 }
 
 export class SnapPicker extends AbstractSnapPicker {
+    readonly disposable = new CompositeDisposable();
+
     nearby(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
         const additional = pointPicker.snaps.filter(s => s instanceof PointSnap).map(s => s.snapper);
         return super._nearby(additional, snaps, db);
     }
 
     protected configureNearbyRaycaster(): void {
-        const { raycaster, viewport, layers } = this;
+        const { raycaster, layers } = this;
         this.raycaster.params = this.nearbyParams;
-        raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
-        if (viewport.isOrthoMode) raycaster.layers.disable(visual.Layers.Face); // FIXME: this is wrong, should be FaceCenterPointSnap?
-        else raycaster.layers.enable(visual.Layers.Face);
+        raycaster.layers.mask = layers.intersectable.mask;
+        this.toggleFaceLayer();
     }
 
     intersect(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
@@ -191,11 +193,18 @@ export class SnapPicker extends AbstractSnapPicker {
     }
 
     protected configureIntersectRaycaster(): void {
-        const { raycaster, viewport, layers } = this;
+        const { raycaster, layers } = this;
         raycaster.params = this.intersectParams;
-        raycaster.layers.mask = layers.visible.mask
-        if (viewport.isOrthoMode) raycaster.layers.disable(visual.Layers.Face);
-        else raycaster.layers.enable(visual.Layers.Face);
+        raycaster.layers.mask = layers.intersectable.mask
+        this.toggleFaceLayer();
+    }
+
+    private toggleFaceLayer() {
+        const { disposable, viewport, raycaster } = this;
+        if (viewport.isOrthoMode) {
+            raycaster.layers.disable(visual.Layers.Face);
+            disposable.add(new Disposable(() => { raycaster.layers.enable(visual.Layers.Face); }));
+        }
     }
 
     private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]) {

@@ -8,7 +8,6 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
-import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
@@ -84,7 +83,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         constructionPlane: ConstructionPlaneSnap,
         readonly navigationControls: OrbitControls,
     ) {
-        this.constructionPlane = constructionPlane;
+        this._constructionPlane = constructionPlane;
 
         renderer.domElement.addEventListener('pointermove', e => {
             this.lastPointerEvent = e;
@@ -278,7 +277,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             // FIXME: this is inefficient
             scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
 
-            camera.layers = VisibleLayers;
+            camera.layers = this.editor.layers.visible;
             composer.render();
 
             if (frameNumber > lastFrameNumber) {
@@ -443,8 +442,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
-    // FIXME: xray should be a viewport-only property
-    get isXRay() { return VisibleLayers.test(xray) }
+    get isXRay() { return this.editor.layers.visible.test(xray) }
     set isXRay(isXRay: boolean) {
         this.editor.layers.setXRay(isXRay);
         this.setNeedsRender();
