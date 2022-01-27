@@ -67,7 +67,7 @@ export class Model {
         this.crosses = new CrossPointDatabase(this.originalCrosses);
     }
 
-    restrictionSnapsFor(baseConstructionPlane: PlaneSnap): Snap[] {
+    restrictionSnapsFor(): Snap[] {
         return this._restrictionSnaps;
     }
 

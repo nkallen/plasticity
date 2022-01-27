@@ -175,9 +175,8 @@ export class ViewportNavigator extends THREE.Object3D {
         const { controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 
-        const result = targetNormal.clone();
         this.radius = viewportCamera.position.distanceTo(target);
-        targetNormal.multiplyScalar(this.radius).add(target);
+        targetNormal = targetNormal.clone().multiplyScalar(this.radius).add(target);
 
         dummy.position.copy(target);
         dummy.lookAt(viewportCamera.position);
@@ -187,7 +186,6 @@ export class ViewportNavigator extends THREE.Object3D {
         q2.copy(dummy.quaternion);
 
         this.animating = true;
-        return result;
     }
 
     update(delta: number): boolean {

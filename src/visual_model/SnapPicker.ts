@@ -183,7 +183,7 @@ export class SnapPicker extends AbstractSnapPicker {
         }
 
         const additional = pointPicker.snaps.map(s => s.snapper);
-        const restrictionSnaps = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
+        const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
         let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db);
 
         intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
