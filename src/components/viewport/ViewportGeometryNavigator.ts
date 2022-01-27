@@ -21,11 +21,12 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
         let constructionPlane;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
+            // model.UpdateSurfaceBounds(false);
             const placement = model.GetControlPlacement();
             model.OrientPlacement(placement);
-            placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
+            placement.Normalize(); // FIXME: for some reason necessary with curved faces
             const normal = vec2vec(placement.GetAxisY(), 1);
-            const target = point2point(placement.GetOrigin());
+            const target = point2point(model.Point(0.5, 0.5));
             this.controls.target.copy(target);
             const n = this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
             constructionPlane = new ConstructionPlaneSnap(n, target);

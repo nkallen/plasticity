@@ -983,6 +983,7 @@ export default {
                 "MbFace * DataDuplicate(MbRegDuplicate * dup = NULL)",
                 "bool IsPlanar()",
                 { signature: "bool GetCylinderAxis(MbAxis3D & axis)", axis: isReturn, return: isErrorBool },
+                "bool UpdateSurfaceBounds(bool curveBoundedOnly = true)",
             ]
         },
         Vertex: {
