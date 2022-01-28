@@ -105,11 +105,10 @@
 ### In Progress
 
 - gizmos for elementary solids  
-- performance of geodb  
-- performance of snap  
 
 ### Done ✓
 
+- performance of geodb  
 - more snap disable  
 - shift stays on snap after multiple clicks  
 - report issue  

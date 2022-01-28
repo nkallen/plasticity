@@ -67,9 +67,9 @@ export class ExportFactory extends GeometryFactory {
             }
         });
 
-        for (const temp of this.temps) temp.cancel();
+        this.cleanupTemps();
         db.temporaryObjects.add(...temps.map(t => t.underlying));
-        return this.showTemps(temps);
+        return this.temps = this.showTemps(temps);
     }
 
     private async calc(): Promise<THREE.Object3D[]> {
