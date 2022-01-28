@@ -43,6 +43,8 @@ type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
 
 const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 
+export type Choice = { snap: ChoosableSnap; info?: SnapInfo; sticky: boolean };
+
 export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
     readonly straightSnaps = new Set(XYZ); // Snaps going straight off the last picked point
@@ -120,7 +122,7 @@ export class Model {
         this.snapsForLastPickedPoint = results;
         this._activatedHelpers = [];
         this.alreadyActivatedSnaps.clear();
-        this.choice = undefined;
+        if (this._choice !== undefined && !this._choice.sticky) this.choose(undefined);
         this.mutualSnaps.clear();
     }
 
@@ -222,7 +224,7 @@ export class Model {
         const line = new AxisSnap(undefined, direction, origin);
         this._restriction = line;
         this._restrictionSnaps.push(line);
-        this.choice = { snap: line }; // FIXME: this is abusing the api a bit, think of a better way
+        this._choice = { snap: line, sticky: false }; // FIXME: this is abusing the api a bit, think of a better way
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -244,14 +246,17 @@ export class Model {
         this.makeSnapsForLastPickedPoint();
     }
 
-    choice?: { snap: ChoosableSnap, info?: SnapInfo };
-    choose(which: Choices | Snap | undefined, info?: SnapInfo) {
-        if (which instanceof Snap) {
-            if (which instanceof AxisSnap || which instanceof FaceSnap) this.choice = { snap: which, info };
+    private _choice?: Choice;
+    get choice() { return this._choice }
+    choose(which: Choices | Snap | undefined, info?: SnapInfo, sticky = false) {
+        if (which === undefined) {
+            this._choice = undefined;
+        } else if (which instanceof Snap) {
+            if (which instanceof AxisSnap || which instanceof FaceSnap) this._choice = { snap: which, info, sticky };
         } else {
             let chosen = this.snapsForLastPickedPoint.filter(s => s.name == which)[0] as AxisSnap | undefined;
             chosen ??= this.otherAddedSnaps.filter(s => s.name == which)[0] as AxisSnap | undefined;
-            if (chosen !== undefined) this.choice = { snap: chosen, info };
+            if (chosen !== undefined) this._choice = { snap: chosen, info, sticky };
         }
     }
 
@@ -382,7 +387,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                         editor.snaps.enabled = false;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
-                        this.model.choose(info?.snap, info);
+                        this.model.choose(info?.snap, info, true);
                     }
                 }
 
@@ -394,7 +399,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
                         const oldChoice = this.model.choice;
-                        this.model.choice = undefined;
+                        this.model.choose(undefined);
                         // FIXME: need to pass all last snap results
                         if (info !== undefined) model.activateSnapped([info.snap]);
                         if (info !== undefined || oldChoice !== undefined) onPointerMove(lastMoveEvent);

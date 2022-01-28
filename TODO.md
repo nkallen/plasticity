@@ -99,14 +99,21 @@
 
 ### Todo
 
-- mirror curve freestyle  
-- solid mirror freestyle broken  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
-- bug: space-to-focus puts in wrong place  
 
 ### In Progress
 
 - gizmos for elementary solids  
+- more snap disable  
+- performance of geodb  
+- performance of snap  
 
 ### Done ✓
+
+- shift stays on snap after multiple clicks  
+- report issue  
+- bug: space-to-focus puts in wrong place  
+- solid mirror freestyle broken  
+- mirror curve freestyle  
+

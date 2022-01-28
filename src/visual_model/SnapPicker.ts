@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Model } from "../command/PointPicker";
+import { Choice, Model } from "../command/PointPicker";
 import { SnapInfo } from "../command/SnapPresenter";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/DatabaseLike";
@@ -235,7 +235,7 @@ export class SnapPicker extends AbstractSnapPicker {
         return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
     }
 
-    private intersectChoice(choice: { snap: ChoosableSnap, info?: SnapInfo }): SnapResult[] {
+    private intersectChoice(choice: Choice): SnapResult[] {
         const snap = choice.snap;
         const intersection = snap.intersect(this.raycaster, choice.info);
         if (intersection === undefined) return [];
