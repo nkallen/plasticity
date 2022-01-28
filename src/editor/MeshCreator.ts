@@ -71,9 +71,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
                 grid.SetPrimitiveType(c3d.RefType.TopItem);
                 grid.SetStepData(stepData);
                 const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair());
-                promise.then(() => {
-                    cache?.set(id, grid)
-                });
+                if (cache !== undefined) promise.then(() => cache.set(id, grid));
                 facePromises.push(promise);
             }
         }
@@ -84,11 +82,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         }
 
         await Promise.all(facePromises);
-        const grids: c3d.MeshBuffer[] = [];
-        const buffers = mesh.GetBuffers();
-        for (const buffer of buffers) {
-            grids.push(buffer);
-        }
+        const grids = mesh.GetBuffers();
 
         const edges = await Promise.all(edgePromises);
         const polygons: c3d.EdgeBuffer[] = [];

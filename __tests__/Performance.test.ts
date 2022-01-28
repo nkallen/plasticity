@@ -32,7 +32,8 @@ beforeEach(async () => {
 describe.skip("Performance tests", () => {
     // NAIVE: 10980 10962 10931 11096
     // FIRST OPTIMIZATION: 3285 3251 3264 3316 3318
-    test('deserialize', async () => {
+    // IF Edge and Face are no longer subclasses of THREE.Object3D 2889 2957 2916
+    test.only('deserialize', async () => {
         const start = performance.now();
         await db.deserialize(data);
         const end = performance.now();
@@ -43,7 +44,7 @@ describe.skip("Performance tests", () => {
     // IF PointSnap doesn't instantiate a snapper & nearby: closer to 6963 6759 6714
     // If CurveEdgeSnap snapper can be avoided: 6138 6125 6120
     // Generate helper lazily: 5538 5544 5541
-    test.only('snaps', async () => {
+    test.skip('snaps', async () => {
         const snaps = new SnapManager(db, new CrossPointDatabase(), signals);
         const start = performance.now();
         await db.deserialize(data);
