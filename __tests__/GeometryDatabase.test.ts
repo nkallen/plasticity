@@ -142,6 +142,9 @@ test("lookupTopologyItem", async () => {
     for (const edge of v.edges) {
         expect(db.lookupTopologyItem(edge)).toBeTruthy();
     }
+    for (const face of v.faces) {
+        expect(db.lookupTopologyItem(face)).toBeTruthy();
+    }
 })
 
 describe("addTemporaryItem", () => {

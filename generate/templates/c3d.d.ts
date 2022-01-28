@@ -49,6 +49,7 @@ declare module "*c3d.node" {
         name: Name;
         i: number;
         grid: Grid;
+        model: Face;
     }
 
     declare interface EdgeBuffer {
@@ -57,6 +58,7 @@ declare module "*c3d.node" {
         simpleName: number;
         name: Name;
         i: number;
+        model: c3d.CurveEdge
     }
 
     declare enum ESides {

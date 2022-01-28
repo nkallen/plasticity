@@ -29,6 +29,7 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, MbGrid *g
     {
         MbFace *face = (MbFace *)top;
         result.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(face->GetName())));
+        result.Set(Napi::String::New(env, "model"), Face::NewInstance(env, face));
     }
 
     return result;
@@ -135,7 +136,8 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 if (!polygon->IsVisible())
                     continue;
 
-                const MbCurveEdge *edge = (MbCurveEdge *)item;
+                MbCurveEdge *edge = (MbCurveEdge *)item;
+                jsInfo.Set(Napi::String::New(env, "model"), CurveEdge::NewInstance(env, edge));
 
                 if (edge->IsPole())
                     continue;

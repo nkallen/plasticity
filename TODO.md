@@ -105,12 +105,12 @@
 ### In Progress
 
 - gizmos for elementary solids  
-- more snap disable  
 - performance of geodb  
 - performance of snap  
 
 ### Done ✓
 
+- more snap disable  
 - shift stays on snap after multiple clicks  
 - report issue  
 - bug: space-to-focus puts in wrong place  

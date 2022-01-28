@@ -67,18 +67,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         else (this.positiveCounter = Math.max(this.positiveCounter, name + 1));
 
         const note = new c3d.FormNote(true, true, true, false, false);
-        const view = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
+        const builder = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // TODO: it would be nice to move this out of the queue but tests fail
+        const view = builder.build(name, this.topologyModel, this.controlPointModel);
+        view.userData.simpleName = name;
 
         this.geometryModel.set(name, { view, model });
-        view.traverse(t => {
-            if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
-                if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
-                this.addTopologyItem(model, t);
-            } else if (t instanceof visual.ControlPointGroup) {
-                if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
-                for (const child of t) this.addControlPoint(model, child);
-            }
-        });
         if (agent === 'automatic') this.automatics.add(name);
 
         this.signals.sceneGraphChanged.dispatch();
@@ -111,7 +104,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const { signals } = this;
         const note = new c3d.FormNote(true, true, false, false, false);
         const tempId = this.negativeCounter--;
-        const view = await this.meshes(model, tempId, note, this.precisionAndDistanceFor(model, 'temporary'), materials);
+        const builder = await this.meshes(model, tempId, note, this.precisionAndDistanceFor(model, 'temporary'), materials);
+        const view = builder.build(tempId);
         into.add(view);
 
         view.visible = false;
@@ -242,7 +236,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.visibleObjects;
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -264,9 +258,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
         await Promise.all(promises);
 
-        const result = builder.build();
-        result.userData.simpleName = id;
-        return result;
+        return builder;
     }
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
@@ -275,7 +267,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         stats.begin();
         const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid);
         stats.end();
-        
+
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
                 const instance = obj as c3d.SpaceInstance;
@@ -329,8 +321,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 const solid = builder as build.SolidBuilder;
                 const edges = new build.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
+                const lineDashed = this.materials.lineDashed();
                 for (const edge of item.edges) {
-                    edges.add(edge, id, lineMaterial, this.materials.lineDashed());
+                    edges.add(edge, id, lineMaterial, lineDashed);
                 }
 
                 const faces = new build.FaceGroupBuilder();
@@ -345,26 +338,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
     }
 
-    private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Solid, t: T) {
-        let topologyData = this.topologyModel.get(t.simpleName);
-        let views;
-        if (topologyData === undefined) {
-            let model;
-            if (t instanceof visual.Face) {
-                model = parent.GetFace(t.index);
-            } else if (t instanceof visual.CurveEdge) {
-                model = parent.GetEdge(t.index);
-            };
-            if (model == null) throw new Error("invalid precondition");
-            views = new Set<visual.Face | visual.Edge>();
-            topologyData = { model, views }
-            this.topologyModel.set(t.simpleName, topologyData);
-        } else {
-            views = topologyData.views;
-        }
-        views.add(t);
-    }
-
     private removeTopologyItems(parent: visual.Item) {
         parent.traverse(o => {
             if (o instanceof visual.TopologyItem) {
@@ -377,22 +350,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const result = this.controlPointModel.get(id);
         if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from control point model`);
         return result;
-    }
-
-    private addControlPoint(parent: c3d.SpaceInstance, t: visual.ControlPoint) {
-        const spaceItem = parent.GetSpaceItem();
-        if (spaceItem === null) throw new Error("invalid precondition");
-        if (spaceItem.Family() !== c3d.SpaceType.Curve3D) throw new Error("invalid precondition");
-        let data = this.controlPointModel.get(t.simpleName);
-        let views;
-        if (data === undefined) {
-            views = new Set<visual.ControlPoint>();
-            data = { index: t.index, views: views }
-            this.controlPointModel.set(t.simpleName, data);
-        } else {
-            views = data.views;
-        }
-        views.add(t);
     }
 
     private removeControlPoints(parent: visual.Item) {
