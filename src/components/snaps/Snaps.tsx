@@ -1,11 +1,10 @@
-import { CompositeDisposable } from 'event-kit';
 import { render } from 'preact';
-import { Editor } from '../../editor/Editor';
-import * as visual from '../../visual_model/VisualModel';
 import * as THREE from 'three';
-import { SnapType } from '../../editor/snaps/SnapManager';
-import { Snap } from '../../editor/snaps/Snap';
 import { Model } from '../../command/PointPicker';
+import { Editor } from '../../editor/Editor';
+import { Snap } from '../../editor/snaps/Snap';
+import { SnapType } from '../../editor/snaps/SnapManager';
+import * as visual from '../../visual_model/VisualModel';
 
 export default (editor: Editor) => {
     class Anon extends HTMLElement {
