@@ -8,8 +8,16 @@ import { DatabaseLike } from "../DatabaseLike";
 import { MementoOriginator, SnapMemento } from "../History";
 import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap } from "./Snap";
 
+export enum SnapType {
+    Basic = 1 << 0,
+    Geometry = 1 << 1,
+    Crosses = 2 << 1,
+}
+
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
+    options: SnapType = SnapType.Basic | SnapType.Geometry | SnapType.Crosses;
+
     private readonly basicSnaps = new Set<Snap>();
     private readonly id2snaps = new Map<c3d.SimpleName, Set<PointSnap>>();
     private readonly hidden = new Map<c3d.SimpleName, Set<PointSnap>>()
@@ -36,8 +44,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
-        const { basicSnaps, id2snaps, crossSnaps } = this;
-        const geometrySnaps = [...id2snaps.values()];
+        const { id2snaps } = this;
+        const geometrySnaps = (this.options & SnapType.Geometry) === SnapType.Geometry ? [...id2snaps.values()] : [];
+        const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<Snap>();
+        const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
         return { basicSnaps, geometrySnaps, crossSnaps }
     }
 

@@ -49,6 +49,7 @@ export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
     readonly straightSnaps = new Set(XYZ); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
+    private readonly disabled = new Set<Snap>();
 
     private _restriction?: Restriction;
     private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
@@ -122,6 +123,7 @@ export class Model {
         this.snapsForLastPickedPoint = results;
         this._activatedHelpers = [];
         this.alreadyActivatedSnaps.clear();
+        this.disabled.clear();
         if (this._choice !== undefined && !this._choice.sticky) this.choose(undefined);
         this.mutualSnaps.clear();
     }
@@ -153,6 +155,17 @@ export class Model {
                 this.signals.keybindingsRegistered.dispatch([snap.commandName]);
             }
         }
+        this.signals.snapsAdded.dispatch({ pointPicker: this, snaps });
+    }
+
+    toggle(snap: Snap) {
+        const { disabled } = this;
+        if (disabled.has(snap)) disabled.delete(snap);
+        else disabled.add(snap);
+    }
+
+    isEnabled(snap: Snap): boolean {
+        return !this.disabled.has(snap);
     }
 
     private clearKeybindingFor(...snaps: Snap[]) {
@@ -161,6 +174,7 @@ export class Model {
                 this.signals.keybindingsCleared.dispatch([snap.commandName]);
             }
         }
+        this.signals.snapsCleared.dispatch(snaps);
     }
 
     clearAddedSnaps() {
@@ -205,7 +219,8 @@ export class Model {
     }
 
     get snaps() {
-        return this.snapsForLastPickedPoint.concat(this.otherAddedSnaps);
+        const { disabled, snapsForLastPickedPoint, otherAddedSnaps } = this;
+        return snapsForLastPickedPoint.concat(otherAddedSnaps).filter(item => !disabled.has(item));
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {

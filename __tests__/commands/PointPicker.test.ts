@@ -137,6 +137,25 @@ describe('addSnap', () => {
     })
 });
 
+describe('toggle', () => {
+    const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
+
+    beforeEach(() => {
+        expect(pointPicker.restrictionSnapsFor().length).toBe(0);
+        pointPicker.addSnap(pointSnap);
+        expect(pointPicker.snaps.length).toBe(1);
+        expect(pointPicker.snaps[0]).toBe(pointSnap);
+    })
+
+    test("enable/disable", () => {
+        expect(pointPicker.isEnabled(pointSnap)).toBe(true);
+        pointPicker.toggle(pointSnap);
+        expect(pointPicker.isEnabled(pointSnap)).toBe(false);
+        pointPicker.toggle(pointSnap);
+        expect(pointPicker.isEnabled(pointSnap)).toBe(true);
+    })
+})
+
 describe('choose', () => {
     it('works when empty', () => {
         pointPicker.choose('Normal');

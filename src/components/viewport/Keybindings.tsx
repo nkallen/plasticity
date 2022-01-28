@@ -14,7 +14,7 @@ export default (editor: Editor) => {
 
         disconnectedCallback() {
             editor.signals.keybindingsRegistered.remove(this.add);
-            editor.signals.keybindingsCleared.remove(this.add);
+            editor.signals.keybindingsCleared.remove(this.delete);
         }
 
         render() {
