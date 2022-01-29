@@ -57,4 +57,5 @@ export class EditorSignals {
     constructionPlanesChanged: signals.Signal = new signals.Signal();
     snapsAdded: signals.Signal<{pointPicker: Model, snaps: Snap[]}> = new signals.Signal();
     snapsCleared: signals.Signal<Snap[]> = new signals.Signal();
+    clipboardChanged: signals.Signal = new signals.Signal();
 }

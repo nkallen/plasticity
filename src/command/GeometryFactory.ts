@@ -12,9 +12,9 @@ import * as visual from '../visual_model/VisualModel';
 type SubStep = 'begin' | 'phantoms-completed' | 'calculate-completed' | 'all-completed';
 
 type State = { tag: 'none', last: undefined }
-    | { tag: 'updated', last?: Map<string, any> }
-    | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any>, step: SubStep }
-    | { tag: 'failed', error: any, last?: Map<string, any> }
+    | { tag: 'updated' }
+    | { tag: 'updating', hasNext: boolean, failed?: any, step: SubStep }
+    | { tag: 'failed', error: any }
     | { tag: 'cancelled' }
     | { tag: 'committed' }
 
@@ -272,10 +272,9 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
             case 'none':
             case 'failed':
             case 'updated': {
-                const state: State = { tag: 'updating', hasNext: false, last: this.state.last, step: 'begin' };
+                const state: State = { tag: 'updating', hasNext: false, step: 'begin' };
                 this.state = state;
                 c3d.Mutex.EnterParallelRegion();
-                let before = this.saveState();
                 try {
                     const phantoms = this.doPhantoms(abortEarly);
                     const temps = this.doUpdate(abortEarly);
@@ -297,7 +296,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 } finally {
                     c3d.Mutex.ExitParallelRegion();
 
-                    await this.continueUpdatingIfMoreWork(before);
+                    await this.continueUpdatingIfMoreWork();
                 }
                 break;
             }
@@ -325,17 +324,17 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     }
 
     // If another update() job was "enqueued" while still doing the previous one, do that too
-    private async continueUpdatingIfMoreWork(before: Map<string, any> | undefined) {
+    private async continueUpdatingIfMoreWork() {
         switch (this.state.tag) {
             case 'updating':
                 const hasNext = this.state.hasNext;
                 const error = this.state.failed;
                 if (error) {
-                    this.state = { tag: 'failed', error, last: this.state.last };
+                    this.state = { tag: 'failed', error };
                     if (hasNext) await this.update();
                     else await this.revertToLastSuccess();
                 } else {
-                    this.state = { tag: 'updated', last: before };
+                    this.state = { tag: 'updated' };
                     if (hasNext) await this.update();
                 }
                 break;
@@ -432,27 +431,6 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 break;
             default:
                 throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
-        }
-    }
-
-    private saveState(): Map<string, any> | undefined {
-        if (this.keys.length === 0) return;
-        const result = new Map();
-        for (const key of this.keys) {
-            const uncloned = this[key as keyof this];
-            let value = uncloned;
-            if (typeof uncloned === 'object' && 'clone' in uncloned) {
-                // @ts-expect-error("clone doesn't exist")
-                value = uncloned.clone();
-            }
-            result.set(key, value);
-        }
-        return result;
-    }
-
-    private restoreSavedState(last: Map<string, any>) {
-        for (const key of this.keys) {
-            this[key as keyof this] = last.get(key);
         }
     }
 

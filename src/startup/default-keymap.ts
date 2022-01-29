@@ -219,10 +219,15 @@ export default {
         "shift-d": "command:duplicate",
 
         "shift-r": "repeat-last-command",
-        "cmd-z": "undo",
-        "cmd-shift-z": "redo",
-        "ctrl-z": "undo",
-        "ctrl-shift-z": "redo",
+        "cmd-z": "edit:undo",
+        "cmd-shift-z": "edit:redo",
+        "ctrl-z": "edit:undo",
+        "ctrl-shift-z": "edit:redo",
+
+        "ctrl-c": "edit:copy",
+        "cmd-c": "edit:copy",
+        "ctrl-v": "edit:paste",
+        "cmd-v": "edit:paste",
 
         "cmd-n": "file:new",
         "ctrl-n": "file:new",

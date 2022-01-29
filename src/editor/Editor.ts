@@ -35,6 +35,7 @@ import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import theme from '../startup/default-theme';
 import { PlaneDatabase } from "./PlaneDatabase";
+import { Clipboard } from "./Clipboard";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -80,6 +81,7 @@ export class Editor {
     readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
     readonly planes = new PlaneDatabase(this.signals);
+    readonly clipboard = new Clipboard(this);
 
     windowLoaded = false;
 
@@ -103,8 +105,10 @@ export class Editor {
             'file:new': () => this.clear(),
             'file:open': () => this.open(),
             'file:save-as': () => this.export(),
-            'undo': () => this.undo(),
-            'redo': () => this.redo(),
+            'edit:undo': () => this.undo(),
+            'edit:redo': () => this.redo(),
+            'edit:copy': () => this.clipboard.copy(),
+            'edit:paste': () => this.clipboard.paste(),
             'repeat-last-command': () => this.executor.repeatLastCommand(),
             'noop': () => { },
         });

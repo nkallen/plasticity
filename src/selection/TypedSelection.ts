@@ -44,6 +44,14 @@ export class ItemSelection<T extends visual.Item> extends TypedSelection<T, c3d.
     lookupById(id: c3d.SimpleName) {
         return this.db.lookupItemById(id).view as T;
     }
+
+    get models() {
+        const result = [];
+        for (const id of this.ids) {
+            result.push(this.db.lookupItemById(id).model);
+        }
+        return result;
+    }
 }
 
 export class TopologyItemSelection<T extends visual.TopologyItem> extends TypedSelection<T, string> {

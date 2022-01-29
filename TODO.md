@@ -7,11 +7,9 @@
 - allow multi select during trim  
 - variable fillet broken (gizmo disappears) when adjust main distance  
 - bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
-- objectpicker sends events for deselect and select rather than aggregating -- causes update to be called twice where used  
 - creating sphere 2nd point on vertical z axis errors  
 - escape out of fillet command to restart  
 - bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
-- make objectpicker construction more terse  
 - convert selectionmode to bitmap  
 - turn on --noimplicitoverride  
 - offset face whilst holding control should show phantoms?  
@@ -19,7 +17,6 @@
 - draw diagonal line on box face; can't cut  
 - delete region by hitting x  
 - extrude a region after drawing on a face; the region should have the face as a bound  
-- trim should allow deleting a line  
 - toggle boolean diff which is + and which is - while running command  
 - ortho cube goes to ortho mode  
 - matcap shinier  
@@ -44,7 +41,6 @@
 - select all of type  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - separate floor from grid  
-- orbit above top  
 - ctrl in object select should temporarily enable everything (point solid etc)  
 - popup quickmenu a la fusion  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
@@ -101,6 +97,8 @@
 
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
+- top view axes aren't aligned  
+- orbit above top  
 
 ### In Progress
 
@@ -108,6 +106,8 @@
 
 ### Done ✓
 
+- trim should allow deleting a line  
+- make objectpicker construction more terse  
 - performance of geodb  
 - more snap disable  
 - shift stays on snap after multiple clicks  
