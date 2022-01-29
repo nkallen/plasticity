@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { PointResult } from "../../command/PointPicker";
-import {  PlaneSnap, Snap } from "./Snap";
+import { PlaneSnap, Snap } from "./Snap";
 import c3d from '../../../build/Release/c3d.node';
 
 export interface ConstructionPlane extends Snap {
@@ -8,6 +8,7 @@ export interface ConstructionPlane extends Snap {
     get p(): THREE.Vector3;
     get placement(): c3d.Placement3D;
     move(vector: THREE.Vector3): ConstructionPlane;
+    get isTemp(): boolean;
 }
 
 // The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
@@ -18,6 +19,8 @@ export class ConstructionPlaneSnap extends PlaneSnap implements ConstructionPlan
 
     // NOTE: A construction plane accepts all points, projecting them
     override isValid(pt: THREE.Vector3) { return true }
+
+    get isTemp() { return this.name === undefined }
 }
 
 type State = { tag: 'none'; } | { tag: 'start'; snap: ConstructionPlaneSnap; };
@@ -86,4 +89,6 @@ export class ScreenSpaceConstructionPlaneSnap extends Snap implements Constructi
             case 'start': return this.state.snap.placement;
         }
     }
+
+    get isTemp() { return false }
 }

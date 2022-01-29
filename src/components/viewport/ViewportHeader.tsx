@@ -1,6 +1,8 @@
 import { render } from 'preact';
 import * as THREE from "three";
 import { Editor } from '../../editor/Editor';
+import { PlaneDatabase } from '../../editor/PlaneDatabase';
+import { ConstructionPlaneSnap } from '../../editor/snaps/ConstructionPlaneSnap';
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
 import { ViewportElement } from './Viewport';
 
@@ -52,10 +54,10 @@ export default (editor: Editor) => {
         }
 
         render() {
-            const { viewport, uid } = this;
+            const { viewport, uid, viewport: { constructionPlane } } = this;
             const result = (
                 <>
-                    <div class="flex absolute top-2 right-2 left-2 z-50 justify-between mr-32">
+                    <div class="flex absolute top-2 right-2 left-2 z-40 justify-between mr-32">
                         <ol class="flex flex-row space-x-0.5">
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`control-point_${uid}`} checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
@@ -130,6 +132,18 @@ export default (editor: Editor) => {
                             </li>
                         </ol>
                     </div>
+                    {constructionPlane !== PlaneDatabase.XY &&
+                        <div class="absolute top-2 left-1/2 z-50">
+                            <div class={`flex justify-between items-center py-0.5 px-2 space-x-1 rounded-full shadow-lg bg-neutral-800 hover:bg-neutral-700 ${constructionPlane.isTemp ? 'cursor-pointer' : ''}`} onClick={() => editor.planes.add(constructionPlane as ConstructionPlaneSnap)}>
+                                <div class="p-1 text-xs text-neutral-300 group-hover:text-neutral-100">{constructionPlane.isTemp ? "Temporary" : constructionPlane.name}</div>
+                                {constructionPlane.isTemp &&
+                                    <button class="p-1 rounded group text-neutral-300">
+                                        <plasticity-icon name="save"></plasticity-icon>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
                 </>
             );
             render(result, this);

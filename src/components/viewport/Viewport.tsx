@@ -298,7 +298,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         grid.position.copy(constructionPlane.p);
         grid.quaternion.setFromUnitVectors(Z, constructionPlane.n);
-        if (this.isOrthoMode) {
+        if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
             grid.quaternion.copy(camera.quaternion);
         }
 
@@ -434,6 +434,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     set constructionPlane(plane: ConstructionPlane) {
         this._constructionPlane = plane;
         this.setNeedsRender();
+        this.changed.dispatch();
     }
 
     togglePerspective() {

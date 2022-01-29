@@ -32,11 +32,6 @@ export default (editor: Editor) => {
                             </li>
                         )}
                     </ul>
-                    {temp !== undefined &&
-                        <button class="p-2 mt-2 text-xs rounded shadow-lg text-neutral-100 bg-neutral-600 group hover:bg-neutral-700" onClick={() => editor.planes.add(temp)}>
-                            Save current plane
-                        </button>
-                    }
                 </div>, this);
         }
 
