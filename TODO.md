@@ -106,6 +106,9 @@
 
 ### Done ✓
 
+- enable and disable various snaps  
+- save construction planes  
+- Clipboard allows you to copy objects independent of undo redo  
 - trim should allow deleting a line  
 - make objectpicker construction more terse  
 - performance of geodb  
