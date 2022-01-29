@@ -11,13 +11,13 @@ jobs:
         with:
           node-version: '16.10.0'
           cache: 'yarn'
-      - name: Cache c3d libraries
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-c3d-libraries
-        with:
-          path: Win64_Visual_Studio_2019_Unicode.zip
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
+      # - name: Cache c3d libraries
+      #   uses: actions/cache@v2
+      #   env:
+      #     cache-name: cache-c3d-libraries
+      #   with:
+      #     path: Win64_Visual_Studio_2019_Unicode.zip
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
       - name: Download c3d libraries
         run: |
           choco install wget --no-progress 
@@ -29,14 +29,14 @@ jobs:
       - name: Yarn install
         run: |
           yarn install
-      - name: Cache C++ build
-        id: cache-cpp-build
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-cpp-build
-        with:
-          path: build/Release
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
+      # - name: Cache C++ build
+      #   id: cache-cpp-build
+      #   uses: actions/cache@v2
+      #   env:
+      #     cache-name: cache-cpp-build
+      #   with:
+      #     path: build/Release
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
       - name: Codegen C++ and build
         # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
