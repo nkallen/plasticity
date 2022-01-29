@@ -106,16 +106,13 @@
 
 ### Done ✓
 
-- enable and disable various snaps  
-- save construction planes  
-- Clipboard allows you to copy objects independent of undo redo  
-- trim should allow deleting a line  
-- make objectpicker construction more terse  
-- performance of geodb  
-- more snap disable  
-- shift stays on snap after multiple clicks  
-- report issue  
-- bug: space-to-focus puts in wrong place  
+- enable and disable various snaps with panel on the right
+- toggle and save construction planes with panel on the right
+- Clipboard allows you to copy objects independent of undo redo -- with panel on the right
+- trim should allow deleting an entire line
+- GeometryDatabase performance optimization
+- Shift to stap stays on snap after multiple clicks of curve
+- bug: space-to-focus puts in wrong place sometimes
 - solid mirror freestyle broken  
 - mirror curve freestyle  
 
