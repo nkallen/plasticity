@@ -147,6 +147,8 @@ export function pointerEvent2keyboardEvent(event: MouseEvent) {
         if (event.buttons === 1) name += '0';
         else if (event.buttons === 2) name += '2';
         else if (event.buttons === 4) name += '1';
+        else if (event.buttons === 8) name += '4';
+        else if (event.buttons === 16) name += '5';
     }
     return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
 }
