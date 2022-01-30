@@ -99,20 +99,11 @@
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 - top view axes aren't aligned  
 - orbit above top  
+- deselect face when orienting construction plane  
+- trim right click to confirm doesn't work  
 
 ### In Progress
 
 - gizmos for elementary solids  
 
 ### Done ✓
-
-- enable and disable various snaps with panel on the right
-- toggle and save construction planes with panel on the right
-- Clipboard allows you to copy objects independent of undo redo -- with panel on the right
-- trim should allow deleting an entire line
-- GeometryDatabase performance optimization
-- Shift to stap stays on snap after multiple clicks of curve
-- bug: space-to-focus puts in wrong place sometimes
-- solid mirror freestyle broken  
-- mirror curve freestyle  
-
