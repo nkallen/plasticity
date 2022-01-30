@@ -472,7 +472,7 @@ export default (editor: Editor) => {
                             <path d="M6.75827 17.2426L12.0009 12M17.2435 6.75736L12.0009 12M12.0009 12L6.75827 6.75736M12.0009 12L17.2435 17.2426" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 default:
-                    console.error(`${this.name} is missing icon`);
+                    console.warn(`${this.name} is missing icon`);
             }
         }
     }

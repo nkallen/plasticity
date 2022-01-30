@@ -3,8 +3,6 @@ import { ExtensionShellDialog } from "./ExtensionShellDialog";
 import ExtensionShellFactory from "./ExtensionShellFactory";
 import { ExtensionShellGizmo } from "./ExtensionShellGizmo";
 
-
-
 export class ExtensionShellCommand extends Command {
     async execute(): Promise<void> {
         const extension = new ExtensionShellFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -17,7 +15,7 @@ export class ExtensionShellCommand extends Command {
         dialog.execute(async (params) => {
             await extension.update();
             gizmo.render(params.distance);
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.execute(distance => {
             extension.distance = distance;

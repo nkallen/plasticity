@@ -29,6 +29,14 @@ export default {
         "q": "gizmo:boolean:union",
         "w": "gizmo:boolean:difference",
         "e": "gizmo:boolean:intersect",
+        
+        "x": "gizmo:move:x",
+        "y": "gizmo:move:y",
+        "z": "gizmo:move:z",
+        "Z": "gizmo:move:xy",
+        "X": "gizmo:move:yz",
+        "Y": "gizmo:move:xz",
+        "g": "gizmo:move:screen",
     },
 
     "[command='center-box'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='three-point-box'] plasticity-viewport": {
@@ -82,7 +90,7 @@ export default {
         "d": "gizmo:offset-curve:distance",
     },
 
-    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport, [command='boolean'] plasticity-viewport": {
+    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",

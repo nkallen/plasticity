@@ -6,6 +6,21 @@
 {
     // Probably the keybindings you want to change the most are case 1., when no command or gizmo is active.
     "body:not([gizmo]) plasticity-workspace": {
+        // "1": "selection:mode:set:control-point",
+        // "2": "selection:mode:set:edge",
+        // "4": "selection:mode:set:face",
+        // "ctrl-tab": "selection:mode:set:solid",
+
+        // "ctrl-1": "selection:convert:control-point",
+        // "ctrl-2": "selection:convert:edge",
+        // "ctrl-3": "selection:convert:face",
+        // "ctrl-4": "selection:convert:solid",
+
+        // "shift-1": "selection:mode:toggle:control-point",
+        // "shift-2": "selection:mode:toggle:edge",
+        // "shift-3": "selection:mode:toggle:face",
+        // "shift-4": "selection:mode:toggle:solid",
+
         // "c": "command:cut",
         // "g": "command:move",
         // "r": "command:rotate",
@@ -21,9 +36,7 @@
         // "backspace": "command:delete",
         // "shift-q": "command:rebuild",
 
-        // "q q": "command:union",
-        // "q w": "command:difference",
-        // "q e": "command:intersect",
+        // "q": "command:boolean",
 
         // "h": "command:hide-selected",
         // "shift-h": "command:hide-unselected",
@@ -32,10 +45,22 @@
         // "shift-d": "command:duplicate",
 
         // "shift-r": "repeat-last-command",
-        // "cmd-z": "undo",
-        // "cmd-shift-z": "redo",
-        // "ctrl-z": "undo",
-        // "ctrl-shift-z": "redo",
+        // "cmd-z": "edit:undo",
+        // "cmd-shift-z": "edit:redo",
+        // "ctrl-z": "edit:undo",
+        // "ctrl-shift-z": "edit:redo",
+
+        // "ctrl-c": "edit:copy",
+        // "cmd-c": "edit:copy",
+        // "ctrl-v": "edit:paste",
+        // "cmd-v": "edit:paste",
+
+        // "cmd-n": "file:new",
+        // "ctrl-n": "file:new",
+        // "cmd-shift-s": "file:save-as",
+        // "ctrl-shift-s": "file:save-as",
+        // "cmd-o": "file:open",
+        // "ctrl-o": "file:open",
 
         // "shift-A": "command:deselect-all",
         // "alt-A": "command:deselect-all",
@@ -44,9 +69,10 @@
 
     // Uncomment to get maya-style orbit/pan.
     "orbit-controls": {
-        "mouse1": "orbit:pan",
-        "shift-mouse1": "orbit:rotate",
-        // "alt-mouse1": "orbit:pan",
-        // "alt-mouse2": "orbit:dolly"
+        // "mouse1": "orbit:pan",
+        // "shift-mouse1": "orbit:rotate",
+        "alt-mouse0": "orbit:rotate",
+        "alt-mouse1": "orbit:pan",
+        "alt-mouse2": "orbit:dolly"
     }
 }

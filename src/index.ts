@@ -63,7 +63,7 @@ app.on('ready', createWindow);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-    if (isMac) app.quit();
+    if (!isMac) app.quit();
 });
 
 app.on('activate', () => {

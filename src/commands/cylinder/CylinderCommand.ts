@@ -54,7 +54,7 @@ export class CylinderCommand extends Command {
         dialog.execute(params => {
             gizmo.render(params);
             cylinder.update();
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         dialog.prompt("Select target bodies", () => {
             const objectPicker = new ObjectPicker(this.editor);

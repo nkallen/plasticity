@@ -121,7 +121,7 @@ export class CutCommand extends Command {
 
         dialog.execute(async (params) => {
             await cut.update();
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.execute(async (params) => {
             await cut.update();
