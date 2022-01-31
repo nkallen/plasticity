@@ -32,6 +32,7 @@ export default class KeyboardEventManager {
         window.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => {
             window.removeEventListener('keydown', this.onKey);
+            window.removeEventListener('keyup', this.onKey);
             window.removeEventListener('pointerdown', this.onPointerDown);
             window.removeEventListener('wheel', this.onWheelEvent, { capture: true });
             window.removeEventListener('pointermove', this.onPointerMove);
@@ -96,6 +97,7 @@ export default class KeyboardEventManager {
     }
 
     onKey(event: KeyboardEvent) {
+        if (event.repeat) return event.preventDefault();
         const lastTarget = this.lastTarget;
         if (lastTarget === undefined) return;
 
@@ -133,7 +135,7 @@ export default class KeyboardEventManager {
     }
 }
 
-export function pointerEvent2keyboardEvent(event: MouseEvent) {
+export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
     const build = {
         ctrl: event.ctrlKey,
         alt: event.altKey,
@@ -143,7 +145,7 @@ export function pointerEvent2keyboardEvent(event: MouseEvent) {
     }
     let name = "mouse";
     if (event.button !== -1) name += event.button;
-    else if (event.type == 'pointermove' && event.buttons != 0) {
+    else if (event.type === 'pointermove' && event.buttons != 0) {
         if (event.buttons === 1) name += '0';
         else if (event.buttons === 2) name += '2';
         else if (event.buttons === 4) name += '1';

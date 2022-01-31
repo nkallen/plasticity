@@ -266,13 +266,13 @@ export default {
         "ctrl-mouse0": "selection:remove",
 
         "cmd": "selection:option:ignore-mode",
-        "alt": "selection:option:extend",
+        // "alt": "selection:option:extend",
     },
 
     "viewport-selector[quasimode]": {
-        "cmd-mouse0": "selection:replace",
-        "cmd-shift-mouse0": "selection:add",
-        "cmd-ctrl-mouse0": "selection:remove",
+        "mouse0": "selection:replace",
+        "shift-mouse0": "selection:add",
+        "ctrl-mouse0": "selection:remove",
     },
 
     "body[gizmo=point-picker]": {
@@ -290,7 +290,7 @@ export default {
     },
 
     "body[command]:not([gizmo]) plasticity-viewport": {
-        "cmd": "command:quasimode:start",
-        "^cmd": "command:quasimode:stop"
+        "tab": "command:quasimode:start",
+        "^tab": "command:quasimode:stop"
     },
 }
