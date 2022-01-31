@@ -26,6 +26,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
+    private readonly invisible = new Set<c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
     readonly queue = new SequentialExecutor();
 
@@ -224,10 +225,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get visibleObjects(): visual.Item[] {
-        const { geometryModel, hidden } = this;
+        const { geometryModel, hidden, invisible } = this;
         const difference = [];
         for (const { view } of geometryModel.values()) {
-            if (!hidden.has(view.simpleName)) difference.push(view);
+            if (hidden.has(view.simpleName)) continue;
+            if (invisible.has(view.simpleName)) continue;
+            difference.push(view);
         }
         return difference;
     }
@@ -361,13 +364,33 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     async hide(item: visual.Item) {
+        if (this.hidden.has(item.simpleName)) return;
         this.hidden.add(item.simpleName);
         this.signals.objectHidden.dispatch(item);
     }
 
     async unhide(item: visual.Item) {
+        if (!this.hidden.has(item.simpleName)) return;
         this.hidden.delete(item.simpleName);
         this.signals.objectUnhidden.dispatch(item);
+    }
+
+    async makeVisible(item: visual.Item, newValue: boolean) {
+        const { invisible } = this;
+        const oldValue = !invisible.has(item.simpleName);
+        if (newValue) {
+            if (oldValue) return;
+            invisible.delete(item.simpleName);
+            this.signals.objectUnhidden.dispatch(item);
+        } else {
+            if (!oldValue) return;
+            invisible.add(item.simpleName);
+            this.signals.objectHidden.dispatch(item);
+        }
+    }
+
+    isVisible(item: visual.Item): boolean {
+        return !this.invisible.has(item.simpleName);
     }
 
     async unhideAll(): Promise<visual.Item[]> {

@@ -122,6 +122,14 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.unhideAll();
     }
 
+    makeVisible(item: visual.Item, value: boolean): Promise<void> {
+        return this.db.makeVisible(item, value);
+    }
+
+    isVisible(item: visual.Item) {
+        return this.db.isVisible(item);
+    }
+
     async deserialize(data: Buffer): Promise<void> {
         return this.db.deserialize(data);
     }

@@ -137,6 +137,24 @@ test("hide & unhide", async () => {
     expect(db.visibleObjects.length).toBe(1);
 })
 
+test("toggle visibility", async () => {
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
+
+    const v = await db.addItem(box) as visual.Solid;
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
+
+    db.makeVisible(v, false);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
+
+    db.makeVisible(v, true);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
+})
+
 test("lookupTopologyItem", async () => {
     const v = await db.addItem(box) as visual.Solid;
     for (const edge of v.edges) {

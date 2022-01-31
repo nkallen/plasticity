@@ -59,6 +59,18 @@ export default class ContourManager extends DatabaseProxy {
         return result;
     }
 
+    async makeVisible(item: visual.Item, value: boolean): Promise<void> {
+        const result = await this.db.makeVisible(item, value);
+        if (item instanceof visual.SpaceInstance) {
+            if (value) {
+                await this.addCurve(item);
+            } else {
+                await this.removeCurve(item);
+            }
+        }
+        return result;
+    }
+
     // FIXME, this should be in a contour transaction
     async unhideAll(): Promise<visual.Item[]> {
         const unhidden = await this.db.unhideAll();

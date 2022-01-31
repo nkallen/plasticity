@@ -5,54 +5,23 @@ import { ModifiesSelection, Selectable } from "./SelectionDatabase";
 export class SelectionProxy implements ModifiesSelection {
     constructor(protected readonly selection: ModifiesSelection) { }
 
-    add(items: Item | Item[] | TopologyItem[]) {
-        this.selection.add(items);
-    }
-    remove(selectables: Selectable[]) {
-        this.selection.remove(selectables);
-    }
-    removeFace(object: Face) {
-        this.selection.removeFace(object);
-    }
-    addFace(object: Face) {
-        this.selection.addFace(object);
-    }
-    removeRegion(object: PlaneInstance<Region>) {
-        this.selection.removeRegion(object);
-    }
-    addRegion(object: PlaneInstance<Region>) {
-        this.selection.addRegion(object);
-    }
-    removeEdge(object: CurveEdge) {
-        this.selection.removeEdge(object);
-    }
-    addEdge(object: CurveEdge) {
-        this.selection.addEdge(object);
-    }
-    removeSolid(solid: Solid) {
-        this.selection.removeSolid(solid);
-    }
-    addSolid(solid: Solid) {
-        this.selection.addSolid(solid);
-    }
-    removeCurve(curve: SpaceInstance<Curve3D>) {
-        this.selection.removeCurve(curve);
-    }
-    addCurve(curve: SpaceInstance<Curve3D>) {
-        this.selection.addCurve(curve);
-    }
-    removeControlPoint(index: ControlPoint) {
-        this.selection.removeControlPoint(index);
-    }
-    addControlPoint(index: ControlPoint) {
-        this.selection.addControlPoint(index);
-    }
-    removeAll() {
-        this.selection.removeAll();
-    }
-    saveToMemento(): SelectionMemento {
-        return this.selection.saveToMemento();
-    }
+    has(item: Item) { return this.selection.has(item); }
+    add(items: Item | Item[] | TopologyItem[]) { this.selection.add(items); }
+    remove(selectables: Selectable[]) { this.selection.remove(selectables); }
+    removeFace(object: Face) { this.selection.removeFace(object); }
+    addFace(object: Face) { this.selection.addFace(object); }
+    removeRegion(object: PlaneInstance<Region>) { this.selection.removeRegion(object); }
+    addRegion(object: PlaneInstance<Region>) { this.selection.addRegion(object); }
+    removeEdge(object: CurveEdge) { this.selection.removeEdge(object); }
+    addEdge(object: CurveEdge) { this.selection.addEdge(object); }
+    removeSolid(solid: Solid) { this.selection.removeSolid(solid); }
+    addSolid(solid: Solid) { this.selection.addSolid(solid); }
+    removeCurve(curve: SpaceInstance<Curve3D>) { this.selection.removeCurve(curve); }
+    addCurve(curve: SpaceInstance<Curve3D>) { this.selection.addCurve(curve); }
+    removeControlPoint(index: ControlPoint) { this.selection.removeControlPoint(index); }
+    addControlPoint(index: ControlPoint) { this.selection.addControlPoint(index); }
+    removeAll() { this.selection.removeAll(); }
+    saveToMemento(): SelectionMemento { return this.selection.saveToMemento(); }
 
     get solids() { return this.selection.solids }
     get edges() { return this.selection.edges }

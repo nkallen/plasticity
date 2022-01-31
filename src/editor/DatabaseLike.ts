@@ -72,11 +72,15 @@ export interface DatabaseLike {
     find<T extends visual.Solid>(klass: GConstructor<T>, includeAutomatics?: boolean): { view: T; model: c3d.Solid; }[];
     findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[];
 
-    get visibleObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;
-    get selectableObjects(): visual.Item[]; hide(item: visual.Item): Promise<void>;
-
+    get visibleObjects(): visual.Item[];
+    get selectableObjects(): visual.Item[];
+    
+    hide(item: visual.Item): Promise<void>;
     unhide(item: visual.Item): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
+
+    isVisible(item: visual.Item): boolean;
+    makeVisible(item: visual.Item, value: boolean): Promise<void>;
 
     deserialize(data: Buffer): Promise<void>;
     load(model: c3d.Model | c3d.Assembly): Promise<void>;

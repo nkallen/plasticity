@@ -19,6 +19,7 @@ export interface HasSelection {
     readonly regions: ItemSelection<visual.PlaneInstance<visual.Region>>;
     readonly curves: ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
     readonly controlPoints: ControlPointSelection;
+    has(item: visual.Item): boolean;
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): boolean;
     deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
 
@@ -97,6 +98,16 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
 
     deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
+    }
+
+    has(item: visual.Item) {
+        if (item instanceof visual.Solid) {
+            return this.solids.has(item);
+        } else if (item instanceof visual.SpaceInstance) {
+            return this.curves.has(item);
+        } else if (item instanceof visual.PlaneInstance) {
+            return this.regions.has(item);
+        } else throw new Error("not supported yet");
     }
 
     add(items: Selectable | Selectable[]) {
