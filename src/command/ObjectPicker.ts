@@ -15,6 +15,7 @@ import { Executable } from './Quasimode';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import * as visual from '../visual_model/VisualModel';
 import { NonemptyClickStrategy } from '../selection/Click';
+import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -39,27 +40,27 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         private readonly prohibitions: ReadonlySet<Selectable>,
         keymapSelector?: string,
     ) {
-        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals, raycasterParams, keymapSelector);
+        super(viewport, editor.layers, editor.db, new SelectionKeypressStrategy(editor.keymaps, keymapSelector), editor.signals, raycasterParams);
     }
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
-        this.changeSelection.onClick(intersections, this.event2modifier(upEvent), ChangeSelectionOption.None);
+        this.changeSelection.onClick(intersections, this.keypress.event2modifier(upEvent), ChangeSelectionOption.None);
     }
 
     protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) { }
 
     processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
-        this.changeSelection.onBoxSelect(selected, this.event2modifier(upEvent));
+        this.changeSelection.onBoxSelect(selected, this.keypress.event2modifier(upEvent));
     }
 
     processHover(intersects: Intersection[], moveEvent?: MouseEvent) {
-        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent), ChangeSelectionOption.None);
+        this.changeSelection.onHover(intersects, this.keypress.event2modifier(moveEvent), ChangeSelectionOption.None);
     }
 
     processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {
-        this.changeSelection.onBoxHover(selected, this.event2modifier(moveEvent));
+        this.changeSelection.onBoxHover(selected, this.keypress.event2modifier(moveEvent));
     }
 }
 

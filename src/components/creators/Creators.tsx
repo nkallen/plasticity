@@ -7,18 +7,13 @@ import { EditorLike } from '../../command/Command';
 import { RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
-import { AbstractViewportSelector } from '../../selection/ViewportSelector';
+import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
-import { pointerEvent2keyboardEvent } from '../viewport/KeyboardEventManager';
 
 export class Model {
-    private readonly mouseButtons: Record<string, ChangeSelectionModifier>;
+    private readonly keypress = new SelectionKeypressStrategy(this.editor.keymaps);
 
-    constructor(
-        private readonly editor: EditorLike,
-    ) {
-        this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps).keystroke2modifier;
-    }
+    constructor(private readonly editor: EditorLike) { }
 
     get creators() {
         const { editor: { db }, solid } = this;
@@ -62,7 +57,7 @@ export class Model {
                 }
             }
         }
-        this.editor.changeSelection.onBoxHover(new Set(result), this.event2modifier(e));
+        this.editor.changeSelection.onBoxHover(new Set(result), this.keypress.event2modifier(e));
         return result;
     }
 
@@ -75,7 +70,7 @@ export class Model {
     selectCreator(creator: c3d.Creator, e: MouseEvent) {
         const selected = this.hoverCreator(creator, e);
         const editor = this.editor;
-        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected, this.event2modifier(e)));
+        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected, this.keypress.event2modifier(e)));
     }
 
     get solid(): visual.Solid | undefined {
@@ -83,12 +78,6 @@ export class Model {
         if (selected.solids.size > 0) return selected.solids.first;
         if (selected.faces.size > 0) return selected.faces.first.parentItem;
         if (selected.edges.size > 0) return selected.edges.first.parentItem;
-    }
-
-    protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
-        const keyboard = pointerEvent2keyboardEvent(event);
-        const keystroke = this.editor.keymaps.keystrokeForKeyboardEvent(keyboard);
-        return this.mouseButtons[keystroke];
     }
 }
 

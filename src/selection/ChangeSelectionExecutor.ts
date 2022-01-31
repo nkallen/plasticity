@@ -105,6 +105,19 @@ export class ChangeSelectionExecutor {
         this.clickStrategy.box(new Set(topologyItems), modifier);
     }
 
+    onOutlinerSelect(items: Iterable<visual.Item>, modifier: ChangeSelectionModifier) {
+        const intersectables = [];
+        for (const item of items) {
+            let intersectable: Intersectable | visual.Solid;
+            if (item instanceof visual.Solid) intersectable = item;
+            else if (item instanceof visual.SpaceInstance || item instanceof visual.PlaneInstance) intersectable = item.underlying;
+            else throw new Error("Invalid condition");
+            intersectables.push(intersectable);
+        }
+
+        this.clickStrategy.box(new Set(intersectables), modifier);
+    }
+
     onConvert(mode: SelectionMode, modifier: ChangeSelectionModifier) {
         this.conversionStrategy.convert(mode, modifier);
     }

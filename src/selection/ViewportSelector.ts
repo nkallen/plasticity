@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import Command, * as cmd from "../command/Command";
-import { pointerEvent2keyboardEvent } from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";
 import { EditorSignals } from "../editor/EditorSignals";
@@ -9,6 +8,7 @@ import LayerManager from "../editor/LayerManager";
 import * as intersectable from "../visual_model/Intersectable";
 import { Boxcaster } from "./Boxcaster";
 import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectionExecutor";
+import { SelectionKeypressStrategy } from "./SelectionKeypressStrategy";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
@@ -16,8 +16,6 @@ export interface EditorLike extends cmd.EditorLike {
 }
 
 export abstract class AbstractViewportSelector extends ViewportControl {
-    private readonly keystroke2modifier: Record<string, ChangeSelectionModifier>;
-    private readonly keystroke2options: Record<string, ChangeSelectionOption>;
     private readonly selectionHelper = new BoxSelectionHelper(this.viewport.domElement, 'select-box');
     private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
 
@@ -25,35 +23,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         viewport: Viewport,
         layers: LayerManager,
         db: DatabaseLike,
-        private readonly keymaps: AtomKeymap.KeymapManager,
+        protected readonly keypress: SelectionKeypressStrategy,
         signals: EditorSignals,
         raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
-        keymapSelector?: string,
     ) {
         super(viewport, layers, db, signals, raycasterParams);
-        const { keystroke2modifier, keystroke2options } = AbstractViewportSelector.getMouseButtons(keymaps, keymapSelector);
-        this.keystroke2modifier = keystroke2modifier;
-        this.keystroke2options = keystroke2options;
-    }
-
-    static getMouseButtons(keymaps: AtomKeymap.KeymapManager, cssSelector = 'viewport-selector') {
-        let bindings = keymaps.getKeyBindings();
-        bindings = bindings.filter(b => b.selector == cssSelector);
-        const repl = bindings.filter(b => b.command == 'selection:replace').sort((a, b) => a.compare(b))[0];
-        const add = bindings.filter(b => b.command == 'selection:add').sort((a, b) => a.compare(b))[0];
-        const rem = bindings.filter(b => b.command == 'selection:remove').sort((a, b) => a.compare(b))[0];
-        const keystroke2modifier: Record<string, ChangeSelectionModifier> = {};
-        if (repl !== undefined) keystroke2modifier[repl.keystrokes] = command2modifier(repl.command);
-        if (add !== undefined) keystroke2modifier[add.keystrokes] = command2modifier(add.command);
-        if (rem !== undefined) keystroke2modifier[rem.keystrokes] = command2modifier(rem.command);
-
-        const ignore = bindings.filter(b => b.command == 'selection:option:ignore-mode').sort((a, b) => a.compare(b))[0];
-        const extend = bindings.filter(b => b.command == 'selection:option:extend').sort((a, b) => a.compare(b))[0];
-        const keystroke2options: Record<string, ChangeSelectionOption> = {};
-        if (ignore !== undefined) keystroke2options[ignore.keystrokes] = command2option(ignore.command);
-        if (extend !== undefined) keystroke2options[extend.keystrokes] = command2option(extend.command);
-
-        return { keystroke2modifier, keystroke2options };
     }
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
@@ -107,31 +81,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     protected abstract processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent): void;
     protected abstract processHover(intersects: intersectable.Intersection[], moveEvent?: MouseEvent): void;
     protected abstract processDblClick(intersects: intersectable.Intersection[], dblClickEvent: MouseEvent): void;
-
-    event2modifier(event?: MouseEvent): ChangeSelectionModifier {
-        if (event === undefined) return ChangeSelectionModifier.Replace;
-        const keyboard = pointerEvent2keyboardEvent(event);
-        const keystroke = this.keymaps.keystrokeForKeyboardEvent(keyboard);
-        return this.keystroke2modifier[keystroke];
-    }
-
-    event2option(event?: MouseEvent): ChangeSelectionOption {
-        if (event === undefined) return ChangeSelectionOption.None;
-        let result = ChangeSelectionOption.None;
-        for (const modifierName of mouseModifierKeys) {
-            const modifierKey = `${modifierName}Key` as keyof MouseEvent;
-            const modified = event[modifierKey] as boolean;
-            if (modified) {
-                result |= this.keystroke2options[modifierName == 'meta' ? 'cmd' : modifierName];
-            }
-        }
-        return result;
-    }
 }
 
-const mouseModifierKeys = ['ctrl', 'alt', 'shift', 'meta'];
+export const mouseModifierKeys = ['ctrl', 'alt', 'shift', 'meta'];
 
-function command2modifier(command: string): ChangeSelectionModifier {
+export function command2modifier(command: string): ChangeSelectionModifier {
     switch (command) {
         case 'selection:replace':
             return ChangeSelectionModifier.Replace;
@@ -144,7 +98,7 @@ function command2modifier(command: string): ChangeSelectionModifier {
     }
 }
 
-function command2option(command: string) {
+export function command2option(command: string) {
     switch (command) {
         case 'selection:option:ignore-mode':
             return ChangeSelectionOption.IgnoreMode;
@@ -157,30 +111,30 @@ function command2option(command: string) {
 
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(viewport: Viewport, private readonly editor: EditorLike,) {
-        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals);
+        super(viewport, editor.layers, editor.db, new SelectionKeypressStrategy(editor.keymaps), editor.signals);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent) {
-        this.editor.changeSelection.onBoxHover(selected, this.event2modifier(moveEvent));
+        this.editor.changeSelection.onBoxHover(selected, this.keypress.event2modifier(moveEvent));
     }
 
     protected processBoxSelect(selected: Set<intersectable.Intersectable>, upEvent: MouseEvent) {
-        const command = new BoxChangeSelectionCommand(this.editor, selected, this.event2modifier(upEvent));
+        const command = new BoxChangeSelectionCommand(this.editor, selected, this.keypress.event2modifier(upEvent));
         this.editor.enqueue(command, true);
     }
 
     protected processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
-        const command = new ClickChangeSelectionCommand(this.editor, intersects, this.event2modifier(upEvent), this.event2option(upEvent));
+        const command = new ClickChangeSelectionCommand(this.editor, intersects, this.keypress.event2modifier(upEvent), this.keypress.event2option(upEvent));
         this.editor.enqueue(command, true);
     }
 
     protected processDblClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
-        const command = new DblClickChangeSelectionCommand(this.editor, intersects, this.event2modifier(upEvent));
+        const command = new DblClickChangeSelectionCommand(this.editor, intersects, this.keypress.event2modifier(upEvent));
         this.editor.enqueue(command, true);
     }
 
     protected processHover(intersects: intersectable.Intersection[], event?: MouseEvent) {
-        this.editor.changeSelection.onHover(intersects, this.event2modifier(event), this.event2option(event));
+        this.editor.changeSelection.onHover(intersects, this.keypress.event2modifier(event), this.keypress.event2option(event));
     }
 }
 
