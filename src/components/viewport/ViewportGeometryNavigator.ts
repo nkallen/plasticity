@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ViewportNavigator, Orientation } from "./ViewportNavigator";
+import { ViewportNavigatorExecutor, Orientation } from "./ViewportNavigator";
 import * as visual from '../../visual_model/VisualModel';
 import { OrbitControls } from "./OrbitControls";
 import { DatabaseLike } from "../../editor/DatabaseLike";
@@ -7,15 +7,13 @@ import { point2point, vec2vec } from "../../util/Conversion";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 
-export class ViewportGeometryNavigator extends ViewportNavigator {
+export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
     constructor(
         private readonly db: DatabaseLike,
         controls: OrbitControls,
         private readonly planes: PlaneDatabase,
-        container: HTMLElement,
-        dim: number
     ) {
-        super(controls, container, dim);
+        super(controls);
     }
 
     navigate(to: Orientation | visual.Face): ConstructionPlaneSnap {

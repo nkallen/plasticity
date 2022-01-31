@@ -25,7 +25,7 @@ import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
 import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
-import { Orientation, ViewportNavigatorPass } from "./ViewportNavigator";
+import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -74,7 +74,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.editor.planes, this.domElement, 128);
+    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.editor.planes);
     private grid = new GridHelper(300, 300, this.gridColor, this.gridColor);
 
     constructor(
@@ -126,7 +126,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             outlinePassHover.downSampleRatio = 1;
             this.outlinePassHover = outlinePassHover;
 
-            const navigatorPass = new ViewportNavigatorPass(this.navigator, this.camera);
+            const navigatorGizmo = new ViewportNavigatorGizmo(this, 128);
+            const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
             const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 
             this.composer.addPass(renderPass);

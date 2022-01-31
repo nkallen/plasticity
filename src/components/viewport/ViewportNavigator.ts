@@ -3,18 +3,18 @@ import { Pass } from "three/examples/jsm/postprocessing/Pass";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { OrbitControls } from "./OrbitControls";
+import { Viewport } from "./Viewport";
 
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 
 const halfSize = 0.5;
 const turnRate = 3 * Math.PI; // turn rate in angles per second
 
-export class ViewportNavigator extends THREE.Object3D {
+export class ViewportNavigatorGizmo extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
-    private animating = false;
 
-    constructor(protected readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
+    constructor(private readonly viewport: Viewport, readonly dim: number) {
         super();
 
         this.camera.position.set(0, 0, 2);
@@ -23,7 +23,7 @@ export class ViewportNavigator extends THREE.Object3D {
         panel.setAttribute('style', `position: absolute; right: 0px; top: 0px; height: ${dim}px; width: ${dim}px`);
         panel.addEventListener('pointerup', e => this.onMouseUp(e));
         panel.addEventListener('pointerdown', e => e.stopPropagation());
-        container.appendChild(panel);
+        viewport.domElement.appendChild(panel);
 
         const color1 = new THREE.Color('#ff3653').convertSRGBToLinear();
         const color2 = new THREE.Color('#8adb00').convertSRGBToLinear();
@@ -33,9 +33,9 @@ export class ViewportNavigator extends THREE.Object3D {
 
         Axes: {
             const axisGeometry = new THREE.BoxGeometry(2 * halfSize, 0.05, 0.05).translate(halfSize, 0, 0);
-            const xAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color1));
-            const yAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color2));
-            const zAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color3));
+            const xAxis = new THREE.Mesh(axisGeometry, ViewportNavigatorExecutor.getAxisMaterial(color1));
+            const yAxis = new THREE.Mesh(axisGeometry, ViewportNavigatorExecutor.getAxisMaterial(color2));
+            const zAxis = new THREE.Mesh(axisGeometry, ViewportNavigatorExecutor.getAxisMaterial(color3));
             xAxis.position.set(-halfSize, -halfSize, -halfSize);
             yAxis.position.set(-halfSize, -halfSize, -halfSize);
             zAxis.position.set(-halfSize, -halfSize, -halfSize);
@@ -50,20 +50,20 @@ export class ViewportNavigator extends THREE.Object3D {
 
         Box: {
             const boxGeometry = new THREE.BoxGeometry(2 * halfSize, 2 * halfSize, 2 * halfSize);
-            const box = new THREE.Mesh(boxGeometry, ViewportNavigator.getBoxMaterial(new THREE.Color('#AAAAAA')));
+            const box = new THREE.Mesh(boxGeometry, ViewportNavigatorExecutor.getBoxMaterial(new THREE.Color('#AAAAAA')));
 
             const planeGeometry = new THREE.PlaneBufferGeometry(1.5 * halfSize, 1.5 * halfSize);
-            const front = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            const front = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             front.rotation.x = Math.PI / 2;
             front.position.set(0, -halfSize, 0);
             front.userData.type = Orientation.negY;
 
-            const left = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            const left = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             left.rotation.y = -Math.PI / 2;
             left.position.set(-halfSize, 0, 0);
             left.userData.type = Orientation.posX;
 
-            const bottom = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            const bottom = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             bottom.rotation.y = Math.PI;
             bottom.position.set(0, 0, -halfSize);
             bottom.userData.type = Orientation.posZ;
@@ -74,11 +74,11 @@ export class ViewportNavigator extends THREE.Object3D {
         }
 
         AxisText: {
-            const posXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1, 'X'));
+            const posXAxisHelper = new THREE.Sprite(ViewportNavigatorExecutor.getSpriteMaterial(color1, 'X'));
             posXAxisHelper.userData.type = Orientation.posX;
-            const posYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2, 'Y'));
+            const posYAxisHelper = new THREE.Sprite(ViewportNavigatorExecutor.getSpriteMaterial(color2, 'Y'));
             posYAxisHelper.userData.type = Orientation.posY;
-            const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
+            const posZAxisHelper = new THREE.Sprite(ViewportNavigatorExecutor.getSpriteMaterial(color3, 'Z'));
             posZAxisHelper.userData.type = Orientation.posZ;
 
             posXAxisHelper.position.set(1, -halfSize, -halfSize);
@@ -101,11 +101,10 @@ export class ViewportNavigator extends THREE.Object3D {
 
     private onMouseUp(event: PointerEvent) {
         event.stopPropagation();
-        if (this.animating) return false;
 
-        const { mouse, container, dim, raycaster, camera, interactiveObjects } = this;
-        const rect = container.getBoundingClientRect();
-        const offsetX = rect.left + (container.offsetWidth - dim);
+        const { mouse, dim, raycaster, camera, interactiveObjects, viewport } = this;
+        const rect = viewport.domElement.getBoundingClientRect();
+        const offsetX = rect.left + (viewport.domElement.offsetWidth - dim);
         const offsetY = rect.top;
 
         mouse.x = ((event.clientX - offsetX) / dim) * 2 - 1;
@@ -117,12 +116,18 @@ export class ViewportNavigator extends THREE.Object3D {
             const intersection = intersects[0];
             const object = intersection.object;
 
-            this.animateToOrientation(object.userData.type);
+            viewport.navigate(object.userData.type);
             return true;
         } else {
             return false;
         }
     };
+}
+
+export class ViewportNavigatorExecutor {
+    private animating = false;
+
+    constructor(protected readonly controls: OrbitControls) { }
 
     private readonly targetPosition = new THREE.Vector3();
     private readonly targetQuaternion = new THREE.Quaternion();
@@ -256,7 +261,7 @@ export class ViewportNavigatorPass extends Pass {
     private height = 0;
 
     constructor(
-        private readonly viewportHelper: ViewportNavigator,
+        private readonly viewportHelper: ViewportNavigatorGizmo,
         private readonly viewportCamera: THREE.Camera
     ) {
         super();

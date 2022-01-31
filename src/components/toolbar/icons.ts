@@ -124,7 +124,7 @@ keybindings.set("keyboard:cylinder:new-body", "New body");
 keybindings.set("gizmo:cylinder:radius", "Radius");
 keybindings.set("gizmo:cylinder:height", "Height");
 keybindings.set("gizmo:offset-face:distance", "Distance");
-keybindings.set("gizmo:offset-face:angle", "Angle adjacent faces");
+keybindings.set("gizmo:offset-face:angle", "Angle adjacent");
 keybindings.set("gizmo:offset-face:toggle", "New body");
 keybindings.set("gizmo:refillet-face:distance", "Distance");
 keybindings.set("gizmo:mirror:x", "Positive X");
