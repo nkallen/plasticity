@@ -6696,6 +6696,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"electron-window-state@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "electron-window-state@npm:5.0.3"
+  dependencies:
+    jsonfile: ^4.0.0
+    mkdirp: ^0.5.1
+  checksum: 955868c1db598cfb5111612c9df93f61b8999b339fb56cb37ba884a9141478feaef9e9b4d9e777079cdad80fb0bb64b61ae706c85f1f91ba5904f8596d30d7e9
+  languageName: node
+  linkType: hard
+
 "electron-winstaller@npm:^5.0.0":
   version: 5.0.0
   resolution: "electron-winstaller@npm:5.0.0"
@@ -13311,6 +13321,7 @@ fsevents@^1.2.7:
     electron: 13.2.3
     electron-rebuild: ^2.3.5
     electron-squirrel-startup: ^1.0.0
+    electron-window-state: ^5.0.3
     eslint: ^7.6.0
     eslint-plugin-import: ^2.20.0
     event-kit: ^2.5.3
@@ -15890,7 +15901,7 @@ resolve@1.1.7:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
+  checksum: fc9f7282b59b61aaa71c15a8684c5e6c02062768eb9f01d9645b80a3ceec1a79834a2988b8184b7bee0a5984698f325adc3ef190d776c7616a240f3debf36173
   languageName: node
   linkType: hard
 

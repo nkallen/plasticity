@@ -8,6 +8,7 @@ import os from 'os';
 import fs from 'fs';
 import fse from 'fs-extra';
 import { buildContextMenu, buildMenu } from './Menu';
+import window from 'electron-window-state';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -27,9 +28,16 @@ if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
 }
 
 const createWindow = (): void => {
+    const mainWindowState = window({
+        defaultWidth: 1920,
+        defaultHeight: 1080
+    });
+
     const mainWindow = new BrowserWindow({
-        width: 1920,
-        height: 1080,
+        x: mainWindowState.x,
+        y: mainWindowState.y,
+        width: mainWindowState.width,
+        height: mainWindowState.height,
         show: false,
         backgroundColor: '#2e2c29',
         titleBarStyle: 'hiddenInset',
@@ -49,7 +57,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     mainWindow.webContents.on('did-finish-load', () => {
-        // mainWindow.webContents.openDevTools();
+        mainWindowState.manage(mainWindow);
         mainWindow.show();
     })
 };
