@@ -1,5 +1,5 @@
 import { HasSelectedAndHovered, Selection, SelectionDatabase } from './SelectionDatabase';
-import { ChangeSelectionModifier, SelectionMode } from './ChangeSelectionExecutor';
+import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import * as visual from '../visual_model/VisualModel';
 import CommandRegistry from '../components/atom/CommandRegistry';
@@ -23,6 +23,8 @@ export class SelectionCommandRegistrar {
             'selection:mode:set:edge': () => selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:mode:set:face': () => selection.mode.set(SelectionMode.Face),
             'selection:mode:set:solid': () => selection.mode.set(SelectionMode.Solid),
+            'selection:mode:set:all': () => selection.mode.set(...SelectionModeAll),
+
             'selection:mode:toggle:control-point': () => selection.mode.toggle(SelectionMode.ControlPoint),
             'selection:mode:toggle:edge': () => selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:mode:toggle:face': () => selection.mode.toggle(SelectionMode.Face),

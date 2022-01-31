@@ -192,6 +192,7 @@ export default {
         "2": "selection:mode:set:edge",
         "3": "selection:mode:set:face",
         "4": "selection:mode:set:solid",
+        "tab": "selection:mode:set:all",
 
         "ctrl-1": "selection:convert:control-point",
         "ctrl-2": "selection:convert:edge",
@@ -212,7 +213,6 @@ export default {
         "t": "command:trim",
         "o": "command:offset-curve",
         "alt-x": "command:mirror",
-        "tab": "command:mode",
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
