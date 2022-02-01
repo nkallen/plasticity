@@ -1248,6 +1248,10 @@ export default {
             jsClassName: "EvolutionValues",
             rawHeader: "op_swept_parameter.h",
             initializers: [""],
+            fields: [
+                "double range",
+                "int mode",
+            ]
         },
         SweptSide: {
             isPOD: true,

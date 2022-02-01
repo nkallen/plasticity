@@ -4,13 +4,10 @@ import { GeometryFactory } from '../../command/GeometryFactory';
 import { composeMainName, normalizePlacement, point2point, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 
-export interface RevolutionParams {
+export interface RevolutionParams extends SweptParams {
     origin: THREE.Vector3;
     axis: THREE.Vector3;
 
-    thickness: number;
-    thickness1: number;
-    thickness2: number;
     side1: number;
     side2: number;
 
@@ -19,56 +16,24 @@ export interface RevolutionParams {
 
 export enum Shape { Torus = 0, Sphere = 1 }
 
-class AbstractRevolutionFactory extends GeometryFactory implements RevolutionParams {
-    origin!: THREE.Vector3;
-    axis!: THREE.Vector3;
+export interface SweptParams {
+    thickness: number;
+    thickness1: number;
+    thickness2: number;
+}
 
+export abstract class SweepFactory extends GeometryFactory implements SweptParams {
     thickness1 = 0;
     thickness2 = 0;
     set thickness(thickness: number) {
         this.thickness1 = this.thickness2 = Math.max(0, thickness);
     }
-
-    side1 = 2 * Math.PI;
-    side2 = 0;
-    shape = Shape.Torus;
-
     protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveRevolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     protected surface!: c3d.Surface;
     protected contours2d: c3d.Contour[] = [];
     protected curves3d: c3d.Curve3D[] = [];
 
-    async calculate() {
-        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2, shape } = this;
-
-        const sweptData = contours2d.length > 0
-            ? new c3d.SweptData(surface, contours2d)
-            : new c3d.SweptData(curves3d[0]);
-
-        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
-
-        const axis = new c3d.Axis3D(point2point(origin), vec2vec(direction, 1));
-        const params = new c3d.RevolutionValues();
-        params.shellClosed = true;
-        params.thickness1 = unit(thickness1);
-        params.thickness2 = unit(thickness2);
-        params.shape = shape;
-
-        const { side1, side2 } = params;
-        side1.way = c3d.SweptWay.scalarValue;
-        side1.scalarValue = scalarValue1;
-
-        side2.way = c3d.SweptWay.scalarValue;
-        side2.scalarValue = scalarValue2;
-        params.side1 = side1;
-        params.side2 = side2;
-
-        return c3d.ActionSolid.RevolutionSolid_async(sweptData, axis, params, names, ns);
-    }
-}
-
-export default class RevolutionFactory extends AbstractRevolutionFactory {
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
     get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
@@ -154,5 +119,42 @@ export default class RevolutionFactory extends AbstractRevolutionFactory {
         if (placements.size > 1) throw new Error("All regions must be on same placement");
         this.contours2d = contours;
         this.surface = new c3d.Plane([...placements][0], 0);
+    }
+}
+
+export class RevolutionFactory extends SweepFactory implements RevolutionParams {
+    origin!: THREE.Vector3;
+    axis!: THREE.Vector3;
+
+    side1 = 2 * Math.PI;
+    side2 = 0;
+    shape = Shape.Torus;
+
+    async calculate() {
+        const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2, shape } = this;
+
+        const sweptData = contours2d.length > 0
+            ? new c3d.SweptData(surface, contours2d)
+            : new c3d.SweptData(curves3d[0]);
+
+        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
+
+        const axis = new c3d.Axis3D(point2point(origin), vec2vec(direction, 1));
+        const params = new c3d.RevolutionValues();
+        params.shellClosed = true;
+        params.thickness1 = unit(thickness1);
+        params.thickness2 = unit(thickness2);
+        params.shape = shape;
+
+        const { side1, side2 } = params;
+        side1.way = c3d.SweptWay.scalarValue;
+        side1.scalarValue = scalarValue1;
+
+        side2.way = c3d.SweptWay.scalarValue;
+        side2.scalarValue = scalarValue2;
+        params.side1 = side1;
+        params.side2 = side2;
+
+        return c3d.ActionSolid.RevolutionSolid_async(sweptData, axis, params, names, ns);
     }
 }

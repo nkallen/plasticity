@@ -17,7 +17,7 @@ export class RevolutionDialog extends AbstractDialog<RevolutionParams> {
             <>
                 <ul>
                     <li>
-                        <label for="thickness1">Distance 1 </label>
+                        <label for="thickness1">Thickness 1 </label>
                         <div class="fields">
                             <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>

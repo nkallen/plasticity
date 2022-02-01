@@ -3,7 +3,7 @@ import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import { PhantomLineFactory } from "../line/LineFactory";
 import { RevolutionDialog } from "./RevolutionDialog";
-import RevolutionFactory from "./RevolutionFactory";
+import { RevolutionFactory } from "./RevolutionFactory";
 import { RevolutionGizmo } from "./RevolutionGizmo";
 
 const X = new THREE.Vector3(1, 0, 0);

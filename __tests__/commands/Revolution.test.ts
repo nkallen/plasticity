@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
-import RevolutionFactory from "../../src/commands/evolution/RevolutionFactory";
+import { RevolutionFactory } from "../../src/commands/evolution/RevolutionFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -52,7 +52,7 @@ describe("Simple planar curve", () => {
 
 describe("Composite planar contour", () => {
     let contour: visual.SpaceInstance<visual.Curve3D>;
-    
+
     beforeEach(async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         const makeLine2 = new LineFactory(db, materials, signals);
@@ -90,7 +90,7 @@ describe("Composite planar contour", () => {
 
 describe("Regions", () => {
     let region: visual.PlaneInstance<visual.Region>;
-    
+
     beforeEach(async () => {
         const makeCircle = new CenterCircleFactory(db, materials, signals);
         makeCircle.center = new THREE.Vector3(1, 0, 0);

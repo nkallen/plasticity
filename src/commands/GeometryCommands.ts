@@ -9,6 +9,7 @@ import { CylinderCommand } from "./cylinder/CylinderCommand";
 import { DeleteCommand, RemoveControlPointCommand, RemoveEdgeCommand, RemoveFaceCommand, RemoveItemCommand } from "./delete/DeleteCommand";
 import { DuplicateCommand } from "./duplicate/DuplicateCommand";
 import { CenterEllipseCommand, ThreePointEllipseCommand } from "./ellipse/EllipseCommand";
+import { EvolutionCommand } from "./evolution/EvolutionCommand";
 import { RevolutionCommand } from "./evolution/RevolutionCommand";
 import { ExtensionShellCommand } from "./extend/ExtensionCommand";
 import { ExtrudeCommand } from "./extrude/ExtrudeCommand";
@@ -91,6 +92,7 @@ export {
     ModifyContourCommand,
     MultilineCommand,
     ShellCommand,
+    EvolutionCommand,
     RevolutionCommand,
     DuplicateCommand,
     RadialArrayCommand,

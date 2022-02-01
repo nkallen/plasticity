@@ -42,6 +42,7 @@ tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves"
 tooltips.set(cmd.OffsetCurveCommand, "Offset Loop");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
+tooltips.set(cmd.EvolutionCommand, "Sweep");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
 tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve");
 tooltips.set(cmd.RadialArrayCommand, "Radial array");
