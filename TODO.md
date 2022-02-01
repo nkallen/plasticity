@@ -101,6 +101,11 @@
 - orbit above top  
 - deselect face when orienting construction plane  
 - trim right click to confirm doesn't work  
+- hitting space on region  
+- sweep  
+- after radial array select all the items  
+- hide all curves  
+- snap points circle center  
 
 ### In Progress
 

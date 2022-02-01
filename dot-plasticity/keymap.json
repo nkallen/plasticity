@@ -71,8 +71,8 @@
     "orbit-controls": {
         // "mouse1": "orbit:pan",
         // "shift-mouse1": "orbit:rotate",
-        "alt-mouse0": "orbit:rotate",
-        "alt-mouse1": "orbit:pan",
-        "alt-mouse2": "orbit:dolly"
+        // "alt-mouse0": "orbit:rotate",
+        // "alt-mouse1": "orbit:pan",
+        // "alt-mouse2": "orbit:dolly"
     }
 }
