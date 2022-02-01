@@ -1470,11 +1470,13 @@ export default {
         },
         MpGraph: {
             rawHeader: "contour_graph.h",
+            dependencies: ["Curve.h"],
             cppClassName: "Graph",
             rawClassName: "MpGraph",
             jsClassName: "Graph",
             functions: [
                 "size_t GetLoopsCount()",
+                { signature: "void GetUsedCurves(const RPArray<MbCurve> & curveList, RPArray<MbCurve> & usedCurves)", usedCurves: isReturn }
             ]
         },
         CrossPoint: {

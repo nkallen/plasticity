@@ -123,7 +123,7 @@ export class ClickStrategy {
             });
     }
 
-    box(set: ReadonlySet<Intersectable | Solid>, modifier: ChangeSelectionModifier): void {
+    box(set: ReadonlySet<Intersectable | Solid>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
         const { hovered } = this;
         hovered.removeAll();
 
@@ -138,7 +138,7 @@ export class ClickStrategy {
 
         for (const object of set) {
             if (object instanceof Solid) {
-                if (!this.mode.has(SelectionMode.Solid)) continue;
+                if (!this.mode.has(SelectionMode.Solid) && !(ChangeSelectionOption.IgnoreMode & option)) continue;
                 if (parentsVisited.has(object)) continue;
                 if (this.selected.hasSelectedChildren(object)) continue;
                 if (modifier === ChangeSelectionModifier.Add && this.selected.solids.has(object)) continue;
@@ -164,7 +164,7 @@ export class ClickStrategy {
                 }
                 changedParents.add(object.parentItem);
             } else if (object instanceof Curve3D) {
-                if (!this.mode.has(SelectionMode.Curve)) continue;
+                if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) continue;
                 const parentItem = object.parentItem;
                 if (modifier === ChangeSelectionModifier.Add && this.selected.curves.has(parentItem)) continue;
                 if (modifier === ChangeSelectionModifier.Remove && !this.selected.curves.has(parentItem)) continue;

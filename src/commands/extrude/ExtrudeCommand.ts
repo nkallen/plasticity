@@ -80,9 +80,9 @@ function ExtrudeFactory(editor: EditorLike) {
         faceParents.add(face.parentItem);
         factories.push(phantom);
     }
-    if (selected.curves.size > 0) {
+    for (const curve of selected.curves) {
         const phantom = new CurveExtrudeFactory(db, materials, signals);
-        phantom.curves = [...selected.curves];
+        phantom.curves = [curve];
         factories.push(phantom);
     }
     const phantom = new MultiExtrudeFactory(factories);

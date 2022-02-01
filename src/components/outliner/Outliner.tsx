@@ -32,7 +32,7 @@ export default (editor: Editor) => {
                                 <plasticity-icon key={types.isEnabled(visual.Solid)} name={types.isEnabled(visual.Solid) ? 'eye' : 'eye-off'}></plasticity-icon>
                             </div>
                         </h1>
-                        {this.section(db.find(visual.Solid).map(info => info.view))}
+                        {this.section("Solids", db.find(visual.Solid).map(info => info.view))}
                     </section>
                     <section>
                         <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Curve3D, !types.isEnabled(visual.Curve3D))}>
@@ -41,21 +41,21 @@ export default (editor: Editor) => {
                                 <plasticity-icon key={types.isEnabled(visual.Curve3D)} name={types.isEnabled(visual.Curve3D) ? 'eye' : 'eye-off'}></plasticity-icon>
                             </div>
                         </h1>
-                        {this.section(db.find(visual.SpaceInstance).map(info => info.view))}
+                        {this.section("Curves", db.find(visual.SpaceInstance).map(info => info.view))}
                     </section>
                 </div>, this)
         }
 
-        private section(items: visual.Item[]) {
+        private section(name: string, items: visual.Item[]) {
             const db = editor.db;
             const selection = editor.selection.selected;
-            return <ol class="space-y-1">
+            return <ol class="space-y-1" key={name}>
                 {items.map(item => {
                     const visible = db.isVisible(item);
                     const isSelected = selection.has(item);
                     return <li key={item.simpleName} class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
                         <plasticity-icon name="curve" class="text-accent-500"></plasticity-icon>
-                        <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">Curve {item.simpleName}</div>
+                        <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{item.constructor.name} {item.simpleName}</div>
                         <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
                             <plasticity-icon key={visible} name={visible ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>

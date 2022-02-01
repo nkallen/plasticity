@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- w mirror pivot  
 - allow multi select during trim  
 - variable fillet broken (gizmo disappears) when adjust main distance  
 - bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
@@ -103,7 +104,7 @@
 - trim right click to confirm doesn't work  
 - hitting space on region  
 - sweep  
-- after radial array select all the items  
+- convert edge to region  
 
 ### In Progress
 
@@ -111,6 +112,7 @@
 
 ### Done ✓
 
+- after radial array select all the items  
 - hide all curves  
 - snap points circle center  
 

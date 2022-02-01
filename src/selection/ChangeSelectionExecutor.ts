@@ -94,15 +94,15 @@ export class ChangeSelectionExecutor {
     }
 
     onBoxHover(hover: ReadonlySet<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
-        this.hoverStrategy.box(this.filterProhibited(hover), modifier);
+        this.hoverStrategy.box(this.filterProhibited(hover), modifier, ChangeSelectionOption.None);
     }
 
     onBoxSelect(select: ReadonlySet<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
-        this.clickStrategy.box(this.filterProhibited(select), modifier);
+        this.clickStrategy.box(this.filterProhibited(select), modifier, ChangeSelectionOption.None);
     }
 
     onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
-        this.clickStrategy.box(new Set(topologyItems), modifier);
+        this.clickStrategy.box(new Set(topologyItems), modifier, ChangeSelectionOption.None);
     }
 
     onOutlinerSelect(items: Iterable<visual.Item>, modifier: ChangeSelectionModifier) {
@@ -115,7 +115,7 @@ export class ChangeSelectionExecutor {
             intersectables.push(intersectable);
         }
 
-        this.clickStrategy.box(new Set(intersectables), modifier);
+        this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
     }
 
     onConvert(mode: SelectionMode, modifier: ChangeSelectionModifier) {

@@ -9,6 +9,11 @@ export default {
         "v": "gizmo:polygon:mode",
     },
 
+    "[command='radial-array'] plasticity-viewport": {
+        "wheel+up": "gizmo:array:add",
+        "wheel+down": "gizmo:array:subtract",
+    },
+
     "[command='rebuild'] plasticity-viewport": {
         "wheel+up": "gizmo:rebuild:forward",
         "wheel+down": "gizmo:rebuild:backward",

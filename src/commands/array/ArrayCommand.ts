@@ -4,6 +4,7 @@ import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/PointPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { ArrayFactory } from "./ArrayFactory";
+import { ArrayKeyboardGizmo } from "./ArrayKeyboardGizmo";
 import { RadialArrayDialog } from "./RadialArrayDialog";
 
 export class RadialArrayCommand extends Command {
@@ -39,6 +40,19 @@ export class RadialArrayCommand extends Command {
             return pointPicker.execute().resource(this);
         })();
 
+        const keyboard = new ArrayKeyboardGizmo(this.editor);
+        keyboard.execute(e => {
+            switch (e) {
+                case 'add':
+                    array.num2++;
+                    break;
+                case 'subtract':
+                    array.num2--;
+                    break;
+            }
+            array.update();
+        }).resource(this);
+
         const step1 = centroid.sub(p1);
         array.step1 = step1.length();
         array.dir1 = step1.normalize();
@@ -50,7 +64,8 @@ export class RadialArrayCommand extends Command {
 
         await this.finished;
 
-        await array.commit();
+        const items = await array.commit();
+        this.editor.selection.selected.add(items);
     }
 }
 
