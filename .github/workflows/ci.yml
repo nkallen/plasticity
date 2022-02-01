@@ -171,7 +171,7 @@ jobs:
       - name: Codegen C++ and build
         # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
-          brew install astyle --no-progress 
+          brew install astyle
           yarn generate
           yarn run node-gyp configure --arch=arm64
           yarn electron-rebuild
