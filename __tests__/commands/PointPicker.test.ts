@@ -14,6 +14,7 @@ import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
+import { TypeManager } from "../../src/editor/TypeManager";
 import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -35,7 +36,7 @@ beforeEach(() => {
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();
     const registry = new CommandRegistry();
-    snaps = new SnapManager(db, crosses, signals);
+    snaps = new SnapManager(db, crosses, new TypeManager(signals), signals);
     pointPicker = new Model(db, crosses, registry, signals);
 });
 

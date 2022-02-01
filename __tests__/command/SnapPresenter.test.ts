@@ -7,6 +7,7 @@ import { SnapPresentation, SnapPresenter } from "../../src/command/SnapPresenter
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
+import { SnapManagerGeometryCache } from "../../src/visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapResult } from "../../src/visual_model/SnapPicker";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
@@ -70,7 +71,7 @@ describe(SnapPresenter, () => {
         beforeEach(() => {
             presenter.execute();
             picker.setFromViewport(new MouseEvent('down'), viewport);
-            presentation = SnapPresentation.makeForGizmo(picker, viewport, editor.db, editor.snapCache, editor.gizmos).presentation;
+            presentation = SnapPresentation.makeForGizmo(picker, viewport, editor.db, new SnapManagerGeometryCache(editor.snaps), editor.gizmos).presentation;
         })
 
         test('when presentation.info is undefined', () => {

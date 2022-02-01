@@ -7,6 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../DatabaseLike";
 import { MementoOriginator, SnapMemento } from "../History";
 import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap, CircleCurveCenterPointSnap } from "./Snap";
+import { DisablableType, TypeManager } from "../TypeManager";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -14,17 +15,20 @@ export enum SnapType {
     Crosses = 2 << 1,
 }
 
+type SnapMap = Map<c3d.SimpleName, Set<PointSnap>>;
+
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
     options: SnapType = SnapType.Basic | SnapType.Geometry | SnapType.Crosses;
 
     private readonly basicSnaps = new Set<Snap>();
-    private readonly id2snaps = new Map<c3d.SimpleName, Set<PointSnap>>();
+    private readonly id2snaps = new Map<DisablableType, SnapMap>();
     private readonly hidden = new Map<c3d.SimpleName, Set<PointSnap>>()
 
     constructor(
         private readonly db: DatabaseLike,
         private readonly crosses: CrossPointDatabase,
+        private readonly types: TypeManager,
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
@@ -32,6 +36,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.basicSnaps.add(yAxisSnap);
         this.basicSnaps.add(zAxisSnap);
         Object.freeze(this.basicSnaps);
+
+        this.id2snaps.set(visual.Solid, new Map());
+        this.id2snaps.set(visual.Curve3D, new Map());
 
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.add(item);
@@ -44,10 +51,19 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
-        const { id2snaps } = this;
-        const geometrySnaps = (this.options & SnapType.Geometry) === SnapType.Geometry ? [...id2snaps.values()] : [];
+        const { types } = this;
         const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<Snap>();
         const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
+
+        let geometrySnaps: Set<PointSnap>[] = [];
+        if ((this.options & SnapType.Geometry) === SnapType.Geometry) {
+            for (const [type, id2snaps] of this.id2snaps) {
+                if (!types.isEnabled(type)) continue;
+                const snaps = id2snaps.values();
+                geometrySnaps = geometrySnaps.concat([...snaps]);
+            }
+        }
+
         return { basicSnaps, geometrySnaps, crossSnaps }
     }
 
@@ -66,8 +82,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private add(item: visual.Item) {
         performance.mark('begin-snap-add');
+        const id2snaps = this.snapMapFor(item);
         const snapsForItem = new Set<PointSnap>();
-        this.id2snaps.set(item.simpleName, snapsForItem);
+        id2snaps.set(item.simpleName, snapsForItem);
         if (item instanceof visual.Solid) {
             const model = this.db.lookup(item);
             const edges = model.GetEdges();
@@ -83,6 +100,16 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
 
         performance.measure('snap-add', 'begin-snap-add');
+    }
+
+    private snapMapFor(item: visual.Item): SnapMap {
+        if (item instanceof visual.Solid) {
+            return this.id2snaps.get(visual.Solid)!;
+        } else if (item instanceof visual.SpaceInstance) {
+            return this.id2snaps.get(visual.Curve3D)!;
+            // } else if (item instanceof visual.PlaneInstance) {
+            //     return this.id2snaps.get(visual.Region)!;
+        } else throw new Error("unsupported type");
     }
 
     private addFace(view: visual.Face, model: c3d.Face, into: Set<Snap>) {
@@ -229,21 +256,24 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private delete(item: visual.Item) {
-        this.id2snaps.delete(item.simpleName);
+        const id2snaps = this.snapMapFor(item);
+        id2snaps.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
     }
 
     private hide(item: visual.Item) {
         const id = item.simpleName;
-        const info = this.id2snaps.get(id)!;
-        this.id2snaps.delete(id);
+        const id2snaps = this.snapMapFor(item);
+        const info = id2snaps.get(id)!;
+        id2snaps.delete(id);
         this.hidden.set(id, info);
     }
 
     private unhide(item: visual.Item) {
         const id = item.simpleName;
+        const id2snaps = this.snapMapFor(item);
         const info = this.hidden.get(id)!;
-        this.id2snaps.set(id, info);
+        id2snaps.set(id, info);
         this.hidden.delete(id);
     }
 

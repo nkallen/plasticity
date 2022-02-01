@@ -13,6 +13,7 @@ import { DatabaseLike } from "./DatabaseLike";
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
 import { PointSnap } from "./snaps/Snap";
+import { SnapManager } from "./snaps/SnapManager";
 
 export class Memento {
     constructor(
@@ -144,8 +145,8 @@ export class ViewportMemento {
 
 export class SnapMemento {
     constructor(
-        readonly id2snaps: Map<c3d.SimpleName, Set<PointSnap>>,
-        readonly hidden: Map<c3d.SimpleName, Set<PointSnap>>
+        readonly id2snaps: SnapManager['id2snaps'],
+        readonly hidden: SnapManager['hidden']
     ) { }
 }
 

@@ -105,7 +105,6 @@
 - sweep  
 - after radial array select all the items  
 - hide all curves  
-- snap points circle center  
 
 ### In Progress
 
@@ -113,4 +112,5 @@
 
 ### Done ✓
 
+- snap points circle center  
 

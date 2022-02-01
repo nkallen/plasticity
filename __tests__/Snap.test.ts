@@ -17,6 +17,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../src/editor/snaps/ConstructionPlaneSnap";
+import { TypeManager } from "../src/editor/TypeManager";
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
@@ -31,7 +32,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
+    snaps = new SnapManager(db, new CrossPointDatabase(), new TypeManager(signals), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();

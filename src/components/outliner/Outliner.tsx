@@ -24,12 +24,22 @@ export default (editor: Editor) => {
             const { db } = editor;
             render(
                 <div class="py-3 px-4">
-                    <section>
-                        <h1 class="mt-3 text-xs font-bold text-neutral-100">Solids</h1>
+                    <section class="mb-4">
+                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Layers.Solid, false)}>
+                            <div>Solids</div>
+                            <div class="p-1 rounded group text-neutral-300">
+                                <plasticity-icon key={true} name={true ? 'eye' : 'eye-off'}></plasticity-icon>
+                            </div>
+                        </h1>
                         {this.section(db.find(visual.Solid).map(info => info.view))}
                     </section>
                     <section>
-                        <h1 class="mt-3 text-xs font-bold text-neutral-100">Curves</h1>
+                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Layers.Curve, false)}>
+                            <div>Curves</div>
+                            <div class="p-1 rounded group text-neutral-300">
+                                <plasticity-icon key={true} name={true ? 'eye' : 'eye-off'}></plasticity-icon>
+                            </div>
+                        </h1>
                         {this.section(db.find(visual.SpaceInstance).map(info => info.view))}
                     </section>
                 </div>, this)
@@ -45,7 +55,7 @@ export default (editor: Editor) => {
                     return <li key={item.simpleName} class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
                         <plasticity-icon name="curve" class="text-accent-500"></plasticity-icon>
                         <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">Curve {item.simpleName}</div>
-                        <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.toggleVisibility(e, item, !visible)}>
+                        <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
                             <plasticity-icon key={visible} name={visible ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                     </li>;
@@ -58,11 +68,26 @@ export default (editor: Editor) => {
             editor.enqueue(command, true);
         }
 
-        toggleVisibility = (e: MouseEvent, item: visual.Item, value: boolean) => {
+        setVisibility = (e: MouseEvent, item: visual.Item, value: boolean) => {
             const command = new ToggleVisibilityCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
             this.render();
+        }
+
+        setLayer = (e: MouseEvent, layer: visual.Layers, value: boolean) => {
+            // if (value) editor.layers.visible.enable(layer);
+            // else editor.layers.visible.disable(layer);
+            
+            editor.layers.visible.toggle(visual.Layers.Curve);
+            editor.layers.visible.toggle(visual.Layers.Region);
+            editor.layers.visible.toggle(visual.Layers.XRay);
+            editor.layers.visible.toggle(visual.Layers.ControlPoint);
+
+            editor.layers.intersectable.toggle(visual.Layers.Curve);
+            editor.layers.intersectable.toggle(visual.Layers.Region);
+            editor.layers.intersectable.toggle(visual.Layers.XRay);
+            editor.layers.intersectable.toggle(visual.Layers.ControlPoint);
         }
     }
 

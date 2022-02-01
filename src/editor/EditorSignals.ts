@@ -11,6 +11,7 @@ import { Agent } from "./DatabaseLike";
 import { Replacement } from './ModifierManager';
 import { ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
+import { DisablableType } from "./TypeManager";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
@@ -58,4 +59,6 @@ export class EditorSignals {
     snapsAdded: signals.Signal<{pointPicker: Model, snaps: Snap[]}> = new signals.Signal();
     snapsCleared: signals.Signal<Snap[]> = new signals.Signal();
     clipboardChanged: signals.Signal = new signals.Signal();
+    typeDisabled: signals.Signal<DisablableType> = new signals.Signal();
+    typeEnabled: signals.Signal<DisablableType> = new signals.Signal();
 }

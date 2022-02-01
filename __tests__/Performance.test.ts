@@ -6,6 +6,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
+import { TypeManager } from '../src/editor/TypeManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -45,7 +46,7 @@ describe.skip("Performance tests", () => {
     // If CurveEdgeSnap snapper can be avoided: 6138 6125 6120
     // Generate helper lazily: 5538 5544 5541
     test.skip('snaps', async () => {
-        const snaps = new SnapManager(db, new CrossPointDatabase(), signals);
+        const snaps = new SnapManager(db, new CrossPointDatabase(), new TypeManager(signals), signals);
         const start = performance.now();
         await db.deserialize(data);
         const end = performance.now();

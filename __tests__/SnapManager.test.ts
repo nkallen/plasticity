@@ -8,6 +8,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
+import { TypeManager } from "../src/editor/TypeManager";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -20,13 +21,15 @@ let intersect: jest.Mock<any, any>;
 let raycaster: THREE.Raycaster;
 let camera: THREE.Camera;
 let bbox: THREE.Box3;
+let types: TypeManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
+    types = new TypeManager(signals);
+    snaps = new SnapManager(db, new CrossPointDatabase(), types, signals);
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
 
@@ -132,4 +135,19 @@ test("adding & removing polyline points", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
+});
+
+test.only("enabling and disabling types adds/removes snaps", async () => {
+    const makeLine = new CurveFactory(db, materials, signals);
+    makeLine.type = c3d.SpaceType.Polyline3D;
+    makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
+    const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    expect(snaps.all.geometrySnaps[0].size).toBe(7);
+
+    types.disable(visual.Curve3D);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
+
+    types.enable(visual.Curve3D);
+    expect(snaps.all.geometrySnaps[0].size).toBe(7);
 });

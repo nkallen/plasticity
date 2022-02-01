@@ -36,6 +36,7 @@ import { SpriteDatabase } from "./SpriteDatabase";
 import theme from '../startup/default-theme';
 import { PlaneDatabase } from "./PlaneDatabase";
 import { Clipboard } from "./Clipboard";
+import { TypeManager } from "./TypeManager";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -65,8 +66,8 @@ export class Editor {
     readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
-    readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
-    readonly snapCache = new SnapManagerGeometryCache(this.snaps);
+    readonly types = new TypeManager(this.signals);
+    readonly snaps = new SnapManager(this.db, this.crosses, this.types, this.signals);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
