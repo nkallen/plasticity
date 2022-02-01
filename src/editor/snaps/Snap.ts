@@ -105,6 +105,17 @@ export class CircleCenterPointSnap extends PointSnap {
     }
 }
 
+export class CircleCurveCenterPointSnap extends PointSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(model: c3d.Arc3D, readonly curveSnap: CurveSnap) {
+        super("Center",
+            point2point(model.GetCentre()),
+            vec2vec(model.GetPlaneCurve(false).placement.GetAxisZ(), 1).normalize()
+        );
+    }
+}
+
 export class CircularNurbsCenterPointSnap extends PointSnap {
     readonly helper = new THREE.Group();
 

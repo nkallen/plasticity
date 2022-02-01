@@ -6,7 +6,7 @@ import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../DatabaseLike";
 import { MementoOriginator, SnapMemento } from "../History";
-import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap, CircleCurveCenterPointSnap } from "./Snap";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -201,14 +201,18 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const quartPt = point2point(item.PointOn(2 * Math.PI / 4));
             const halfPt = point2point(item.PointOn(Math.PI));
             const threeQuartPt = point2point(item.PointOn(Math.PI * 3 / 2));
-            const zeroSnap = new CurvePointSnap("zero", zeroPt, curveSnap, item.NearPointProjection(point2point(zeroPt), false).t);
+
+            const zeroSnap = new CurvePointSnap("Start", zeroPt, curveSnap, item.NearPointProjection(point2point(zeroPt), false).t);
             const quartSnap = new CurvePointSnap("1/4", quartPt, curveSnap, item.NearPointProjection(point2point(quartPt), false).t);
             const halfSnap = new CurvePointSnap("1/2", halfPt, curveSnap, item.NearPointProjection(point2point(halfPt), false).t);
             const threeQuartSnap = new CurvePointSnap("3/4", threeQuartPt, curveSnap, item.NearPointProjection(point2point(threeQuartPt), false).t);
+            const centerSnap = new CircleCurveCenterPointSnap(item, curveSnap);
+
             into.add(zeroSnap);
             into.add(quartSnap);
             into.add(halfSnap);
             into.add(threeQuartSnap);
+            into.add(centerSnap);
         } else {
             if (item.IsClosed()) return;
 
