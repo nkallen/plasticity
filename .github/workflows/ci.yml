@@ -151,7 +151,7 @@ jobs:
       - name: Download c3d libraries
         run: |
           brew install wget
-          brew install 7z
+          brew install p7zip
           wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/MacOS_SDK_11_3_ARM64_APPLE_CLANG_12.0.5.zip
           7z x MacOS_SDK_11_3_ARM64_APPLE_CLANG_12.0.5.zip -ovendor/c3d/
       - name: Setup license key
