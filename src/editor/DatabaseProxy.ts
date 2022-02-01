@@ -6,6 +6,7 @@ import * as visual from "../visual_model/VisualModel";
 export class DatabaseProxy implements DatabaseLike {
     constructor(protected readonly db: DatabaseLike) { }
 
+    get types() { return this.db.types }
     get version() { return this.db.version }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;

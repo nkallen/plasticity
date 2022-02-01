@@ -4,6 +4,7 @@ import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
+import { TypeManager } from './TypeManager';
 
 export type Agent = 'user' | 'automatic';
 
@@ -27,6 +28,8 @@ export interface MaterialOverride {
 }
 
 export interface DatabaseLike {
+    get types(): TypeManager;
+    
     get version(): number; addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;

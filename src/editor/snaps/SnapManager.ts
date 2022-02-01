@@ -28,7 +28,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     constructor(
         private readonly db: DatabaseLike,
         private readonly crosses: CrossPointDatabase,
-        private readonly types: TypeManager,
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
@@ -51,7 +50,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
-        const { types } = this;
+        const { db: { types } } = this;
         const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<Snap>();
         const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
 

@@ -28,8 +28,8 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     camera = new THREE.PerspectiveCamera();
-    types = new TypeManager(signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(), types, signals);
+    types = db.types;
+    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
 
@@ -137,7 +137,7 @@ test("adding & removing polyline points", async () => {
     expect(snaps.all.geometrySnaps.length).toBe(0);
 });
 
-test.only("enabling and disabling types adds/removes snaps", async () => {
+test("enabling and disabling types adds/removes snaps", async () => {
     const makeLine = new CurveFactory(db, materials, signals);
     makeLine.type = c3d.SpaceType.Polyline3D;
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));

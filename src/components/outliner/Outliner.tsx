@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
+import { DisablableType } from '../../editor/TypeManager';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
@@ -21,23 +22,23 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { db } = editor;
+            const { db, db: { types} } = editor;
             render(
                 <div class="py-3 px-4">
                     <section class="mb-4">
-                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Layers.Solid, false)}>
+                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Solid, !types.isEnabled(visual.Solid))}>
                             <div>Solids</div>
                             <div class="p-1 rounded group text-neutral-300">
-                                <plasticity-icon key={true} name={true ? 'eye' : 'eye-off'}></plasticity-icon>
+                                <plasticity-icon key={types.isEnabled(visual.Solid)} name={types.isEnabled(visual.Solid) ? 'eye' : 'eye-off'}></plasticity-icon>
                             </div>
                         </h1>
                         {this.section(db.find(visual.Solid).map(info => info.view))}
                     </section>
                     <section>
-                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Layers.Curve, false)}>
+                        <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, visual.Curve3D, !types.isEnabled(visual.Curve3D))}>
                             <div>Curves</div>
                             <div class="p-1 rounded group text-neutral-300">
-                                <plasticity-icon key={true} name={true ? 'eye' : 'eye-off'}></plasticity-icon>
+                                <plasticity-icon key={types.isEnabled(visual.Curve3D)} name={types.isEnabled(visual.Curve3D) ? 'eye' : 'eye-off'}></plasticity-icon>
                             </div>
                         </h1>
                         {this.section(db.find(visual.SpaceInstance).map(info => info.view))}
@@ -75,19 +76,10 @@ export default (editor: Editor) => {
             this.render();
         }
 
-        setLayer = (e: MouseEvent, layer: visual.Layers, value: boolean) => {
-            // if (value) editor.layers.visible.enable(layer);
-            // else editor.layers.visible.disable(layer);
-            
-            editor.layers.visible.toggle(visual.Layers.Curve);
-            editor.layers.visible.toggle(visual.Layers.Region);
-            editor.layers.visible.toggle(visual.Layers.XRay);
-            editor.layers.visible.toggle(visual.Layers.ControlPoint);
-
-            editor.layers.intersectable.toggle(visual.Layers.Curve);
-            editor.layers.intersectable.toggle(visual.Layers.Region);
-            editor.layers.intersectable.toggle(visual.Layers.XRay);
-            editor.layers.intersectable.toggle(visual.Layers.ControlPoint);
+        setLayer = (e: MouseEvent, kind: DisablableType, value: boolean) => {
+            if (value) editor.db.types.enable(kind);
+            else editor.db.types.disable(kind);
+            this.render();
         }
     }
 

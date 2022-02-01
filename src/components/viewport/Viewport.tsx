@@ -199,6 +199,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.historyChanged.add(this.setNeedsRender);
         this.editor.signals.commandEnded.add(this.setNeedsRender);
         this.editor.signals.moduleReloaded.add(this.setNeedsRender);
+        this.editor.signals.typeEnabled.add(this.setNeedsRender);
+        this.editor.signals.typeDisabled.add(this.setNeedsRender);
 
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);

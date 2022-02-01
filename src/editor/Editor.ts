@@ -1,5 +1,4 @@
 import KeymapManager from "atom-keymap-plasticity";
-
 import { remote } from 'electron';
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
@@ -14,10 +13,11 @@ import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
+import theme from '../startup/default-theme';
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
-import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { Backup } from "./Backup";
+import { Clipboard } from "./Clipboard";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
@@ -31,12 +31,11 @@ import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
+import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import theme from '../startup/default-theme';
-import { PlaneDatabase } from "./PlaneDatabase";
-import { Clipboard } from "./Clipboard";
 import { TypeManager } from "./TypeManager";
+
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -66,8 +65,7 @@ export class Editor {
     readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
-    readonly types = new TypeManager(this.signals);
-    readonly snaps = new SnapManager(this.db, this.crosses, this.types, this.signals);
+    readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);

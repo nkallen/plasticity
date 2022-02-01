@@ -11,6 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { MeshCreator } from './MeshCreator';
+import { TypeManager } from './TypeManager';
 
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
@@ -19,6 +20,9 @@ const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
 type Builder = build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | build.PlaneInstanceBuilder<visual.Region> | build.SolidBuilder;
 
 export class GeometryDatabase implements DatabaseLike, MementoOriginator<GeometryMemento> {
+    readonly queue = new SequentialExecutor();
+    readonly types = new TypeManager(this.signals);
+
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();
 
@@ -28,7 +32,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly hidden = new Set<c3d.SimpleName>();
     private readonly invisible = new Set<c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
-    readonly queue = new SequentialExecutor();
 
     constructor(
         private readonly meshCreator: MeshCreator,
@@ -225,11 +228,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get visibleObjects(): visual.Item[] {
-        const { geometryModel, hidden, invisible } = this;
+        const { geometryModel, hidden, invisible, types } = this;
         const difference = [];
         for (const { view } of geometryModel.values()) {
             if (hidden.has(view.simpleName)) continue;
             if (invisible.has(view.simpleName)) continue;
+            if (!types.isEnabled(view)) continue;
             difference.push(view);
         }
         return difference;

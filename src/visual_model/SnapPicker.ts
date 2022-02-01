@@ -1,12 +1,11 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Choice, Model } from "../command/PointPicker";
-import { SnapInfo } from "../command/SnapPresenter";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../editor/snaps/ConstructionPlaneSnap";
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, PlaneSnap, PointSnap, Snap, axisSnapMaterial } from "../editor/snaps/Snap";
+import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";

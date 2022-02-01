@@ -36,7 +36,7 @@ beforeEach(() => {
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();
     const registry = new CommandRegistry();
-    snaps = new SnapManager(db, crosses, new TypeManager(signals), signals);
+    snaps = new SnapManager(db, crosses, signals);
     pointPicker = new Model(db, crosses, registry, signals);
 });
 

@@ -104,7 +104,6 @@
 - hitting space on region  
 - sweep  
 - after radial array select all the items  
-- hide all curves  
 
 ### In Progress
 
@@ -112,5 +111,6 @@
 
 ### Done ✓
 
+- hide all curves  
 - snap points circle center  
 
