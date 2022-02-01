@@ -188,8 +188,6 @@ export default {
 
     "body[command] plasticity-viewport": {
         "escape": "command:abort",
-        "enter": "command:finish",
-        "mouse2": "command:finish",
     },
 
     "body:not([gizmo])": {
@@ -286,6 +284,7 @@ export default {
         "y": "snaps:set-y",
         "z": "snaps:set-z",
         "s": "snaps:set-square",
+        "mouse2": "point-picker:finish",
     },
 
     "body": {
@@ -293,7 +292,10 @@ export default {
     },
 
     "body[command]:not([gizmo]) plasticity-viewport": {
+        "enter": "command:finish",
+        "mouse2": "command:finish",
+
         "tab": "command:quasimode:start",
-        "^tab": "command:quasimode:stop"
+        "^tab": "command:quasimode:stop",
     },
 }

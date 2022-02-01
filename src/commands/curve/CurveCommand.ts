@@ -63,7 +63,7 @@ export class CurveCommand extends Command {
                     makeCurve.preview.snap = snap;
                     if (makeCurve.preview.hasEnoughPoints)
                         await makeCurve.preview.update();
-                }).rejectOnFinish().resource(this);
+                }, true).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;

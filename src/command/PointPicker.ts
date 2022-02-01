@@ -12,6 +12,7 @@ import { PlaneDatabase } from '../editor/PlaneDatabase';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
+import { Finish } from '../util/Cancellable';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helpers } from '../util/Helpers';
@@ -336,7 +337,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
     constructor(private readonly editor: EditorLike) { }
 
-    execute<T>(cb?: (pt: PointResult) => T): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { editor, model } = this;
@@ -422,7 +423,15 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 }
 
                 const d = model.registerKeyboardCommands(viewport.domElement, () => onPointerMove(lastMoveEvent));
-                disposables.add(d);
+                const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
+                    if (rejectOnFinish) {
+                        reject(Finish);
+                        return;
+                    }
+                    dispose();
+                    finish();
+                });
+                disposables.add(d, f);
 
                 domElement.addEventListener('pointermove', onPointerMove);
                 domElement.addEventListener('pointerdown', onPointerDown);

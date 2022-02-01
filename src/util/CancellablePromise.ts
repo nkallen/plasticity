@@ -79,8 +79,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     }
 
     cancel() {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
         try {
             this._dispose();
             this._reject(Cancel);
@@ -90,8 +89,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     }
 
     finish() {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
         try {
             this._dispose();
             this._onFinish(this._reject);
@@ -101,8 +99,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     }
 
     interrupt() {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
         try {
             this._dispose();
             this._onInterrupt(this._reject);
