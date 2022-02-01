@@ -20,6 +20,7 @@ export class ThreePointRectangleCommand extends Command {
         line.cancel();
 
         const rect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.constructionPlane = this.editor.activeViewport?.constructionPlane;
         rect.p1 = p1;
         rect.p2 = p2;
         await pointPicker.execute(({ point: p3 }) => {
@@ -45,7 +46,9 @@ export class CornerRectangleCommand extends Command {
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.constructionPlane = this.editor.activeViewport?.constructionPlane;
         rect.p1 = p1;
+
         await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
             rect.orientation = orientation;
@@ -60,6 +63,7 @@ export class CornerRectangleCommand extends Command {
 export class CenterRectangleCommand extends Command {
     async execute(): Promise<void> {
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
         const pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.X);

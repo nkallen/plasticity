@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from "../../editor/EditorSignals";
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import { DatabaseLike } from "../../editor/DatabaseLike";
+import { EditorSignals } from "../../editor/EditorSignals";
 import MaterialDatabase from "../../editor/MaterialDatabase";
+import { ConstructionPlane, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
 curveMinimumPoints.set(c3d.SpaceType.Polyline3D, 2);
@@ -15,6 +16,22 @@ curveMinimumPoints.set(c3d.SpaceType.Nurbs3D, 4);
 curveMinimumPoints.set(c3d.SpaceType.CubicSpline3D, 3);
 
 export default class CurveFactory extends GeometryFactory {
+    static async projectOntoConstructionPlane(curve: c3d.Curve3D, constructionPlane?: ConstructionPlane) {
+        if (constructionPlane === undefined) return curve;
+
+        if (constructionPlane instanceof FaceConstructionPlaneSnap) {
+            const face = constructionPlane.faceSnap.model;
+            const surface = face.GetSurface().GetSurface();
+            const projecteds = await c3d.ActionSurfaceCurve.CurveProjection_async(surface, curve, null, false, false);
+            curve = projecteds[0];
+            return curve;
+        } else {
+            return curve;
+        }
+    }
+
+    constructionPlane?: ConstructionPlane;
+
     readonly points = new Array<THREE.Vector3>();
     type = c3d.SpaceType.Hermit3D;
     closed = false;
@@ -29,7 +46,8 @@ export default class CurveFactory extends GeometryFactory {
         if (points.length === 2 && this.points[1].manhattanDistanceTo(this.startPoint) < 10e-6) throw new NoOpError();
 
         const cartPoints = points.map(p => point2point(p));
-        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
+        let curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
+        curve = await CurveFactory.projectOntoConstructionPlane(curve, this.constructionPlane);
 
         const instance = new c3d.SpaceInstance(curve);
         instance.SetStyle(style);
@@ -91,6 +109,11 @@ export class CurveWithPreviewFactory extends GeometryFactory {
         super(db, materials, signals);
         this.preview.style = 1;
         this.preview.push(new THREE.Vector3());
+    }
+
+    set constructionPlane(constructionPlane: ConstructionPlane | undefined) {
+        this.underlying.constructionPlane = constructionPlane;
+        this.preview.constructionPlane = constructionPlane;
     }
 
     set type(t: c3d.SpaceType) {

@@ -1784,6 +1784,7 @@ export default {
                 },
                 "MbResultType BridgeCurve(const MbCurve3D & curve1, double t1, bool sense1, const MbCurve3D & curve2, double t2, bool sense2, const MbSNameMaker & names, MbWireFrame *& result)",
                 "MbResultType ConnectingSpline(const MbCurve3D & curve1, double t1, MbeMatingType mating1, const MbCurve3D & curve2, double t2, MbeMatingType mating2, double tension1, double tension2, const MbSNameMaker & names, MbWireFrame *& result)",
+                { signature: "MbResultType CurveProjection(const MbSurface & surface, const MbCurve3D & curve, MbVector3D * direction, bool createExact, bool truncateByBounds, RPArray<MbCurve3D> & result, VERSION version = Math::DefaultMathVersion())", direction: isNullable, result: isReturn }
             ]
         },
         ActionSolid: {

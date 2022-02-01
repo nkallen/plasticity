@@ -425,6 +425,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 const d = model.registerKeyboardCommands(viewport.domElement, () => onPointerMove(lastMoveEvent));
                 const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
                     if (rejectOnFinish) {
+                        dispose();
                         reject(Finish);
                         return;
                     }

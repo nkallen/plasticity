@@ -151,7 +151,7 @@ export class CutFactory extends AbstractCutFactory {
     async calculate() {
         const { params, model: solid } = this;
 
-        const results = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, params);
+        const results = await c3d.ActionSolid.SolidCutting_async(solid, c3d.CopyMode.Copy, params);
         return [...results];
     }
 
@@ -352,9 +352,9 @@ const { x_placement, y_placement, z_placement } = (() => {
 })();
 
 const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, placement: c3d.Placement3D }> = (() => {
-    const line_x = new c3d.Line(new c3d.CartPoint(-1, 0), new c3d.CartPoint(1, 0));
+    const line_x = new c3d.LineSegment(new c3d.CartPoint(-1000, 0), new c3d.CartPoint(1000, 0));
     const contour_x = new c3d.Contour([line_x], false);
-    const line_y = new c3d.Line(new c3d.CartPoint(0, -1), new c3d.CartPoint(0, 1));
+    const line_y = new c3d.LineSegment(new c3d.CartPoint(0, -1000), new c3d.CartPoint(0, 1000));
     const contour_y = new c3d.Contour([line_y], false);
 
     return {

@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { point2point } from "../../util/Conversion";
+import CurveFactory from "../curve/CurveFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 
 abstract class RectangleFactory extends GeometryFactory {
+    constructionPlane?: ConstructionPlane;
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
 
@@ -14,7 +17,9 @@ abstract class RectangleFactory extends GeometryFactory {
 
         const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4)];
 
-        const line = new c3d.Polyline3D(points, true);
+        let line: c3d.Curve3D = new c3d.Polyline3D(points, true);
+        line = await CurveFactory.projectOntoConstructionPlane(line, this.constructionPlane);
+
         return new c3d.SpaceInstance(line);
     }
 

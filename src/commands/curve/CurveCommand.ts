@@ -35,6 +35,7 @@ export class CurveCommand extends Command {
 
         const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         makeCurve.type = this.type;
+        makeCurve.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = this.keyboard;
