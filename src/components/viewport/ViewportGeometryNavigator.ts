@@ -5,7 +5,8 @@ import { OrbitControls } from "./OrbitControls";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { FaceSnap } from "../../editor/snaps/Snap";
 
 export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
     constructor(
@@ -27,7 +28,8 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             const target = point2point(model.Point(0.5, 0.5));
             this.controls.target.copy(target);
             this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
-            return planes.temp(new ConstructionPlaneSnap(normal, target));
+            const faceSnap = new FaceSnap(to, db.lookupTopologyItem(to));
+            return planes.temp(new FaceConstructionPlaneSnap(normal, target, faceSnap));
         } else {
             return this.animateToOrientation(to);
         }

@@ -1,12 +1,12 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
+import { FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, FaceSnap, PlaneSnap } from "../../editor/snaps/Snap";
 import { SlotDialog as SlotDialog } from "./SlotDialog";
 import { SlotFactory } from "./SlotFactory";
 
 export class SlotCommand extends Command {
     async execute(): Promise<void> {
-        const { selection: { selected } } = this.editor;
         const slot = new SlotFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         let dialog = new SlotDialog(slot, this.editor.signals);
@@ -17,15 +17,16 @@ export class SlotCommand extends Command {
 
         let pointPicker = new PointPicker(this.editor);
         pointPicker.raycasterParams.Line2.threshold = 1;
-        pointPicker.straightSnaps.delete(AxisSnap.X);
-        pointPicker.straightSnaps.delete(AxisSnap.Y);
-        pointPicker.straightSnaps.delete(AxisSnap.Z);
 
         const { point: p1, info: { snap, orientation } } = await pointPicker.execute().resource(this);
-        if (!(snap instanceof FaceSnap)) throw new Error();
+        let faceSnap: FaceSnap;
+        if (snap instanceof FaceSnap) faceSnap = snap;
+        else if (snap instanceof FaceConstructionPlaneSnap) faceSnap = snap.faceSnap;
+        else throw new Error("invalid snap");
+
         slot.p1 = p1;
-        slot.face = snap.view;
-        slot.solid = snap.view.parentItem;
+        slot.face = faceSnap.view;
+        slot.solid = faceSnap.view.parentItem;
         slot.orientation = orientation;
 
         pointPicker = new PointPicker(this.editor);

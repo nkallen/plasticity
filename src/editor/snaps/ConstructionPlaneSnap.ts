@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { PointResult } from "../../command/PointPicker";
-import { PlaneSnap, Snap } from "./Snap";
+import { FaceSnap, PlaneSnap, Snap } from "./Snap";
 import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../../src/visual_model/VisualModel';
 
 export interface ConstructionPlane extends Snap {
     get n(): THREE.Vector3;
@@ -21,6 +22,15 @@ export class ConstructionPlaneSnap extends PlaneSnap implements ConstructionPlan
     override isValid(pt: THREE.Vector3) { return true }
 
     get isTemp() { return this.name === undefined }
+}
+
+export class FaceConstructionPlaneSnap extends PlaneSnap implements ConstructionPlane {
+    constructor(normal: THREE.Vector3, p: THREE.Vector3, readonly faceSnap: FaceSnap) {
+        super(normal, p);
+    }
+
+    override isValid(pt: THREE.Vector3) { return true }
+    get isTemp() { return true }
 }
 
 type State = { tag: 'none'; } | { tag: 'start'; snap: ConstructionPlaneSnap; };

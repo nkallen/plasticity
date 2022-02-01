@@ -2,7 +2,6 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { derive } from "../../command/FactoryBuilder";
 import { GeometryFactory, ValidationError } from "../../command/GeometryFactory";
-import { PlaneSnap } from '../../editor/snaps/Snap';
 import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 
@@ -23,11 +22,31 @@ export interface SlotParams extends HoleParams {
     orientation: THREE.Quaternion;
 }
 
-export class SlotFactory extends GeometryFactory implements SlotParams {
-    private _solid!: { view: visual.Solid, model: c3d.Solid };
+abstract class HoleFactory extends GeometryFactory implements HoleParams {
+    placeAngle = 0;
+    azimuthAngle = 0;
+
+    protected _solid!: { view: visual.Solid, model: c3d.Solid };
     @derive(visual.Solid) get solid(): visual.Solid { throw '' }
     set solid(solid: visual.Solid | c3d.Solid) { }
 
+    protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.HoleSolid, this.db.version), c3d.ESides.SideNone, 0);
+
+    abstract get params(): { params: c3d.HoleValues, placement: c3d.Placement3D };
+
+    async calculate() {
+        const { _solid: { model: solid }, params: { params, placement }, names } = this;
+        const result = c3d.ActionSolid.HoleSolid(solid, c3d.CopyMode.Copy, placement, params, names);
+        if (result === null) throw new ValidationError();
+        return result;
+    }
+
+    protected get originalItem() {
+        return this.solid;
+    }
+}
+
+export class SlotFactory extends HoleFactory implements SlotParams {
     private _face!: { view: visual.Face, model: c3d.Face };
     @derive(visual.Face) get face(): visual.Face { throw '' }
     set face(face: visual.Face | c3d.Face) { }
@@ -42,8 +61,6 @@ export class SlotFactory extends GeometryFactory implements SlotParams {
     bottomWidth = 0.5;
     bottomDepth = 0.5;
     type = c3d.SlotType.Rectangular;
-    placeAngle = 0;
-    azimuthAngle = 0;
     orientation!: THREE.Quaternion;
 
     get tailAngleDegrees() { return THREE.MathUtils.radToDeg(this.tailAngle) }
@@ -51,12 +68,11 @@ export class SlotFactory extends GeometryFactory implements SlotParams {
         this.tailAngle = THREE.MathUtils.degToRad(degrees);
     }
 
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.HoleSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     private readonly midpoint = new THREE.Vector3();
     private readonly y = new THREE.Vector3();
     private readonly z = new THREE.Vector3();
-    get params() {
+    get params(): { params: c3d.SlotValues, placement: c3d.Placement3D } {
         const { _solid: { model: solid }, _face: { model: face }, p1, p2 } = this;
         const { width, depth, floorRadius, tailAngle, bottomWidth, bottomDepth, orientation, type } = this;
         const { midpoint, y, z } = this;
@@ -79,16 +95,5 @@ export class SlotFactory extends GeometryFactory implements SlotParams {
         params.SetSurface(face.GetSurface().GetSurface());
 
         return { params, placement }
-    }
-
-    async calculate() {
-        const { _solid: { model: solid }, params: { params, placement }, names } = this;
-        const result = c3d.ActionSolid.HoleSolid(solid, c3d.CopyMode.Copy, placement, params, names);
-        if (result === null) throw new ValidationError();
-        return result;
-    }
-
-    protected get originalItem() {
-        return this.solid;
     }
 }
