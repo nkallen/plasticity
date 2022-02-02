@@ -99,7 +99,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = ne
         Z.multiplyScalar(Z.dot(inout));
 
         hint.Move(vec2vec(Z));
-        
+
         for (const point of [curve3d.GetLimitPoint(1), curve3d.GetLimitPoint(2)]) {
             const location = hint.PointRelative(point, 10e-3);
             if (location !== c3d.ItemLocation.OnItem) return;
@@ -275,72 +275,52 @@ export async function polyline2contour(polyline: c3d.Polyline3D): Promise<c3d.Co
     return contours[0];
 }
 
-// FIXME: Refactor this mess. In addition to the switch(IsA) vs instanceof inconsistency, the use of process.push() is unsafe because it can
-// reorder things.  
-
 export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D> {
     const result = new c3d.Contour3D();
     const process: c3d.Curve3D[] = [curve];
     while (process.length > 0) {
         const item = process.shift()!;
-        switch (item.IsA()) {
-            case c3d.SpaceType.LineSegment3D:
-                const segment = item.Cast<c3d.LineSegment3D>(item.IsA());
-                result.AddCurveWithRuledCheck(new c3d.Polyline3D([segment.GetLimitPoint(1), segment.GetLimitPoint(2)], false), 10e-5, true);
-                break;
-            case c3d.SpaceType.Polyline3D:
-                const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
-                const segments = polyline2segments(polyline);
-                for (const seg of segments) {
-                    result.AddCurveWithRuledCheck(seg, 10e-5, true);
-                }
-                break;
-            case c3d.SpaceType.Contour3D:
-                const decompose = item.Cast<c3d.Contour3D>(item.IsA());
-                for (const segment of decompose.GetSegments()) process.push(segment);
-                break;
-            case c3d.SpaceType.TrimmedCurve3D: {
-                const trimmed = item.Cast<c3d.TrimmedCurve3D>(item.IsA());
-                const basis = trimmed.GetBasisCurve();
-                const cast = basis.Cast<c3d.Curve3D>(basis.IsA());
-                if (cast instanceof c3d.Polyline3D) {
-                    const originalPoints = cast.GetPoints();
-                    const ts = [...Array(originalPoints.length).keys()];
-                    const tmin = trimmed.GetTMin();
-                    const tmax = trimmed.GetTMax();
-                    const keep = ts.filter(t => t > tmin && t < tmax);
-                    const points = [trimmed.GetLimitPoint(1), ...keep.map(t => cast._PointOn(t)), trimmed.GetLimitPoint(2)];
-                    result.AddCurveWithRuledCheck(new c3d.Polyline3D(points, false), 10e-5, true);
-                } else {
-                    console.warn("Unsupported trimmed curve: " + c3d.SpaceType[basis.IsA()]);
-                    result.AddCurveWithRuledCheck(trimmed.Duplicate().Cast<c3d.Curve3D>(trimmed.IsA()), 10e-5, true);
-                }
-                break;
+        const cast = item.constructor === c3d.Curve3D ? item.Cast<c3d.Curve3D>(item.IsA()) : item;
+        if (cast instanceof c3d.LineSegment3D) {
+            result.AddCurveWithRuledCheck(new c3d.Polyline3D([cast.GetLimitPoint(1), cast.GetLimitPoint(2)], false), 10e-5, true);
+        } else if (cast instanceof c3d.Polyline3D) {
+            const segments = polyline2segments(cast);
+            for (const seg of segments) {
+                result.AddCurveWithRuledCheck(seg, 10e-5, true);
             }
-            case c3d.SpaceType.PlaneCurve: {
-                const cast = item.Cast<c3d.PlaneCurve>(item.IsA());
-                const { placement, curve2d } = cast.GetPlaneCurve(false);
-                const curve3d = curve2d2curve3d(curve2d, placement);
-                process.unshift(curve3d);
-                break;
+        } else if (cast instanceof c3d.Contour3D) {
+            for (const segment of cast.GetSegments().reverse()) process.unshift(segment);
+        } else if (cast instanceof c3d.TrimmedCurve3D) {
+            const basis = cast.GetBasisCurve();
+            const bcast = basis.Cast<c3d.Curve3D>(basis.IsA());
+            if (bcast instanceof c3d.Polyline3D) {
+                const originalPoints = bcast.GetPoints();
+                const ts = [...Array(originalPoints.length).keys()];
+                const tmin = bcast.GetTMin();
+                const tmax = bcast.GetTMax();
+                const keep = ts.filter(t => t > tmin && t < tmax);
+                const points = [bcast.GetLimitPoint(1), ...keep.map(t => bcast._PointOn(t)), bcast.GetLimitPoint(2)];
+                result.AddCurveWithRuledCheck(new c3d.Polyline3D(points, false), 10e-5, true);
+            } else {
+                console.warn("Unsupported trimmed curve: " + c3d.SpaceType[basis.IsA()]);
+                result.AddCurveWithRuledCheck(cast.Duplicate().Cast<c3d.Curve3D>(cast.IsA()), 10e-5, true);
             }
-            case c3d.SpaceType.SurfaceIntersectionCurve: {
-                const cast = item.Cast<c3d.SurfaceIntersectionCurve>(item.IsA());
-                process.unshift(cast.GetSpaceCurve()!);
-                break;
+        } else if (cast instanceof c3d.PlaneCurve) {
+            const { placement, curve2d } = cast.GetPlaneCurve(false);
+            const curve3d = curve2d2curve3d(curve2d, placement);
+            process.unshift(curve3d);
+        } else if (cast instanceof c3d.SurfaceIntersectionCurve) {
+            process.unshift(cast.GetSpaceCurve()!);
+            break;
+        } else if (cast instanceof c3d.ContourOnPlane) {
+            const placement = cast.GetPlacement();
+            const contour = cast.GetContour();
+            for (let i = contour.GetSegmentsCount() - 1; i >= 0; i--) {
+                const segment = contour.GetSegment(i)!;
+                process.unshift(new c3d.PlaneCurve(placement, segment, false))
             }
-            case c3d.SpaceType.ContourOnPlane: {
-                const cast = item.Cast<c3d.ContourOnPlane>(item.IsA());
-                const placement = cast.GetPlacement();
-                const contour = cast.GetContour();
-                for (let i = 0, l = contour.GetSegmentsCount(); i < l; i++) {
-                    const segment = contour.GetSegment(i)!;
-                    process.push(new c3d.PlaneCurve(placement, segment, false))
-                }
-                break;
-            }
-            default:
-                result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
+        } else {
+            result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
         }
     }
     return result;
