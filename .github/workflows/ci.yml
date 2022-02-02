@@ -141,6 +141,7 @@ jobs:
         with:
           node-version: '16.10.0'
           cache: 'yarn'
+          architecture: 'arm64'
       # - name: Cache c3d libraries
       #   uses: actions/cache@v2
       #   env:
@@ -190,7 +191,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn publish
+          yarn publish --arch=arm64
       # - name: Post
       #   run: |
       #     choco install curl --no-progress
