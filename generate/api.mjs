@@ -204,6 +204,8 @@ export default {
                 "double GetUMax()",
                 "double GetVMin()",
                 "double GetVMax()",
+                "double GetUParamToUnit()",
+                "double GetVParamToUnit()",
                 "double GetRadius()",
                 { signature: "void PointOn(MbCartPoint & uv, MbCartPoint3D & p)", p: isReturn, isUninheritable: true },
                 { signature: "void Normal(double &u, double &v, MbVector3D & result)", result: isReturn },
@@ -299,7 +301,17 @@ export default {
         PolyCurve: {
             rawHeader: "cur_polycurve.h",
             extends: "Curve",
-            dependencies: ["Curve.h"],
+            dependencies: ["Curve.h", "CartPoint.h"],
+            functions: [
+                "size_t GetPointsCount()",
+                { signature: "void GetPoint(ptrdiff_t index, MbCartPoint & pnt)", pnt: isReturn },
+                "void AddPoint(const MbCartPoint & pnt)",
+            ]
+        },
+        Hermit: {
+            rawHeader: "cur_hermit.h",
+            extends: "PolyCurve",
+            dependencies: ["PolyCurve.h"],
         },
         Polyline: {
             rawHeader: "cur_polyline.h",
@@ -913,7 +925,7 @@ export default {
             extends: "Curve3D",
             dependencies: ["Curve3D.h", "Surface.h", "Contour.h"],
             initializers: [
-                "const MbSurface & surface, const MbContour & contour, bool same",
+                "const MbSurface & surface, const MbContour & contour, bool same = false",
                 "const MbSurface & surf, int sense",
             ],
             functions: [

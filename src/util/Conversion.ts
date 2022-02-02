@@ -2,14 +2,17 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 
 export function point2point(from: THREE.Vector3, factor?: number): c3d.CartPoint3D;
+export function point2point(from: THREE.Vector2, factor?: number): c3d.CartPoint;
 export function point2point(from: c3d.CartPoint3D, factor?: number): THREE.Vector3;
 export function point2point(from: c3d.FloatPoint3D, factor?: number): THREE.Vector3;
 export function point2point(from: c3d.CartPoint, factor?: number): THREE.Vector2;
-export function point2point(from: THREE.Vector3 | c3d.CartPoint3D | c3d.FloatPoint3D | c3d.CartPoint, factor = unit(1)): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D {
+export function point2point(from: THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D | c3d.FloatPoint3D | c3d.CartPoint, factor = unit(1)): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D | c3d.CartPoint {
     if (from instanceof c3d.CartPoint3D || from instanceof c3d.FloatPoint3D) {
         return new THREE.Vector3(from.x / factor, from.y / factor, from.z / factor);
     } else if (from instanceof c3d.CartPoint) {
         return new THREE.Vector2(from.x / factor, from.y / factor);
+    } else if (from instanceof THREE.Vector2) {
+        return new c3d.CartPoint(from.x * factor, from.y * factor);
     } else {
         return new c3d.CartPoint3D(from.x * factor, from.y * factor, from.z * factor);
     }
@@ -85,7 +88,7 @@ export function inst2curve(instance: c3d.Item): c3d.Curve3D | undefined {
     return curve;
 }
 
-export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
+export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D, surface?: c3d.Surface }
 
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = new c3d.Placement3D()): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {

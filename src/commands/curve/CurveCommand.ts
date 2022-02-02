@@ -1,29 +1,26 @@
+import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import Command from "../../command/Command";
+import { ValidationError } from '../../command/GeometryFactory';
+import { ObjectPicker } from '../../command/ObjectPicker';
 import { PointPicker } from "../../command/PointPicker";
-import { PointSnap } from "../../editor/snaps/Snap";
+import { CurvePointSnap, CurveSnap, PointSnap } from "../../editor/snaps/Snap";
+import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { Finish } from "../../util/Cancellable";
 import * as visual from "../../visual_model/VisualModel";
-import { CurvePointSnap, CurveSnap } from "../../editor/snaps/Snap";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { MultilineDialog } from '../multiline/MultilineDialog';
+import MultilineFactory from '../multiline/MultilineFactory';
 import { BridgeCurvesDialog } from "./BridgeCurvesDialog";
 import BridgeCurvesFactory from "./BridgeCurvesFactory";
-import CurveFactory from "./CurveFactory";
-import OffsetCurveFactory from "./OffsetContourFactory";
-import { OffsetCurveGizmo } from "./OffsetCurveGizmo";
-import TrimFactory from "./TrimFactory";
-import { CurveWithPreviewFactory } from "./CurveFactory";
+import CurveFactory, { CurveWithPreviewFactory } from "./CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./CurveKeyboardGizmo";
 import JoinCurvesFactory from './JoinCurvesFactory';
-import * as THREE from 'three';
-import { ObjectPicker } from '../../command/ObjectPicker';
-import { ValidationError } from '../../command/GeometryFactory';
-import MultilineFactory from '../multiline/MultilineFactory';
-import { MultilineDialog } from '../multiline/MultilineDialog';
+import OffsetCurveFactory from "./OffsetContourFactory";
+import { OffsetCurveGizmo } from "./OffsetCurveGizmo";
 import { TrimDialog } from './TrimDialog';
+import TrimFactory from "./TrimFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
-
 
 export class CurveCommand extends Command {
     protected type = c3d.SpaceType.Hermit3D;

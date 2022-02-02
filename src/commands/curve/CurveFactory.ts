@@ -18,17 +18,17 @@ curveMinimumPoints.set(c3d.SpaceType.CubicSpline3D, 3);
 export default class CurveFactory extends GeometryFactory {
     static async projectOntoConstructionPlane(curve: c3d.Curve3D, constructionPlane?: ConstructionPlane) {
         if (constructionPlane === undefined) return curve;
-        return curve;
 
-        // if (constructionPlane instanceof FaceConstructionPlaneSnap) {
-        //     const face = constructionPlane.faceSnap.model;
-        //     const surface = face.GetSurface().GetSurface();
-        //     const projecteds = await c3d.ActionSurfaceCurve.CurveProjection_async(surface, curve, null, false, false);
-        //     curve = projecteds[0];
-        //     return curve;
-        // } else {
-        //     return curve;
-        // }
+        if (constructionPlane instanceof FaceConstructionPlaneSnap) {
+            const face = constructionPlane.faceSnap.model;
+            if (face.IsPlanar()) return curve;
+            const surface = face.GetSurface().GetSurface();
+            const projecteds = await c3d.ActionSurfaceCurve.CurveProjection_async(surface, curve, null, false, false);
+            curve = projecteds[0];
+            return curve;
+        } else {
+            return curve;
+        }
     }
 
     constructionPlane?: ConstructionPlane;

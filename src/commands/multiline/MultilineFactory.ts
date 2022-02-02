@@ -13,25 +13,25 @@ export default class MultilineFactory extends GeometryFactory implements Multili
     private _curve!: visual.SpaceInstance<visual.Curve3D>;
     private model!: c3d.Contour;
     private placement!: c3d.Placement3D;
+    private surface?: c3d.Surface;
 
     set curve(curve: visual.SpaceInstance<visual.Curve3D>) {
         this._curve = curve;
         const inst = this.db.lookup(curve);
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D())!;
+        const { curve: curve2d, placement, surface } = curve3d2curve2d(curve3d, new c3d.Placement3D())!;
         this.model = new c3d.Contour([curve2d], false);
         this.placement = placement;
+        this.surface = surface;
     }
-
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0);
 
     begTipType = c3d.MLTipType.ArcTip;
     endTipType = c3d.MLTipType.ArcTip;
     radius = 0.1;
 
     async calculate() {
-        const { model, placement, begTipType, endTipType, radius } = this;
+        const { model, placement, surface, begTipType, endTipType, radius } = this;
 
         const vertInfo = new c3d.VertexOfMultilineInfo();
         const begTip = new c3d.MLTipParams(begTipType, unit(radius));
