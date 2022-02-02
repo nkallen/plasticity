@@ -172,6 +172,10 @@ export class CurvePointSnap extends PointSnap {
 
     get view() { return this.curveSnap.view }
     get model() { return this.curveSnap.model }
+
+    additionalSnapsFor(point: THREE.Vector3): Snap[] {
+        return this.curveSnap.additionalSnapsFor(point);
+    }
 }
 
 export class CurveEndPointSnap extends CurvePointSnap {
