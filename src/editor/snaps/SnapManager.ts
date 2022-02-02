@@ -38,6 +38,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
         this.id2snaps.set(visual.Solid, new Map());
         this.id2snaps.set(visual.Curve3D, new Map());
+        this.id2snaps.set(visual.Region, new Map());
 
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.add(item);
@@ -106,9 +107,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             return this.id2snaps.get(visual.Solid)!;
         } else if (item instanceof visual.SpaceInstance) {
             return this.id2snaps.get(visual.Curve3D)!;
-            // } else if (item instanceof visual.PlaneInstance) {
-            //     return this.id2snaps.get(visual.Region)!;
-        } else throw new Error("unsupported type");
+        } else if (item instanceof visual.PlaneInstance) {
+            return this.id2snaps.get(visual.Region)!;
+        } else throw new Error(`Unsupported type: ${item.constructor.name}`);
     }
 
     private addFace(view: visual.Face, model: c3d.Face, into: Set<Snap>) {

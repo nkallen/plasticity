@@ -1,7 +1,7 @@
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
 
-export type DisablableType = typeof visual.Solid | typeof visual.Curve3D;
+export type DisablableType = typeof visual.Solid | typeof visual.Curve3D | typeof visual.Region;
 
 export class TypeManager {
     private readonly disabled = new Set<DisablableType>();

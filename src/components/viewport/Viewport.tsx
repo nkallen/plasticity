@@ -74,7 +74,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.editor.planes);
+    private navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
     private grid = new GridHelper(300, 300, this.gridColor, this.gridColor);
 
     constructor(
@@ -157,7 +157,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:navigate:back': () => this.navigate(Orientation.posY),
                 'viewport:navigate:left': () => this.navigate(Orientation.negX),
                 'viewport:navigate:bottom': () => this.navigate(Orientation.negZ),
-                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first),
+                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first?? this.editor.selection.selected.regions.first),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
@@ -468,7 +468,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
-    navigate(to: Orientation | visual.Face) {
+    navigate(to?: Orientation | visual.Face | visual.PlaneInstance<visual.Region>) {
+        if (to === undefined) return;
         const constructionPlane = this.navigator.navigate(to);
         this.constructionPlane = constructionPlane;
         this.transitionToOrthoMode();

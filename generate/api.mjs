@@ -253,7 +253,7 @@ export default {
         PlaneItem: {
             rawHeader: "plane_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h"],
+            dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h", "Rect.h"],
             functions: [
                 "MbePlaneType IsA()",
                 "MbePlaneType Type()",
@@ -262,6 +262,7 @@ export default {
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
                 { signature: "MbPlaneItem & Duplicate(MbRegDuplicate * dup = NULL)", return: isOnHeap },
+                "void AddYourGabaritTo(MbRect & rect)",
             ]
         },
         Curve: {
