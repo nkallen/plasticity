@@ -43,6 +43,9 @@ export class Model {
         if (selection.curves.size > 0 || selection.solids.size > 0) {
             misc.add(cmd.MirrorCommand);
         }
+        if (selection.curves.size > 0) {
+            misc.add(cmd.PipeCommand);
+        }
         if (selection.regions.size > 0) {
             misc.add(cmd.ExtrudeCommand);
             misc.add(cmd.RevolutionCommand);

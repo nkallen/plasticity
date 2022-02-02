@@ -1,7 +1,8 @@
 import * as THREE from "three";
-import { Mode } from "../../command/AbstractGizmo";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { DistanceGizmo } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";
 import { PipeParams } from "./PipeFactory";
@@ -41,7 +42,7 @@ export class PipeGizmo extends CompositeGizmo<PipeParams> {
         return super.execute(cb, finishFast);
     }
 
-    get shouldRescaleOnZoom() { return false }
+    get shouldRescaleOnZoom() { return true }
 
     render(params: PipeParams) {
         this.sectionSizeGizmo.render(1);
@@ -49,13 +50,23 @@ export class PipeGizmo extends CompositeGizmo<PipeParams> {
     }
 }
 
-class SectionSizeGizmo extends DistanceGizmo {
+class SectionSizeGizmo extends AbstractAxialScaleGizmo {
+    readonly state = new MagnitudeStateMachine(0);
+    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
+    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, editor.gizmos.default);
+        this.setup();
+    }
+
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
 
     render(length: number) {
-        super.render(length - 0.9);
+        super.render(length - 0.5);
     }
 
     get shouldRescaleOnZoom() { return false }

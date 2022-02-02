@@ -3,6 +3,7 @@ import { PointPicker } from "../../command/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import LineFactory from '../line/LineFactory';
+import { SpiralDialog } from "./SpiralDialog";
 import { SpiralFactory } from "./SpiralFactory";
 import { SpiralGizmo } from "./SpiralGizmo";
 
@@ -30,6 +31,11 @@ export class SpiralCommand extends Command {
         await pointPicker.execute(({ point }) => {
             spiral.radius = point.distanceTo(p2);
             spiral.p3 = point;
+            spiral.update();
+        }).resource(this);
+
+        const dialog = new SpiralDialog(spiral, this.editor.signals);
+        dialog.execute(params => {
             spiral.update();
         }).resource(this);
 

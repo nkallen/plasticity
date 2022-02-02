@@ -4,18 +4,24 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { PipeParams } from './PipeFactory';
 
 export class PipeDialog extends AbstractDialog<PipeParams> {
-    name = "PipeDialog";
+    name = "Pipe";
 
     constructor(protected readonly params: PipeParams, signals: EditorSignals) {
         super(signals);
     }
 
     render() {
-        const { sectionSize, thickness1, thickness2 } = this.params;
+        const { vertexCount, sectionSize, thickness1, thickness2 } = this.params;
 
         render(
             <>
                 <ul>
+                    <li>
+                        <label for="vertexCount">Vertex count</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber precision={1} name="vertexCount" value={vertexCount} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
+                    </li>
                     <li>
                         <label for="sectionSize">Section size</label>
                         <div class="fields">

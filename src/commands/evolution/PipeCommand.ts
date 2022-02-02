@@ -2,7 +2,6 @@ import Command from "../../command/Command";
 import { PipeDialog } from "./PipeDialog";
 import { PipeFactory } from "./PipeFactory";
 import { PipeGizmo } from "./PipeGizmo";
-import { PipeKeyboardGizmo } from "./PipeKeyboardGizmo";
 import * as THREE from 'three';
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -16,7 +15,6 @@ export class PipeCommand extends Command {
 
         const dialog = new PipeDialog(pipe, editor.signals);
         const gizmo = new PipeGizmo(pipe, this.editor);
-        const keyboard = new PipeKeyboardGizmo(this.editor);
 
         dialog.execute(async (params) => {
             await pipe.update();
@@ -28,18 +26,6 @@ export class PipeCommand extends Command {
         gizmo.execute(params => {
             pipe.update();
             dialog.render();
-        }).resource(this);
-
-        keyboard.execute(e => {
-            switch (e) {
-                case 'add-vertex':
-                    pipe.vertexCount++;
-                    break;
-                case 'subtract-vertex':
-                    pipe.vertexCount--;
-                    break;
-            }
-            pipe.update();
         }).resource(this);
 
         await pipe.update();

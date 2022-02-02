@@ -13,6 +13,7 @@ export class ExtensionShellGizmo extends AbstractAxialScaleGizmo {
         super(name, editor, editor.gizmos.default);
         this.setup();
     }
+
     protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
         if (original === 0) return sign > 0 ? Math.max(0, dist - denom) : -dist;
         else return sign * (original + ((dist - denom) * original) / denom);

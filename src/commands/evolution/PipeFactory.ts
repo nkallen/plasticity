@@ -6,6 +6,7 @@ import { SweptParams } from "./RevolutionFactory";
 
 export interface PipeParams extends SweptParams {
     sectionSize: number;
+    vertexCount: number;
 }
 
 export class PipeFactory extends GeometryFactory implements PipeParams {
