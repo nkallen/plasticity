@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { Choice, Model } from "../command/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/DatabaseLike";
-import LayerManager from "../editor/LayerManager";
 import { ConstructionPlaneSnap } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";
@@ -38,7 +37,6 @@ abstract class AbstractSnapPicker {
     protected readonly raycaster = new THREE.Raycaster();
 
     constructor(
-        protected readonly layers: LayerManager,
         protected readonly intersectParams: RaycasterParams = defaultIntersectParams,
         protected readonly nearbyParams: THREE.RaycasterParameters = defaultNearbyParams,
     ) { }
@@ -47,7 +45,7 @@ abstract class AbstractSnapPicker {
         const { raycaster, viewport } = this;
         if (!snaps.enabled) return [];
 
-        this.configureNearbyRaycaster();
+        this.configureNearbyRaycaster(snaps);
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
         const snappers = snaps.points;
@@ -64,18 +62,18 @@ abstract class AbstractSnapPicker {
         return result;
     }
 
-    protected configureNearbyRaycaster() {
-        const { raycaster, layers } = this;
+    protected configureNearbyRaycaster(snaps: SnapManagerGeometryCache) {
+        const { raycaster } = this;
 
         this.raycaster.params = this.nearbyParams;
-        raycaster.layers.mask = layers.intersectable.mask;
+        raycaster.layers.mask = snaps.layers.mask;
     }
 
     protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
         const { raycaster, viewport } = this;
         if (!snaps.enabled) return [];
 
-        this.configureIntersectRaycaster();
+        this.configureIntersectRaycaster(snaps);
 
         let intersections: THREE.Intersection[];
 
@@ -102,11 +100,11 @@ abstract class AbstractSnapPicker {
         return result;
     }
 
-    protected configureIntersectRaycaster() {
-        const { raycaster, layers } = this;
+    protected configureIntersectRaycaster(snaps: SnapManagerGeometryCache) {
+        const { raycaster } = this;
 
         this.raycaster.params = this.intersectParams;
-        raycaster.layers.mask = layers.intersectable.mask;
+        raycaster.layers.mask = snaps.layers.mask;
     }
 
 
@@ -166,10 +164,10 @@ export class SnapPicker extends AbstractSnapPicker {
         return super._nearby(additional, snaps, db);
     }
 
-    protected configureNearbyRaycaster(): void {
-        const { raycaster, layers } = this;
+    protected configureNearbyRaycaster(snaps: SnapManagerGeometryCache): void {
+        const { raycaster } = this;
         this.raycaster.params = this.nearbyParams;
-        raycaster.layers.mask = layers.intersectable.mask;
+        raycaster.layers.mask = snaps.layers.mask;
         this.toggleFaceLayer();
     }
 
@@ -192,10 +190,10 @@ export class SnapPicker extends AbstractSnapPicker {
         return findAllSnapsInTheSamePlace(restricted);
     }
 
-    protected configureIntersectRaycaster(): void {
-        const { raycaster, layers } = this;
+    protected override configureIntersectRaycaster(snaps: SnapManagerGeometryCache): void {
+        const { raycaster } = this;
         raycaster.params = this.intersectParams;
-        raycaster.layers.mask = layers.intersectable.mask
+        raycaster.layers.mask = snaps.layers.mask
         this.toggleFaceLayer();
     }
 

@@ -3,11 +3,11 @@ import c3d from '../../../build/Release/c3d.node';
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
-import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../DatabaseLike";
+import { EditorSignals } from "../EditorSignals";
 import { MementoOriginator, SnapMemento } from "../History";
-import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, CircularNurbsCenterPointSnap, PointSnap, Snap, CircleCurveCenterPointSnap } from "./Snap";
-import { DisablableType, TypeManager } from "../TypeManager";
+import { DisablableType } from "../TypeManager";
+import { AxisSnap, CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -20,8 +20,9 @@ type SnapMap = Map<c3d.SimpleName, Set<PointSnap>>;
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
     options: SnapType = SnapType.Basic | SnapType.Geometry | SnapType.Crosses;
+    readonly layers = new THREE.Layers();
 
-    private readonly basicSnaps = new Set<Snap>();
+    private readonly basicSnaps = new Set<Snap>([originSnap, xAxisSnap, yAxisSnap, zAxisSnap]);
     private readonly id2snaps = new Map<DisablableType, SnapMap>();
     private readonly hidden = new Map<c3d.SimpleName, Set<PointSnap>>()
 
@@ -30,11 +31,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         private readonly crosses: CrossPointDatabase,
         signals: EditorSignals
     ) {
-        this.basicSnaps.add(originSnap);
-        this.basicSnaps.add(xAxisSnap);
-        this.basicSnaps.add(yAxisSnap);
-        this.basicSnaps.add(zAxisSnap);
         Object.freeze(this.basicSnaps);
+
+        this.layers.enableAll();
 
         this.id2snaps.set(visual.Solid, new Map());
         this.id2snaps.set(visual.Curve3D, new Map());

@@ -1,4 +1,3 @@
-import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
 import { PointSnap } from "../editor/snaps/Snap";
 import { SnapManager } from "../editor/snaps/SnapManager";
@@ -20,6 +19,8 @@ export class SnapManagerGeometryCache {
 
     private _snappers: THREE.Object3D[] = [];
     get snappers() { return this._snappers }
+
+    get layers() { return this.snaps.layers }
 
     private geometrySnaps: PointSnap[][] = [];
     update() {

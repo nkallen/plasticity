@@ -52,7 +52,7 @@ export default (editor: Editor) => {
                                 <plasticity-icon name={`layer-${layers[layer]}`} class="text-accent-500"></plasticity-icon>
                                 <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{layers[layer]}</div>
                                 <div class="p-1 rounded group text-neutral-300">
-                                    <plasticity-icon key={editor.layers.intersectable.test(ll)} name={editor.layers.intersectable.test(ll) ? 'eye' : 'eye-off'}></plasticity-icon>
+                                    <plasticity-icon key={editor.snaps.layers.test(ll)} name={editor.snaps.layers.test(ll) ? 'eye' : 'eye-off'}></plasticity-icon>
                                 </div>
                             </li>
                         })}
@@ -80,7 +80,7 @@ export default (editor: Editor) => {
         }
 
         toggleLayer = (event: MouseEvent, layer: visual.Layers) => {
-            editor.layers.intersectable.toggle(layer);
+            editor.snaps.layers.toggle(layer);
             this.render();
         }
 

@@ -52,7 +52,7 @@ let nearbyParams: THREE.RaycasterParameters = {};
 let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { threshold: 10 } };
 
 beforeEach(() => {
-    picker = new SnapPicker(layers, intersectParams, nearbyParams);
+    picker = new SnapPicker(intersectParams, nearbyParams);
 });
 
 let pointPicker: Model;

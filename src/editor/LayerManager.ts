@@ -32,7 +32,6 @@ export default class LayerManager {
         _intersectable.disable(visual.Layers.ControlPoint);
         _intersectable.disable(visual.Layers.Unselectable);
 
-
         signals.objectSelected.add(this.controlPoints);
         signals.objectDeselected.add(this.controlPoints);
         signals.selectionModeChanged.add(this.selectionModeChanged);
