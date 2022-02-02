@@ -11,7 +11,7 @@ export class PipeDialog extends AbstractDialog<PipeParams> {
     }
 
     render() {
-        const { vertexCount, sectionSize, thickness1, thickness2 } = this.params;
+        const { vertexCount, sectionSize, thickness1, thickness2, degrees } = this.params;
 
         render(
             <>
@@ -38,6 +38,12 @@ export class PipeDialog extends AbstractDialog<PipeParams> {
                         <label for="thickness2">Thickness 1 </label>
                         <div class="fields">
                             <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
+                    </li>
+                    <li>
+                        <label for="degrees">Angle</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber precision={1} name="degrees" value={degrees} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                 </ul></>, this);

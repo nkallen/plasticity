@@ -102,6 +102,7 @@ keybindings.set("gizmo:pipe:add-vertex", "Add a vertex");
 keybindings.set("gizmo:pipe:subtract-vertex", "Subtract a vertex");
 keybindings.set("gizmo:pipe:thickness", "Thickness");
 keybindings.set("gizmo:pipe:section-size", "Section size");
+keybindings.set("gizmo:pipe:angle", "Angle");
 keybindings.set("gizmo:spiral:angle", "Angle");
 keybindings.set("gizmo:spiral:radius", "Radius");
 keybindings.set("gizmo:spiral:length", "Length");

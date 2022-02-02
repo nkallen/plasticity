@@ -36,11 +36,9 @@ export default {
     },
 
     "[command='pipe'] plasticity-viewport": {
-        "wheel+up": "gizmo:pipe:add-vertex",
-        "wheel+down": "gizmo:pipe:subtract-vertex",
-
         "d": "gizmo:pipe:section-size",
         "t": "gizmo:pipe:thickness",
+        "a": "gizmo:pipe:angle",
     },
 
     "[command='boolean'] plasticity-viewport": {
