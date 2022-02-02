@@ -31,11 +31,14 @@ export class EvolutionDialog extends AbstractDialog<EvolutionParams> {
                     <li>
                         <label for="mode">Mode</label>
                         <div class="fields">
-                            <input type="radio" hidden name="mode" id="neutral" value={Mode.Parallel} checked={mode === Mode.Parallel} onClick={this.onChange}></input>
-                            <label for="neutral">Sphere</label>
+                            <input type="radio" hidden name="mode" id="parallel" value={Mode.Parallel} checked={mode === Mode.Parallel} onClick={this.onChange}></input>
+                            <label for="parallel">Parallel</label>
 
-                            <input type="radio" hidden name="mode" id="negative" value={Mode.PreserveAngle} checked={mode === Mode.PreserveAngle} onClick={this.onChange}></input>
-                            <label for="negative">Torus</label>
+                            <input type="radio" hidden name="mode" id="preserve-angle" value={Mode.PreserveAngle} checked={mode === Mode.PreserveAngle} onClick={this.onChange}></input>
+                            <label for="preserve-angle">Preserve</label>
+
+                            <input type="radio" hidden name="mode" id="orthogonal" value={Mode.Orthogonal} checked={mode === Mode.Orthogonal} onClick={this.onChange}></input>
+                            <label for="orthogonal">Orthogonal</label>
                         </div>
                     </li>
                 </ul></>, this);

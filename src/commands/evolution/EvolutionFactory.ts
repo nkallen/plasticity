@@ -33,7 +33,17 @@ export class EvolutionFactory extends SweepFactory implements EvolutionParams {
         params.shellClosed = true;
         params.thickness1 = unit(thickness1);
         params.thickness2 = unit(thickness2);
-        params.mode = mode;
+        switch (mode) {
+            case Mode.Parallel:
+                params.SetParallel();
+                break;
+            case Mode.PreserveAngle:
+                params.SetKeepingAngle();
+                break;
+            case Mode.Orthogonal:
+                params.SetOrthogonal();
+                break;
+        }
 
         return c3d.ActionSolid.EvolutionSolid_async(sweptData, spine, params, names, cs, ns);
     }

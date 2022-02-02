@@ -96,18 +96,19 @@
 
 ### Todo
 
+- basic sweep  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 - top view axes aren't aligned  
 - orbit above top  
 - deselect face when orienting construction plane  
 - trim right click to confirm doesn't work  
-- hitting space on region  
-- sweep  
+- bug: hitting space on region  
 - convert edge to region  
 
 ### In Progress
 
+- sweep  
 - gizmos for elementary solids  
 
 ### Done ✓

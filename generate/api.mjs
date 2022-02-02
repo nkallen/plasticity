@@ -1248,9 +1248,13 @@ export default {
             jsClassName: "EvolutionValues",
             rawHeader: "op_swept_parameter.h",
             initializers: [""],
+            functions: [
+                "void SetParallel()",
+                "void SetKeepingAngle()",
+                "void SetOrthogonal()",
+            ],
             fields: [
                 "double range",
-                "int mode",
             ]
         },
         SweptSide: {
