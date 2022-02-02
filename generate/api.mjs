@@ -1134,6 +1134,7 @@ export default {
             rawHeader: "cur_arc.h",
             extends: "Curve",
             dependencies: ["Curve.h"],
+            initializers: ["double rad"],
         },
         PolyCurve3D: {
             rawHeader: "cur_polycurve3d.h",
@@ -1902,7 +1903,9 @@ export default {
                 "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)",
                 "MbResultType Line(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
                 "MbResultType Segment(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
+                "MbResultType RegularPolygon(const MbCartPoint & centre, const MbCartPoint & point, size_t vertexCount, bool describe, MbCurve *& result)",
             ]
+
         },
         ActionCurve3D: {
             rawHeader: "action_curve3d.h",

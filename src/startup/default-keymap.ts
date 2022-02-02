@@ -30,11 +30,24 @@ export default {
         "t": "gizmo:revolution:thickness",
     },
 
+    "[command='evolution'] plasticity-viewport": {
+        "a": "gizmo:revolution:angle",
+        "t": "gizmo:revolution:thickness",
+    },
+
+    "[command='pipe'] plasticity-viewport": {
+        "wheel+up": "gizmo:pipe:add-vertex",
+        "wheel+down": "gizmo:pipe:subtract-vertex",
+
+        "d": "gizmo:pipe:section-size",
+        "t": "gizmo:pipe:thickness",
+    },
+
     "[command='boolean'] plasticity-viewport": {
         "q": "gizmo:boolean:union",
         "w": "gizmo:boolean:difference",
         "e": "gizmo:boolean:intersect",
-        
+
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",
@@ -211,6 +224,7 @@ export default {
         "g": "command:move",
         "r": "command:rotate",
         "s": "command:scale",
+        "p": "command:pipe",
         "b": "command:fillet-solid",
         "e": "command:extrude",
         "t": "command:trim",

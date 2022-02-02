@@ -21,10 +21,7 @@ export class DeleteCommand extends Command {
                 await command.execute();
             }
         }
-        if (selected.edges.size > 0) {
-            const command = new RemoveEdgeCommand(this.editor);
-            await command.execute();
-        }
+        if (selected.edges.size > 0) return;
         if (selected.solids.size > 0 || selected.curves.size > 0) {
             const command = new RemoveItemCommand(this.editor);
             await command.execute();

@@ -1,12 +1,6 @@
-import * as THREE from "three";
 import Command from "../../command/Command";
 import { EvolutionDialog } from "./EvolutionDialog";
 import { EvolutionFactory } from "./EvolutionFactory";
-
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-
 export class EvolutionCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;

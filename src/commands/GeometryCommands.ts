@@ -10,6 +10,7 @@ import { DeleteCommand, RemoveControlPointCommand, RemoveEdgeCommand, RemoveFace
 import { DuplicateCommand } from "./duplicate/DuplicateCommand";
 import { CenterEllipseCommand, ThreePointEllipseCommand } from "./ellipse/EllipseCommand";
 import { EvolutionCommand } from "./evolution/EvolutionCommand";
+import { PipeCommand } from "./evolution/PipeCommand";
 import { RevolutionCommand } from "./evolution/RevolutionCommand";
 import { ExtensionShellCommand } from "./extend/ExtensionCommand";
 import { ExtrudeCommand } from "./extrude/ExtrudeCommand";
@@ -93,6 +94,7 @@ export {
     MultilineCommand,
     ShellCommand,
     EvolutionCommand,
+    PipeCommand,
     RevolutionCommand,
     DuplicateCommand,
     RadialArrayCommand,

@@ -1,5 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { derive } from "../../command/FactoryBuilder";
+import { GeometryDatabase } from '../../editor/GeometryDatabase';
 import { composeMainName, unit } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { SweepFactory, SweptParams } from "./RevolutionFactory";
@@ -48,3 +49,5 @@ export class EvolutionFactory extends SweepFactory implements EvolutionParams {
         return c3d.ActionSolid.EvolutionSolid_async(sweptData, spine, params, names, cs, ns);
     }
 }
+
+

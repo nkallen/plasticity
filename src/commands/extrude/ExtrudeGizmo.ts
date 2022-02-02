@@ -48,7 +48,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     get shouldRescaleOnZoom() { return false }
 }
 
-class ExtrudeDistanceGizmo extends DistanceGizmo {
+export class ExtrudeDistanceGizmo extends DistanceGizmo {
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
