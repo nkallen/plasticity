@@ -3,7 +3,6 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import c3d from '../../../build/Release/c3d.node';
-import { SnapInfo } from "../../command/SnapPresenter";
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPoint } from "../curves/CrossPointDatabase";
@@ -47,7 +46,7 @@ export abstract class Snap implements Restriction {
 }
 
 export interface ChoosableSnap extends Snap {
-    intersect(raycaster: THREE.Raycaster, info?: SnapInfo): SnapProjection | undefined;
+    intersect(raycaster: THREE.Raycaster, info?: { position: THREE.Vector3, orientation: THREE.Quaternion }): SnapProjection | undefined;
 }
 
 export class PointSnap extends Snap {
@@ -432,7 +431,7 @@ export class FaceSnap extends Snap implements ChoosableSnap {
     }
 
     private readonly n = new THREE.Vector3();
-    intersect(raycaster: THREE.Raycaster, info?: SnapInfo): SnapProjection | undefined {
+    intersect(raycaster: THREE.Raycaster, info?: { position: THREE.Vector3, orientation: THREE.Quaternion }): SnapProjection | undefined {
         if (info === undefined) return;
         const { n } = this;
         const orientation = info.orientation;
@@ -537,7 +536,7 @@ export class AxisSnap extends Snap implements ChoosableSnap {
     private readonly align = new THREE.Vector3();
     private readonly matrix = new THREE.Matrix4();
     private readonly intersection = new THREE.Vector3();
-    intersect(raycaster: THREE.Raycaster, _: SnapInfo) {
+    intersect(raycaster: THREE.Raycaster, info?: { position: THREE.Vector3, orientation: THREE.Quaternion }): SnapProjection | undefined {
         const { eye, plane, align, dir, o, n, matrix, intersection } = this;
 
         eye.copy(raycaster.camera.position).sub(o).normalize();

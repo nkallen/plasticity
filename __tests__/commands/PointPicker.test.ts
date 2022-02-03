@@ -305,6 +305,43 @@ describe('addPickedPoint', () => {
         const snaps = pointPicker.snaps;
         expect(snaps.map(s => s.name).sort()).toEqual(["Intersection", "Intersection", "x", "y", "z"]);
     })
+
+});
+
+describe('prefer & addPickedPoint', () => {
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+    });
+
+    test("prefer & preference", () => {
+        pointPicker.prefer(FaceSnap);
+        const face = box.faces.get(0);
+        const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+        expect(pointPicker.preference).toBe(undefined);
+        pointPicker.addPickedPoint({
+            point: new THREE.Vector3(0, 10, 0),
+            info: { snap, constructionPlane, orientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+        });
+        expect(pointPicker.preference!.snap).toBe(snap);
+    })
+
+    test("!prefer & preference", () => {
+        const face = box.faces.get(0);
+        const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+        expect(pointPicker.preference).toBe(undefined);
+        pointPicker.addPickedPoint({
+            point: new THREE.Vector3(0, 10, 0),
+            info: { snap, constructionPlane, orientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+        });
+        expect(pointPicker.preference).toBe(undefined);
+    })
 })
 
 const X = new THREE.Vector3(1, 0, 0);

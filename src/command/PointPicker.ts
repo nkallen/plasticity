@@ -16,6 +16,7 @@ import { Finish } from '../util/Cancellable';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helpers } from '../util/Helpers';
+import { GConstructor } from '../util/Util';
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { RaycasterParams, SnapPicker } from '../visual_model/SnapPicker';
 import * as visual from "../visual_model/VisualModel";
@@ -44,7 +45,7 @@ type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
 
 const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 
-export type Choice = { snap: ChoosableSnap; info?: SnapInfo; sticky: boolean };
+export type Choice = { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion }; sticky: boolean };
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
@@ -102,22 +103,36 @@ export class Model {
     }
 
     private snapsForLastPickedPoint: Snap[] = [];
-    private makeSnapsForLastPickedPoint(): void {
-        const { pickedPointSnaps, straightSnaps } = this;
+    private makeSnapsForPickedPoints(): void {
+        const { pickedPointSnaps, straightSnaps, _preferenceType: preferenceType } = this;
 
         this.crosses = new CrossPointDatabase(this.originalCrosses);
 
         let results: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
-            const last = pickedPointSnaps[pickedPointSnaps.length - 1];
-            let work: Snap[] = [];
-            work = work.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
-            work = work.concat(last.info.snap.additionalSnapsFor(last.point));
-            for (const snap of work) {
-                if (snap instanceof PointAxisSnap) { // Such as normal/binormal/tangent
-                    this.addAxis(snap, results, []);
-                } else {
-                    results.push(snap);
+            FirstPoint: {
+                if (preferenceType !== undefined) {
+                    const first = pickedPointSnaps[0];
+                    const snap = first.info.snap;
+                    const info = { position: first.point, orientation: first.info.orientation };
+                    if (snap instanceof FaceSnap) {
+                        this._preference = { snap, info }
+                    } else if (snap instanceof FaceCenterPointSnap) {
+                        this._preference = { snap: snap.faceSnap, info }
+                    }
+                }
+            }
+            LastPoint: {
+                const last = pickedPointSnaps[pickedPointSnaps.length - 1];
+                let work: Snap[] = [];
+                work = work.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
+                work = work.concat(last.info.snap.additionalSnapsFor(last.point));
+                for (const snap of work) {
+                    if (snap instanceof PointAxisSnap) { // Such as normal/binormal/tangent
+                        this.addAxis(snap, results, []);
+                    } else {
+                        results.push(snap);
+                    }
                 }
             }
         }
@@ -127,6 +142,14 @@ export class Model {
         this.disabled.clear();
         if (this._choice !== undefined && !this._choice.sticky) this.choose(undefined);
         this.mutualSnaps.clear();
+    }
+
+    private _preference?: { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion } };
+    get preference() { return this._preference }
+
+    private _preferenceType?: GConstructor<ChoosableSnap>;
+    prefer<S extends ChoosableSnap>(preferenceType: GConstructor<S>) {
+        this._preferenceType = preferenceType;
     }
 
     start() {
@@ -259,12 +282,12 @@ export class Model {
 
     addPickedPoint(pointResult: PointResult) {
         this.pickedPointSnaps.push(pointResult);
-        this.makeSnapsForLastPickedPoint();
+        this.makeSnapsForPickedPoints();
     }
 
     private _choice?: Choice;
     get choice() { return this._choice }
-    choose(which: Choices | Snap | undefined, info?: SnapInfo, sticky = false) {
+    choose(which: Choices | Snap | undefined, info?: { position: THREE.Vector3, orientation: THREE.Quaternion }, sticky = false) {
         if (which === undefined) {
             this._choice = undefined;
         } else if (which instanceof Snap) {
@@ -278,7 +301,7 @@ export class Model {
 
     undo() {
         this.pickedPointSnaps.pop();
-        this.makeSnapsForLastPickedPoint();
+        this.makeSnapsForPickedPoints();
     }
 
     // Sometimes additional snaps are "activated" when the user mouses over an existing snap and hits shift
@@ -334,13 +357,14 @@ export class PointPicker implements Executable<PointResult, PointResult> {
         Line2: { threshold: 30 },
         Points: { threshold: 25 }
     };
+    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps, this.editor.db);
 
     constructor(private readonly editor: EditorLike) { }
 
     execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { editor, model } = this;
+            const { editor, model, snapCache } = this;
 
             disposables.add(model.start());
 
@@ -351,7 +375,6 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             disposables.add(presenter.execute());
 
             // FIXME: build elsewhere for higher performance
-            const snapCache = new SnapManagerGeometryCache(editor.snaps);
             const picker = new SnapPicker(this.raycasterParams);
             disposables.add(picker.disposable);
 
@@ -487,5 +510,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
+    prefer<S extends ChoosableSnap>(preference: GConstructor<ChoosableSnap>) { this.model.prefer(preference) }
+
     undo() { this.model.undo() }
 }

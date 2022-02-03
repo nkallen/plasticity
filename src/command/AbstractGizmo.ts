@@ -304,7 +304,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
     }
 
     private readonly raycaster = new THREE.Raycaster();
-    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps);
+    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps, this.editor.db);
     private readonly snapPicker = new GizmoSnapPicker();
     private readonly presenter = new SnapPresenter(this.editor);
     private readonly raycast = (...obj: THREE.Object3D[]) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster);

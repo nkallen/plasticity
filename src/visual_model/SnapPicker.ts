@@ -6,8 +6,6 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { ConstructionPlaneSnap } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";
-import { inst2curve } from "../util/Conversion";
-import * as intersectable from "./Intersectable";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import * as visual from "./VisualModel";
 
@@ -34,11 +32,10 @@ const defaultNearbyParams: THREE.RaycasterParameters = {
 };
 
 abstract class AbstractSnapPicker {
-    protected readonly raycaster = new THREE.Raycaster();
-
     constructor(
         protected readonly intersectParams: RaycasterParams = defaultIntersectParams,
         protected readonly nearbyParams: THREE.RaycasterParameters = defaultNearbyParams,
+        protected readonly raycaster = new THREE.Raycaster()
     ) { }
 
     protected _nearby(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
@@ -52,7 +49,7 @@ abstract class AbstractSnapPicker {
         if (snappers.length === 0 && additional.length === 0) return [];
 
         const intersections = raycaster.intersectObjects([...snappers, ...additional], false);
-        const snap_intersections = this.intersections2snaps(snaps, intersections, db);
+        const snap_intersections = this.intersections2snaps(snaps, intersections);
         const result: PointSnap[] = [];
         let i = 0;
         for (const { snap } of snap_intersections) {
@@ -69,7 +66,7 @@ abstract class AbstractSnapPicker {
         raycaster.layers.mask = snaps.layers.mask;
     }
 
-    protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
+    protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
         const { raycaster, viewport } = this;
         if (!snaps.enabled) return [];
 
@@ -86,14 +83,24 @@ abstract class AbstractSnapPicker {
         geometry = geometry.filter(item => !item.isTemporaryOptimization);
         intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
 
-        if (!this.viewport.isXRay) {
-            intersections = findAllIntersectionsVeryCloseTogether(intersections);
+        let intersections_snaps = this.intersections2snaps(snaps, intersections);
+
+        if (preference !== undefined) {
+            for (const intersection of intersections_snaps) {
+                if (intersection.snap === preference) {
+                    intersections_snaps = [intersection];
+                    break;
+                }
+            }
         }
-        const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
-        extremelyCloseSnaps.sort(sort);
+
+        if (!this.viewport.isXRay) {
+            intersections_snaps = findAllIntersectionsVeryCloseTogether(intersections_snaps);
+        }
+        intersections_snaps.sort(sort);
 
         let result: SnapResult[] = [];
-        for (const { snap, intersection } of extremelyCloseSnaps) {
+        for (const { snap, intersection } of intersections_snaps) {
             const { position, orientation } = snap.project(intersection.point);
             result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
         }
@@ -108,7 +115,7 @@ abstract class AbstractSnapPicker {
     }
 
 
-    protected intersections2snaps(snaps: SnapManagerGeometryCache, intersections: THREE.Intersection[], db: DatabaseLike): { snap: Snap, intersection: THREE.Intersection }[] {
+    protected intersections2snaps(snaps: SnapManagerGeometryCache, intersections: THREE.Intersection[]): { snap: Snap, intersection: THREE.Intersection }[] {
         const result = [];
         for (const intersection of intersections) {
             const object = intersection.object;
@@ -116,7 +123,7 @@ abstract class AbstractSnapPicker {
             if (object instanceof visual.Region) {
                 continue; // FIXME:
             } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D) {
-                snap = this.intersectable2snap(object, db);
+                snap = snaps.lookup(object);
             } else if (object instanceof visual.ControlPoint) {
                 continue; // FIXME:
             } else if (object instanceof THREE.Points) {
@@ -127,22 +134,6 @@ abstract class AbstractSnapPicker {
             result.push({ snap, intersection });
         }
         return result;
-    }
-
-
-    private intersectable2snap(intersectable: intersectable.Intersectable, db: DatabaseLike): Snap {
-        if (intersectable instanceof visual.Face) {
-            const model = db.lookupTopologyItem(intersectable);
-            return new FaceSnap(intersectable, model);
-        } else if (intersectable instanceof visual.CurveEdge) {
-            const model = db.lookupTopologyItem(intersectable);
-            return new CurveEdgeSnap(intersectable, model);
-        } else if (intersectable instanceof visual.Curve3D) {
-            const model = db.lookup(intersectable.parentItem);
-            return new CurveSnap(intersectable.parentItem, inst2curve(model)!);
-        } else {
-            throw new Error("invalid snap target: " + intersectable.constructor.name);
-        }
     }
 
     protected viewport!: Viewport;
@@ -182,7 +173,7 @@ export class SnapPicker extends AbstractSnapPicker {
 
         const additional = pointPicker.snaps.map(s => s.snapper);
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
-        let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db);
+        let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db, pointPicker.preference?.snap);
 
         intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
         const restricted = this.applyRestrictions(pointPicker, viewport, intersections);
@@ -259,13 +250,13 @@ export interface SnapResult {
     cursorOrientation: THREE.Quaternion;
 }
 
-function findAllIntersectionsVeryCloseTogether(intersections: THREE.Intersection[]) {
+function findAllIntersectionsVeryCloseTogether(intersections: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>>; }[]) {
     if (intersections.length === 0) return [];
 
     const nearest = intersections[0];
     const result = [];
     for (const intersection of intersections) {
-        if (Math.abs(nearest.distance - intersection.distance) < 10e-3) {
+        if (Math.abs(nearest.intersection.distance - intersection.intersection.distance) < 10e-3) {
             result.push(intersection);
         }
     }

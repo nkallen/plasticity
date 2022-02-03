@@ -3,7 +3,7 @@
  */
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { Model } from '../../src/command/PointPicker';
+import { Model, PointPicker } from '../../src/command/PointPicker';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
@@ -15,7 +15,8 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import { CurveEndPointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
+import { CurveEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { SnapManagerGeometryCache } from '../../src/visual_model/SnapManagerGeometryCache';
 import { RaycasterParams, SnapPicker } from "../../src/visual_model/SnapPicker";
@@ -42,17 +43,9 @@ beforeEach(() => {
     selection = editor._selection;
     layers = editor.layers;
     viewport = MakeViewport(editor);
-    snaps = new SnapManagerGeometryCache(editor.snaps);
+    snaps = new SnapManagerGeometryCache(editor.snaps, editor.db);
     crosses = editor.crosses;
     registry = editor.registry;
-});
-
-let picker: SnapPicker;
-let nearbyParams: THREE.RaycasterParameters = {};
-let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { threshold: 10 } };
-
-beforeEach(() => {
-    picker = new SnapPicker(intersectParams, nearbyParams);
 });
 
 let pointPicker: Model;
@@ -61,105 +54,235 @@ beforeEach(() => {
     pointPicker = new Model(db, crosses, registry, signals);
 })
 
-const event = new MouseEvent('move', { clientX: 50, clientY: 50 });
+let picker: SnapPicker;
+let nearbyParams: THREE.RaycasterParameters = {};
+let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { threshold: 10 } };
 
-beforeEach(() => {
-    picker.setFromViewport(event, viewport);
-    intersectParams.Points = { threshold: 100000000000 };
-    intersectParams.Line = { threshold: 100000000000 };
-    intersectParams.Mesh = { threshold: 100000000000 };
-    nearbyParams.Points = { threshold: 100000000000 };
-    nearbyParams.Line = { threshold: 100000000000 };
-    nearbyParams.Mesh = { threshold: 100000000000 };
-})
+describe('Unit tests', () => {
+    const raycaster = new THREE.Raycaster();
 
-describe('nearby', () => {
-    test('when no geometry or point picker settings', () => {
-        expect(picker.nearby(pointPicker, snaps, db)).toEqual([]);
+    beforeEach(() => {
+        picker = new SnapPicker(intersectParams, nearbyParams, raycaster);
     });
 
-    test('when point picker additions', () => {
-        nearbyParams.Points = { threshold: 100000000000 };
+    const event = new MouseEvent('move', { clientX: 50, clientY: 50 });
 
-        const snap = new PointSnap(undefined, new THREE.Vector3());
-        pointPicker.addSnap(snap);
-        expect(picker.nearby(pointPicker, snaps, db)).toEqual([snap]);
+    beforeEach(() => {
+        picker.setFromViewport(event, viewport);
+    });
+
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
+        makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
+        makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
+        box = await makeBox.commit() as visual.Solid;
+        box.updateMatrixWorld();
+        snaps.update();
     })
 
-    describe('when geometry additions', () => {
-        describe('A solid', () => {
-            beforeEach(async () => {
-                const makeBox = new ThreePointBoxFactory(db, materials, signals);
-                makeBox.p1 = new THREE.Vector3();
-                makeBox.p2 = new THREE.Vector3(1, 0, 0);
-                makeBox.p3 = new THREE.Vector3(1, 1, 0);
-                makeBox.p4 = new THREE.Vector3(1, 1, 1);
-                await makeBox.commit() as visual.Solid;
-                snaps.update();
-                nearbyParams.Points = { threshold: 100000000000 };
-            })
+    test('intersect', () => {
+        const raycast = jest.spyOn(raycaster, 'intersectObjects');
+        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        raycast.mockReturnValue([intersection]);
+        const result = picker.intersect(pointPicker, snaps, db);
+        expect(result[0].snap).toBeInstanceOf(FaceSnap);
+    });
 
-            test('it returns snap points for the geometry', () => {
-                const actual = picker.nearby(pointPicker, snaps, db);
-                expect(actual.length).toBe(20);
-            })
-        });
+    test('returns nearest', () => {
+        const raycast = jest.spyOn(raycaster, 'intersectObjects');
+        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        raycast.mockReturnValue([intersection]);
+        const results = picker.intersect(pointPicker, snaps, db);
+        const faceSnap = results[0].snap;
+        if (!(faceSnap instanceof FaceSnap)) throw '';
 
-        describe('A curve', () => {
-            beforeEach(async () => {
-                const makeCurve = new CurveFactory(db, materials, signals);
-                makeCurve.push(new THREE.Vector3());
-                makeCurve.push(new THREE.Vector3(1, 1, 0));
-                makeCurve.push(new THREE.Vector3(2, -1, 0));
-                await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-                snaps.update();
-                nearbyParams.Points = { threshold: 100000000000 };
-                layers.showControlPoints();
-            })
+        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
+        raycast.mockReturnValue([closer, intersection]);
+        const results2 = picker.intersect(pointPicker, snaps, db);
+        expect(results2[0].snap).toBeInstanceOf(EdgePointSnap);
+    });
 
-            test('it returns snap points for the geometry', () => {
-                const actual = picker.nearby(pointPicker, snaps, db);
-                expect(actual.length).toBe(2);
-            })
-        })
+    test('preference overrides nearest', () => {
+        const raycast = jest.spyOn(raycaster, 'intersectObjects');
+        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        raycast.mockReturnValue([intersection]);
+        const results = picker.intersect(pointPicker, snaps, db);
+        const faceSnap = results[0].snap;
+        if (!(faceSnap instanceof FaceSnap)) throw '';
+
+        pointPicker.prefer(FaceSnap);
+        pointPicker.addPickedPoint({ point: new THREE.Vector3(), info: { snap: faceSnap, orientation: new THREE.Quaternion(), cameraOrientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), constructionPlane: new ConstructionPlaneSnap() } });
+
+        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
+        raycast.mockReturnValue([closer, intersection]);
+        const results2 = picker.intersect(pointPicker, snaps, db);
+        expect(results2[0].snap).toBeInstanceOf(FaceSnap);
     });
 });
 
-describe('intersect', () => {
-    test('when no geometry or point picker settings', () => {
-        expect(picker.intersect(pointPicker, snaps, db)).toHaveLength(3);
+describe('Integration test', () => {
+    beforeEach(() => {
+        picker = new SnapPicker(intersectParams, nearbyParams);
     });
 
-    describe('when geometry additions', () => {
-        describe('A solid', () => {
-            beforeEach(async () => {
-                const makeBox = new ThreePointBoxFactory(db, materials, signals);
-                makeBox.p1 = new THREE.Vector3();
-                makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
-                makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
-                makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
-                const box = await makeBox.commit() as visual.Solid;
-                box.updateMatrixWorld();
-                snaps.update();
-            })
+    const event = new MouseEvent('move', { clientX: 50, clientY: 50 });
 
-            test('it returns snap points for the geometry', () => {
-                const actual = picker.intersect(pointPicker, snaps, db);
-                expect(viewport.isOrthoMode).toBe(false);
-                expect(actual.length).toBe(1);
-                expect(actual.map(s => s.snap.name)).toEqual(['Center']);
-            })
+    beforeEach(() => {
+        picker.setFromViewport(event, viewport);
+        intersectParams.Points = { threshold: 100000000000 };
+        intersectParams.Line = { threshold: 100000000000 };
+        intersectParams.Mesh = { threshold: 100000000000 };
+        nearbyParams.Points = { threshold: 100000000000 };
+        nearbyParams.Line = { threshold: 100000000000 };
+        nearbyParams.Mesh = { threshold: 100000000000 };
+    })
 
-            test('when isOrtho is true, face snaps are turned off', () => {
-                viewport.navigate(Orientation.posZ);
-                expect(viewport.isOrthoMode).toBe(true);
-                picker.setFromViewport(event, viewport);
-                const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);
-                expect(actual.map(s => s.snap.name)).toEqual(['Center', 'Center']);
-            });
+    describe('nearby', () => {
+        test('when no geometry or point picker settings', () => {
+            expect(picker.nearby(pointPicker, snaps, db)).toEqual([]);
         });
 
+        test('when point picker additions', () => {
+            nearbyParams.Points = { threshold: 100000000000 };
+
+            const snap = new PointSnap(undefined, new THREE.Vector3());
+            pointPicker.addSnap(snap);
+            expect(picker.nearby(pointPicker, snaps, db)).toEqual([snap]);
+        })
+
+        describe('when geometry additions', () => {
+            describe('A solid', () => {
+                beforeEach(async () => {
+                    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+                    makeBox.p1 = new THREE.Vector3();
+                    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+                    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+                    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+                    await makeBox.commit() as visual.Solid;
+                    snaps.update();
+                    nearbyParams.Points = { threshold: 100000000000 };
+                })
+
+                test('it returns snap points for the geometry', () => {
+                    const actual = picker.nearby(pointPicker, snaps, db);
+                    expect(actual.length).toBe(20);
+                })
+            });
+
+            describe('A curve', () => {
+                beforeEach(async () => {
+                    const makeCurve = new CurveFactory(db, materials, signals);
+                    makeCurve.push(new THREE.Vector3());
+                    makeCurve.push(new THREE.Vector3(1, 1, 0));
+                    makeCurve.push(new THREE.Vector3(2, -1, 0));
+                    await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+                    snaps.update();
+                    nearbyParams.Points = { threshold: 100000000000 };
+                    layers.showControlPoints();
+                })
+
+                test('it returns snap points for the geometry', () => {
+                    const actual = picker.nearby(pointPicker, snaps, db);
+                    expect(actual.length).toBe(2);
+                })
+            })
+        });
+    });
+
+    describe('intersect', () => {
+        test('when no geometry or point picker settings', () => {
+            expect(picker.intersect(pointPicker, snaps, db)).toHaveLength(3);
+        });
+
+        describe('when geometry additions', () => {
+            describe('A solid', () => {
+                beforeEach(async () => {
+                    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+                    makeBox.p1 = new THREE.Vector3();
+                    makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
+                    makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
+                    makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
+                    const box = await makeBox.commit() as visual.Solid;
+                    box.updateMatrixWorld();
+                    snaps.update();
+                })
+
+                test('it returns snap points for the geometry', () => {
+                    const actual = picker.intersect(pointPicker, snaps, db);
+                    expect(viewport.isOrthoMode).toBe(false);
+                    expect(actual.length).toBe(1);
+                    expect(actual.map(s => s.snap.name)).toEqual(['Center']);
+                })
+
+                test('when isOrtho is true, face snaps are turned off', () => {
+                    viewport.navigate(Orientation.posZ);
+                    expect(viewport.isOrthoMode).toBe(true);
+                    picker.setFromViewport(event, viewport);
+                    const actual = picker.intersect(pointPicker, snaps, db);
+                    expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);
+                    expect(actual.map(s => s.snap.name)).toEqual(['Center', 'Center']);
+                });
+            });
+
+            describe('A curve', () => {
+                beforeEach(async () => {
+                    const makeCurve = new CurveFactory(db, materials, signals);
+                    makeCurve.type = c3d.SpaceType.Polyline3D;
+                    makeCurve.push(new THREE.Vector3());
+                    makeCurve.push(new THREE.Vector3(1, 1, 0));
+                    makeCurve.push(new THREE.Vector3(2, -1, 0));
+                    const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+                    item.updateMatrixWorld();
+                    snaps.update();
+                    layers.showControlPoints();
+                })
+
+                test('it returns snap points for the geometry', () => {
+                    const actual = picker.intersect(pointPicker, snaps, db);
+                    expect(actual.length).toBe(1);
+                    expect(actual.map(s => s.snap.name)).toEqual(['End']);
+                })
+            })
+
+            describe('restrictions', () => {
+                let box: visual.Solid;
+
+                beforeEach(async () => {
+                    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+                    makeBox.p1 = new THREE.Vector3();
+                    makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
+                    makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
+                    makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
+                    box = await makeBox.commit() as visual.Solid;
+                    box.updateMatrixWorld();
+                    snaps.update();
+                })
+
+                test("when no restrictions", () => {
+                    const actual = picker.intersect(pointPicker, snaps, db);
+                    expect(actual.length).toBe(1);
+                    const first = actual[0];
+                    expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
+                    expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
+                })
+
+                test('with a restriction, curorPosition and position differ', () => {
+                    pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3());
+                    const actual = picker.intersect(pointPicker, snaps, db);
+                    expect(actual.length).toBe(2);
+                    const first = actual[0];
+                    expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
+                    expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0));
+                })
+            });
+        });
+    });
+
+    describe(SnapManagerGeometryCache, () => {
         describe('A curve', () => {
             beforeEach(async () => {
                 const makeCurve = new CurveFactory(db, materials, signals);
@@ -167,65 +290,13 @@ describe('intersect', () => {
                 makeCurve.push(new THREE.Vector3());
                 makeCurve.push(new THREE.Vector3(1, 1, 0));
                 makeCurve.push(new THREE.Vector3(2, -1, 0));
-                const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-                item.updateMatrixWorld();
+                await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
                 snaps.update();
-                layers.showControlPoints();
             })
 
             test('it returns snap points for the geometry', () => {
-                const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(1);
-                expect(actual.map(s => s.snap.name)).toEqual(['End']);
+                expect(snaps.get(snaps.points[0], 0)).toBeInstanceOf(CurveEndPointSnap);
             })
         })
-
-        describe('restrictions', () => {
-            beforeEach(async () => {
-                const makeBox = new ThreePointBoxFactory(db, materials, signals);
-                makeBox.p1 = new THREE.Vector3();
-                makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
-                makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
-                makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
-                const box = await makeBox.commit() as visual.Solid;
-                box.updateMatrixWorld();
-                snaps.update();
-            })
-
-            test("when no restrictions", () => {
-                const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(1);
-                const first = actual[0];
-                expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
-                expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
-            })
-
-            test('with a restriction, curorPosition and position differ', () => {
-                pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3());
-                const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(2);
-                const first = actual[0];
-                expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
-                expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0));
-            })
-        });
     });
-});
-
-describe(SnapManagerGeometryCache, () => {
-    describe('A curve', () => {
-        beforeEach(async () => {
-            const makeCurve = new CurveFactory(db, materials, signals);
-            makeCurve.type = c3d.SpaceType.Polyline3D;
-            makeCurve.push(new THREE.Vector3());
-            makeCurve.push(new THREE.Vector3(1, 1, 0));
-            makeCurve.push(new THREE.Vector3(2, -1, 0));
-            await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-            snaps.update();
-        })
-
-        test('it returns snap points for the geometry', () => {
-            expect(snaps.get(snaps.points[0], 0)).toBeInstanceOf(CurveEndPointSnap);
-        })
-    })
-});
+})

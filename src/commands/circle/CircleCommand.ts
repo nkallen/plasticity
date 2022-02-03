@@ -1,6 +1,6 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
-import { AxisSnap } from "../../editor/snaps/Snap";
+import { AxisSnap, FaceSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';
@@ -13,6 +13,7 @@ export class CenterCircleCommand extends Command {
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.prefer(FaceSnap);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = point;
