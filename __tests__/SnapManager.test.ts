@@ -2,6 +2,7 @@ import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import CurveFactory from "../src/commands/curve/CurveFactory";
+import { MoveFactory } from "../src/commands/translate/TranslateFactory";
 import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
@@ -151,3 +152,36 @@ test("enabling and disabling types adds/removes snaps", async () => {
     types.enable(visual.Curve3D);
     expect(snaps.all.geometrySnaps[0].size).toBe(7);
 });
+
+describe('undo', () => {
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+    })
+
+    test('it works', async () => {
+        const memento = snaps.saveToMemento();
+        const before = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
+        expect(before.length).toBe(42);
+
+        const move = new MoveFactory(db, materials, signals);
+        move.items = [box];
+        move.move = new THREE.Vector3(1, 1, 1);
+        await move.commit();
+
+        const after = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
+        expect(after.length).toBe(42);
+        expect(after).not.toEqual(before);
+
+        snaps.restoreFromMemento(memento);
+        const afterUndo = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
+        expect(afterUndo.length).toBe(42);
+        expect(afterUndo).toEqual(before);
+    })
+})

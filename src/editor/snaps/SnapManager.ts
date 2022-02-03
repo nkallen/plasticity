@@ -277,8 +277,14 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     saveToMemento(): SnapMemento {
+        const id2snaps = this.id2snaps;
+        const id2snapsCopy = new Map<DisablableType, SnapMap>();
+        for (const [key, value] of id2snaps) {
+            id2snapsCopy.set(key, new Map(value));
+        }
+
         return new SnapMemento(
-            new Map(this.id2snaps),
+            id2snapsCopy,
             new Map(this.hidden));
     }
 
