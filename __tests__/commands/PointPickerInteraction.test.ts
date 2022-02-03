@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { PointPicker } from "../../src/command/PointPicker";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from '../../src/editor/Editor';
+import { Finish } from "../../src/util/Cancellable";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
@@ -38,4 +39,10 @@ test('basic move and click', async () => {
     domElement.dispatchEvent(new MouseEvent('pointerdown'));
     const { point } = await promise;
     expect(point).toApproximatelyEqual(new THREE.Vector3());
+});
+
+test('basic move and click', async () => {
+    const promise = pointPicker.execute(() => {}, true);
+    promise.finish();
+    expect(promise).rejects.toBeInstanceOf(Finish);
 });

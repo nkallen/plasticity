@@ -151,13 +151,13 @@ describe(ChamferAndFilletKeyboardGizmo, () => {
         test("it cancels in chamfer state", async () => {
             keyboard.toggle(c3d.CreatorType.ChamferSolid);
             promise.cancel();
-            await expect(promise).rejects.toBe(Cancel);
+            await expect(promise).rejects.toBeInstanceOf(Cancel);
         });
 
         test("it cancels in fillet state", async () => {
             keyboard.toggle(c3d.CreatorType.FilletSolid);
             promise.cancel();
-            await expect(promise).rejects.toBe(Cancel);
+            await expect(promise).rejects.toBeInstanceOf(Cancel);
         });
     });
 });

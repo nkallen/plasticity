@@ -19,13 +19,12 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
         const result = new CancellablePromise<void>((resolve, reject) => {
             let runOnce = false;
             const dispose = () => {
-                if (runOnce)
-                    return;
+                if (runOnce) return;
                 runOnce = true;
                 for (const p of ps) {
+                    // TODO: I'm not sure if the next 3 lines have any effect. Investigate
                     p.promise.catch(err => {
-                        if (err !== Cancel)
-                            reject(err);
+                        if (!(err instanceof Cancel)) reject(err);
                     });
                     p.cancel();
                 }
@@ -82,7 +81,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
         if (this.state != 'None') return;
         try {
             this._dispose();
-            this._reject(Cancel);
+            this._reject(new Cancel());
         } finally {
             this.state = 'Cancelled';
         }
@@ -144,11 +143,11 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     }
 
     rejectOnInterrupt(): this {
-        return this.onInterrupt(reject => reject(Interrupt));
+        return this.onInterrupt(reject => reject(new Interrupt()));
     }
 
     rejectOnFinish(): this {
-        return this.onFinish(reject => reject(Finish));
+        return this.onFinish(reject => reject(new Finish()));
     }
 }
 

@@ -66,7 +66,7 @@ export class CommandExecutor {
                     if (command !== undefined) await this.enqueue(command, false, false);
                 }
             } catch (e) {
-                if (e !== Cancel && e !== Finish && e !== Interrupt && !(e instanceof NoOpError) && !(e instanceof AlreadyFinishedError)) {
+                if (!(e instanceof Cancel) && !(e instanceof Finish) && !(e instanceof Interrupt) && !(e instanceof NoOpError) && !(e instanceof AlreadyFinishedError)) {
                     if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);
                     else console.warn(e);
                 }

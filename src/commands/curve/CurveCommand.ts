@@ -52,13 +52,13 @@ export class CurveCommand extends Command {
                 }, true).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
-                    throw Finish;
+                    throw new Finish();
                 }
                 makeCurve.push(point);
                 makeCurve.snap = snap;
                 makeCurve.update();
             } catch (e) {
-                if (e !== Finish) throw e;
+                if (!(e instanceof Finish)) throw e;
                 break;
             }
         }

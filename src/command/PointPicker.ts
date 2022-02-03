@@ -338,7 +338,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     constructor(private readonly editor: EditorLike) { }
 
     execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
-        return new CancellablePromise((resolve, reject) => {
+        return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { editor, model } = this;
 
@@ -426,7 +426,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
                     if (rejectOnFinish) {
                         dispose();
-                        reject(Finish);
+                        reject(new Finish());
                         return;
                     }
                     dispose();
@@ -463,7 +463,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             }
 
             return { dispose, finish };
-        });
+        }).rejectOnInterrupt();
     }
 
     private disablePickingDuringNavigation(navigationControls: OrbitControls, start: () => void, end: () => void): Disposable {

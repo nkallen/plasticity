@@ -15,8 +15,8 @@ export interface Cancellable {
     interrupt(): void;
 }
 
-export const Cancel = { tag: 'Cancel' };
-export const Finish = { tag: 'Finish' };
-export const Interrupt = { tag: 'Interrupt' };
+export class Cancel extends Error { }
+export class Finish extends Error { }
+export class Interrupt extends Error { }
 
 export type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { dispose: (() => void), finish: (() => void) };

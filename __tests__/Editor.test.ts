@@ -46,7 +46,7 @@ test('executes a command', async () => {
     const command = new CenterCircleCommand(editor);
     editor.enqueue(command);
     command.cancel();
-    await expect(command.finished).rejects.toBe(Cancel);
+    await expect(command.finished).rejects.toBeInstanceOf(Cancel);
 });
 
 test("simple integration test", async () => {

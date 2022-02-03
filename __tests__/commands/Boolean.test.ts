@@ -112,7 +112,7 @@ describe(PossiblyBooleanKeyboardGizmo, () => {
         expect(keybindingsRegistered).toHaveBeenCalledTimes(1);
         expect(keybindingsCleared).toHaveBeenCalledTimes(1);
 
-        await expect(active).rejects.toBe(Cancel);
+        await expect(active).rejects.toBeInstanceOf(Cancel);
     });
 
 
@@ -137,14 +137,14 @@ describe(PossiblyBooleanKeyboardGizmo, () => {
             keyboard.toggle(true);
             const active = keyboard.execute(execute);
             active.cancel();
-            await expect(active).rejects.toBe(Cancel);
+            await expect(active).rejects.toBeInstanceOf(Cancel);
         });
 
         test("it cancels in toggle false state", async () => {
             keyboard.toggle(false);
             const active = keyboard.execute(execute);
             active.cancel();
-            await expect(active).rejects.toBe(Cancel);
+            await expect(active).rejects.toBeInstanceOf(Cancel);
         });
     });
 });
