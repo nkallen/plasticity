@@ -369,65 +369,65 @@ describe('ChangeSelectionModifier.Remove', () => {
 
 describe('box', () => {
     test('selecting multiple solids', () => {
-        click.box(new Set([solid1, solid2]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1, solid2]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(2);
     })
 
     test('selecting multiple faces of a unselected solid', () => {
-        click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(0);
     })
 
     test('selecting a solid then adding its face', () => {
-        click.box(new Set([solid1]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
 
-        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
 
     test('selecting a solid then replacing w/ its face', () => {
-        click.box(new Set([solid1]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
 
-        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Replace);
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
 
     test('selecting one solid, adding another', () => {
-        click.box(new Set([solid1]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
-        click.box(new Set([solid2]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid2]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(2);
     })
 
     test('selecting one solid, removing it', () => {
-        click.box(new Set([solid1]), ChangeSelectionModifier.Add);
+        click.box(new Set([solid1]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
-        click.box(new Set([solid1]), ChangeSelectionModifier.Remove);
+        click.box(new Set([solid1]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
     })
 
     test('selecting a curve', () => {
-        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add);
+        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
     })
 
     test('selecting a curve and its control point simultaneously', () => {
-        click.box(new Set([curve.underlying, curve.underlying.points.get(0)]), ChangeSelectionModifier.Add);
+        click.box(new Set([curve.underlying, curve.underlying.points.get(0)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     })
 
     test('selecting a curve and then its control point', () => {
-        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add);
+        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
-        click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add);
+        click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
     })
@@ -446,7 +446,7 @@ describe('dblClick', () => {
         expect(selectionDb.selected.faces.size).toBe(0);
         click.topologicalItem(face, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
-        click.dblClick(face, ChangeSelectionModifier.Add);
+        click.dblClick(face, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
     })
@@ -462,11 +462,11 @@ describe(HoverStrategy, () => {
     describe('box', () => {
         test('selecting then selecting more faces ONLY hovers the faces that will be newly selected', () => {
             modes.set(SelectionMode.Face);
-            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.faces.size).toBe(2);
             expect(selectionDb.hovered.faces.size).toBe(0);
 
-            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Add);
+            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.faces.size).toBe(2);
             expect(selectionDb.hovered.faces.size).toBe(1);
             expect(selectionDb.hovered.faces.first).toBe(solid1.faces.get(2));
@@ -474,11 +474,11 @@ describe(HoverStrategy, () => {
 
         test('selecting then unselecting faces ONLY hovers the faces that will be unselected', () => {
             modes.set(SelectionMode.Face);
-            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.faces.size).toBe(2);
             expect(selectionDb.hovered.faces.size).toBe(0);
 
-            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Remove);
+            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
             expect(selectionDb.selected.faces.size).toBe(2);
             expect(selectionDb.hovered.faces.size).toBe(1);
             expect(selectionDb.hovered.faces.first).toBe(solid1.faces.get(0));
@@ -486,11 +486,11 @@ describe(HoverStrategy, () => {
 
         test('selecting then selecting more edges ONLY hovers the edges that will be newly selected', () => {
             modes.set(SelectionMode.CurveEdge);
-            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add);
+            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.edges.size).toBe(2);
             expect(selectionDb.hovered.edges.size).toBe(0);
 
-            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Add);
+            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.edges.size).toBe(2);
             expect(selectionDb.hovered.edges.size).toBe(1);
             expect(selectionDb.hovered.edges.first).toBe(solid1.edges.get(2));
@@ -498,11 +498,11 @@ describe(HoverStrategy, () => {
 
         test('selecting then unselecting edges ONLY hovers the edges that will be unselected', () => {
             modes.set(SelectionMode.CurveEdge);
-            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add);
+            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
             expect(selectionDb.selected.edges.size).toBe(2);
             expect(selectionDb.hovered.edges.size).toBe(0);
 
-            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Remove);
+            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
             expect(selectionDb.selected.edges.size).toBe(2);
             expect(selectionDb.hovered.edges.size).toBe(1);
             expect(selectionDb.hovered.edges.first).toBe(solid1.edges.get(0));

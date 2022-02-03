@@ -135,6 +135,25 @@ test('dblclick', () => {
     expect(dblClick).toBeCalledTimes(1);
 })
 
+test('dblclick when mouse moves dramatically', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown'));
+    expect(startClick).toBeCalledTimes(1);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup', { clientX: 0, clientY: 0 }));
+    expect(endClick).toBeCalledTimes(1);
+
+    control.onPointerDown(new MouseEvent('pointerdown'));
+    expect(startClick).toBeCalledTimes(2);
+
+    const dblClick = jest.spyOn(control, 'dblClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup', { clientX: 100, clientY: 100 }));
+    expect(startClick).toBeCalledTimes(2);
+    expect(endClick).toBeCalledTimes(1);
+    expect(dblClick).toBeCalledTimes(0);
+})
+
 test('wheel', () => {
     const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
     control.onPointerDown(new MouseEvent('pointerdown', { button: 0, clientX: 50, clientY: 50 }));

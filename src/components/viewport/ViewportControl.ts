@@ -7,7 +7,7 @@ import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
 
-type State = { tag: 'none', last?: MouseEvent } | { tag: 'hover', last?: MouseEvent } | { tag: 'down', downEvent: MouseEvent, disposable: Disposable, last?: MouseEvent } | { tag: 'dragging', downEvent: MouseEvent, startEvent: MouseEvent, disposable: Disposable } | { tag: 'wheel', intersections: intersectable.Intersection[], index: number, disposable: Disposable }
+type State = { tag: 'none', previousEvent?: MouseEvent } | { tag: 'hover', previousEvent?: MouseEvent } | { tag: 'down', downEvent: MouseEvent, disposable: Disposable, previousEvent?: MouseEvent } | { tag: 'dragging', downEvent: MouseEvent, startEvent: MouseEvent, disposable: Disposable } | { tag: 'wheel', intersections: intersectable.Intersection[], index: number, disposable: Disposable }
 
 export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
@@ -106,7 +106,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 downEvent.stopPropagation();
                 downEvent.stopImmediatePropagation();
 
-                this.state = { tag: 'down', disposable, downEvent, last: this.state.last };
+                this.state = { tag: 'down', disposable, downEvent, previousEvent: this.state.previousEvent };
 
                 this.dispatchEvent({ type: 'start' });
                 break;
@@ -123,7 +123,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 const intersects = this.getIntersects(this.normalizedMousePosition, this.db.selectableObjects);
                 if (intersects.length === 0) break;
                 this.startHover(intersects, moveEvent);
-                this.state = { tag: 'hover', last: this.state.last };
+                this.state = { tag: 'hover', previousEvent: this.state.previousEvent };
                 break;
             }
             case 'hover': {
@@ -163,17 +163,25 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
         switch (this.state.tag) {
             case 'down':
+                const { previousEvent } = this.state;
+
                 const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.selectableObjects]);
                 const currentTime = upEvent.timeStamp;
                 try {
-                    if (this.state.last !== undefined && currentTime - this.state.last.timeStamp < dblClickTimeThreshold) {
-                        this.dblClick(intersects, upEvent);
+                    if (previousEvent !== undefined
+                        && currentTime - previousEvent.timeStamp < dblClickTimeThreshold
+                    ) {
+                        const currentPosition = new THREE.Vector2(upEvent.clientX, upEvent.clientY);
+                        const previousPosition = new THREE.Vector2(previousEvent.clientX, previousEvent.clientY);
+                        if (currentPosition.distanceTo(previousPosition) <= consummationDistanceThreshold) {
+                            this.dblClick(intersects, upEvent);
+                        }
                     } else {
                         this.endClick(intersects, upEvent);
                     }
                 } finally {
                     this.state.disposable.dispose();
-                    this.state = { tag: 'none', last: upEvent };
+                    this.state = { tag: 'none', previousEvent: upEvent };
                 }
                 break;
             case 'wheel':
@@ -181,7 +189,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                     this.endClick([this.state.intersections[this.state.index]], upEvent);
                 } finally {
                     this.state.disposable.dispose();
-                    this.state = { tag: 'none', last: upEvent };
+                    this.state = { tag: 'none', previousEvent: upEvent };
                 }
                 break;
             case 'dragging':
@@ -246,4 +254,4 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 // Time thresholds are in milliseconds,\ distance thresholds are in pixels.
 const dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummatedconst dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
-const dblClickTimeThreshold = 300; // once the mouse is down at least this long the drag is consummated
+const dblClickTimeThreshold = 1000; // once the mouse is down at least this long the drag is consummated
