@@ -6,7 +6,7 @@ import { CancellableRegisterable } from "./CancellableRegisterable";
 import { Cancellable } from "./Cancellable";
 
 
-export type State = 'None' | 'Cancelled' | 'Finished' | 'Interrupted';
+export type State = 'None' | 'Awaiting' | 'Cancelled' | 'Finished' | 'Interrupted';
 /**
  * The CancellableRegistor is an abstract base class for Commands. It implements basic state machine logic for
  * cancel/finish/interrupt. Its main responsibility is to keep track ("register") other objects that can be
@@ -24,7 +24,7 @@ export abstract class CancellableRegistor implements Cancellable {
     private disposable = new CompositeDisposable();
 
     cancel(): void {
-        if (this.state !== 'None') return;
+        if (this.state !== 'None' && this.state !== 'Awaiting') return;
 
         for (const resource of this.resources) {
             if (resource instanceof CancellablePromise)
@@ -36,7 +36,7 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     finish(): void {
-        if (this.state != 'None') return;
+        if (this.state !== 'None' && this.state !== 'Awaiting') return;
 
         for (const resource of this.resources) {
             resource.finish();
@@ -46,17 +46,21 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     interrupt(): void {
-        if (this.state !== 'None') return;
-
-        for (const resource of this.resources) {
-            resource.interrupt();
+        switch (this.state) {
+            case 'None':
+                for (const resource of this.resources) {
+                    resource.interrupt();
+                }
+                this.disposable.dispose();
+                this.state = 'Interrupted';
+                break;
+            case 'Awaiting':
+                this.finish();
         }
-        this.disposable.dispose();
-        this.state = 'Interrupted';
     }
 
     resource<T extends CancellableRegisterable>(x: T): T {
-        if (this.state !== 'None') {
+        if (this.state !== 'None' && this.state !== 'Awaiting') {
             x.cancel();
             throw new AlreadyFinishedError();
         }
@@ -72,12 +76,20 @@ export abstract class CancellableRegistor implements Cancellable {
 
     // All registered gizmos, dialogs, etc. finished successfully. Complex commands usually `await` this promise before committing
     get finished() {
+        if (this.state !== 'None') {
+            throw new AlreadyFinishedError();
+        }
+        this.state = 'Awaiting';
         return Promise.all(this.promises);
     }
 
     // This method is analogous to `finally` in Javascript. Some commands temporarily change state (e.g., raycasting settings).
     // Ensure is a terse API that is guaranteed to run after each command, regardless of whether it completed successfully.
     ensure(f: () => void) {
+        if (this.state !== 'None' && this.state !== 'Awaiting') {
+            f();
+            throw new AlreadyFinishedError();
+        }
         this.disposable.add(new Disposable(f));
     }
 }

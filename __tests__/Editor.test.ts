@@ -45,8 +45,9 @@ test('keeps track of active viewport', () => {
 test('executes a command', async () => {
     const command = new CenterCircleCommand(editor);
     editor.enqueue(command);
+    const finished = command.finished;
     command.cancel();
-    await expect(command.finished).rejects.toBeInstanceOf(Cancel);
+    await expect(finished).rejects.toBeInstanceOf(Cancel);
 });
 
 test("simple integration test", async () => {

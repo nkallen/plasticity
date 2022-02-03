@@ -254,4 +254,4 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 // Time thresholds are in milliseconds,\ distance thresholds are in pixels.
 const dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummatedconst dragConsummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
-const dblClickTimeThreshold = 1000; // once the mouse is down at least this long the drag is consummated
+const dblClickTimeThreshold = 300; // once the mouse is down at least this long the drag is consummated

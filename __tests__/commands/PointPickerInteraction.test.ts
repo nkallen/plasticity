@@ -40,9 +40,3 @@ test('basic move and click', async () => {
     const { point } = await promise;
     expect(point).toApproximatelyEqual(new THREE.Vector3());
 });
-
-test('basic move and click', async () => {
-    const promise = pointPicker.execute(() => {}, true);
-    promise.finish();
-    expect(promise).rejects.toBeInstanceOf(Finish);
-});
