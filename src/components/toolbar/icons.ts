@@ -143,6 +143,7 @@ keybindings.set("gizmo:mirror:-x", "Negative X");
 keybindings.set("gizmo:mirror:-y", "Negative Y");
 keybindings.set("gizmo:mirror:-z", "Negative Z");
 keybindings.set("gizmo:mirror:free", "Freestyle");
+keybindings.set("gizmo:mirror:pivot", "Pivot");
 keybindings.set("gizmo:rebuild:forward", "Go forward in history");
 keybindings.set("gizmo:rebuild:backward", "Go backward in history");
 keybindings.set("gizmo:modify-contour:fillet-all", "Fillet all");

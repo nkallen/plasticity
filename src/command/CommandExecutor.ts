@@ -98,6 +98,8 @@ export class CommandExecutor {
                 if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
                 if (command.shouldAddToHistory(selectionChanged)) history.add(command.pretty, state);
                 signals.commandFinishedSuccessfully.dispatch(command);
+            } else {
+                originator.discardSideEffects(state);
             }
         } catch (e) {
             command.cancel();

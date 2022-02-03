@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
-import { MultilineCommand } from "../curve/CurveCommand";
+import { MultilineCommand } from "../curve/MultilineCommand";
 import { FilletMagnitudeGizmo } from '../fillet/FilletGizmo';
 import { OffsetFaceGizmo } from "../modifyface/OffsetFaceGizmo";
 import { ThinSolidDialog } from "./ThinSolidDialog";

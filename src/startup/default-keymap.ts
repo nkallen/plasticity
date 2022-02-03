@@ -174,6 +174,7 @@ export default {
         "shift-y": "gizmo:mirror:-y",
         "shift-z": "gizmo:mirror:-z",
         "f": "gizmo:mirror:free",
+        "w": "gizmo:mirror:pivot",
     },
 
     "[command='thin-solid'] plasticity-viewport": {

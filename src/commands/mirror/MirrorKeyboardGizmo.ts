@@ -9,6 +9,7 @@ export class MirrorKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
         super('mirror', editor, [
             'gizmo:mirror:free',
+            'gizmo:mirror:pivot',
         ]);
     }
 }

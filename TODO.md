@@ -4,11 +4,15 @@
 
 ### Backlog
 
+- box 3rd point snaps (ctrl) vs choice  
+- arrow to move cut plane  
+- bug: polyline point picker while holding down control for multiple points, doesn't keep snaps off  
 - w mirror pivot  
 - allow multi select during trim  
 - variable fillet broken (gizmo disappears) when adjust main distance  
 - bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
 - creating sphere 2nd point on vertical z axis errors  
+- convert edge to region  
 - escape out of fillet command to restart  
 - bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
 - convert selectionmode to bitmap  
@@ -96,15 +100,13 @@
 
 ### Todo
 
-- basic sweep  
 - icons normalized <use href="#circle-arrow-left" />  
 - https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
 - top view axes aren't aligned  
 - orbit above top  
 - deselect face when orienting construction plane  
 - trim right click to confirm doesn't work  
-- bug: hitting space on region  
-- convert edge to region  
+- when making curves/lines, need snap to continue tangent  
 
 ### In Progress
 
@@ -113,6 +115,7 @@
 
 ### Done ✓
 
+- bug: hitting space on region  
 - after radial array select all the items  
 - hide all curves  
 - snap points circle center  

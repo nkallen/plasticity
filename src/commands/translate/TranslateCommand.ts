@@ -5,6 +5,7 @@ import { PointPicker } from "../../command/PointPicker";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { GConstructor } from "../../util/Util";
 import * as visual from "../../visual_model/VisualModel";
+import { MirrorGizmo } from "../mirror/MirrorGizmo";
 import { DraftSolidFactory } from "../modifyface/DraftSolidFactory";
 import { ActionFaceCommand } from "../modifyface/ModifyFaceCommand";
 import { MoveControlPointCommand, RotateControlPointCommand, ScaleControlPointCommand } from "../modify_contour/ModifyContourCommand";
@@ -217,14 +218,14 @@ export class DraftSolidCommand extends Command {
     }
 }
 
-function onKeyPress(factory: GeometryFactory & { pivot: THREE.Vector3 }, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo, freestyle: GConstructor<Command>) {
+export function onKeyPress(factory: GeometryFactory & { pivot: THREE.Vector3 }, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo, freestyle: GConstructor<Command>) {
     return async function (this: Command, s: string) {
         switch (s) {
             case 'pivot': {
                 gizmo.disable();
                 const pointPicker = new PointPicker(this.editor);
                 const { point: pivot } = await pointPicker.execute(({ point: pivot, info: { snap } }) => {
-                    const { position, orientation } = snap.project(pivot);
+                    const { orientation } = snap.project(pivot);
                     gizmo.position.copy(pivot);
                     gizmo.quaternion.copy(orientation);
                 }).resource(this);
