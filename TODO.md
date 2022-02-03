@@ -4,117 +4,16 @@
 
 ### Backlog
 
-- box 3rd point snaps (ctrl) vs choice  
-- arrow to move cut plane  
-- bug: polyline point picker while holding down control for multiple points, doesn't keep snaps off  
-- w mirror pivot  
-- allow multi select during trim  
-- variable fillet broken (gizmo disappears) when adjust main distance  
-- bug: run fillet; in the middle of fillet try move; fillet commits but without item in undo history ...  
-- creating sphere 2nd point on vertical z axis errors  
-- convert edge to region  
-- escape out of fillet command to restart  
-- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
-- convert selectionmode to bitmap  
-- turn on --noimplicitoverride  
-- offset face whilst holding control should show phantoms?  
-- add xor selection modifier  
-- draw diagonal line on box face; can't cut  
-- delete region by hitting x  
-- extrude a region after drawing on a face; the region should have the face as a bound  
-- toggle boolean diff which is + and which is - while running command  
-- ortho cube goes to ortho mode  
-- matcap shinier  
-- redo max fillet  
-- fillet: span keybinding  
-- fillet: prolong keybinding  
-- fillet two corners of a curve, not all  
-- turn on/off visual display of edges  
-- autodelete coplanar faces  
-- angle snaps (5deg)  
-- drawing on face -- boundary edges need to be extendable as snaps  
-- cutting contour needs to extend to infinitiy  
-- autojoin curves at same endpoint  
-- boolean keep tool  
-- optimize the draw curve to offset (multiline) flow  
-- cut body: select edge after starting command  
-- upper-left box select of straight lines is too eager  
-- another mirror bug  
-- focus topology  
-- move snapmanagergeometrycache to editor  
-- when you shift a helper leave it visible  
-- select all of type  
-- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
-- separate floor from grid  
-- ctrl in object select should temporarily enable everything (point solid etc)  
-- popup quickmenu a la fusion  
-- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
-- colored helpers for basic axis snaps  
-- move mirror gizmo origin  
-- Napi::Promise::Deferred const &d rename _deferred  
-- dialog keybindings  
-- copy fillet radius by clicking on another fillet surface  
-- bug: box selected, while mouse down, zoom  
-- Fusion-like multigizmo  
-- Solid cut by face: face cutter offset along normal  
-- [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
-- picture in viewport  
-- [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
-- [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
-- [ ] Audit re-used icons  
-- [ ] in xray mode, control points not visible  
-- [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
-- [ ] PointSnap resolution for nearby seems wrong  
-- [ ] move all static buuild() methods to builder, using var ts decl  
-- [ ] Refactor curve extension code  
-- [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
-- [ ] PointPicker: Restrictions are ignored with choice -  
-- [ ] Redesign set resolution of line2 etc  
-- [ ] parentId of edge and face should be set directly and not actually in the tree?  
-- [ ] fillet face  
-- [ ] Helper for center (of arc) point snap  
-- [ ] See if we can get rid of get child() in visualmodel  
-- [ ] Move/Translate allows face selection #bug  
-- [ ] get rid of all snappers in snap  
-- [ ] refactor IntersectableLayers  
-- [ ] Snap points should always be before their geometry if they're visible  
-- [ ] panning and release mouse outside of window errors #bug  
-- [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  
-- [ ] outline for e.g., mirror command is strange - only outline visible items  
-- [ ] Redo titlebar to save space  
-- [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
-- [ ] Add settings for loft  
-- [ ] memoize and discretize calculations like fillet #performance  
-- [ ] memoize mesh generation of faces in mesh creator (for the duration of a command). #performance  
-- [ ] showPhantoms() in ModifyContourPointFactory needs implementation  
-- [ ] Nearpointprojection needs to be errorbool  
-- [ ] Trim command should allow splitting segments  
-- [ ] Trim command should allow points  
-- [ ] Trim should allow box selecting  
-- [ ] Box select during active command allows selecting faces that will be deleted #bug  
-- [ ] rename Id() .id  
-- [ ] audit array conversion is reserving and freeing elements:  
-- ::AddRefItems( curveArray );  
-- ::ReleaseItems( curveArray );  
-- and especially check if instantiated RPArray/etc. is freed altogether - convert MbCartPoint3D and Vector to isPOD  
 
 ### Todo
 
-- icons normalized <use href="#circle-arrow-left" />  
-- https://stackoverflow.com/questions/34225008/how-to-reuse-an-embedded-svg-element-in-the-same-page  
-- top view axes aren't aligned  
-- orbit above top  
-- deselect face when orienting construction plane  
-- trim right click to confirm doesn't work  
-- when making curves/lines, need snap to continue tangent  
 
 ### In Progress
 
-- sweep  
-- gizmos for elementary solids  
 
 ### Done ✓
 
+- deselect face when orienting construction plane  
 - bug: hitting space on region  
 - after radial array select all the items  
 - hide all curves  
