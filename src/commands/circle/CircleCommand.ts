@@ -4,7 +4,7 @@ import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';
-import { EditCircleDialog as CircleDialog } from "./CircleDialog";
+import { CircleDialog } from "./CircleDialog";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './CircleFactory';
 import { CircleKeyboardGizmo } from "./CircleKeyboardGizmo";
 

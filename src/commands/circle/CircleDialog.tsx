@@ -3,7 +3,7 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditCircleParams } from './CircleFactory';
 
-export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
+export class CircleDialog extends AbstractDialog<EditCircleParams> {
     name = "Circle";
 
     constructor(protected readonly params: EditCircleParams, signals: EditorSignals) {
@@ -26,4 +26,4 @@ export class EditCircleDialog extends AbstractDialog<EditCircleParams> {
             </>, this);
     }
 }
-customElements.define('plasticity-center-circle-dialog', EditCircleDialog);
+customElements.define('plasticity-center-circle-dialog', CircleDialog);
