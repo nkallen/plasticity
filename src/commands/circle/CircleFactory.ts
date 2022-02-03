@@ -12,7 +12,7 @@ export class CenterCircleFactory extends GeometryFactory {
     orientation = new THREE.Quaternion()
     mode = Mode.Horizontal;
 
-    get radius() { return this.point.distanceTo(this.center) }
+    get radius() { return this.point?.distanceTo(this.center) ?? 0 }
     set radius(r: number) { this.point = this.center.clone().add(new THREE.Vector3(r, 0, 0)) }
 
     toggleMode() {

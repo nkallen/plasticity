@@ -3,7 +3,7 @@ import { RadialArrayCommand } from "./array/ArrayCommand";
 import { BooleanCommand, CutCommand } from "./boolean/BooleanCommand";
 import { CenterBoxCommand, CornerBoxCommand, ThreePointBoxCommand } from "./box/BoxCommand";
 import { CharacterCurveCommand } from "./character-curve/CharacterCurveCommand";
-import { CenterCircleCommand, CenterPointArcCommand, EditCircleCommand, ThreePointCircleCommand, TwoPointCircleCommand } from "./circle/CircleCommand";
+import { CenterCircleCommand, CenterPointArcCommand, ThreePointCircleCommand, TwoPointCircleCommand } from "./circle/CircleCommand";
 import { CurveCommand, LineCommand } from "./curve/CurveCommand";
 import { JoinCurvesCommand } from "./curve/JoinCurvesCommand";
 import { MultilineCommand } from "./curve/MultilineCommand";
@@ -54,7 +54,6 @@ export {
     ScaleControlPointCommand,
     FreestyleScaleControlPointCommand,
     ThinSolidCommand,
-    EditCircleCommand,
     LoftCommand,
     JoinCurvesCommand,
     ExtrudeCommand,

@@ -319,7 +319,7 @@ export class Model {
             pointActivatedSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveSnap) {
-                const additional = snap.additionalSnapsForLast(last.point, lastPickedSnap);
+                const additional = snap.additionalSnapsGivenPreviousSnap(last.point, lastPickedSnap);
                 this.addSnap(...additional);
             }
         }

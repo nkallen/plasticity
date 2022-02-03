@@ -281,12 +281,12 @@ describe(CurveSnap, () => {
 
     test('additionalSnapsForLast', () => {
         let result;
-        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 0), new PlaneSnap());
+        result = snap.additionalSnapsGivenPreviousSnap(new THREE.Vector3(0, 10, 0), new PlaneSnap());
         expect(result.length).toBe(1);
         expect(result[0]).toBeInstanceOf(PointSnap);
         expect(result[0].name).toBe("Tangent");
 
-        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 10), new PlaneSnap());
+        result = snap.additionalSnapsGivenPreviousSnap(new THREE.Vector3(0, 10, 10), new PlaneSnap());
         expect(result.length).toBe(0);
     });
 
@@ -315,7 +315,7 @@ describe(CurveSnap, () => {
             snap2 = new CurveSnap(circle2, model2);
         }
 
-        const snaps = snap1.additionalSnapsForLast(new THREE.Vector3(), snap2);
+        const snaps = snap1.additionalSnapsGivenPreviousSnap(new THREE.Vector3(), snap2);
         expect(snaps.length).toBe(6);
         expect(snaps[2]).toBeInstanceOf(TanTanSnap);
         expect(snaps[3]).toBeInstanceOf(TanTanSnap);

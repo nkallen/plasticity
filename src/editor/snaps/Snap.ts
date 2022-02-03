@@ -43,7 +43,7 @@ export abstract class Snap implements Restriction {
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return }
     additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
-    additionalSnapsForLast(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
+    additionalSnapsGivenPreviousSnap(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
 }
 
 export interface ChoosableSnap extends Snap {
@@ -324,7 +324,7 @@ export class CurveSnap extends Snap {
         return [normalSnap, binormalSnap, tangentSnap];
     }
 
-    additionalSnapsForLast(last: THREE.Vector3, lastPickedSnap: Snap) {
+    additionalSnapsGivenPreviousSnap(last: THREE.Vector3, lastPickedSnap: Snap) {
         const { model } = this;
         const planarized = curve3d2curve2d(model, new c3d.Placement3D());
         if (planarized === undefined) return [];
