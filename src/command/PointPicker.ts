@@ -311,19 +311,21 @@ export class Model {
     get activatedHelpers(): readonly Snap[] { return this._activatedHelpers }
 
     private readonly alreadyActivatedSnaps = new Set<Snap>();
-    activateSnapped(snaps: Snap[]) {
+    activateSnapped(snaps: Snap[], viewportInfo: { isOrthoMode: boolean, constructionPlane: ConstructionPlane }) {
         for (const snap of snaps) {
             if (this.alreadyActivatedSnaps.has(snap)) continue;
             this.alreadyActivatedSnaps.add(snap); // idempotent
 
+            const quat = viewportInfo.isOrthoMode ? viewportInfo.constructionPlane.orientation : new THREE.Quaternion();
+
             if (snap instanceof CurveEndPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
                 this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof FaceCenterPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
                 this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof PointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
             }
         }
     }
@@ -441,8 +443,8 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     } else if (e.key == "Shift") {
                         const oldChoice = this.model.choice;
                         this.model.choose(undefined);
-                        // FIXME: need to pass all last snap results
-                        if (info !== undefined) model.activateSnapped([info.snap]);
+                        // TODO: need to pass all last snap results
+                        if (info !== undefined) model.activateSnapped([info.snap], viewport);
                         if (info !== undefined || oldChoice !== undefined) onPointerMove(lastMoveEvent);
                     }
                 }

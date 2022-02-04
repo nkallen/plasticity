@@ -479,8 +479,9 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
-const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.8 });
-export const axisSnapMaterial = new LineMaterial();
+const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+const lineDashedMaterial = new THREE.LineDashedMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.15 });
+export const axisSnapMaterial = new LineMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.1, dashed: true, dashScale: 100, dashSize: 100 });
 
 export class AxisSnap extends Snap implements ChoosableSnap {
     readonly snapper = new Line2(axisGeometry_line2, axisSnapMaterial);
@@ -570,7 +571,10 @@ export class PointAxisSnap extends AxisSnap {
 
     constructor(readonly name: string, n: THREE.Vector3, position: THREE.Vector3) {
         super(name, n, position);
-        this.helper.add(this.snapper.clone());
+        const helperline = new THREE.Line(axisGeometry_line, lineDashedMaterial);
+        helperline.position.copy(this.snapper.position);
+        helperline.quaternion.copy(this.snapper.quaternion);
+        this.helper.add(helperline);
         const sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
         sourcePointIndicator.position.copy(position);
         this.helper.add(sourcePointIndicator);
@@ -588,13 +592,13 @@ export class NormalAxisSnap extends PointAxisSnap {
     }
 }
 
-const mat = new THREE.MeshBasicMaterial();
-mat.side = THREE.DoubleSide;
+const material = new THREE.MeshBasicMaterial();
+material.side = THREE.DoubleSide;
 
 export class PlaneSnap extends Snap {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
-    readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, mat);
+    readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, material);
 
     static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
     static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
@@ -618,7 +622,9 @@ export class PlaneSnap extends Snap {
         this.snapper.position.copy(p);
         this.n = n;
         this.p = p;
-        this.orientation.setFromUnitVectors(Z, this.n);
+        const mat = new THREE.Matrix4();
+        mat.lookAt(new THREE.Vector3(), n, new THREE.Vector3(0, 0, 1));
+        this.orientation.setFromRotationMatrix(mat);
 
         this.init();
     }

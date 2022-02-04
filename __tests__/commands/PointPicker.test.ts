@@ -492,9 +492,32 @@ describe('activateSnapped', () => {
 
     test("for pointsnaps, adds axes", () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
-        pointPicker.activateSnapped([snap]);
+        pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
         const snaps = pointPicker.snaps;
         expect(snaps.map(s => s.name).sort()).toEqual(['x', 'y', 'z']);
+
+        const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+        const x = pointAxisSnaps.find(p => p.name === 'x')!;
+        expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+        const y = pointAxisSnaps.find(p => p.name === 'y')!;
+        expect(y.n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        const z = pointAxisSnaps.find(p => p.name === 'z')!;
+        expect(z.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+    });
+
+    test("for pointsnaps, isOrtho=true, adds axes oriented to construction plane", () => {
+        const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
+        pointPicker.activateSnapped([snap], { isOrthoMode: true, constructionPlane: new ConstructionPlaneSnap(new THREE.Vector3(1, 1, 1).normalize()) });
+        const snaps = pointPicker.snaps;
+        expect(snaps.map(s => s.name).sort()).toEqual(['x', 'y', 'z']);
+
+        const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+        const x = pointAxisSnaps.find(p => p.name === 'x')!;
+        expect(x.n).toApproximatelyEqual(new THREE.Vector3(Math.SQRT1_2, -Math.SQRT1_2, 0));
+        const y = pointAxisSnaps.find(p => p.name === 'y')!;
+        expect(y.n).toApproximatelyEqual(new THREE.Vector3(-0.408, -0.408, 0.816));
+        const z = pointAxisSnaps.find(p => p.name === 'z')!;
+        expect(z.n).toApproximatelyEqual(new THREE.Vector3(-0.577, -0.577, -0.577));
     });
 
     test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
@@ -504,7 +527,7 @@ describe('activateSnapped', () => {
         const curveSnap = new CurveSnap(curve, model);
         const snap = new CurveEndPointSnap(undefined, new THREE.Vector3(2, 2, 0), curveSnap, model.GetTMin());
 
-        pointPicker.activateSnapped([snap]);
+        pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
 
         const snaps = pointPicker.snaps;
         expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
@@ -517,7 +540,7 @@ describe('activateSnapped', () => {
         const curveSnap = new CurveSnap(curve, model);
         const snap = new CurveEndPointSnap(undefined, new THREE.Vector3(2, 2, 0), curveSnap, model.GetTMin());
 
-        pointPicker.activateSnapped([snap]);
+        pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
 
         let snaps = pointPicker.snaps;
         expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
@@ -530,7 +553,7 @@ describe('activateSnapped', () => {
     test('regardless of the current straightsnaps, adds XYZ axes', () => {
         pointPicker.straightSnaps.clear();
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
-        pointPicker.activateSnapped([snap]);
+        pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
         const snaps = pointPicker.snaps;
         expect(snaps.map(s => s.name)).toEqual(['x', 'y', 'z']);
     })
