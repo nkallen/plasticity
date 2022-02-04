@@ -6,6 +6,7 @@ import { FaceSnap, PlaneSnap, Snap } from "./Snap";
 export interface ConstructionPlane extends Snap {
     get n(): THREE.Vector3;
     get p(): THREE.Vector3;
+    get orientation(): THREE.Quaternion;
     get placement(): c3d.Placement3D;
     move(vector: THREE.Vector3): ConstructionPlane;
     get isTemp(): boolean;
@@ -84,6 +85,13 @@ export class ScreenSpaceConstructionPlaneSnap extends Snap implements Constructi
         switch (this.state.tag) {
             case 'none': return this.basis.p;
             case 'start': return this.state.snap.p;
+        }
+    }
+
+    get orientation() {
+        switch (this.state.tag) {
+            case 'none': return this.basis.orientation;
+            case 'start': return this.state.snap.orientation;
         }
     }
 

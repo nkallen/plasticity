@@ -9,7 +9,7 @@ export enum Mode { Horizontal, Vertical }
 export class CenterCircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
-    orientation = new THREE.Quaternion()
+    orientation = new THREE.Quaternion();
     mode = Mode.Horizontal;
 
     get radius() { return this.point?.distanceTo(this.center) ?? 0 }

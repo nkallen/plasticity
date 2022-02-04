@@ -599,7 +599,7 @@ export class PlaneSnap extends Snap {
 
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
-    private readonly orientation = new THREE.Quaternion();
+    readonly orientation = new THREE.Quaternion();
 
     static from(origin: THREE.Vector3, quaternion: THREE.Quaternion) {
         const n = new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion);

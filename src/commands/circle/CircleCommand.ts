@@ -13,7 +13,7 @@ export class CenterCircleCommand extends Command {
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        pointPicker.prefer(FaceSnap);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = point;
@@ -33,7 +33,7 @@ export class CenterCircleCommand extends Command {
         }).resource(this);
 
         pointPicker.restrictToPlaneThroughPoint(point, snap);
-        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
+        await pointPicker.execute(({ point: p2, info, info: { orientation } }) => {
             circle.point = p2;
             circle.orientation = orientation;
             dialog.render();

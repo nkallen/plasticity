@@ -108,7 +108,7 @@ describe('Unit tests', () => {
         const faceSnap = picker.intersect(pointPicker, snaps, db)[0].snap;
         if (!(faceSnap instanceof FaceSnap)) throw '';
 
-        pointPicker.prefer(FaceSnap);
+        pointPicker.facePreferenceMode = 'weak';
         pointPicker.addPickedPoint({ point: new THREE.Vector3(), info: { snap: faceSnap, orientation: new THREE.Quaternion(), cameraOrientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), constructionPlane: new ConstructionPlaneSnap() } });
 
         const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };

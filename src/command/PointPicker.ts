@@ -12,13 +12,12 @@ import { PlaneDatabase } from '../editor/PlaneDatabase';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
+import { SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
+import { RaycasterParams, SnapPicker } from '../editor/snaps/SnapPicker';
 import { Finish } from '../util/Cancellable';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helpers } from '../util/Helpers';
-import { GConstructor } from '../util/Util';
-import { SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
-import { RaycasterParams, SnapPicker } from '../editor/snaps/SnapPicker';
 import * as visual from "../visual_model/VisualModel";
 import { GizmoMaterialDatabase } from './GizmoMaterials';
 import { Executable } from './Quasimode';
@@ -42,6 +41,7 @@ export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orie
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
+export type PreferenceMode = 'none' | 'weak' | 'strong';
 
 const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 
@@ -81,8 +81,10 @@ export class Model {
     restrictionFor(baseConstructionPlane: ConstructionPlane, isOrtho: boolean): Restriction | undefined {
         if (this._restriction === undefined && this.restrictionPoint !== undefined) {
             return baseConstructionPlane.move(this.restrictionPoint);
-        } else if (this._restriction !== undefined && this.restrictionPoint !== undefined) {
+        } else if (this._restriction !== undefined && this.restrictionPoint !== undefined && !isOrtho) {
             return new OrRestriction([this._restriction, baseConstructionPlane.move(this.restrictionPoint)]);
+        } else if (this._restriction !== undefined && this.restrictionPoint !== undefined && isOrtho) {
+            return baseConstructionPlane.move(this.restrictionPoint);
         } else if (this._restriction === undefined && isOrtho) {
             return baseConstructionPlane;
         } else return this._restriction;
@@ -104,14 +106,14 @@ export class Model {
 
     private snapsForLastPickedPoint: Snap[] = [];
     private makeSnapsForPickedPoints(): void {
-        const { pickedPointSnaps, straightSnaps, _preferenceType: preferenceType } = this;
+        const { pickedPointSnaps, straightSnaps, facePreferenceMode } = this;
 
         this.crosses = new CrossPointDatabase(this.originalCrosses);
 
         let results: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             FirstPoint: {
-                if (preferenceType !== undefined) {
+                if (facePreferenceMode !== 'none') {
                     const first = pickedPointSnaps[0];
                     const snap = first.info.snap;
                     const info = { position: first.point, orientation: first.info.orientation };
@@ -127,7 +129,8 @@ export class Model {
                 const lastSnap = last.info.snap;
                 const lastOrientation = last.info.orientation;
                 let work: Snap[] = [];
-                const axes = [...straightSnaps].map(s => s.rotate(lastOrientation));
+                let axes = [...straightSnaps];
+                if (facePreferenceMode === 'strong') axes = axes.map(s => s.rotate(lastOrientation));
                 work = work.concat(new PointSnap(undefined, last.point).axes(axes));
                 work = work.concat(lastSnap.additionalSnapsFor(last.point));
                 for (const snap of work) {
@@ -147,13 +150,9 @@ export class Model {
         this.mutualSnaps.clear();
     }
 
-    private _preference?: { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion } };
+    facePreferenceMode: PreferenceMode = 'none';
+    private _preference?: { snap: FaceSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion } };
     get preference() { return this._preference }
-
-    private _preferenceType?: GConstructor<ChoosableSnap>;
-    prefer<S extends ChoosableSnap>(preferenceType: GConstructor<S>) {
-        this._preferenceType = preferenceType;
-    }
 
     start() {
         this.registerKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint);
@@ -513,7 +512,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
-    prefer<S extends ChoosableSnap>(preference: GConstructor<ChoosableSnap>) { this.model.prefer(preference) }
+    set facePreferenceMode(facePreferenceMode: PreferenceMode) { this.model.facePreferenceMode = facePreferenceMode }
 
     undo() { this.model.undo() }
 }

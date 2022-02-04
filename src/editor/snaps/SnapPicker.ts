@@ -99,10 +99,14 @@ abstract class AbstractSnapPicker {
         }
         intersections_snaps.sort(sort);
 
+        const isOrthoMode = viewport.isOrthoMode;
+        const constructionPlaneOrientation = viewport.constructionPlane.orientation;
+
         let result: SnapResult[] = [];
         for (const { snap, intersection } of intersections_snaps) {
             const { position, orientation } = snap.project(intersection.point);
-            result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
+            const effectiveOrientation = isOrthoMode ? constructionPlaneOrientation : orientation;
+            result.push({ snap, position, orientation: effectiveOrientation, cursorPosition: position, cursorOrientation: effectiveOrientation });
         }
         return result;
     }

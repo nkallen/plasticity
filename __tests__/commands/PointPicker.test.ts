@@ -20,6 +20,10 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../build/Release/c3d.node';
 import '../matchers';
 
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
 let pointPicker: Model;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -52,8 +56,15 @@ describe('restrictToPlaneThroughPoint(no snap)', () => {
     })
 
 
-    test("restriction", () => {
+    test("restrictionFor !isOrtho", () => {
         const restriction = pointPicker.restrictionFor(constructionPlane, false) as PlaneSnap;
+        expect(restriction).toBeInstanceOf(PlaneSnap);
+        expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test("restrictionFor isOrtho", () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane, true) as PlaneSnap;
         expect(restriction).toBeInstanceOf(PlaneSnap);
         expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
@@ -93,13 +104,20 @@ describe('restrictToPlaneThroughPoint(with snap)', () => {
         expect(pointPicker.restrictionSnapsFor().length).toBe(0);
     })
 
-    test("restriction", () => {
+    test("restrictionFor !isOrtho", () => {
         const restriction = pointPicker.restrictionFor(constructionPlane, false) as OrRestriction<PlaneSnap>;
         expect(restriction).toBeInstanceOf(OrRestriction);
         const plane = restriction['underlying'][0];
         expect(plane).toBeInstanceOf(PlaneSnap);
         expect(plane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
         expect(plane.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test("restrictionFor isOrtho", () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane, true) as ConstructionPlaneSnap;
+        expect(restriction).toBeInstanceOf(ConstructionPlaneSnap);
+        expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -320,7 +338,19 @@ describe('prefer & addPickedPoint', () => {
     });
 
     test("prefer & preference", () => {
-        pointPicker.prefer(FaceSnap);
+        pointPicker.facePreferenceMode = 'none';
+        const face = box.faces.get(0);
+        const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+        expect(pointPicker.preference).toBe(undefined);
+        pointPicker.addPickedPoint({
+            point: new THREE.Vector3(0, 10, 0),
+            info: { snap, constructionPlane, orientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+        });
+        expect(pointPicker.preference).toBe(undefined);
+    })
+
+    test("prefer & preference", () => {
+        pointPicker.facePreferenceMode = 'weak';
         const face = box.faces.get(0);
         const snap = new FaceSnap(face, db.lookupTopologyItem(face));
         expect(pointPicker.preference).toBe(undefined);
@@ -341,11 +371,69 @@ describe('prefer & addPickedPoint', () => {
         });
         expect(pointPicker.preference).toBe(undefined);
     })
-})
 
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
+    describe('straight snap / axis orientation', () => {
+        let face: visual.Face;
+        let snap: FaceSnap;
+        const quat = new THREE.Quaternion().setFromUnitVectors(Z, new THREE.Vector3(1, 1, 1).normalize());
+
+        beforeEach(() => {
+            face = box.faces.get(0);
+            snap = new FaceSnap(face, db.lookupTopologyItem(face));
+        })
+
+        test("with strong preference, straight snaps are oriented to the last orientation", () => {
+            pointPicker.facePreferenceMode = 'strong';
+            pointPicker.addPickedPoint({
+                point: new THREE.Vector3(0, 10, 0),
+                info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+            });
+            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const x = pointAxisSnaps.find(p => p.name === 'x')!;
+            expect(x.n).toApproximatelyEqual(new THREE.Vector3(0.788, -0.211, -0.577));
+            const y = pointAxisSnaps.find(p => p.name === 'y')!;
+            expect(y.n).toApproximatelyEqual(new THREE.Vector3(-0.211, 0.788, -0.577));
+            const z = pointAxisSnaps.find(p => p.name === 'z')!;
+            expect(z.n).toApproximatelyEqual(new THREE.Vector3(0.577, 0.577, 0.577));
+        })
+
+        test("with weak preference, straight snaps are oriented to coordinate system", () => {
+            pointPicker.facePreferenceMode = 'weak';
+            const face = box.faces.get(0);
+            const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+            const quat = new THREE.Quaternion().setFromUnitVectors(Z, new THREE.Vector3(1, 1, 1).normalize());
+            pointPicker.addPickedPoint({
+                point: new THREE.Vector3(0, 10, 0),
+                info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+            });
+            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const x = pointAxisSnaps.find(p => p.name === 'x')!;
+            expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            const y = pointAxisSnaps.find(p => p.name === 'y')!;
+            expect(y.n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            const z = pointAxisSnaps.find(p => p.name === 'z')!;
+            expect(z.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        })
+
+        test("with no preference, straight snaps are oriented to coordinate system", () => {
+            pointPicker.facePreferenceMode = 'none';
+            const face = box.faces.get(0);
+            const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+            const quat = new THREE.Quaternion().setFromUnitVectors(Z, new THREE.Vector3(1, 1, 1).normalize());
+            pointPicker.addPickedPoint({
+                point: new THREE.Vector3(0, 10, 0),
+                info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
+            });
+            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const x = pointAxisSnaps.find(p => p.name === 'x')!;
+            expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            const y = pointAxisSnaps.find(p => p.name === 'y')!;
+            expect(y.n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            const z = pointAxisSnaps.find(p => p.name === 'z')!;
+            expect(z.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        })
+    })
+})
 
 describe('addAxesAt', () => {
     beforeEach(() => {
