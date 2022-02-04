@@ -54,19 +54,17 @@ export class CornerBoxCommand extends Command {
     async execute(): Promise<void> {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
-        if (selection.solids.size > 0)
-            box.targets = [...selection.solids];
+        if (selection.solids.size > 0) box.targets = [...selection.solids];
 
         let pointPicker = new PointPicker(this.editor);
-        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
-
-        pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
-        pointPicker.addAxesAt(p1);
+
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -105,6 +103,7 @@ export class CenterBoxCommand extends Command {
         box.targets = [...selection.solids];
 
         let pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);

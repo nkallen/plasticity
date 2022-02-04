@@ -24,6 +24,7 @@ export class CylinderCommand extends Command {
 
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         let pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = p1;
