@@ -27,6 +27,7 @@ export class PolygonCommand extends Command {
         }).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.Z);
 
         const { point, info: { snap } } = await pointPicker.execute().resource(this);

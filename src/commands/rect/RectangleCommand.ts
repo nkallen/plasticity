@@ -36,6 +36,7 @@ export class ThreePointRectangleCommand extends Command {
 export class CornerRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'weak';
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
@@ -66,6 +67,7 @@ export class CenterRectangleCommand extends Command {
         rect.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);

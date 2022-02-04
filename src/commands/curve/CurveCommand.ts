@@ -23,6 +23,7 @@ export class CurveCommand extends Command {
         makeCurve.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.facePreferenceMode = 'weak';
         const keyboard = this.keyboard;
         keyboard.execute((e: CurveKeyboardEvent) => {
             switch (e.tag) {
