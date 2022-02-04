@@ -98,7 +98,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 this.addFace(face, faces[i], snapsForItem);
             }
         } else if (item instanceof visual.SpaceInstance) {
-            this.addCurve(item, snapsForItem);
+            this.addInstance(item, snapsForItem);
         }
 
         performance.measure('snap-add', 'begin-snap-add');
@@ -165,12 +165,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         into.add(endSnap);
     }
 
-    private addCurve(view: visual.SpaceInstance<visual.Curve3D>, into: Set<Snap>) {
+    private addInstance(view: visual.SpaceInstance<visual.Curve3D>, into: Set<Snap>) {
         const inst = this.db.lookup(view);
         const item = inst2curve(inst)!;
         this.crosses.add(view.simpleName, item);
-
         const curveSnap = this.identityMap.CurveSnap(view, item);
+        this.addCurve(curveSnap, item, into);
+    }
+
+    private addCurve(curveSnap: CurveSnap, item: c3d.Curve3D, into: Set<Snap>) {
         if (item instanceof c3d.Polyline3D) {
             const points = item.GetPoints();
             const endSnaps = points.map(point =>
@@ -216,6 +219,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                         new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
                     );
                     for (const endSnap of endSnaps) into.add(endSnap);
+                } else {
+                    this.addCurve(curveSnap, segment.Cast<c3d.Curve3D>(segment.IsA()), into);
                 }
             }
             const begPt = item.GetLimitPoint(1);
@@ -226,21 +231,36 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const end = new CurveEndPointSnap("End", point2point(endPt), curveSnap, item.NearPointProjection(endPt, false).t)
             into.add(end);
         } else if (item instanceof c3d.Arc3D) {
-            const zeroPt = point2point(item.PointOn(0));
-            const quartPt = point2point(item.PointOn(2 * Math.PI / 4));
-            const halfPt = point2point(item.PointOn(Math.PI));
-            const threeQuartPt = point2point(item.PointOn(Math.PI * 3 / 2));
-
-            const zeroSnap = new CurvePointSnap("Start", zeroPt, curveSnap, item.NearPointProjection(point2point(zeroPt), false).t);
-            const quartSnap = new CurvePointSnap("1/4", quartPt, curveSnap, item.NearPointProjection(point2point(quartPt), false).t);
-            const halfSnap = new CurvePointSnap("1/2", halfPt, curveSnap, item.NearPointProjection(point2point(halfPt), false).t);
-            const threeQuartSnap = new CurvePointSnap("3/4", threeQuartPt, curveSnap, item.NearPointProjection(point2point(threeQuartPt), false).t);
             const centerSnap = new CircleCurveCenterPointSnap(item, curveSnap);
+            if (item.IsClosed()) {
+                const zeroPt = point2point(item.PointOn(0));
+                const quartPt = point2point(item.PointOn(2 * Math.PI / 4));
+                const halfPt = point2point(item.PointOn(Math.PI));
+                const threeQuartPt = point2point(item.PointOn(Math.PI * 3 / 2));
 
-            into.add(zeroSnap);
-            into.add(quartSnap);
-            into.add(halfSnap);
-            into.add(threeQuartSnap);
+                const zeroSnap = new CurvePointSnap("Start", zeroPt, curveSnap, item.NearPointProjection(point2point(zeroPt), false).t);
+                const quartSnap = new CurvePointSnap("1/4", quartPt, curveSnap, item.NearPointProjection(point2point(quartPt), false).t);
+                const halfSnap = new CurvePointSnap("1/2", halfPt, curveSnap, item.NearPointProjection(point2point(halfPt), false).t);
+                const threeQuartSnap = new CurvePointSnap("3/4", threeQuartPt, curveSnap, item.NearPointProjection(point2point(threeQuartPt), false).t);
+
+                into.add(zeroSnap);
+                into.add(quartSnap);
+                into.add(halfSnap);
+                into.add(threeQuartSnap);
+            } else {
+                const tmin = item.GetTMin();
+                const tmax = item.GetTMax();
+                const min = item.PointOn(tmin);
+                const mid = item.PointOn(0.5 * (tmin + tmax));
+                const max = item.PointOn(tmax);
+                const begSnap = new CurveEndPointSnap("Beginning", point2point(min), curveSnap, item.GetTMin());
+                const midSnap = new CurveEndPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (item.GetTMin() + item.GetTMax()));
+                const endSnap = new CurveEndPointSnap("End", point2point(max), curveSnap, item.GetTMax());
+                into.add(begSnap);
+                into.add(midSnap);
+                into.add(endSnap);
+            }
+
             into.add(centerSnap);
         } else {
             if (item.IsClosed()) return;
@@ -255,6 +275,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             if (item.IsStraight()) into.add(midSnap);
             into.add(endSnap);
         }
+        console.log(into);
     }
 
     private delete(item: visual.Item) {

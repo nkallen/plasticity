@@ -1,6 +1,6 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
-import { AxisSnap, FaceSnap } from "../../editor/snaps/Snap";
+import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';

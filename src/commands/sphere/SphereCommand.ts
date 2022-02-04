@@ -1,5 +1,6 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
+import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanSphereFactory } from './SphereFactory';
@@ -11,7 +12,7 @@ export class SphereCommand extends Command {
         sphere.targets = [...selection.solids];
 
         const pointPicker = new PointPicker(this.editor);
-        // pointPicker.straightSnaps.delete(AxisSnap.Z);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point: p1 } = await pointPicker.execute().resource(this);
         sphere.center = p1;
         pointPicker.restrictToPlaneThroughPoint(p1);
