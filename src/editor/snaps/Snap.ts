@@ -398,13 +398,16 @@ export class FaceSnap extends Snap implements ChoosableSnap {
         this.init();
     }
 
+    private readonly mat = new THREE.Matrix4();
     project(point: THREE.Vector3) {
-        const { model } = this;
-        const { u, v, normal } = model.NearPointProjection(point2point(point));
+        const { model, mat } = this;
+        const { u, v, normal: normal_c3d } = model.NearPointProjection(point2point(point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = point2point(model.Point(faceU, faceV));
         const position = projected;
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal, 1));
+        const normal = vec2vec(normal_c3d, 1);
+        mat.lookAt(new THREE.Vector3(), normal, new THREE.Vector3(0, 0, 1));
+        const orientation = new THREE.Quaternion().setFromRotationMatrix(mat);
         return { position, orientation };
     }
 
