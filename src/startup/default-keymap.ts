@@ -297,7 +297,11 @@ export default {
         "y": "snaps:set-y",
         "z": "snaps:set-z",
         "s": "snaps:set-square",
+
         "mouse2": "point-picker:finish",
+
+        "ctrl": "snaps:temporarily-disable",
+        "^ctrl": "snaps:temporarily-enable",
     },
 
     "body": {

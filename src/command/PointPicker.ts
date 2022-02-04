@@ -368,7 +368,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { editor, model, snapCache } = this;
+            const { editor, editor: { signals }, model, snapCache } = this;
 
             disposables.add(model.start());
 
@@ -382,6 +382,12 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             const picker = new SnapPicker(this.raycasterParams);
             disposables.add(picker.disposable);
 
+            let lastMoveEvent: (() => void) | undefined = undefined;
+            const replayLastMove = () => { if (lastMoveEvent !== undefined) lastMoveEvent() }
+            const e = signals.snapsEnabled.add(replayLastMove);
+            const d = signals.snapsDisabled.add(replayLastMove);
+            disposables.add(new Disposable(() => { e.detach(); d.detach() }))
+
             let info: SnapInfo | undefined = undefined;
             for (const viewport of editor.viewports) {
                 disposables.add(viewport.disableControls(viewport.navigationControls));
@@ -393,13 +399,12 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
                 const { renderer: { domElement } } = viewport;
 
-                let lastMoveEvent: PointerEvent | undefined = undefined;
 
                 const onPointerMove = (e: PointerEvent | undefined) => {
                     if (e === undefined) return;
                     if (isNavigating) return;
 
-                    lastMoveEvent = e;
+                    lastMoveEvent = () => onPointerMove(e);
                     picker.setFromViewport(e, viewport);
                     const { presentation, intersections } = SnapPresentation.makeForPointPicker(picker, viewport, model, editor.db, snapCache, editor.gizmos);
                     presenter.onPointerMove(viewport, presentation);
@@ -427,8 +432,6 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     if (isNavigating) return;
 
                     if (e.key == "Control") {
-                        editor.snaps.enabled = false;
-                        onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
                         this.model.choose(info?.snap, info, true);
                     }
@@ -438,18 +441,16 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     if (isNavigating) return;
 
                     if (e.key == "Control") {
-                        editor.snaps.enabled = true;
-                        onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
                         const oldChoice = this.model.choice;
                         this.model.choose(undefined);
                         // TODO: need to pass all last snap results
                         if (info !== undefined) model.activateSnapped([info.snap], viewport);
-                        if (info !== undefined || oldChoice !== undefined) onPointerMove(lastMoveEvent);
+                        if (info !== undefined || oldChoice !== undefined) replayLastMove();
                     }
                 }
 
-                const d = model.registerKeyboardCommands(viewport.domElement, () => onPointerMove(lastMoveEvent));
+                const d = model.registerKeyboardCommands(viewport.domElement, replayLastMove);
                 const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
                     if (rejectOnFinish) {
                         dispose();
@@ -469,7 +470,6 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
-                disposables.add(new Disposable(() => { editor.snaps.enabled = true }));
             }
 
             const dispose = () => {

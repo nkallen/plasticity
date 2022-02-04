@@ -6,6 +6,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { EditorOriginator, History } from "../editor/History";
 import { CachingMeshCreator } from "../editor/MeshCreator";
 import { PlaneDatabase } from "../editor/PlaneDatabase";
+import { SnapManager } from "../editor/snaps/SnapManager";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { AlreadyFinishedError } from "../util/CancellablePromise";
@@ -25,6 +26,7 @@ export interface EditorLike {
     contours: ContourManager;
     viewports: ReadonlyArray<Viewport>;
     meshCreator: CachingMeshCreator;
+    snaps: SnapManager;
 }
 
 export class CommandExecutor {
@@ -75,7 +77,7 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        const { signals, registry, originator, history, selection, contours, db, meshCreator } = this.editor;
+        const { snaps, signals, registry, originator, history, selection, contours, db, meshCreator } = this.editor;
         signals.commandStarted.dispatch(command);
         const disposable = registry.add('plasticity-viewport', {
             'command:finish': () => command.finish(),
@@ -112,6 +114,7 @@ export class CommandExecutor {
             }
             disposable.dispose();
             db.clearTemporaryObjects();
+            snaps.xor = false;
             PlaneDatabase.ScreenSpace.reset();
             signals.commandEnded.dispatch(command);
             originator.validate();

@@ -9,7 +9,7 @@ export class SnapManagerGeometryCache {
     private readonly material = new BetterRaycastingPointsMaterial();
     get resolution() { return this.material.resolution; }
 
-    get enabled() { return this.snaps.enabled; }
+    get enabled() { return this.snaps.enabled }
 
     constructor(private readonly snaps: SnapManager, private readonly db: DatabaseLike) {
         this.update();

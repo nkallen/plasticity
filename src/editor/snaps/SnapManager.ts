@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
-import { SnapIdentityMap } from "./SnapIdentityMap";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { DatabaseLike } from "../DatabaseLike";
 import { EditorSignals } from "../EditorSignals";
 import { MementoOriginator, SnapMemento } from "../History";
 import { DisablableType } from "../TypeManager";
-import { AxisSnap, CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, PointSnap, Snap } from "./Snap";
+import { SnapIdentityMap } from "./SnapIdentityMap";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -19,7 +19,22 @@ export enum SnapType {
 type SnapMap = Map<c3d.SimpleName, Set<PointSnap>>;
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
-    enabled = true;
+    private _enabled = true;
+    set enabled(enabled: boolean) { this._enabled = enabled }
+    get enabled() {
+        return this._enabled !== this.xor;
+    }
+
+    private _xor = false;
+    get xor() { return this._xor }
+    set xor(xor: boolean) {
+        if (this._xor === xor) return;
+
+        this._xor = xor;
+        if (xor) this.signals.snapsEnabled.dispatch();
+        else this.signals.snapsDisabled.dispatch();
+    }
+
     options: SnapType = SnapType.Basic | SnapType.Geometry | SnapType.Crosses;
     readonly layers = new THREE.Layers();
 
@@ -32,7 +47,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     constructor(
         private readonly db: DatabaseLike,
         private readonly crosses: CrossPointDatabase,
-        signals: EditorSignals
+        private readonly signals: EditorSignals
     ) {
         Object.freeze(this.basicSnaps);
 
@@ -275,7 +290,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             if (item.IsStraight()) into.add(midSnap);
             into.add(endSnap);
         }
-        console.log(into);
     }
 
     private delete(item: visual.Item) {

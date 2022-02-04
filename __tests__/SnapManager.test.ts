@@ -153,6 +153,23 @@ test("enabling and disabling types adds/removes snaps", async () => {
     expect(snaps.all.geometrySnaps[0].size).toBe(7);
 });
 
+test("xor enabled=true", () => {
+    snaps.enabled = true;
+    snaps.xor = true;
+    expect(snaps.enabled).toBe(false);
+    snaps.xor = false;
+    expect(snaps.enabled).toBe(true);
+})
+
+test("xor enabled=false", () => {
+    snaps.enabled = false;
+    snaps.xor = true;
+    expect(snaps.enabled).toBe(true);
+    snaps.xor = false;
+    expect(snaps.enabled).toBe(false);
+})
+
+
 describe('undo', () => {
     let box: visual.Solid;
 

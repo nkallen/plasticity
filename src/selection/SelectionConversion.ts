@@ -33,6 +33,9 @@ export class SelectionCommandRegistrar {
             'selection:convert:edge': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.CurveEdge)),
             'selection:convert:face': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Face)),
             'selection:convert:solid': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Solid)),
+
+            'snaps:temporarily-enable': () => this.editor.snaps.xor = true,
+            'snaps:temporarily-disable': () => this.editor.snaps.xor = false,
         })
     }
 }

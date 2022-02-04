@@ -34,7 +34,6 @@ import ModifierManager from "./ModifierManager";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { TypeManager } from "./TypeManager";
 
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
