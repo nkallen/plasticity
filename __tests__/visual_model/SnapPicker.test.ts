@@ -102,7 +102,7 @@ describe('Unit tests', () => {
         expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
 
-    test('preference overrides nearest', () => {
+    test.only('preference overrides nearest', () => {
         const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
         raycast.mockReturnValue([faceIntersection]);
         const faceSnap = picker.intersect(pointPicker, snaps, db)[0].snap;

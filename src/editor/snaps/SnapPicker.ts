@@ -85,17 +85,18 @@ abstract class AbstractSnapPicker {
 
         let intersections_snaps = this.intersections2snaps(snaps, intersections);
 
+        let preference_intersection = undefined;
         if (preference !== undefined) {
             for (const intersection of intersections_snaps) {
                 if (intersection.snap === preference) {
-                    intersections_snaps = [intersection];
+                    preference_intersection = intersection;
                     break;
                 }
             }
         }
 
-        if (!this.viewport.isXRay) {
-            intersections_snaps = findAllIntersectionsVeryCloseTogether(intersections_snaps);
+        if (!this.viewport.isXRay || preference_intersection !== undefined) {
+            intersections_snaps = findAllIntersectionsVeryCloseTogether(intersections_snaps, preference_intersection);
         }
         intersections_snaps.sort(sort);
 
@@ -254,10 +255,10 @@ export interface SnapResult {
     cursorOrientation: THREE.Quaternion;
 }
 
-function findAllIntersectionsVeryCloseTogether(intersections: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>>; }[]) {
+function findAllIntersectionsVeryCloseTogether(intersections: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>> }[], preference?: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>> }) {
     if (intersections.length === 0) return [];
 
-    const nearest = intersections[0];
+    const nearest = preference ?? intersections[0];
     const result = [];
     for (const intersection of intersections) {
         if (Math.abs(nearest.intersection.distance - intersection.intersection.distance) < 10e-3) {
