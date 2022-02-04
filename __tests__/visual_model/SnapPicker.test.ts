@@ -88,7 +88,7 @@ describe('Unit tests', () => {
 
     test('intersect', () => {
         const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
-        raycast.mockReturnValue([intersection]);
+        raycast.mockReturnValueOnce([intersection]).mockReturnValueOnce([]);
         const result = picker.intersect(pointPicker, snaps, db);
         expect(result[0].snap).toBeInstanceOf(FaceSnap);
     });
@@ -96,23 +96,24 @@ describe('Unit tests', () => {
     test('returns nearest', () => {
         const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
         const farther = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
-        raycast.mockReturnValue([closer, farther]);
+        raycast.mockReturnValueOnce([farther]).mockReturnValueOnce([closer]);
         const results = picker.intersect(pointPicker, snaps, db);
+        console.log(results);
         expect(results.length).toBe(1);
         expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
 
-    test('preference overrides nearest', () => {
+    test.only('preference overrides nearest', () => {
         const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
-        raycast.mockReturnValue([faceIntersection]);
+        raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([]);
         const faceSnap = picker.intersect(pointPicker, snaps, db)[0].snap;
         if (!(faceSnap instanceof FaceSnap)) throw '';
 
         pointPicker.facePreferenceMode = 'weak';
         pointPicker.addPickedPoint({ point: new THREE.Vector3(), info: { snap: faceSnap, orientation: new THREE.Quaternion(), cameraOrientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), constructionPlane: new ConstructionPlaneSnap() } });
 
-        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
-        raycast.mockReturnValue([closer, faceIntersection]);
+        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 12 };
+        raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([closer]);
         const results = picker.intersect(pointPicker, snaps, db);
         expect(results).toHaveLength(1);
         expect(results[0].snap).toBeInstanceOf(FaceSnap);

@@ -67,54 +67,62 @@ abstract class AbstractSnapPicker {
     }
 
     protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
-        const { raycaster, viewport } = this;
         if (!snaps.enabled) return [];
+        const { raycaster, viewport: { renderer, isOrthoMode, isXRay, constructionPlane: { orientation: constructionPlaneOrientation } } } = this;
 
         this.configureIntersectRaycaster(snaps);
-
-        let intersections: THREE.Intersection[];
-
-        snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
+        snaps.resolution.set(renderer.domElement.offsetWidth, renderer.domElement.offsetHeight);
         axisSnapMaterial.resolution.copy(snaps.resolution);
 
-        const snappers = snaps.snappers;
+        // Step 1: Intersect with geometry (faces, edges, curves)
         let geometry = db.visibleObjects;
         // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
         geometry = geometry.filter(item => !item.isTemporaryOptimization);
-        intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
+        const geoIntersections = raycaster.intersectObjects(geometry, false);
+        let geo_intersections_snaps = this.intersections2snaps(snaps, geoIntersections);
 
-        let intersections_snaps = this.intersections2snaps(snaps, intersections);
-
-        let preference_intersection = undefined;
-        if (preference !== undefined) {
-            for (const intersection of intersections_snaps) {
-                if (intersection.snap === preference) {
-                    preference_intersection = intersection;
-                    break;
-                }
+        // Step 2: Check if we have a preference to stick to faces and that face is the closest geo intersection
+        let restriction = undefined;
+        if (preference !== undefined && geo_intersections_snaps.length > 0) {
+            const first = geo_intersections_snaps[0];
+            if (first.snap === preference) {
+                restriction = preference;
             }
         }
 
-        if (!this.viewport.isXRay || preference_intersection !== undefined) {
-            intersections_snaps = findAllIntersectionsVeryCloseTogether(intersections_snaps, preference_intersection);
-        }
-        intersections_snaps.sort(sort);
+        // Step 3: Intersect all the other snaps like points and axes
+        const snappers = snaps.snappers;
+        const other_intersections = raycaster.intersectObjects([...snappers, ...additional], false);
+        const other_intersections_snaps = this.intersections2snaps(snaps, other_intersections);
 
-        const isOrthoMode = viewport.isOrthoMode;
-        const constructionPlaneOrientation = viewport.constructionPlane.orientation;
-
-        let result: SnapResult[] = [];
+        // Step 4.a.: Project all the intersections (go from approximate to exact values)
+        let intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
+        let results: (SnapResult & { distance: number })[] = [];
+        let minDistance = Number.MAX_VALUE;
         for (const { snap, intersection } of intersections_snaps) {
             const { position, orientation } = snap.project(intersection.point);
+            
+            // Step 4.b.: If we are on a preferred face, discard all snaps that aren't also on the face
+            if (restriction && !restriction.isValid(position)) continue;
+
+            // Step 4.c.: In ortho mode, we ignore the snap orientation
             const effectiveOrientation = isOrthoMode ? constructionPlaneOrientation : orientation;
-            result.push({ snap, position, orientation: effectiveOrientation, cursorPosition: position, cursorOrientation: effectiveOrientation });
+            const distance = intersection.distance
+            const result = { distance: distance, snap, position, orientation: effectiveOrientation, cursorPosition: position, cursorOrientation: effectiveOrientation };
+            if (distance < minDistance) minDistance = distance;
+            results.push(result);
         }
-        return result;
+
+        // Step 5. In non-XRAY mode, we only return the absolute closest.
+        if (!isXRay) {
+            results = findAllIntersectionsVeryCloseTogether(results, minDistance);
+        }
+        results.sort(sort);
+        return results;
     }
 
     protected configureIntersectRaycaster(snaps: SnapManagerGeometryCache) {
         const { raycaster } = this;
-
         this.raycaster.params = this.intersectParams;
         raycaster.layers.mask = snaps.layers.mask;
     }
@@ -178,8 +186,8 @@ export class SnapPicker extends AbstractSnapPicker {
 
         const additional = pointPicker.snaps.map(s => s.snapper);
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
-        let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db, pointPicker.preference?.snap);
 
+        let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db, pointPicker.preference?.snap);
         intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
         const restricted = this.applyRestrictions(pointPicker, viewport, intersections);
 
@@ -255,13 +263,12 @@ export interface SnapResult {
     cursorOrientation: THREE.Quaternion;
 }
 
-function findAllIntersectionsVeryCloseTogether(intersections: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>> }[], preference?: { snap: Snap; intersection: THREE.Intersection<THREE.Object3D<THREE.Event>> }) {
+function findAllIntersectionsVeryCloseTogether<T extends { distance: number }>(intersections: T[], minDistance: number) {
     if (intersections.length === 0) return [];
 
-    const nearest = preference ?? intersections[0];
     const result = [];
     for (const intersection of intersections) {
-        if (Math.abs(nearest.intersection.distance - intersection.intersection.distance) < 10e-3) {
+        if (Math.abs(minDistance - intersection.distance) < 10e-3) {
             result.push(intersection);
         }
     }
@@ -286,7 +293,7 @@ type SnapAndIntersection = {
     intersection: THREE.Intersection;
 };
 
-function sort(i1: SnapAndIntersection, i2: SnapAndIntersection) {
+function sort(i1: SnapResult, i2: SnapResult) {
     return i1.snap.priority - i2.snap.priority;
 }
 

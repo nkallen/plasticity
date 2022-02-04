@@ -144,6 +144,7 @@ export class AxisAxisCrossPointSnap extends PointSnap {
 
     constructor(readonly cross: CrossPoint, axis1: AxisSnap, axis2: AxisSnap) {
         super("Intersection", cross.position);
+        // TODO: Investigate if this helper is even used?
         this.helper.add(axis1.helper.clone());
         this.helper.add(axis2.helper.clone());
     }

@@ -105,6 +105,7 @@ export class Model {
     }
 
     private snapsForLastPickedPoint: Snap[] = [];
+    private activatedSnaps: Snap[] = [];
     private makeSnapsForPickedPoints(): void {
         const { pickedPointSnaps, straightSnaps, facePreferenceMode } = this;
 
@@ -144,7 +145,8 @@ export class Model {
         }
         this.snapsForLastPickedPoint = results;
         this._activatedHelpers = [];
-        this.alreadyActivatedSnaps.clear();
+        this.activatedSnaps = [];
+        this.dontActivateSameSnapTwice.clear();
         this.disabled.clear();
         if (this._choice !== undefined && !this._choice.sticky) this.choose(undefined);
         this.mutualSnaps.clear();
@@ -245,8 +247,8 @@ export class Model {
     }
 
     get snaps() {
-        const { disabled, snapsForLastPickedPoint, otherAddedSnaps } = this;
-        return snapsForLastPickedPoint.concat(otherAddedSnaps).filter(item => !disabled.has(item));
+        const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = this;
+        return [...snapsForLastPickedPoint, ...otherAddedSnaps, ...activatedSnaps].filter(item => !disabled.has(item));
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {
@@ -309,23 +311,24 @@ export class Model {
     // Sometimes additional snaps are "activated" when the user mouses over an existing snap and hits shift
     private _activatedHelpers: Snap[] = [];
     get activatedHelpers(): readonly Snap[] { return this._activatedHelpers }
+    private readonly dontActivateSameSnapTwice = new Set<Snap>();
 
-    private readonly alreadyActivatedSnaps = new Set<Snap>();
     activateSnapped(snaps: Snap[], viewportInfo: { isOrthoMode: boolean, constructionPlane: ConstructionPlane }) {
-        for (const snap of snaps) {
-            if (this.alreadyActivatedSnaps.has(snap)) continue;
-            this.alreadyActivatedSnaps.add(snap); // idempotent
+        const { activatedSnaps, _activatedHelpers } = this;
 
-            const quat = viewportInfo.isOrthoMode ? viewportInfo.constructionPlane.orientation : new THREE.Quaternion();
+        const quat = viewportInfo.isOrthoMode ? viewportInfo.constructionPlane.orientation : new THREE.Quaternion();
+        for (const snap of snaps) {
+            if (this.dontActivateSameSnapTwice.has(snap)) continue;
+            this.dontActivateSameSnapTwice.add(snap);
 
             if (snap instanceof CurveEndPointSnap) {
-                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
-                this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, activatedSnaps, _activatedHelpers);
+                this.addAxis(snap.tangentSnap, activatedSnaps, _activatedHelpers);
             } else if (snap instanceof FaceCenterPointSnap) {
-                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
-                this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, activatedSnaps, _activatedHelpers);
+                this.addAxis(snap.normalSnap, activatedSnaps, _activatedHelpers);
             } else if (snap instanceof PointSnap) {
-                this.addAxesAt(snap.position, quat, XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, quat, XYZ, activatedSnaps, _activatedHelpers);
             }
         }
     }
