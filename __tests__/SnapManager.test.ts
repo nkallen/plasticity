@@ -169,7 +169,6 @@ test("xor enabled=false", () => {
     expect(snaps.enabled).toBe(false);
 })
 
-
 describe('undo', () => {
     let box: visual.Solid;
 
