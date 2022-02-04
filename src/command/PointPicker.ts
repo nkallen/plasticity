@@ -17,8 +17,8 @@ import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helpers } from '../util/Helpers';
 import { GConstructor } from '../util/Util';
-import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
-import { RaycasterParams, SnapPicker } from '../visual_model/SnapPicker';
+import { SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
+import { RaycasterParams, SnapPicker } from '../editor/snaps/SnapPicker';
 import * as visual from "../visual_model/VisualModel";
 import { GizmoMaterialDatabase } from './GizmoMaterials';
 import { Executable } from './Quasimode';
@@ -124,9 +124,12 @@ export class Model {
             }
             LastPoint: {
                 const last = pickedPointSnaps[pickedPointSnaps.length - 1];
+                const lastSnap = last.info.snap;
+                const lastOrientation = last.info.orientation;
                 let work: Snap[] = [];
-                work = work.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
-                work = work.concat(last.info.snap.additionalSnapsFor(last.point));
+                const axes = [...straightSnaps].map(s => s.rotate(lastOrientation));
+                work = work.concat(new PointSnap(undefined, last.point).axes(axes));
+                work = work.concat(lastSnap.additionalSnapsFor(last.point));
                 for (const snap of work) {
                     if (snap instanceof PointAxisSnap) { // Such as normal/binormal/tangent
                         this.addAxis(snap, results, []);

@@ -1,13 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Choice, Model } from "../command/PointPicker";
-import { Viewport } from "../components/viewport/Viewport";
-import { DatabaseLike } from "../editor/DatabaseLike";
-import { ConstructionPlaneSnap } from "../editor/snaps/ConstructionPlaneSnap";
-import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
-import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";
+import { Choice, Model } from "../../command/PointPicker";
+import { Viewport } from "../../components/viewport/Viewport";
+import { DatabaseLike } from "../DatabaseLike";
+import { ConstructionPlaneSnap } from "./ConstructionPlaneSnap";
+import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "./Snap";
+import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
-import * as visual from "./VisualModel";
+import * as visual from "../../visual_model/VisualModel";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
@@ -285,7 +285,7 @@ function sort(i1: SnapAndIntersection, i2: SnapAndIntersection) {
     return i1.snap.priority - i2.snap.priority;
 }
 
-declare module '../editor/snaps/Snap' {
+declare module './Snap' {
     interface Snap {
         priority: number;
     }

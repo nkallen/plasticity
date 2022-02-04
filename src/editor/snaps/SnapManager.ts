@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
+import { SnapIdentityMap } from "./SnapIdentityMap";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { DatabaseLike } from "../DatabaseLike";
@@ -25,6 +26,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private readonly basicSnaps = new Set<Snap>([originSnap, xAxisSnap, yAxisSnap, zAxisSnap]);
     private readonly id2snaps = new Map<DisablableType, SnapMap>();
     private readonly hidden = new Map<c3d.SimpleName, Set<PointSnap>>()
+
+    readonly identityMap = new SnapIdentityMap(this.db);
 
     constructor(
         private readonly db: DatabaseLike,
@@ -70,10 +73,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         return [...this.crosses.crosses].map(cross => {
             const { view: view1, model: model1 } = this.db.lookupItemById(cross.on1.id);
             const curve1 = inst2curve(model1)!;
-            const curveSnap1 = new CurveSnap(view1 as visual.SpaceInstance<visual.Curve3D>, curve1);
+            const curveSnap1 = this.identityMap.CurveSnap(view1 as visual.SpaceInstance<visual.Curve3D>, curve1);
             const { view: view2, model: model2 } = this.db.lookupItemById(cross.on2.id);
             const curve2 = inst2curve(model2)!;
-            const curveSnap2 = new CurveSnap(view2 as visual.SpaceInstance<visual.Curve3D>, curve2);
+            const curveSnap2 = this.identityMap.CurveSnap(view2 as visual.SpaceInstance<visual.Curve3D>, curve2);
 
             return new CrossPointSnap(cross, curveSnap1, curveSnap2);
         });
@@ -112,13 +115,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private addFace(view: visual.Face, model: c3d.Face, into: Set<Snap>) {
-        const faceSnap = new FaceSnap(view, model);
+        const faceSnap = this.identityMap.FaceSnap(view, model);
         const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
     }
 
     private addEdge(view: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
-        const edgeSnap = new CurveEdgeSnap(view, model);
+        const edgeSnap = this.identityMap.CurveEdgeSnap(view, model);
         const begPt = point2point(model.GetBegPoint());
         const endPt = point2point(model.GetEndPoint());
         const midPt = point2point(model.Point(0.5));
@@ -167,7 +170,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const item = inst2curve(inst)!;
         this.crosses.add(view.simpleName, item);
 
-        const curveSnap = new CurveSnap(view, item);
+        const curveSnap = this.identityMap.CurveSnap(view, item);
         if (item instanceof c3d.Polyline3D) {
             const points = item.GetPoints();
             const endSnaps = points.map(point =>

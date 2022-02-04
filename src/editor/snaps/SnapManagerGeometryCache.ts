@@ -1,12 +1,9 @@
 import * as THREE from "three";
-import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap, Snap } from "../editor/snaps/Snap";
-import { SnapManager } from "../editor/snaps/SnapManager";
-import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
-import * as intersectable from "./Intersectable";
-import * as visual from "./VisualModel";
-import { inst2curve } from "../util/Conversion";
-import { DatabaseLike } from "../editor/DatabaseLike";
-
+import { DatabaseLike } from "../DatabaseLike";
+import { PointSnap, Snap } from "../snaps/Snap";
+import { SnapManager } from "../snaps/SnapManager";
+import * as intersectable from "../../visual_model/Intersectable";
+import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "../../visual_model/VisualModelRaycasting";
 
 export class SnapManagerGeometryCache {
     private readonly material = new BetterRaycastingPointsMaterial();
@@ -61,25 +58,7 @@ export class SnapManagerGeometryCache {
         return snaps[index];
     }
 
-    private readonly identityMap = new Map<intersectable.Intersectable, Snap>();
     lookup(intersectable: intersectable.Intersectable): Snap {
-        const { identityMap, db } = this;
-        if (identityMap.has(intersectable)) return identityMap.get(intersectable)!;
-
-        let result;
-        if (intersectable instanceof visual.Face) {
-            const model = db.lookupTopologyItem(intersectable);
-            result = new FaceSnap(intersectable, model);
-        } else if (intersectable instanceof visual.CurveEdge) {
-            const model = db.lookupTopologyItem(intersectable);
-            result = new CurveEdgeSnap(intersectable, model);
-        } else if (intersectable instanceof visual.Curve3D) {
-            const model = db.lookup(intersectable.parentItem);
-            result = new CurveSnap(intersectable.parentItem, inst2curve(model)!);
-        } else {
-            throw new Error("invalid snap target: " + intersectable.constructor.name);
-        }
-        identityMap.set(intersectable, result);
-        return result;
+        return this.snaps.identityMap.lookup(intersectable);
     }
 }

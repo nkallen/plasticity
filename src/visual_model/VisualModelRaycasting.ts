@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
-import { RaycasterParams } from "./SnapPicker";
+import { RaycasterParams } from "../editor/snaps/SnapPicker";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {

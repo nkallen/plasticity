@@ -6,11 +6,11 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { PointSnap, Snap } from "../editor/snaps/Snap";
 import { Helper, Helpers } from '../util/Helpers';
-import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
-import { GizmoSnapPicker, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
+import { GizmoSnapPicker, SnapPicker, SnapResult } from '../editor/snaps/SnapPicker';
 import { GizmoMaterialDatabase } from './GizmoMaterials';
 import { Model, pointGeometry } from './PointPicker';
 import { SnapIndicator } from './SnapIndicator';
+import { SnapManagerGeometryCache } from '../editor/snaps/SnapManagerGeometryCache';
 
 export interface SnapInfo {
     snap: Snap,

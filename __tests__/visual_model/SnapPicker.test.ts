@@ -3,7 +3,7 @@
  */
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { Model, PointPicker } from '../../src/command/PointPicker';
+import { Model } from '../../src/command/PointPicker';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
@@ -16,10 +16,10 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
-import { CurveEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
+import { CurveEndPointSnap, EdgePointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
+import { SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
+import { RaycasterParams, SnapPicker } from "../../src/editor/snaps/SnapPicker";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
-import { SnapManagerGeometryCache } from '../../src/visual_model/SnapManagerGeometryCache';
-import { RaycasterParams, SnapPicker } from "../../src/visual_model/SnapPicker";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
@@ -60,9 +60,11 @@ let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { thr
 
 describe('Unit tests', () => {
     const raycaster = new THREE.Raycaster();
+    let raycast: jest.SpyInstance;
 
     beforeEach(() => {
         picker = new SnapPicker(intersectParams, nearbyParams, raycaster);
+        raycast = jest.spyOn(raycaster, 'intersectObjects');
     });
 
     const event = new MouseEvent('move', { clientX: 50, clientY: 50 });
@@ -85,7 +87,6 @@ describe('Unit tests', () => {
     })
 
     test('intersect', () => {
-        const raycast = jest.spyOn(raycaster, 'intersectObjects');
         const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
         raycast.mockReturnValue([intersection]);
         const result = picker.intersect(pointPicker, snaps, db);
@@ -93,34 +94,40 @@ describe('Unit tests', () => {
     });
 
     test('returns nearest', () => {
-        const raycast = jest.spyOn(raycaster, 'intersectObjects');
-        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
-        raycast.mockReturnValue([intersection]);
-        const results = picker.intersect(pointPicker, snaps, db);
-        const faceSnap = results[0].snap;
-        if (!(faceSnap instanceof FaceSnap)) throw '';
-
         const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
-        raycast.mockReturnValue([closer, intersection]);
-        const results2 = picker.intersect(pointPicker, snaps, db);
-        expect(results2[0].snap).toBeInstanceOf(EdgePointSnap);
+        const farther = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        raycast.mockReturnValue([closer, farther]);
+        const results = picker.intersect(pointPicker, snaps, db);
+        expect(results.length).toBe(1);
+        expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
 
     test('preference overrides nearest', () => {
-        const raycast = jest.spyOn(raycaster, 'intersectObjects');
-        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
-        raycast.mockReturnValue([intersection]);
-        const results = picker.intersect(pointPicker, snaps, db);
-        const faceSnap = results[0].snap;
+        const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        raycast.mockReturnValue([faceIntersection]);
+        const faceSnap = picker.intersect(pointPicker, snaps, db)[0].snap;
         if (!(faceSnap instanceof FaceSnap)) throw '';
 
         pointPicker.prefer(FaceSnap);
         pointPicker.addPickedPoint({ point: new THREE.Vector3(), info: { snap: faceSnap, orientation: new THREE.Quaternion(), cameraOrientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), constructionPlane: new ConstructionPlaneSnap() } });
 
         const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
-        raycast.mockReturnValue([closer, intersection]);
-        const results2 = picker.intersect(pointPicker, snaps, db);
-        expect(results2[0].snap).toBeInstanceOf(FaceSnap);
+        raycast.mockReturnValue([closer, faceIntersection]);
+        const results = picker.intersect(pointPicker, snaps, db);
+        expect(results).toHaveLength(1);
+        expect(results[0].snap).toBeInstanceOf(FaceSnap);
+    });
+
+    test('when isOrtho is true, face snaps are turned off', () => {
+        viewport.navigate(Orientation.posZ);
+        expect(viewport.isOrthoMode).toBe(true);
+        picker.setFromViewport(event, viewport);
+        raycaster.layers.enableAll();
+        expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
+        picker.intersect(pointPicker, snaps, db);
+        expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(false);
+        picker.disposable.dispose();
+        expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
     });
 });
 
@@ -217,15 +224,6 @@ describe('Integration test', () => {
                     expect(actual.length).toBe(1);
                     expect(actual.map(s => s.snap.name)).toEqual(['Center']);
                 })
-
-                test('when isOrtho is true, face snaps are turned off', () => {
-                    viewport.navigate(Orientation.posZ);
-                    expect(viewport.isOrthoMode).toBe(true);
-                    picker.setFromViewport(event, viewport);
-                    const actual = picker.intersect(pointPicker, snaps, db);
-                    expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);
-                    expect(actual.map(s => s.snap.name)).toEqual(['Center', 'Center']);
-                });
             });
 
             describe('A curve', () => {

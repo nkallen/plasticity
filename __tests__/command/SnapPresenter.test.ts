@@ -7,8 +7,8 @@ import { SnapPresentation, SnapPresenter } from "../../src/command/SnapPresenter
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
-import { SnapManagerGeometryCache } from "../../src/visual_model/SnapManagerGeometryCache";
-import { GizmoSnapPicker, SnapResult } from "../../src/visual_model/SnapPicker";
+import { SnapManagerGeometryCache } from "../../src/editor/snaps/SnapManagerGeometryCache";
+import { GizmoSnapPicker, SnapResult } from "../../src/editor/snaps/SnapPicker";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
@@ -22,7 +22,7 @@ beforeEach(() => {
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
     indicator = new SnapIndicator(editor.gizmos);
-    picker = new GizmoSnapPicker(editor.layers);
+    picker = new GizmoSnapPicker();
 });
 
 describe(SnapPresentation, () => {
