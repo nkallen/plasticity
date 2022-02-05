@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { Model } from "../src/command/PointPicker";
+import { Snap } from "../src/editor/snaps/Snap";
 
 declare global {
     namespace jest {
@@ -41,7 +43,7 @@ expect.extend({
             }
         }
     }
-})
+});
 expect.extend({
     toHaveCentroidNear(received: THREE.Object3D, other: THREE.Vector3) {
         const bbox = new THREE.Box3().setFromObject(received);
@@ -60,7 +62,8 @@ expect.extend({
             }
         }
     }
-})
+});
+
 
 export default {}
 

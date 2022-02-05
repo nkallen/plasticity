@@ -2,12 +2,13 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Choice, Model } from "../../command/PointPicker";
 import { Viewport } from "../../components/viewport/Viewport";
+import * as visual from "../../visual_model/VisualModel";
+import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
 import { ConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
-import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
-import * as visual from "../../visual_model/VisualModel";
+import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
@@ -38,25 +39,33 @@ abstract class AbstractSnapPicker {
         protected readonly raycaster = new THREE.Raycaster()
     ) { }
 
-    protected _nearby(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
-        const { raycaster, viewport } = this;
+    protected _nearby(points: PointSnapCache[], snaps: SnapManagerGeometryCache): PointSnap[] {
+        const { raycaster } = this;
         if (!snaps.enabled) return [];
-
         this.configureNearbyRaycaster(snaps);
 
-        snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
-        const snappers = snaps.points;
-        if (snappers.length === 0 && additional.length === 0) return [];
+        const everything = [...points, snaps.geometrySnaps];
+        const pointss = this.prepare(everything);
 
-        const intersections = raycaster.intersectObjects([...snappers, ...additional], false);
+        const intersections = raycaster.intersectObjects(pointss, false);
         const snap_intersections = this.intersections2snaps(snaps, intersections);
-        const result: PointSnap[] = [];
         let i = 0;
+        const result: PointSnap[] = [];
         for (const { snap } of snap_intersections) {
             if (i++ >= 20) break;
             result.push(snap as PointSnap);
         }
         return result;
+    }
+
+    private prepare(everything: PointSnapCache[]) {
+        const { viewport: { renderer: { domElement: { offsetWidth, offsetHeight } } } } = this;
+
+        const pointss: BetterRaycastingPoints[] = [];
+        for (const thing of everything) pointss.push(...thing.points);
+        axisSnapMaterial.resolution.set(offsetWidth, offsetHeight);
+        for (const thing of everything) thing.resolution.set(offsetWidth, offsetHeight);
+        return pointss;
     }
 
     protected configureNearbyRaycaster(snaps: SnapManagerGeometryCache) {
@@ -66,19 +75,18 @@ abstract class AbstractSnapPicker {
         raycaster.layers.mask = snaps.layers.mask;
     }
 
-    protected _intersect(additional: THREE.Object3D[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
+    protected _intersect(additional: THREE.Object3D[], points: PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
         if (!snaps.enabled) return [];
         const { raycaster, viewport: { renderer, isOrthoMode, isXRay, constructionPlane: { orientation: constructionPlaneOrientation } } } = this;
 
         this.configureIntersectRaycaster(snaps);
-        snaps.resolution.set(renderer.domElement.offsetWidth, renderer.domElement.offsetHeight);
-        axisSnapMaterial.resolution.copy(snaps.resolution);
+        const everything = [...points, snaps.geometrySnaps];
+        const pointss = this.prepare(everything);
 
         // Step 1: Intersect with geometry (faces, edges, curves)
-        let geometry = db.visibleObjects;
-        // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
-        geometry = geometry.filter(item => !item.isTemporaryOptimization);
-        const geoIntersections = raycaster.intersectObjects(geometry, false);
+        let visible = db.visibleObjects;
+        visible = visible.filter(item => !item.isTemporaryOptimization); // FIXME: I dislike this approach; make TranslateFactory generate real TemporaryObjects rather than reusing the actual Items
+        const geoIntersections = raycaster.intersectObjects(visible, false);
         let geo_intersections_snaps = this.intersections2snaps(snaps, geoIntersections);
 
         // Step 2: Check if we have a preference to stick to faces and that face is the closest geo intersection
@@ -91,8 +99,8 @@ abstract class AbstractSnapPicker {
         }
 
         // Step 3: Intersect all the other snaps like points and axes
-        const snappers = snaps.snappers;
-        const other_intersections = raycaster.intersectObjects([...snappers, ...additional], false);
+        const geometry = snaps.snappers;
+        const other_intersections = raycaster.intersectObjects([...geometry, ...additional, ...pointss], false);
         const other_intersections_snaps = this.intersections2snaps(snaps, other_intersections);
 
         // Step 4.a.: Project all the intersections (go from approximate to exact values)
@@ -101,7 +109,7 @@ abstract class AbstractSnapPicker {
         let minDistance = Number.MAX_VALUE;
         for (const { snap, intersection } of intersections_snaps) {
             const { position, orientation } = snap.project(intersection.point);
-            
+
             // Step 4.b.: If we are on a preferred face, discard all snaps that aren't also on the face
             if (restriction && !restriction.isValid(position)) continue;
 
@@ -139,8 +147,9 @@ abstract class AbstractSnapPicker {
                 snap = snaps.lookup(object);
             } else if (object instanceof visual.ControlPoint) {
                 continue; // FIXME:
-            } else if (object instanceof THREE.Points) {
-                snap = snaps.get(object, intersection.index!);
+            } else if (object instanceof BetterRaycastingPoints) {
+                const snaps = object.userData.points as PointSnap[];
+                snap = snaps[intersection.index!];
             } else {
                 snap = object.userData.snap as Snap;
             }
@@ -164,8 +173,23 @@ export class SnapPicker extends AbstractSnapPicker {
     readonly disposable = new CompositeDisposable();
 
     nearby(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
-        const additional = pointPicker.snaps.filter(s => s instanceof PointSnap).map(s => s.snapper);
-        return super._nearby(additional, snaps, db);
+        const points = this.collectPickerSnaps(pointPicker).points;
+        return super._nearby(points, snaps);
+    }
+
+    private collectPickerSnaps(pointPicker: Model) {
+        const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = pointPicker.snaps;
+        const notPoints = [
+            ...snapsForLastPickedPoint.other,
+            ...otherAddedSnaps.other,
+            ...activatedSnaps.other
+        ].filter(item => !disabled.has(item));
+        const points = [
+            otherAddedSnaps.cache,
+            snapsForLastPickedPoint.cache,
+            activatedSnaps.cache,
+        ];
+        return { points, notPoints }
     }
 
     protected configureNearbyRaycaster(snaps: SnapManagerGeometryCache): void {
@@ -175,19 +199,21 @@ export class SnapPicker extends AbstractSnapPicker {
         this.toggleFaceLayer();
     }
 
-    intersect(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
+    intersect(pointPicker: Model, cache: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
         const { viewport } = this;
 
-        if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
+        if (!cache.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
         if (pointPicker.choice !== undefined) {
             const chosen = this.intersectChoice(pointPicker.choice);
             return this.applyRestrictions(pointPicker, viewport, chosen);
         }
 
-        const additional = pointPicker.snaps.map(s => s.snapper);
+        const ppSnaps = this.collectPickerSnaps(pointPicker);
+        const notPoints = ppSnaps.notPoints.map(s => s.snapper);
+        const points = ppSnaps.points;
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
 
-        let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db, pointPicker.preference?.snap);
+        let intersections = super._intersect([...notPoints, ...restrictionSnaps], points, cache, db, pointPicker.preference?.snap);
         intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
         const restricted = this.applyRestrictions(pointPicker, viewport, intersections);
 
@@ -247,11 +273,11 @@ export class SnapPicker extends AbstractSnapPicker {
 
 export class GizmoSnapPicker extends AbstractSnapPicker {
     nearby(snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
-        return super._nearby([], snaps, db);
+        return super._nearby([], snaps);
     }
 
     intersect(snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
-        return super._intersect([], snaps, db);
+        return super._intersect([], [], snaps, db);
     }
 }
 

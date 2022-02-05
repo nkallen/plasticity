@@ -229,7 +229,7 @@ describe("normalizePlacement", () => {
 });
 
 describe('isSamePlacement', () => {
-    test.only('it works', () => {
+    test('it works', () => {
         const p1 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
         const p2 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
         const p3 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(-1, 0, 0), false);

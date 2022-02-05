@@ -17,7 +17,7 @@ import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
 import { CurveEndPointSnap, EdgePointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
-import { SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
+import { PointSnapCache, SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
 import { RaycasterParams, SnapPicker } from "../../src/editor/snaps/SnapPicker";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -94,16 +94,16 @@ describe('Unit tests', () => {
     });
 
     test('returns nearest', () => {
-        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 1 };
+        const object = [...snaps.geometrySnaps.points][0];
+        const closer = { point: new THREE.Vector3(), distance: 0.1, object, index: 1 };
         const farther = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
         raycast.mockReturnValueOnce([farther]).mockReturnValueOnce([closer]);
         const results = picker.intersect(pointPicker, snaps, db);
-        console.log(results);
         expect(results.length).toBe(1);
         expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
 
-    test.only('preference overrides nearest', () => {
+    test('preference overrides nearest', () => {
         const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([]);
         const faceSnap = picker.intersect(pointPicker, snaps, db)[0].snap;
@@ -112,7 +112,8 @@ describe('Unit tests', () => {
         pointPicker.facePreferenceMode = 'weak';
         pointPicker.addPickedPoint({ point: new THREE.Vector3(), info: { snap: faceSnap, orientation: new THREE.Quaternion(), cameraOrientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), constructionPlane: new ConstructionPlaneSnap() } });
 
-        const closer = { point: new THREE.Vector3(), distance: 0.1, object: snaps.points[0], index: 12 };
+        const object = [...snaps.geometrySnaps.points][0];
+        const closer = { point: new THREE.Vector3(), distance: 0.1, object, index: 12 };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([closer]);
         const results = picker.intersect(pointPicker, snaps, db);
         expect(results).toHaveLength(1);
@@ -280,22 +281,33 @@ describe('Integration test', () => {
             });
         });
     });
-
-    describe(SnapManagerGeometryCache, () => {
-        describe('A curve', () => {
-            beforeEach(async () => {
-                const makeCurve = new CurveFactory(db, materials, signals);
-                makeCurve.type = c3d.SpaceType.Polyline3D;
-                makeCurve.push(new THREE.Vector3());
-                makeCurve.push(new THREE.Vector3(1, 1, 0));
-                makeCurve.push(new THREE.Vector3(2, -1, 0));
-                await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-                snaps.update();
-            })
-
-            test('it returns snap points for the geometry', () => {
-                expect(snaps.get(snaps.points[0], 0)).toBeInstanceOf(CurveEndPointSnap);
-            })
-        })
-    });
 })
+
+describe(SnapManagerGeometryCache, () => {
+    describe('A curve', () => {
+        beforeEach(async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.type = c3d.SpaceType.Polyline3D;
+            makeCurve.push(new THREE.Vector3());
+            makeCurve.push(new THREE.Vector3(1, 1, 0));
+            makeCurve.push(new THREE.Vector3(2, -1, 0));
+            await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+            snaps.update();
+        })
+
+        test('it returns snap points for the geometry', () => {
+            expect([...snaps.geometrySnaps.points][0].userData.points[0]).toBeInstanceOf(CurveEndPointSnap);
+        })
+    })
+});
+
+describe(PointSnapCache, () => {
+    test('it returns snap points for the geometry', () => {
+        const cache = new PointSnapCache();
+        cache.add(new Set([new PointSnap("foo", new THREE.Vector3(1, 1, 1))]));
+        const pointss = [...cache.points];
+        expect(pointss.length).toBe(1);
+        const points = pointss[0];
+        expect(Array.from(points.geometry.attributes.position.array)).toEqual([1, 1, 1]);
+    })
+});

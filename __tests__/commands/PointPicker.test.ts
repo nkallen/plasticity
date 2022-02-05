@@ -77,7 +77,7 @@ describe('restrictToPlaneThroughPoint(no snap)', () => {
     })
 
     test("snaps", () => {
-        expect(pointPicker.snaps.length).toBe(0);
+        expect(compact(pointPicker.snaps).length).toBe(0);
     })
 });
 
@@ -127,7 +127,7 @@ describe('restrictToPlaneThroughPoint(with snap)', () => {
     })
 
     test("snaps", () => {
-        expect(pointPicker.snaps.length).toBe(0);
+        expect(compact(pointPicker.snaps).length).toBe(0);
     })
 });
 
@@ -150,8 +150,8 @@ describe('addSnap', () => {
     })
 
     test("snaps", () => {
-        expect(pointPicker.snaps.length).toBe(1);
-        expect(pointPicker.snaps[0]).toBe(pointSnap);
+        expect(compact(pointPicker.snaps).length).toBe(1);
+        expect(compact(pointPicker.snaps)[0]).toBe(pointSnap);
     })
 });
 
@@ -161,8 +161,8 @@ describe('toggle', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionSnapsFor().length).toBe(0);
         pointPicker.addSnap(pointSnap);
-        expect(pointPicker.snaps.length).toBe(1);
-        expect(pointPicker.snaps[0]).toBe(pointSnap);
+        expect(compact(pointPicker.snaps).length).toBe(1);
+        expect(compact(pointPicker.snaps)[0]).toBe(pointSnap);
     })
 
     test("enable/disable", () => {
@@ -234,7 +234,7 @@ describe('restrictToEdges', () => {
     })
 
     test("snaps", () => {
-        expect(pointPicker.snaps.length).toBe(0);
+        expect(compact(pointPicker.snaps).length).toBe(0);
     })
 });
 
@@ -275,7 +275,7 @@ describe('restrictToLine', () => {
     })
 
     test("snaps", () => {
-        expect(pointPicker.snaps.length).toBe(0);
+        expect(compact(pointPicker.snaps).length).toBe(0);
     })
 
     test("choice", () => {
@@ -309,7 +309,7 @@ describe('addPickedPoint', () => {
     })
 
     test("snaps", () => {
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(10);
         expect(snaps.map(s => s.name).sort()).toEqual(["Binormal", "Intersection", "Intersection", "Intersection", "Intersection", "Normal", "Tangent", "x", "y", "z",]);
     })
@@ -319,7 +319,7 @@ describe('addPickedPoint', () => {
             point: new THREE.Vector3(0, 10, 0),
             info: { snap: constructionPlane, constructionPlane, orientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
         });
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(["Intersection", "Intersection", "x", "y", "z"]);
     })
 
@@ -388,7 +388,7 @@ describe('prefer & addPickedPoint', () => {
                 point: new THREE.Vector3(0, 10, 0),
                 info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
             });
-            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
             expect(pointAxisSnaps).toHaveLength(4);
             const x = pointAxisSnaps.find(p => p.name === 'x')!;
             expect(x.n).toApproximatelyEqual(new THREE.Vector3(0.788, -0.211, -0.577));
@@ -407,7 +407,7 @@ describe('prefer & addPickedPoint', () => {
                 point: new THREE.Vector3(0, 10, 0),
                 info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
             });
-            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
             expect(pointAxisSnaps).toHaveLength(7);
             const xs = pointAxisSnaps.filter(p => p.name === 'x')!;
             expect(xs[0].n).toApproximatelyEqual(new THREE.Vector3(0.788, -0.211, -0.577));
@@ -429,7 +429,7 @@ describe('prefer & addPickedPoint', () => {
                 point: new THREE.Vector3(0, 10, 0),
                 info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
             });
-            const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
             const x = pointAxisSnaps.find(p => p.name === 'x')!;
             expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             const y = pointAxisSnaps.find(p => p.name === 'y')!;
@@ -456,7 +456,7 @@ describe('addAxesAt', () => {
     })
 
     test("snaps", () => {
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(3);
         expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
         expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
@@ -491,17 +491,17 @@ describe('activateSnapped', () => {
 
     beforeEach(() => {
         let snaps;
-        snaps = pointPicker.snaps;
+        snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(0);
     })
 
     test("for pointsnaps, adds axes", () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(['x', 'y', 'z']);
 
-        const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+        const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
         const x = pointAxisSnaps.find(p => p.name === 'x')!;
         expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
         const y = pointAxisSnaps.find(p => p.name === 'y')!;
@@ -513,10 +513,10 @@ describe('activateSnapped', () => {
     test("for pointsnaps, isOrtho=true, adds axes oriented to construction plane", () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap], { isOrthoMode: true, constructionPlane: new ConstructionPlaneSnap(new THREE.Vector3(1, 1, 1).normalize()) });
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(['x', 'y', 'z']);
 
-        const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+        const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
         const x = pointAxisSnaps.find(p => p.name === 'x')!;
         expect(x.n).toApproximatelyEqual(new THREE.Vector3(Math.SQRT1_2, -Math.SQRT1_2, 0));
         const y = pointAxisSnaps.find(p => p.name === 'y')!;
@@ -534,7 +534,7 @@ describe('activateSnapped', () => {
 
         pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
 
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
     });
 
@@ -547,11 +547,11 @@ describe('activateSnapped', () => {
 
         pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
 
-        let snaps = pointPicker.snaps;
+        let snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(['Intersection', 'Intersection', 'Intersection', 'Intersection', 'Intersection', 'Tangent', 'x', 'y', 'z']);
 
         pointPicker.undo();
-        snaps = pointPicker.snaps;
+        snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(0);
     });
 
@@ -559,7 +559,7 @@ describe('activateSnapped', () => {
         pointPicker.straightSnaps.clear();
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap], { isOrthoMode: false, constructionPlane });
-        const snaps = pointPicker.snaps;
+        const snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name)).toEqual(['x', 'y', 'z']);
     })
 });
@@ -592,20 +592,20 @@ describe('for curves', () => {
 
     test("activateMutualSnaps adds tan/tan", () => {
         let snaps;
-        snaps = pointPicker.snaps;
+        snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(0);
 
         pointPicker.addPickedPoint({
             point: new THREE.Vector3(5, 1, 0),
             info: { snap: new CurveSnap(circle2, model2), constructionPlane, orientation: new THREE.Quaternion(), cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
         });
-        snaps = pointPicker.snaps;
+        snaps = compact(pointPicker.snaps);
         expect(snaps.length).toBe(10);
 
         const snap = new CurveSnap(circle1, model1);
         pointPicker.activateMutualSnaps([snap]);
 
-        snaps = pointPicker.snaps;
+        snaps = compact(pointPicker.snaps);
         expect(snaps.map(s => s.name).sort()).toEqual(["Binormal", "Intersection", "Intersection", "Intersection", "Intersection", "Normal", "Tan/Tan", "Tan/Tan", "Tan/Tan", "Tan/Tan", "Tangent", "Tangent", "Tangent", "x", "y", "z"]);
     });
 });
@@ -621,3 +621,12 @@ describe('restrictionFor', () => {
         expect(restriction).toBe(constructionPlane);
     })
 })
+
+function compact(snaps: Model['snaps']) {
+    const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = snaps;
+    const all = [
+        ...snapsForLastPickedPoint.other, ...otherAddedSnaps.other, ...activatedSnaps.other,
+        ...snapsForLastPickedPoint.points, ...otherAddedSnaps.points, ...activatedSnaps.points,
+    ].filter(item => !disabled.has(item));
+    return all;
+}

@@ -12,7 +12,7 @@ import { PlaneDatabase } from '../editor/PlaneDatabase';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
-import { SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
+import { PointSnapCache, SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams, SnapPicker } from '../editor/snaps/SnapPicker';
 import { Finish } from '../util/Cancellable';
 import { CancellablePromise } from "../util/CancellablePromise";
@@ -50,7 +50,7 @@ export type Choice = { snap: ChoosableSnap; info?: { position: THREE.Vector3, or
 export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
     readonly straightSnaps = new Set(XYZ); // Snaps going straight off the last picked point
-    private readonly otherAddedSnaps = new Array<Snap>();
+    private readonly otherAddedSnaps = new SnapCollection();
     private readonly disabled = new Set<Snap>();
 
     private _restriction?: Restriction;
@@ -104,14 +104,14 @@ export class Model {
         return constructionPlane;
     }
 
-    private snapsForLastPickedPoint: Snap[] = [];
-    private activatedSnaps: Snap[] = [];
+    private snapsForLastPickedPoint = new SnapCollection();
+    private activatedSnaps = new SnapCollection();
     private makeSnapsForPickedPoints(): void {
         const { pickedPointSnaps, straightSnaps, facePreferenceMode } = this;
 
         this.crosses = new CrossPointDatabase(this.originalCrosses);
 
-        let results: Snap[] = [];
+        const results = new SnapCollection();
         if (pickedPointSnaps.length > 0) {
             FirstPoint: {
                 if (facePreferenceMode !== 'none') {
@@ -149,9 +149,10 @@ export class Model {
                 }
             }
         }
+        results.update();
         this.snapsForLastPickedPoint = results;
         this._activatedHelpers = [];
-        this.activatedSnaps = [];
+        this.activatedSnaps = new SnapCollection();
         this.dontActivateSameSnapTwice.clear();
         this.disabled.clear();
         if (this._choice !== undefined && !this._choice.sticky) this.choose(undefined);
@@ -163,8 +164,8 @@ export class Model {
     get preference() { return this._preference }
 
     start() {
-        this.registerKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint);
-        return new Disposable(() => this.clearKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint));
+        this.showKeybindingInfo(...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other);
+        return new Disposable(() => this.hideKeybindingInfo(...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other));
     }
 
     registerKeyboardCommands(domElement: HTMLElement, fn: () => void) {
@@ -174,7 +175,7 @@ export class Model {
         }
 
         const disposable = new CompositeDisposable();
-        for (const snap of [...this.otherAddedSnaps, ...this.snapsForLastPickedPoint]) {
+        for (const snap of [...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other]) {
             if (snap instanceof PointAxisSnap) {
                 const d = this.registry.addOne(domElement, snap.commandName, _ => choose(snap.name as Choices));
                 disposable.add(d);
@@ -183,13 +184,22 @@ export class Model {
         return disposable;
     }
 
-    private registerKeybindingFor(...snaps: Snap[]) {
+    private showKeybindingInfo(...snaps: Snap[]) {
         for (const snap of snaps) {
             if (snap instanceof PointAxisSnap) {
                 this.signals.keybindingsRegistered.dispatch([snap.commandName]);
             }
         }
         this.signals.snapsAdded.dispatch({ pointPicker: this, snaps });
+    }
+
+    private hideKeybindingInfo(...snaps: Snap[]) {
+        for (const snap of snaps) {
+            if (snap instanceof PointAxisSnap) {
+                this.signals.keybindingsCleared.dispatch([snap.commandName]);
+            }
+        }
+        this.signals.snapsCleared.dispatch(snaps);
     }
 
     toggle(snap: Snap) {
@@ -202,21 +212,13 @@ export class Model {
         return !this.disabled.has(snap);
     }
 
-    private clearKeybindingFor(...snaps: Snap[]) {
-        for (const snap of snaps) {
-            if (snap instanceof PointAxisSnap) {
-                this.signals.keybindingsCleared.dispatch([snap.commandName]);
-            }
-        }
-        this.signals.snapsCleared.dispatch(snaps);
-    }
-
     clearAddedSnaps() {
-        this.otherAddedSnaps.length = 0;
+        this.otherAddedSnaps.clear();
     }
 
     addSnap(...snaps: Snap[]) {
         this.otherAddedSnaps.push(...snaps);
+        this.otherAddedSnaps.update();
     }
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
@@ -228,7 +230,7 @@ export class Model {
         return crosses;
     }
 
-    private addAxis(axis: PointAxisSnap, into: Snap[], other: Snap[]) {
+    private addAxis(axis: PointAxisSnap, into: SnapCollection, other: Snap[]) {
         into.push(axis); other.push(axis);
         const crosses = this.addAxisCrosses(axis);
         for (const cross of crosses) {
@@ -245,16 +247,16 @@ export class Model {
         }
     }
 
-    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), axisSnaps: Iterable<AxisSnap> = this.straightSnaps, into: Snap[] = this.otherAddedSnaps, other: Snap[] = []) {
+    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), axisSnaps: Iterable<AxisSnap> = this.straightSnaps, into: SnapCollection = this.otherAddedSnaps, other: Snap[] = []) {
         const rotated = [];
         for (const snap of axisSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
         for (const axis of axes) this.addAxis(axis, into, other);
     }
 
-    get snaps() {
+    get snaps(): { disabled: Set<Snap>; snapsForLastPickedPoint: SnapCollection; activatedSnaps: SnapCollection; otherAddedSnaps: SnapCollection; } {
         const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = this;
-        return [...snapsForLastPickedPoint, ...otherAddedSnaps, ...activatedSnaps].filter(item => !disabled.has(item));
+        return { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } ;
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {
@@ -303,8 +305,8 @@ export class Model {
         } else if (which instanceof Snap) {
             if (which instanceof AxisSnap || which instanceof FaceSnap) this._choice = { snap: which, info, sticky };
         } else {
-            let chosen = this.snapsForLastPickedPoint.filter(s => s.name == which)[0] as AxisSnap | undefined;
-            chosen ??= this.otherAddedSnaps.filter(s => s.name == which)[0] as AxisSnap | undefined;
+            let chosen = this.snapsForLastPickedPoint.other.filter(s => s.name == which)[0] as AxisSnap | undefined;
+            chosen ??= this.otherAddedSnaps.other.filter(s => s.name == which)[0] as AxisSnap | undefined;
             if (chosen !== undefined) this._choice = { snap: chosen, info, sticky };
         }
     }
@@ -337,13 +339,14 @@ export class Model {
                 this.addAxesAt(snap.position, quat, XYZ, activatedSnaps, _activatedHelpers);
             }
         }
+        activatedSnaps.update();
     }
 
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
     private readonly mutualSnaps = new Set<Snap>();
     activateMutualSnaps(nearby: Snap[]) {
-        const { mutualSnaps: pointActivatedSnaps, pickedPointSnaps } = this;
+        const { mutualSnaps, pickedPointSnaps } = this;
         if (pickedPointSnaps.length === 0) return;
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
@@ -351,14 +354,41 @@ export class Model {
         if (lastPickedSnap === undefined) return;
 
         for (const snap of nearby) {
-            if (pointActivatedSnaps.has(snap)) continue;
-            pointActivatedSnaps.add(snap); // idempotent
+            if (mutualSnaps.has(snap)) continue;
+            mutualSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveSnap) {
                 const additional = snap.additionalSnapsGivenPreviousSnap(last.point, lastPickedSnap);
-                this.addSnap(...additional);
+                this.snapsForLastPickedPoint.push(...additional);
             }
         }
+    }
+}
+
+class SnapCollection {
+    readonly points: Set<PointSnap> = new Set();
+    readonly other: Snap[] = [];
+    readonly cache = new PointSnapCache();
+
+    push(...snaps: Snap[]) {
+        for (const snap of snaps) {
+            if (snap instanceof PointSnap) {
+                this.points.add(snap)
+            } else {
+                this.other.push(snap);
+            }
+        }
+    }
+
+    update() {
+        this.cache.clear();
+        this.cache.add(this.points);
+    }
+
+    clear() {
+        this.cache.clear();
+        this.other.length = 0;
+        this.points.clear();
     }
 }
 
