@@ -134,7 +134,11 @@ export class Model {
                 if (facePreferenceMode === 'strong') {
                     work = work.concat(new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation))));
                 } else if (facePreferenceMode === 'weak') {
-                    work = work.concat(new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation))));
+                    const oriented = new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation)));
+                    for (const axis of oriented) {
+                        if (isAxisAligned(axis)) continue;
+                        else work.push(axis);
+                    }
                     work = work.concat(new PointSnap(undefined, last.point).axes(axes));
                 } else {
                     work = work.concat(new PointSnap(undefined, last.point).axes(axes));
@@ -256,7 +260,7 @@ export class Model {
 
     get snaps(): { disabled: Set<Snap>; snapsForLastPickedPoint: SnapCollection; activatedSnaps: SnapCollection; otherAddedSnaps: SnapCollection; } {
         const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = this;
-        return { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } ;
+        return { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps };
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {
@@ -556,4 +560,13 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     set facePreferenceMode(facePreferenceMode: PreferenceMode) { this.model.facePreferenceMode = facePreferenceMode }
 
     undo() { this.model.undo() }
+}
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+function isAxisAligned(axis: PointAxisSnap): boolean {
+    const n = axis.n;
+    return (Math.abs(n.dot(X)) > 1 - 10e-6) || (Math.abs(n.dot(Y)) > 1 - 10e-6) || (Math.abs(n.dot(Z)) > 1 - 10e-6)
 }

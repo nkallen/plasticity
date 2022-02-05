@@ -169,13 +169,12 @@ jobs:
       #   with:
       #     path: build/Release
       #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
-      - name: Codegen C++ and build
-        # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
-        run: |
-          brew install astyle
-          yarn generate
-          yarn run node-gyp configure --arch=arm64
-          yarn electron-rebuild
+      # - name: Codegen C++ and build
+      #   run: |
+      #     brew install astyle
+      #     yarn generate
+      #     yarn run node-gyp configure --arch=arm64
+      #     yarn electron-rebuild
       # - name: Run tests
       #   run: |
       #     yarn ci
@@ -187,11 +186,11 @@ jobs:
       #     git config user.name "GitHub Action"
       #     git commit -am "Update version"
       #     git push
-      - name: Publish canary release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          yarn publish --arch=arm64
+      # - name: Publish canary release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     yarn publish --arch=arm64
       # - name: Post
       #   run: |
       #     choco install curl --no-progress
