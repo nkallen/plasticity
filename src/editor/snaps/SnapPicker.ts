@@ -107,7 +107,7 @@ abstract class AbstractSnapPicker {
 
             // Step 4.c.: In ortho mode, we ignore the snap orientation
             const effectiveOrientation = isOrthoMode ? constructionPlaneOrientation : orientation;
-            const distance = intersection.distance
+            const distance = intersection.distance;
             const result = { distance: distance, snap, position, orientation: effectiveOrientation, cursorPosition: position, cursorOrientation: effectiveOrientation };
             if (distance < minDistance) minDistance = distance;
             results.push(result);

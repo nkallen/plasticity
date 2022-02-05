@@ -9,7 +9,7 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
-import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit } from "../src/util/Conversion";
+import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, isSamePlacement, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit } from "../src/util/Conversion";
 import { AtomicRef, Redisposable, RefCounter } from "../src/util/Util";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -226,6 +226,16 @@ describe("normalizePlacement", () => {
         expect(newStart.x).toBe(unit(-1));
         expect(newStart.y).toBe(unit(-1));
     });
+});
+
+describe('isSamePlacement', () => {
+    test.only('it works', () => {
+        const p1 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
+        const p2 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
+        const p3 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(-1, 0, 0), false);
+        expect(isSamePlacement(p1, p2)).toBe(true);
+        expect(isSamePlacement(p1, p3)).toBe(true);
+    })
 });
 
 describe('conversion', () => {

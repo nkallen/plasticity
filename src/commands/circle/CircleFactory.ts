@@ -22,8 +22,6 @@ export class CenterCircleFactory extends GeometryFactory {
     async calculate() {
         const { mode, center, radius, point, normal } = this;
 
-        const Y = point.clone().sub(center).normalize();
-
         const [x, y, z] = CenterCircleFactory.orientHorizontalOrVertical(point, center, normal, mode);
         const placement = new c3d.Placement3D();
         placement.SetAxisX(vec2vec(x, 1));
@@ -59,6 +57,7 @@ export class CenterCircleFactory extends GeometryFactory {
 }
 
 const Z = new THREE.Vector3(0, 0, 1);
+Object.freeze(Z);
 
 export class TwoPointCircleFactory extends CenterCircleFactory {
     p1!: THREE.Vector3

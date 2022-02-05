@@ -1,5 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { curve3d2curve2d, isSamePlacement, normalizePlacement, polyline2contour } from '../../util/Conversion';
+import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, polyline2contour, vec2vec } from '../../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { EditorSignals } from '../EditorSignals';
 import { DatabaseLike } from "../DatabaseLike";
@@ -53,11 +53,11 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
         // Collect all existing planar curves on same placement
         const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
-        const allPlanarCurves = [];
+        const allCoplanarCurves = [];
         for (const [simpleName, { planarCurve, placement: existingPlacement }] of curve2info.entries()) {
             const curve = id2planarCurve.get(planarCurve)!;
             if (isSamePlacement(placement, existingPlacement))
-                allPlanarCurves.push(curve);
+                allCoplanarCurves.push(curve);
             planar2instance.set(curve.Id(), simpleName);
         }
 
@@ -67,7 +67,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const info = new CurveInfo(counter, placement);
         curve2info.set(newCurve.simpleName, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve.simpleName);
-        allPlanarCurves.push(newPlanarCurve);
+        allCoplanarCurves.push(newPlanarCurve);
 
         // Process all curves that intersect the new curve (and their intersections), starting with the new curve itself
         const curvesToProcess = new Map<Curve2dId, c3d.Curve>();
@@ -82,7 +82,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
             visited.add(id);
             curvesToProcess.delete(id);
 
-            const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
+            const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allCoplanarCurves, true);
 
             // If the curve is a contour, break it into segments and fake those as cross points
             if (current.IsA() === c3d.PlaneType.Contour) {

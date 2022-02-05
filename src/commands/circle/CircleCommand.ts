@@ -33,7 +33,7 @@ export class CenterCircleCommand extends Command {
         }).resource(this);
 
         pointPicker.restrictToPlaneThroughPoint(point, snap);
-        await pointPicker.execute(({ point: p2, info, info: { orientation } }) => {
+        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             circle.point = p2;
             circle.orientation = orientation;
             dialog.render();

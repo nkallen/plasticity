@@ -596,6 +596,7 @@ export class NormalAxisSnap extends PointAxisSnap {
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 
+const mat = new THREE.Matrix4()
 export class PlaneSnap extends Snap {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
@@ -614,6 +615,22 @@ export class PlaneSnap extends Snap {
         return new PlaneSnap(n, origin);
     }
 
+    // Even small (e.g., 10e-4) errors in the orientation can screw up coplanar calculations.
+    // mat.lookAt, which is awesome for getting a great orientation for a weird plane, can introduce
+    // such errors.
+    private static avoidNumericalPrecisionProblems(n: THREE.Vector3, orientation: THREE.Quaternion) {
+        if (n.dot(Z) === 1) {
+            orientation.identity();
+        } else if (n.dot(X) === 1) {
+            orientation.set(0, Math.SQRT1_2, 0, Math.SQRT1_2);
+        } else if (n.dot(Y) === 1) {
+            orientation.set(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
+        } else {
+            mat.lookAt(new THREE.Vector3(), n, Z);
+            orientation.setFromRotationMatrix(mat);
+        }
+    }
+
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3(), readonly name?: string) {
         super();
 
@@ -623,10 +640,7 @@ export class PlaneSnap extends Snap {
         this.snapper.position.copy(p);
         this.n = n;
         this.p = p;
-        const mat = new THREE.Matrix4();
-        mat.lookAt(new THREE.Vector3(), n, new THREE.Vector3(0, 0, 1));
-        this.orientation.setFromRotationMatrix(mat);
-
+        PlaneSnap.avoidNumericalPrecisionProblems(n, this.orientation);
         this.init();
     }
 

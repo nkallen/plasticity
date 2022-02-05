@@ -141,12 +141,13 @@ export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3
 }
 
 export function isSamePlacement(placement1: c3d.Placement3D, placement2: c3d.Placement3D): boolean {
-    const Z = placement1.GetAxisZ();
+    const Z1 = placement1.GetAxisZ();
+    const Z2 = placement2.GetAxisZ();
     const origin = point2point(placement2.GetOrigin());
     const delta = point2point(placement1.GetOrigin()).sub(origin);
-    const ZdotOffset = Math.abs(vec2vec(Z, 1).dot(delta));
+    const ZdotOffset = Math.abs(vec2vec(Z1, 1).dot(delta));
 
-    return Z.Colinear(placement2.GetAxisZ()) && ZdotOffset < 10e-4;
+    return Z1.Colinear(Z2)  && ZdotOffset < 10e-4;
 }
 
 export function isSmoothlyConnected(before: c3d.Curve3D, active: c3d.Curve3D, after?: c3d.Curve3D): boolean {

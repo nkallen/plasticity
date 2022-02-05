@@ -630,6 +630,7 @@ export default {
             ],
             functions: [
                 "bool Colinear(const MbVector3D & other, double eps = Math::angleRegion)",
+                "MbVector3D & Invert()",
             ]
         },
         Axis3D: {
