@@ -30,8 +30,11 @@ export class PipeFactory extends GeometryFactory implements PipeParams {
 
     get vertexCount() { return this._vertexCount }
     set vertexCount(count: number) {
-        this._vertexCount = Math.max(0, count);
-        if (this._vertexCount === 2) this._vertexCount++;
+        count = Math.floor(Math.max(0, count));
+        switch (count) {
+            case 2: count = 3; break;
+        }
+        this._vertexCount = count;
     }
 
     private placement!: c3d.Placement3D;
@@ -69,7 +72,7 @@ export class PipeFactory extends GeometryFactory implements PipeParams {
         const polygon = c3d.ActionCurve.RegularPolygon(new c3d.CartPoint(0, 0), new c3d.CartPoint(unit(sectionSize), 0), vertexCount, true);
 
         const rotated = new c3d.Placement3D(placement);
-        rotated.Rotate(new c3d.Axis3D(placement.GetAxisZ()), angle);
+        rotated.Rotate(new c3d.Axis3D(placement.GetOrigin(), placement.GetAxisZ()), angle);
 
         const sweptData = new c3d.SweptData(rotated, new c3d.Contour([polygon], false));
 

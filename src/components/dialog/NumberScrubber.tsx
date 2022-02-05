@@ -121,7 +121,7 @@ export default (editor: Editor) => {
                 }
                 case 'dragging':
                     const { precision } = this;
-                    const { downEvent, startEvent } = this.state;
+                    const { downEvent } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
                     const delta = e.movementX / 3;
