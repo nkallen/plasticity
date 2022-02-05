@@ -389,6 +389,7 @@ describe('prefer & addPickedPoint', () => {
                 info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
             });
             const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
+            expect(pointAxisSnaps).toHaveLength(4);
             const x = pointAxisSnaps.find(p => p.name === 'x')!;
             expect(x.n).toApproximatelyEqual(new THREE.Vector3(0.788, -0.211, -0.577));
             const y = pointAxisSnaps.find(p => p.name === 'y')!;
@@ -407,12 +408,16 @@ describe('prefer & addPickedPoint', () => {
                 info: { snap, constructionPlane, orientation: quat, cameraPosition: new THREE.Vector3(), cameraOrientation: new THREE.Quaternion() }
             });
             const pointAxisSnaps = pointPicker.snaps.filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
-            const x = pointAxisSnaps.find(p => p.name === 'x')!;
-            expect(x.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            const y = pointAxisSnaps.find(p => p.name === 'y')!;
-            expect(y.n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-            const z = pointAxisSnaps.find(p => p.name === 'z')!;
-            expect(z.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(pointAxisSnaps).toHaveLength(7);
+            const xs = pointAxisSnaps.filter(p => p.name === 'x')!;
+            expect(xs[0].n).toApproximatelyEqual(new THREE.Vector3(0.788, -0.211, -0.577));
+            expect(xs[1].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            const ys = pointAxisSnaps.filter(p => p.name === 'y')!;
+            expect(ys[0].n).toApproximatelyEqual(new THREE.Vector3(-0.211, 0.788, -0.577));
+            expect(ys[1].n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            const zs = pointAxisSnaps.filter(p => p.name === 'z')!;
+            expect(zs[0].n).toApproximatelyEqual(new THREE.Vector3(0.577, 0.577, 0.577));
+            expect(zs[1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         })
 
         test("with no preference, straight snaps are oriented to coordinate system", () => {

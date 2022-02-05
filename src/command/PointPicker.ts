@@ -131,8 +131,14 @@ export class Model {
                 const lastOrientation = last.info.orientation;
                 let work: Snap[] = [];
                 let axes = [...straightSnaps];
-                if (facePreferenceMode === 'strong') axes = axes.map(s => s.rotate(lastOrientation));
-                work = work.concat(new PointSnap(undefined, last.point).axes(axes));
+                if (facePreferenceMode === 'strong') {
+                    work = work.concat(new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation))));
+                } else if (facePreferenceMode === 'weak') {
+                    work = work.concat(new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation))));
+                    work = work.concat(new PointSnap(undefined, last.point).axes(axes));
+                } else {
+                    work = work.concat(new PointSnap(undefined, last.point).axes(axes));
+                }
                 work = work.concat(lastSnap.additionalSnapsFor(last.point));
                 for (const snap of work) {
                     if (snap instanceof PointAxisSnap) { // Such as normal/binormal/tangent
