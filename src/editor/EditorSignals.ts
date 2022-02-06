@@ -2,7 +2,7 @@ import signals from "signals";
 import c3d from '../build/Release/c3d.node';
 import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
-import { PointPickerModel } from "../command/point-picker/PointPicker";
+import { PointPickerModel } from "../command/point-picker/PointPickerModel";
 import { Viewport } from '../components/viewport/Viewport';
 import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
 import { Selectable, ToggleableSet } from '../selection/SelectionDatabase';

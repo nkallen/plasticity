@@ -8,7 +8,8 @@ import { PointSnap, Snap } from "../editor/snaps/Snap";
 import { Helper, Helpers } from '../util/Helpers';
 import { GizmoSnapPicker, SnapPicker, SnapResult } from '../editor/snaps/SnapPicker';
 import { GizmoMaterialDatabase } from './GizmoMaterials';
-import { PointPickerModel, pointGeometry } from './point-picker/PointPicker';
+import { pointGeometry } from './point-picker/PointPicker';
+import { PointPickerModel } from "./point-picker/PointPickerModel";
 import { SnapIndicator } from './SnapIndicator';
 import { SnapManagerGeometryCache } from '../editor/snaps/SnapManagerGeometryCache';
 

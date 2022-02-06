@@ -3,7 +3,7 @@
  */
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { PointPickerModel } from '../../src/command/point-picker/PointPicker';
+import { PointPickerModel } from '../../src/command/point-picker/PointPickerModel';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
