@@ -8,7 +8,7 @@ import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, LineAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../../editor/snaps/Snap";
 import { inst2curve, point2point } from '../../util/Conversion';
 import * as visual from "../../visual_model/VisualModel";
-import { PointResult, SnapCollection, isAxisAligned, } from './PointPicker';
+import { PointResult, SnapCollection } from './PointPicker';
 
 const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 export type Choice = { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion }; sticky: boolean };
@@ -310,4 +310,13 @@ export class PointPickerModel {
             }
         }
     }
+}
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+export function isAxisAligned(axis: PointAxisSnap): boolean {
+    const n = axis.n;
+    return (Math.abs(n.dot(X)) > 1 - 10e-6) || (Math.abs(n.dot(Y)) > 1 - 10e-6) || (Math.abs(n.dot(Z)) > 1 - 10e-6)
 }

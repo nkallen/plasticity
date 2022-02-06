@@ -6,9 +6,10 @@ import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { SnapPresentation, SnapPresenter } from "../../src/command/SnapPresenter";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
+import { GizmoSnapPicker } from "../../src/editor/snaps/GizmoSnapPicker";
 import { PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
 import { SnapManagerGeometryCache } from "../../src/editor/snaps/SnapManagerGeometryCache";
-import { GizmoSnapPicker, SnapResult } from "../../src/editor/snaps/SnapPicker";
+import { SnapResult } from "../../src/editor/snaps/SnapPicker";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 

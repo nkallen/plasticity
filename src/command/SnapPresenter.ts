@@ -5,13 +5,15 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { PointSnap, Snap } from "../editor/snaps/Snap";
+import { SnapManagerGeometryCache } from '../editor/snaps/SnapManagerGeometryCache';
+import { SnapResult } from '../editor/snaps/SnapPicker';
+import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
+import { PointPickerSnapPicker } from "../editor/snaps/PointPickerSnapPicker";
 import { Helper, Helpers } from '../util/Helpers';
-import { GizmoSnapPicker, SnapPicker, SnapResult } from '../editor/snaps/SnapPicker';
 import { GizmoMaterialDatabase } from './GizmoMaterials';
 import { pointGeometry } from './point-picker/PointPicker';
 import { PointPickerModel } from "./point-picker/PointPickerModel";
 import { SnapIndicator } from './SnapIndicator';
-import { SnapManagerGeometryCache } from '../editor/snaps/SnapManagerGeometryCache';
 
 export interface SnapInfo {
     snap: Snap,
@@ -28,7 +30,7 @@ export interface SnapInfo {
 // There are icons, indicators, textual name explanations, etc.
 
 export class SnapPresentation {
-    static makeForPointPicker(picker: SnapPicker, viewport: Viewport, pointPicker: PointPickerModel, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
+    static makeForPointPicker(picker: PointPickerSnapPicker, viewport: Viewport, pointPicker: PointPickerModel, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
         const { constructionPlane, isOrthoMode } = viewport;
 
         const nearby = picker.nearby(pointPicker, snapCache, db);

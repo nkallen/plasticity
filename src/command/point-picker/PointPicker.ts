@@ -12,7 +12,8 @@ import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap, PointAxisSnap, PointSnap, Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from "../../editor/snaps/SnapManagerGeometryCache";
-import { RaycasterParams, SnapPicker } from '../../editor/snaps/SnapPicker';
+import { RaycasterParams } from '../../editor/snaps/SnapPicker';
+import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { Finish } from '../../util/Cancellable';
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { Helpers } from '../../util/Helpers';
@@ -143,7 +144,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             disposables.add(presenter.execute());
 
             // FIXME: build elsewhere for higher performance
-            const picker = new SnapPicker(this.raycasterParams);
+            const picker = new PointPickerSnapPicker(this.raycasterParams);
             disposables.add(picker.disposable);
 
             let lastMoveEvent: (() => void) | undefined = undefined;
@@ -281,13 +282,4 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     set facePreferenceMode(facePreferenceMode: PreferenceMode) { this.model.facePreferenceMode = facePreferenceMode }
 
     undo() { this.model.undo() }
-}
-
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-
-export function isAxisAligned(axis: PointAxisSnap): boolean {
-    const n = axis.n;
-    return (Math.abs(n.dot(X)) > 1 - 10e-6) || (Math.abs(n.dot(Y)) > 1 - 10e-6) || (Math.abs(n.dot(Z)) > 1 - 10e-6)
 }

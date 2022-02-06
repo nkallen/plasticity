@@ -16,9 +16,10 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
+import { PointPickerSnapPicker } from '../../src/editor/snaps/PointPickerSnapPicker';
 import { CurveEndPointSnap, EdgePointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
 import { PointSnapCache, SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
-import { RaycasterParams, SnapPicker } from "../../src/editor/snaps/SnapPicker";
+import { RaycasterParams } from "../../src/editor/snaps/SnapPicker";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
@@ -54,7 +55,7 @@ beforeEach(() => {
     pointPicker = new PointPickerModel(db, crosses, registry, signals);
 })
 
-let picker: SnapPicker;
+let picker: PointPickerSnapPicker;
 let nearbyParams: THREE.RaycasterParameters = {};
 let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { threshold: 10 } };
 
@@ -63,7 +64,7 @@ describe('Unit tests', () => {
     let raycast: jest.SpyInstance;
 
     beforeEach(() => {
-        picker = new SnapPicker(intersectParams, nearbyParams, raycaster);
+        picker = new PointPickerSnapPicker(intersectParams, nearbyParams, raycaster);
         raycast = jest.spyOn(raycaster, 'intersectObjects');
     });
 
@@ -135,7 +136,7 @@ describe('Unit tests', () => {
 
 describe('Integration test', () => {
     beforeEach(() => {
-        picker = new SnapPicker(intersectParams, nearbyParams);
+        picker = new PointPickerSnapPicker(intersectParams, nearbyParams);
     });
 
     const event = new MouseEvent('move', { clientX: 50, clientY: 50 });
