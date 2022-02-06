@@ -10,13 +10,13 @@ import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
 import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
-import { SelectionDatabase, ToggleableSet } from "../../src/selection/SelectionDatabase";
+import { SelectionDatabase, SelectionModeSet } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let click: ClickStrategy;
-let modes: ToggleableSet;
+let modes: SelectionModeSet;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let db: GeometryDatabase;
@@ -25,7 +25,7 @@ let materials: MaterialDatabase;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    modes = new ToggleableSet(SelectionModeAll, signals);
+    modes = new SelectionModeSet(SelectionModeAll, signals);
     db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     click = new ClickStrategy(modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);

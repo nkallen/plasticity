@@ -117,7 +117,6 @@ export abstract class SnapPickerStrategy {
 }
 
 function findAllIntersectionsVeryCloseTogether<T extends { distance: number }>(intersections: T[], minDistance: number) {
-    console.log(intersections, minDistance);
     if (intersections.length === 0) return [];
 
     const result = [];

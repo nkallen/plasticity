@@ -1,11 +1,11 @@
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from "./ChangeSelectionExecutor";
-import { ModifiesSelection, ToggleableSet } from "./SelectionDatabase";
+import { ModifiesSelection, SelectionModeSet } from "./SelectionDatabase";
 
 export class ClickStrategy {
     constructor(
-        protected readonly mode: ToggleableSet,
+        protected readonly mode: SelectionModeSet,
         protected readonly selected: ModifiesSelection,
         protected readonly hovered: ModifiesSelection,
         protected readonly writeable: ModifiesSelection

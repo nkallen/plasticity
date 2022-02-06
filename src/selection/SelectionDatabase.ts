@@ -1,14 +1,14 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from '../editor/EditorSignals';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import * as visual from '../visual_model/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
-import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
+import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
+import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
 
 export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
 
@@ -372,7 +372,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     debug() { }
 }
 
-export class ToggleableSet extends Set<SelectionMode> {
+export class SelectionModeSet extends Set<SelectionMode> {
     constructor(values: SelectionMode[], private readonly signals: EditorSignals) {
         super(values);
     }
@@ -409,7 +409,7 @@ function eqSet<A>(as: Set<A>, bs: Set<A>) {
 }
 
 export interface HasSelectedAndHovered {
-    readonly mode: ToggleableSet;
+    readonly mode: SelectionModeSet;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
     makeTemporary(): SelectionDatabase;
@@ -440,7 +440,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         private readonly db: DatabaseLike,
         private readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new ToggleableSet(SelectionModeAll, signals),
+        readonly mode = new SelectionModeSet(SelectionModeAll, signals),
     ) {
         const removeSignal = signals.historyChanged.add(this.clearHovered);
         this.disposable.add(new Disposable(() => { removeSignal.detach() }));
@@ -453,7 +453,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
 
     makeTemporary(): SelectionDatabase {
         const signals = new EditorSignals();
-        return new SelectionDatabase(this.db, this.materials, signals, new ToggleableSet([], signals))
+        return new SelectionDatabase(this.db, this.materials, signals, new SelectionModeSet([], signals))
     }
 
     copy(that: HasSelectedAndHovered, ...modes: SelectionMode[]) {

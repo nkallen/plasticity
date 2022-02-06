@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode } from "../selection/ChangeSelectionExecutor";
-import { HasSelection, ToggleableSet } from '../selection/SelectionDatabase';
+import { HasSelection, SelectionModeSet } from '../selection/SelectionDatabase';
 import { EditorSignals } from './EditorSignals';
 
 export default class LayerManager {
@@ -78,7 +78,7 @@ export default class LayerManager {
         else this.hideControlPoints();
     }
 
-    private selectionModeChanged(mode: ToggleableSet) {
+    private selectionModeChanged(mode: SelectionModeSet) {
         const { _visible, _intersectable } = this;
         if (mode.has(SelectionMode.Solid)) {
             _intersectable.enable(visual.Layers.Face);

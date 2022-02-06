@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command, * as cmd from "../command/Command";
 import { Viewport } from "../components/viewport/Viewport";
-import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";
+import { defaultRaycasterParams, RaycasterParameters, ViewportControl } from "../components/viewport/ViewportControl";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
@@ -25,7 +25,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         db: DatabaseLike,
         protected readonly keypress: SelectionKeypressStrategy,
         signals: EditorSignals,
-        raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
+        raycasterParams: RaycasterParameters = { ...defaultRaycasterParams },
     ) {
         super(viewport, layers, db, signals, raycasterParams);
     }

@@ -5,7 +5,7 @@ import Command from '../command/Command';
 import { PointPickerModel } from "../command/point-picker/PointPickerModel";
 import { Viewport } from '../components/viewport/Viewport';
 import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
-import { Selectable, ToggleableSet } from '../selection/SelectionDatabase';
+import { Selectable, SelectionModeSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from './ModifierManager';
@@ -53,7 +53,7 @@ export class EditorSignals {
     dialogRemoved: signals.Signal = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
-    selectionModeChanged: signals.Signal<ToggleableSet> = new signals.Signal();
+    selectionModeChanged: signals.Signal<SelectionModeSet> = new signals.Signal();
     temporaryConstructionPlaneAdded: signals.Signal<ConstructionPlaneSnap> = new signals.Signal();
     constructionPlanesChanged: signals.Signal = new signals.Signal();
     snapsAdded: signals.Signal<{pointPicker: PointPickerModel, snaps: Snap[]}> = new signals.Signal();

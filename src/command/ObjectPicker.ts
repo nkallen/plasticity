@@ -16,6 +16,7 @@ import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import * as visual from '../visual_model/VisualModel';
 import { NonemptyClickStrategy } from '../selection/Click';
 import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
+import { RaycasterParameters } from '../components/viewport/ViewportControl';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -36,7 +37,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         viewport: Viewport,
         private readonly editor: EditorLike,
         private readonly selection: HasSelectedAndHovered,
-        raycasterParams: THREE.RaycasterParameters,
+        raycasterParams: RaycasterParameters,
         private readonly prohibitions: ReadonlySet<Selectable>,
         keymapSelector?: string,
     ) {

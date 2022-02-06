@@ -8,7 +8,7 @@ import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { ChangeSelectionExecutor, SelectionMode } from "../src/selection/ChangeSelectionExecutor";
-import { SelectionDatabase, ToggleableSet } from "../src/selection/SelectionDatabase";
+import { SelectionDatabase, SelectionModeSet } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';

@@ -3,13 +3,17 @@ import * as THREE from "three";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from "../../editor/EditorSignals";
 import LayerManager from "../../editor/LayerManager";
+import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionModeSet } from "../../selection/SelectionDatabase";
 import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none', previousEvent?: MouseEvent } | { tag: 'hover', previousEvent?: MouseEvent } | { tag: 'down', downEvent: MouseEvent, disposable: Disposable, previousEvent?: MouseEvent } | { tag: 'dragging', downEvent: MouseEvent, startEvent: MouseEvent, disposable: Disposable } | { tag: 'wheel', intersections: intersectable.Intersection[], index: number, disposable: Disposable }
 
-export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+export type RaycasterParameters = THREE.RaycasterParameters & { Line2: { threshold: number } };
+
+export const defaultRaycasterParams: RaycasterParameters = {
     Mesh: { threshold: 0 },
     Line: { threshold: 0.1 },
     Line2: { threshold: 15 },
@@ -57,7 +61,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
-        readonly raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
+        readonly raycasterParams: RaycasterParameters = { ...defaultRaycasterParams },
     ) {
         super();
 
@@ -65,6 +69,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
+        this.selectionModeChanged = this.selectionModeChanged.bind(this);
     }
 
     addEventLiseners() {
@@ -76,6 +81,11 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             domElement.removeEventListener('pointerdown', this.onPointerDown);
             domElement.removeEventListener('pointermove', this.onPointerMove);
             domElement.removeEventListener('wheel', this.onWheel);
+        }));
+
+        this.signals.selectionModeChanged.add(this.selectionModeChanged);
+        this.disposable.add(new Disposable(()=>{
+            this.signals.selectionModeChanged.remove(this.selectionModeChanged);
         }));
     }
 
@@ -248,6 +258,17 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[], isXRay = this.viewport.isXRay): intersectable.Intersection[] {
         this.picker.setFromViewport(normalizedMousePosition, this.viewport);
         return this.picker.intersect(objects, isXRay);
+    }
+
+    protected selectionModeChanged(selectionMode: SelectionModeSet) {
+        if (selectionMode.is(SelectionMode.CurveEdge, SelectionMode.Curve)) {
+            this.raycasterParams.Line2.threshold = 45;
+        } else {
+            this.raycasterParams.Mesh = defaultRaycasterParams.Mesh;
+            this.raycasterParams.Line = defaultRaycasterParams.Line;
+            this.raycasterParams.Line2 = defaultRaycasterParams.Line2;
+            this.raycasterParams.Points = defaultRaycasterParams.Points;
+        }
     }
 }
 
