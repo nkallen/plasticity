@@ -2,8 +2,8 @@ import * as THREE from "three";
 import Command, * as cmd from "../command/Command";
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, RaycasterParameters, ViewportControl } from "../components/viewport/ViewportControl";
-import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from "../editor/EditorSignals";
 import LayerManager from "../editor/LayerManager";
 import * as intersectable from "../visual_model/Intersectable";
 import { Boxcaster } from "./Boxcaster";
@@ -25,7 +25,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         db: DatabaseLike,
         protected readonly keypress: SelectionKeypressStrategy,
         signals: EditorSignals,
-        raycasterParams: RaycasterParameters = { ...defaultRaycasterParams },
+        raycasterParams: RaycasterParameters = defaultRaycasterParams(),
     ) {
         super(viewport, layers, db, signals, raycasterParams);
     }

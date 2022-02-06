@@ -13,11 +13,13 @@ type State = { tag: 'none', previousEvent?: MouseEvent } | { tag: 'hover', previ
 
 export type RaycasterParameters = THREE.RaycasterParameters & { Line2: { threshold: number } };
 
-export const defaultRaycasterParams: RaycasterParameters = {
-    Mesh: { threshold: 0 },
-    Line: { threshold: 0.1 },
-    Line2: { threshold: 15 },
-    Points: { threshold: 20 }
+export function defaultRaycasterParams(): RaycasterParameters {
+    return {
+        Mesh: { threshold: 0 },
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 15 },
+        Points: { threshold: 20 }
+    }
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {
@@ -61,7 +63,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
-        readonly raycasterParams: RaycasterParameters = { ...defaultRaycasterParams },
+        readonly raycasterParams: RaycasterParameters = defaultRaycasterParams(),
     ) {
         super();
 
@@ -84,7 +86,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }));
 
         this.signals.selectionModeChanged.add(this.selectionModeChanged);
-        this.disposable.add(new Disposable(()=>{
+        this.disposable.add(new Disposable(() => {
             this.signals.selectionModeChanged.remove(this.selectionModeChanged);
         }));
     }
@@ -262,12 +264,13 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     protected selectionModeChanged(selectionMode: SelectionModeSet) {
         if (selectionMode.is(SelectionMode.CurveEdge, SelectionMode.Curve)) {
-            this.raycasterParams.Line2.threshold = 45;
+            this.raycasterParams.Line2.threshold = 50;
         } else {
-            this.raycasterParams.Mesh = defaultRaycasterParams.Mesh;
-            this.raycasterParams.Line = defaultRaycasterParams.Line;
-            this.raycasterParams.Line2 = defaultRaycasterParams.Line2;
-            this.raycasterParams.Points = defaultRaycasterParams.Points;
+            const params = defaultRaycasterParams();
+            this.raycasterParams.Mesh = params.Mesh;
+            this.raycasterParams.Line = params.Line;
+            this.raycasterParams.Line2 = params.Line2;
+            this.raycasterParams.Points = params.Points;
         }
     }
 }

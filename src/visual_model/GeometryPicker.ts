@@ -47,7 +47,14 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectabl
 }
 
 function sort(i1: THREE.Intersection<intersectable.Intersectable>, i2: THREE.Intersection<intersectable.Intersectable>) {
-    return i1.object.priority - i2.object.priority;
+    const o1 = i1.object, o2 = i2.object;
+    const p1 = o1.priority, p2 = o2.priority;
+    if (p1 === p2) {
+        if (o1 instanceof CurveEdge && o2 instanceof CurveEdge) {
+            // @ts-expect-error
+            return i1.point.distanceToSquared(i1.pointOnLine) - i2.point.distanceToSquared(i2.pointOnLine);
+        } else return 0;
+    } else return p1 - p2;
 }
 
 declare module './VisualModel' {

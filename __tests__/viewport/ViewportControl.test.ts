@@ -9,6 +9,8 @@ import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
+import { SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
+import { SelectionModeSet } from "../../src/selection/SelectionDatabase";
 import { Intersection } from "../../src/visual_model/Intersectable";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
@@ -87,6 +89,10 @@ class MyViewportControl extends ViewportControl {
 let control: MyViewportControl;
 beforeEach(() => {
     control = new MyViewportControl(viewport, editor.layers, editor.db, editor.signals);
+})
+
+afterEach(() => {
+    control.dispose();
 })
 
 test('enable & reenable without race', () => {
@@ -170,4 +176,13 @@ test('wheel', () => {
     const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
     control.onPointerUp(new MouseEvent('pointerup'));
     expect(endClick).toBeCalledTimes(1);
+})
+
+test('selectModeChanged', () => {
+    control.addEventLiseners();
+    expect(control.raycasterParams.Line2.threshold).toBe(15);
+    editor.selection.mode.set(SelectionMode.Curve, SelectionMode.CurveEdge);
+    expect(control.raycasterParams.Line2.threshold).toBe(50);
+    editor.selection.mode.set(...SelectionModeAll);
+    expect(control.raycasterParams.Line2.threshold).toBe(15);
 })
