@@ -11,7 +11,7 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
-import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
+import { SelectionCommandRegistrar } from "../selection/CommandRegistrar";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
 import theme from '../startup/default-theme';
 import { Helpers } from "../util/Helpers";

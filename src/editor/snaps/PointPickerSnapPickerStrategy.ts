@@ -37,8 +37,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
     intersectChoice(choice: Choice, raycaster: THREE.Raycaster): SnapResult[] {
         const snap = choice.snap;
         const intersection = snap.intersect(raycaster, choice.info);
-        if (intersection === undefined)
-            return [];
+        if (intersection === undefined) return [];
         const { position, orientation } = intersection;
         return [{ snap, orientation: orientation, position, cursorPosition: position, cursorOrientation: orientation }];
     }
@@ -50,8 +49,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
 
         const output = [];
         for (const info of input) {
-            if (!restriction.isValid(info.position))
-                continue;
+            if (!restriction.isValid(info.position)) continue;
             const { position, orientation } = restriction.project(info.position);
             info.position = position;
             info.orientation = orientation;

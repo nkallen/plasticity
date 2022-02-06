@@ -4,7 +4,7 @@ import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
 import { ClickStrategy, HoverStrategy } from './Click';
-import { SelectionConversionStrategy } from './SelectionConversion';
+import { SelectionConversionStrategy } from './CommandRegistrar';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
