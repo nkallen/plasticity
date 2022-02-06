@@ -50,6 +50,7 @@ tooltips.set(cmd.RadialArrayCommand, "Radial array");
 tooltips.set(cmd.ExtensionShellCommand, "Extend face");
 tooltips.set(cmd.DuplicateCommand, "Duplicate object");
 tooltips.set(cmd.SlotCommand, "Create a hole");
+tooltips.set(cmd.PlaceCommand, "Place solid or curve");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -152,6 +153,8 @@ keybindings.set("gizmo:revolution:thickness", "Thickness");
 keybindings.set("gizmo:evolution:thickness", "Thickness");
 keybindings.set("gizmo:pipe:thickness", "Thickness");
 keybindings.set("gizmo:offset-curve:distance", "Distance");
+keybindings.set("gizmo:place:flip", "Flip");
+keybindings.set("gizmo:place:angle", "Angle");
 keybindings.set("snaps:set-x", "X axis");
 keybindings.set("snaps:set-y", "Y axis");
 keybindings.set("snaps:set-z", "Z axis");

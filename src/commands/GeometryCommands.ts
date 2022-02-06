@@ -32,6 +32,7 @@ import { SpiralCommand } from "./spiral/SpiralCommand";
 import { ShellCommand, ThinSolidCommand } from "./thin-solid/ShellCommand";
 import { FreestyleDraftSolidCommand, FreestyleItemScaleCommand, FreestyleMoveItemCommand, FreestyleRotateItemCommand } from "./translate/FreestyleTranslateCommand";
 import { DraftSolidCommand, MoveCommand, MoveItemCommand, RotateCommand, RotateItemCommand, ScaleCommand, ScaleItemCommand } from "./translate/TranslateCommand";
+import { PlaceCommand } from "./place/PlaceCommand";
 
 export {
     MoveItemCommand,
@@ -103,4 +104,5 @@ export {
     DuplicateCommand,
     RadialArrayCommand,
     SlotCommand,
+    PlaceCommand
 };

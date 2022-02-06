@@ -181,6 +181,12 @@ export default {
         "d": "gizmo:thin-solid:thickness",
     },
 
+    "[command='place'] plasticity-viewport": {
+        "f": "gizmo:place:flip",
+        "a": "gizmo:place:angle",
+        "s": "gizmo:place:scale",
+    },
+
     "plasticity-viewport": {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",
@@ -220,6 +226,7 @@ export default {
         "r": "command:rotate",
         "s": "command:scale",
         "p": "command:pipe",
+        "ctrl-a": "command:place",
         "b": "command:fillet-solid",
         "e": "command:extrude",
         "t": "command:trim",

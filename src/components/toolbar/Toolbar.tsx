@@ -1,4 +1,3 @@
-import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
@@ -25,6 +24,8 @@ export class Model {
         const translations: Set<(typeof Command & GConstructor<Command>)> = new Set();
         const misc: Set<(typeof Command & GConstructor<Command>)> = new Set();
         const bool: Set<(typeof Command & GConstructor<Command>)> = new Set();
+        const copy: Set<(typeof Command & GConstructor<Command>)> = new Set();
+        const swept: Set<(typeof Command & GConstructor<Command>)> = new Set();
         let trash: (typeof Command & GConstructor<Command>) | undefined = undefined;
 
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
@@ -42,36 +43,37 @@ export class Model {
         }
         if (selection.curves.size > 0 || selection.solids.size > 0) {
             misc.add(cmd.MirrorCommand);
+            copy.add(cmd.PlaceCommand);
         }
         if (selection.curves.size > 0) {
-            misc.add(cmd.PipeCommand);
+            swept.add(cmd.PipeCommand);
         }
         if (selection.regions.size > 0) {
-            misc.add(cmd.ExtrudeCommand);
-            misc.add(cmd.RevolutionCommand);
-            misc.add(cmd.EvolutionCommand);
+            swept.add(cmd.ExtrudeCommand);
+            swept.add(cmd.RevolutionCommand);
+            swept.add(cmd.EvolutionCommand);
         }
         if (selection.solids.size > 0 || selection.curves.size > 0) {
-            misc.add(cmd.RadialArrayCommand);
+            copy.add(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {
             bool.add(cmd.BooleanCommand);
         }
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetCurveCommand);
-            misc.add(cmd.ExtrudeCommand);
+            swept.add(cmd.ExtrudeCommand);
             misc.add(cmd.ExtensionShellCommand);
         }
         if (selection.faces.size > 0 || selection.solids.size > 0) {
             bool.add(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {
-            misc.add(cmd.ExtrudeCommand);
-            misc.add(cmd.RevolutionCommand);
+            swept.add(cmd.ExtrudeCommand);
+            swept.add(cmd.RevolutionCommand);
             misc.add(cmd.OffsetCurveCommand);
         }
         if (selection.curves.size > 1) {
-            misc.add(cmd.LoftCommand);
+            swept.add(cmd.LoftCommand);
             misc.add(cmd.JoinCurvesCommand);
         }
         if (selection.edges.size > 0) {
@@ -79,12 +81,12 @@ export class Model {
             misc.add(cmd.OffsetCurveCommand);
         }
         if (selection.edges.size > 0 || selection.curves.size > 0 || selection.solids.size > 0) {
-            misc.add(cmd.DuplicateCommand);
+            copy.add(cmd.DuplicateCommand);
         }
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetFaceCommand);
         }
-        return { sections: [[...translations], [...misc], [...bool]], trash };
+        return { sections: [[...translations], [...swept], [...misc], [...bool], [...copy]], trash };
     }
 }
 

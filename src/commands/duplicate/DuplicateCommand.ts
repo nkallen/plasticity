@@ -5,12 +5,9 @@ import { CreateFaceFactory } from "../modifyface/ModifyFaceFactory";
 import { MoveGizmo } from '../translate/MoveGizmo';
 import { MoveFactory } from '../translate/TranslateFactory';
 
-
-
 export class DuplicateCommand extends Command {
     async execute(): Promise<void> {
-        const { editor: { selection: { selected: { solids, curves, edges, faces }, selected } } } = this;
-        const db = this.editor.db;
+        const { editor: { db, selection: { selected: { solids, curves, edges, faces }, selected } } } = this;
 
         const promises: Promise<visual.Item>[] = [];
         for (const solid of solids)

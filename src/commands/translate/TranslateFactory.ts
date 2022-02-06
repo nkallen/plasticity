@@ -10,7 +10,7 @@ export const X = new THREE.Vector3(1, 0, 0);
 export const Y = new THREE.Vector3(0, 1, 0);
 export const Z = new THREE.Vector3(0, 0, 1);
 
-abstract class TranslateFactory extends GeometryFactory {
+export abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
     private models!: c3d.Item[];
 

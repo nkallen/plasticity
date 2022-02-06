@@ -55,7 +55,7 @@ export default class TooltipManager {
         };
 
         this.hoverDefaults = {
-            delay: { show: 500, hide: 100 }
+            delay: { show: 200, hide: 100 }
         };
 
         this.keymapManager = keymapManager;
