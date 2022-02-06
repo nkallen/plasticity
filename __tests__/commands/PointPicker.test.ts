@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
-import { Model } from "../../src/command/PointPicker";
+import { PointPickerModel } from "../../src/command/PointPicker";
 import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
@@ -24,7 +24,7 @@ const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-let pointPicker: Model;
+let pointPicker: PointPickerModel;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
@@ -40,7 +40,7 @@ beforeEach(() => {
     const crosses = new CrossPointDatabase();
     const registry = new CommandRegistry();
     snaps = new SnapManager(db, crosses, signals);
-    pointPicker = new Model(db, crosses, registry, signals);
+    pointPicker = new PointPickerModel(db, crosses, registry, signals);
 });
 
 const constructionPlane = new ConstructionPlaneSnap();
@@ -621,7 +621,7 @@ describe('restrictionFor', () => {
     })
 })
 
-function compact(snaps: Model['snaps']) {
+function compact(snaps: PointPickerModel['snaps']) {
     const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = snaps;
     const all = [
         ...snapsForLastPickedPoint.other, ...otherAddedSnaps.other, ...activatedSnaps.other,

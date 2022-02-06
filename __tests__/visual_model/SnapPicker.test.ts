@@ -3,7 +3,7 @@
  */
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { Model } from '../../src/command/PointPicker';
+import { PointPickerModel } from '../../src/command/PointPicker';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
@@ -48,10 +48,10 @@ beforeEach(() => {
     registry = editor.registry;
 });
 
-let pointPicker: Model;
+let pointPicker: PointPickerModel;
 
 beforeEach(() => {
-    pointPicker = new Model(db, crosses, registry, signals);
+    pointPicker = new PointPickerModel(db, crosses, registry, signals);
 })
 
 let picker: SnapPicker;

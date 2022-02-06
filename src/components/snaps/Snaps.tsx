@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import * as THREE from 'three';
-import { Model } from '../../command/PointPicker';
+import { PointPickerModel } from '../../command/PointPicker';
 import { Editor } from '../../editor/Editor';
 import { Snap } from '../../editor/snaps/Snap';
 import { SnapType } from '../../editor/snaps/SnapManager';
@@ -9,7 +9,7 @@ import * as visual from '../../visual_model/VisualModel';
 export default (editor: Editor) => {
     class Anon extends HTMLElement {
         private snaps = new Set<Snap>();
-        private pointPicker?: Model;
+        private pointPicker?: PointPickerModel;
 
         connectedCallback() {
             editor.signals.snapsAdded.add(this.add);
@@ -22,7 +22,7 @@ export default (editor: Editor) => {
             editor.signals.snapsCleared.remove(this.remove);
         }
 
-        add = (info: { snaps: Snap[], pointPicker: Model }) => {
+        add = (info: { snaps: Snap[], pointPicker: PointPickerModel }) => {
             for (const snap of info.snaps) this.snaps.add(snap);
             this.pointPicker = info.pointPicker;
             this.render();

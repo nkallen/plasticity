@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Choice, Model } from "../../command/PointPicker";
+import { Choice, PointPickerModel } from "../../command/PointPicker";
 import { Viewport } from "../../components/viewport/Viewport";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
@@ -172,12 +172,12 @@ abstract class AbstractSnapPicker {
 export class SnapPicker extends AbstractSnapPicker {
     readonly disposable = new CompositeDisposable();
 
-    nearby(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
+    nearby(pointPicker: PointPickerModel, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
         const points = this.collectPickerSnaps(pointPicker).points;
         return super._nearby(points, snaps);
     }
 
-    private collectPickerSnaps(pointPicker: Model) {
+    private collectPickerSnaps(pointPicker: PointPickerModel) {
         const { disabled, snapsForLastPickedPoint, activatedSnaps, otherAddedSnaps } = pointPicker.snaps;
         const notPoints = [
             ...snapsForLastPickedPoint.other,
@@ -199,7 +199,7 @@ export class SnapPicker extends AbstractSnapPicker {
         this.toggleFaceLayer();
     }
 
-    intersect(pointPicker: Model, cache: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
+    intersect(pointPicker: PointPickerModel, cache: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
         const { viewport } = this;
         const { choice } = pointPicker;
 
@@ -246,7 +246,7 @@ export class SnapPicker extends AbstractSnapPicker {
         }
     }
 
-    private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]): SnapResult[] {
+    private applyRestrictions(pointPicker: PointPickerModel, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
         if (restriction === undefined) return input;
 
@@ -269,7 +269,7 @@ export class SnapPicker extends AbstractSnapPicker {
         return valid;
     }
 
-    private intersectConstructionPlane(pointPicker: Model, viewport: Viewport): SnapResult[] {
+    private intersectConstructionPlane(pointPicker: PointPickerModel, viewport: Viewport): SnapResult[] {
         const { raycaster } = this;
 
         const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrthoMode);

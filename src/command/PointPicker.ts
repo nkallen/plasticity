@@ -47,7 +47,7 @@ const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 
 export type Choice = { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion }; sticky: boolean };
 
-export class Model {
+export class PointPickerModel {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
     readonly straightSnaps = new Set(XYZ); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new SnapCollection();
@@ -357,7 +357,7 @@ class SnapCollection {
 }
 
 class PointPickerKeyboardManager {
-    constructor(private readonly pointPicker: Model, private readonly registry: CommandRegistry, private readonly signals: EditorSignals) {
+    constructor(private readonly pointPicker: PointPickerModel, private readonly registry: CommandRegistry, private readonly signals: EditorSignals) {
 
     }
 
@@ -407,7 +407,7 @@ class PointPickerKeyboardManager {
 }
 
 export class PointPicker implements Executable<PointResult, PointResult> {
-    private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
+    private readonly model = new PointPickerModel(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly keyboard = new PointPickerKeyboardManager(this.model, this.editor.registry, this.editor.signals);
 
     readonly raycasterParams: RaycasterParams = {

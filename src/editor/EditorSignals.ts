@@ -2,7 +2,7 @@ import signals from "signals";
 import c3d from '../build/Release/c3d.node';
 import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
-import { Model } from "../command/PointPicker";
+import { PointPickerModel } from "../command/PointPicker";
 import { Viewport } from '../components/viewport/Viewport';
 import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
 import { Selectable, ToggleableSet } from '../selection/SelectionDatabase';
@@ -56,7 +56,7 @@ export class EditorSignals {
     selectionModeChanged: signals.Signal<ToggleableSet> = new signals.Signal();
     temporaryConstructionPlaneAdded: signals.Signal<ConstructionPlaneSnap> = new signals.Signal();
     constructionPlanesChanged: signals.Signal = new signals.Signal();
-    snapsAdded: signals.Signal<{pointPicker: Model, snaps: Snap[]}> = new signals.Signal();
+    snapsAdded: signals.Signal<{pointPicker: PointPickerModel, snaps: Snap[]}> = new signals.Signal();
     snapsCleared: signals.Signal<Snap[]> = new signals.Signal();
     snapsDisabled: signals.Signal = new signals.Signal();
     snapsEnabled: signals.Signal = new signals.Signal();
