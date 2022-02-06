@@ -1,11 +1,11 @@
-import { HasSelectedAndHovered, Selection, SelectionDatabase } from './SelectionDatabase';
-import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
+import { CompositeDisposable } from 'event-kit';
+import * as cmd from "../command/Command";
+import { EditorLike } from '../command/Command';
+import CommandRegistry from '../components/atom/CommandRegistry';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import * as visual from '../visual_model/VisualModel';
-import CommandRegistry from '../components/atom/CommandRegistry';
-import { CompositeDisposable } from 'event-kit';
-import { EditorLike } from '../command/Command';
-import * as cmd from "../command/Command";
+import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
+import { HasSelectedAndHovered } from './SelectionDatabase';
 
 export class SelectionCommandRegistrar {
     private readonly disposable = new CompositeDisposable();
