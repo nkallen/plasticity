@@ -52,11 +52,6 @@ class ExtrudeDistanceGizmo extends DistanceGizmo {
         this.state.push();
     }
 
-    get shouldRescaleOnZoom() { return false }
-
-    render(length: number) {
-        super.render(length - 0.9);
-    }
 }
 
 class RadiusDistanceGizmo extends ExtrudeDistanceGizmo {

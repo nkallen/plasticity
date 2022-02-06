@@ -26,7 +26,7 @@ export class ConstructionPlaneSnap extends PlaneSnap implements ConstructionPlan
 
 export class FaceConstructionPlaneSnap extends PlaneSnap implements ConstructionPlane {
     constructor(normal: THREE.Vector3, p: THREE.Vector3, readonly faceSnap: FaceSnap) {
-        super(normal, p);
+        super(normal, p, "Face");
     }
 
     override isValid(pt: THREE.Vector3) { return true }

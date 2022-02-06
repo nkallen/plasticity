@@ -3,7 +3,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
-import { PointSnap, Snap } from "./Snap";
+import { FaceSnap, PointSnap, Snap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { RaycasterParams, SnapResult } from "./SnapPicker";
 
@@ -83,9 +83,12 @@ export abstract class SnapPickerStrategy {
     }
 
     processXRay(viewport: Viewport, results: (SnapResult & { distance: number })[], minDistance: number) {
-        const isXRay = viewport.isXRay;
+        const { isXRay, isOrthoMode } = viewport;
         if (!isXRay) {
             results = findAllIntersectionsVeryCloseTogether(results, minDistance);
+        }
+        if (isOrthoMode) {
+            results = results.filter(r => !(r.snap instanceof FaceSnap));
         }
         return results;
     }
@@ -123,7 +126,5 @@ function findAllIntersectionsVeryCloseTogether<T extends { distance: number }>(i
             result.push(intersection);
         }
     }
-    console.log(result);
-    console.log("===");
     return result;
 }

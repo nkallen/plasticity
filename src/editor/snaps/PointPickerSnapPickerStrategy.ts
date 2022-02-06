@@ -68,7 +68,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
 
     private toggleFaceLayer(raycaster: THREE.Raycaster, viewport: Viewport) {
         const { disposable } = this;
-        if (viewport.isOrthoMode) {
+        if (viewport.isOrthoMode && viewport.isXRay) {
             raycaster.layers.disable(visual.Layers.Face);
             disposable.add(new Disposable(() => { raycaster.layers.enable(visual.Layers.Face); }));
         }

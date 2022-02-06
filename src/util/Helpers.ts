@@ -49,8 +49,10 @@ export abstract class Helper extends THREE.Object3D {
         } else if (ProxyCamera.isPerspective(camera)) {
             factor = object.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.getEffectiveFOV() / 360), 7);
         } else throw new Error("invalid camera type");
-        object.scale.multiplyScalar(factor * 1 / 11);
+        factor *= 1 / 11;
+        object.scale.multiplyScalar(factor);
         object.updateMatrixWorld();
+        return factor;
     }
 }
 

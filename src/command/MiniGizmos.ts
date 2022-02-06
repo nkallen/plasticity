@@ -404,8 +404,10 @@ export class DistanceGizmo extends AbstractAxisGizmo {
         this.add(this.helper);
     }
 
+    private _length!: number;
     render(length: number) {
-        super.render(length + 1);
+        this._length = length;
+        super.render(length);
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {
@@ -413,9 +415,16 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     }
 
     scaleIndependentOfZoom(camera: THREE.Camera) {
-        this.tip.scale.copy(this.relativeScale);
-        this.knob.scale.copy(this.relativeScale);
-        Helper.scaleIndependentOfZoom(this.tip, camera);
+        const { relativeScale, tip, knob, shaft, _length } = this;
+        tip.scale.copy(relativeScale);
+        knob.scale.copy(relativeScale);
+        Helper.scaleIndependentOfZoom(tip, camera);
+        const factor = Helper.scaleIndependentOfZoom(knob, camera);
+        const shaftLength = _length + 1 * factor;
+        shaft.scale.y = shaftLength;
+        tip.position.set(0, shaftLength, 0);
+        knob.position.copy(tip.position);
+        tip.updateMatrixWorld(); shaft.updateMatrixWorld();
     }
 }
 
