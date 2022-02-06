@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { ModifiesSelection } from "../../selection/SelectionDatabase";

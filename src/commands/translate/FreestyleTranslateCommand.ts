@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
 import { AxisHelper } from "../../command/MiniGizmos";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { AxisSnap, PlaneSnap, PointSnap } from "../../editor/snaps/Snap";
 import { vec2vec } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";

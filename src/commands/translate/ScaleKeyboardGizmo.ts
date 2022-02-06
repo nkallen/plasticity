@@ -1,6 +1,6 @@
 import * as cmd from "../../command/CommandKeyboardInput";
 import { CommandKeyboardInput } from "../../command/CommandKeyboardInput";
-import * as pp from "../../command/PointPicker";
+import * as pp from "../../command/point-picker/PointPicker";
 
 interface EditorLike extends cmd.EditorLike, pp.EditorLike {
 }

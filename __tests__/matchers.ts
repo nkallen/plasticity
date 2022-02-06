@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { PointPickerModel } from "../src/command/PointPicker";
+import { PointPickerModel } from "../src/command/point-picker/PointPicker";
 import { Snap } from "../src/editor/snaps/Snap";
 
 declare global {

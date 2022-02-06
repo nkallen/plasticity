@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PointResult } from "../../command/PointPicker";
+import { PointResult } from "../../command/point-picker/PointPicker";
 import { FaceSnap, PlaneSnap, Snap } from "./Snap";
 
 export interface ConstructionPlane extends Snap {

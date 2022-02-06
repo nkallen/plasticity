@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { PhantomLineFactory } from "../line/LineFactory";
 import { RevolutionDialog } from "./RevolutionDialog";
 import { RevolutionFactory } from "./RevolutionFactory";

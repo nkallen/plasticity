@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
 import { GeometryFactory } from "../../command/GeometryFactory";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { GConstructor } from "../../util/Util";
 import * as visual from "../../visual_model/VisualModel";

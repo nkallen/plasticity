@@ -1,5 +1,5 @@
 import Command from "../../command/Command";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";

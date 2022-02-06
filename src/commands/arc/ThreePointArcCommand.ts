@@ -1,5 +1,5 @@
 import Command from "../../command/Command";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import * as visual from "../../visual_model/VisualModel";
 import { ThreePointArcFactory } from "./ArcFactory";
 import LineFactory from '../line/LineFactory';

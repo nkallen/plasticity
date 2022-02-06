@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Mode } from "../../command/AbstractGizmo";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { Quasimode } from "../../command/Quasimode";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { HasSelection } from "../../selection/SelectionDatabase";

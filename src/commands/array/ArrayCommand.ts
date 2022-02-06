@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { ArrayFactory } from "./ArrayFactory";
 import { ArrayKeyboardGizmo } from "./ArrayKeyboardGizmo";

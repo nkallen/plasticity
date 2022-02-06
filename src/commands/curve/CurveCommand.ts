@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import Command from "../../command/Command";
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { PointSnap } from "../../editor/snaps/Snap";
 import { Finish } from "../../util/Cancellable";
 import * as visual from "../../visual_model/VisualModel";

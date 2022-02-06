@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
-import { PointPickerModel } from "../../src/command/PointPicker";
+import { PointPickerModel } from "../../src/command/point-picker/PointPicker";
 import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";

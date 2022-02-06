@@ -1,6 +1,6 @@
 import Command from "../../command/Command";
 import { ValidationError } from '../../command/GeometryFactory';
-import { PointPicker } from "../../command/PointPicker";
+import { PointPicker } from "../../command/point-picker/PointPicker";
 import { CurvePointSnap, CurveSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { BridgeCurvesDialog } from "./BridgeCurvesDialog";

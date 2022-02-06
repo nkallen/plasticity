@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { PointPicker } from "../../src/command/PointPicker";
+import { PointPicker } from "../../src/command/point-picker/PointPicker";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from '../../src/editor/Editor';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
