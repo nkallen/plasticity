@@ -198,10 +198,6 @@ export default {
         "shift-alt-z": "viewport:toggle-overlays",
     },
 
-    "body[command] plasticity-viewport": {
-        "escape": "command:abort",
-    },
-
     "body:not([gizmo])": {
         "1": "selection:mode:set:control-point",
         "2": "selection:mode:set:edge",
@@ -306,6 +302,10 @@ export default {
 
     "body": {
         "alt": "noop",
+    },
+
+    "body[command] plasticity-viewport": {
+        "escape": "command:abort",
     },
 
     "body[command]:not([gizmo]) plasticity-viewport": {

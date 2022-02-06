@@ -10,7 +10,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
 import { PlaneDatabase } from '../editor/PlaneDatabase';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, LineAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams, SnapPicker } from '../editor/snaps/SnapPicker';
@@ -167,45 +167,6 @@ export class Model {
     private _preference?: { snap: FaceSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion } };
     get preference() { return this._preference }
 
-    start() {
-        this.showKeybindingInfo(...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other);
-        return new Disposable(() => this.hideKeybindingInfo(...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other));
-    }
-
-    registerKeyboardCommands(domElement: HTMLElement, fn: () => void) {
-        const choose = (which: Choices) => {
-            this.choose(which);
-            fn();
-        }
-
-        const disposable = new CompositeDisposable();
-        for (const snap of [...this.otherAddedSnaps.other, ...this.snapsForLastPickedPoint.other]) {
-            if (snap instanceof PointAxisSnap) {
-                const d = this.registry.addOne(domElement, snap.commandName, _ => choose(snap.name as Choices));
-                disposable.add(d);
-            }
-        }
-        return disposable;
-    }
-
-    private showKeybindingInfo(...snaps: Snap[]) {
-        for (const snap of snaps) {
-            if (snap instanceof PointAxisSnap) {
-                this.signals.keybindingsRegistered.dispatch([snap.commandName]);
-            }
-        }
-        this.signals.snapsAdded.dispatch({ pointPicker: this, snaps });
-    }
-
-    private hideKeybindingInfo(...snaps: Snap[]) {
-        for (const snap of snaps) {
-            if (snap instanceof PointAxisSnap) {
-                this.signals.keybindingsCleared.dispatch([snap.commandName]);
-            }
-        }
-        this.signals.snapsCleared.dispatch(snaps);
-    }
-
     toggle(snap: Snap) {
         const { disabled } = this;
         if (disabled.has(snap)) disabled.delete(snap);
@@ -276,9 +237,8 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new AxisSnap(undefined, direction, origin);
+        const line = new LineAxisSnap(undefined, direction, origin);
         this._restriction = line;
-        this._restrictionSnaps.push(line);
         this._choice = { snap: line, sticky: false }; // FIXME: this is abusing the api a bit, think of a better way
     }
 
@@ -396,8 +356,59 @@ class SnapCollection {
     }
 }
 
+class PointPickerKeyboardManager {
+    constructor(private readonly pointPicker: Model, private readonly registry: CommandRegistry, private readonly signals: EditorSignals) {
+
+    }
+
+    start() {
+        const { pointPicker: { snaps: { otherAddedSnaps, snapsForLastPickedPoint } } } = this;
+
+        this.showKeybindingInfo(...otherAddedSnaps.other, ...snapsForLastPickedPoint.other);
+        return new Disposable(() => this.hideKeybindingInfo(...otherAddedSnaps.other, ...snapsForLastPickedPoint.other));
+    }
+
+    registerKeyboardCommands(domElement: HTMLElement, fn: () => void) {
+        const { pointPicker, pointPicker: { snaps: { otherAddedSnaps, snapsForLastPickedPoint } } } = this;
+
+        const choose = (which: Choices) => {
+            this.pointPicker.choose(which);
+            fn();
+        }
+
+        const disposable = new CompositeDisposable();
+        for (const snap of [...otherAddedSnaps.other, ...snapsForLastPickedPoint.other]) {
+            if (snap instanceof PointAxisSnap) {
+                const d = this.registry.addOne(domElement, snap.commandName, _ => choose(snap.name as Choices));
+                disposable.add(d);
+            }
+        }
+        return disposable;
+    }
+
+    private showKeybindingInfo(...snaps: Snap[]) {
+        const { signals , pointPicker} = this;
+        for (const snap of snaps) {
+            if (snap instanceof PointAxisSnap) {
+                signals.keybindingsRegistered.dispatch([snap.commandName]);
+            }
+        }
+        signals.snapsAdded.dispatch({ pointPicker, snaps });
+    }
+
+    private hideKeybindingInfo(...snaps: Snap[]) {
+        for (const snap of snaps) {
+            if (snap instanceof PointAxisSnap) {
+                this.signals.keybindingsCleared.dispatch([snap.commandName]);
+            }
+        }
+        this.signals.snapsCleared.dispatch(snaps);
+    }
+}
+
 export class PointPicker implements Executable<PointResult, PointResult> {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
+    private readonly keyboard = new PointPickerKeyboardManager(this.model, this.editor.registry, this.editor.signals);
 
     readonly raycasterParams: RaycasterParams = {
         Line: { threshold: 0.1 },
@@ -411,9 +422,9 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { editor, editor: { signals }, model, snapCache } = this;
+            const { editor, editor: { signals }, model, keyboard, snapCache } = this;
 
-            disposables.add(model.start());
+            disposables.add(keyboard.start());
 
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
@@ -493,7 +504,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     }
                 }
 
-                const d = model.registerKeyboardCommands(viewport.domElement, replayLastMove);
+                const d = keyboard.registerKeyboardCommands(viewport.domElement, replayLastMove);
                 const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
                     if (rejectOnFinish) {
                         dispose();

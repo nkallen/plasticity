@@ -592,6 +592,13 @@ export class NormalAxisSnap extends PointAxisSnap {
     }
 }
 
+export class LineAxisSnap extends AxisSnap {
+    override isValid(pt: THREE.Vector3): boolean {
+        const { n } = this;
+        return Math.abs(pt.dot(n)) > 10e-6;
+    }
+}
+
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 

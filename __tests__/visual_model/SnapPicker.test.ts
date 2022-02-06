@@ -152,15 +152,15 @@ describe('Integration test', () => {
 
     describe('nearby', () => {
         test('when no geometry or point picker settings', () => {
-            expect(picker.nearby(pointPicker, snaps, db)).toEqual([]);
+            expect(picker.nearby(pointPicker, snaps, db).map(s => s.name)).toEqual(["Origin"]);
         });
 
         test('when point picker additions', () => {
             nearbyParams.Points = { threshold: 100000000000 };
 
-            const snap = new PointSnap(undefined, new THREE.Vector3());
+            const snap = new PointSnap("foo", new THREE.Vector3());
             pointPicker.addSnap(snap);
-            expect(picker.nearby(pointPicker, snaps, db)).toEqual([snap]);
+            expect(picker.nearby(pointPicker, snaps, db).map(s => s.name)).toEqual(["foo", "Origin"]);
         })
 
         describe('when geometry additions', () => {
@@ -196,7 +196,7 @@ describe('Integration test', () => {
 
                 test('it returns snap points for the geometry', () => {
                     const actual = picker.nearby(pointPicker, snaps, db);
-                    expect(actual.length).toBe(2);
+                    expect(actual.map(s=>s.name)).toEqual(["End", "Beginning", "Origin"]);
                 })
             })
         });

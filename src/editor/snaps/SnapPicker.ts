@@ -6,7 +6,7 @@ import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
 import { ConstructionPlaneSnap } from "./ConstructionPlaneSnap";
-import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, axisSnapMaterial, ChoosableSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 
@@ -99,8 +99,7 @@ abstract class AbstractSnapPicker {
         }
 
         // Step 3: Intersect all the other snaps like points and axes
-        const geometry = snaps.snappers;
-        const other_intersections = raycaster.intersectObjects([...geometry, ...additional, ...pointss], false);
+        const other_intersections = raycaster.intersectObjects([...snaps.basic, ...additional, ...pointss], false);
         const other_intersections_snaps = this.intersections2snaps(snaps, other_intersections);
 
         // Step 4.a.: Project all the intersections (go from approximate to exact values)
@@ -123,6 +122,7 @@ abstract class AbstractSnapPicker {
 
         // Step 5. In non-XRAY mode, we only return the absolute closest.
         if (!isXRay) {
+            // FIXME: this has a bug on intersection points
             results = findAllIntersectionsVeryCloseTogether(results, minDistance);
         }
         results.sort(sort);
@@ -201,17 +201,28 @@ export class SnapPicker extends AbstractSnapPicker {
 
     intersect(pointPicker: Model, cache: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
         const { viewport } = this;
+        const { choice } = pointPicker;
 
-        if (!cache.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
-        if (pointPicker.choice !== undefined) {
-            const chosen = this.intersectChoice(pointPicker.choice);
-            return this.applyRestrictions(pointPicker, viewport, chosen);
+        if (!cache.enabled) {
+            if (choice !== undefined) {
+                return this.intersectChoice(choice);
+            } else {
+                return this.intersectConstructionPlane(pointPicker, viewport)
+            }
         }
 
         const ppSnaps = this.collectPickerSnaps(pointPicker);
         const notPoints = ppSnaps.notPoints.map(s => s.snapper);
         const points = ppSnaps.points;
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
+
+        if (choice !== undefined) {
+            let intersections = super._intersect([...notPoints, ...restrictionSnaps], points, cache, db, pointPicker.preference?.snap);
+            const chosen = this.intersectChoice(choice);
+            const result = this.applyChoice(choice.snap, viewport, intersections);
+            if (result.length === 0) return chosen;
+            else return result;
+        } 
 
         let intersections = super._intersect([...notPoints, ...restrictionSnaps], points, cache, db, pointPicker.preference?.snap);
         intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
@@ -235,7 +246,7 @@ export class SnapPicker extends AbstractSnapPicker {
         }
     }
 
-    private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]) {
+    private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
         if (restriction === undefined) return input;
 
@@ -248,6 +259,14 @@ export class SnapPicker extends AbstractSnapPicker {
             output.push(info);
         }
         return output;
+    }
+
+    private applyChoice(choice: ChoosableSnap, viewport: Viewport, input: SnapResult[]): SnapResult[] {
+        const valid = input.filter(info => choice.isValid(info.position));
+        if (valid.length === 0) return [];
+        const first = valid[0];
+        valid.unshift({...first, snap: choice});
+        return valid;
     }
 
     private intersectConstructionPlane(pointPicker: Model, viewport: Viewport): SnapResult[] {
@@ -313,11 +332,6 @@ function findAllSnapsInTheSamePlace(snaps: SnapResult[]) {
     }
     return result;
 }
-
-type SnapAndIntersection = {
-    snap: Snap;
-    intersection: THREE.Intersection;
-};
 
 function sort(i1: SnapResult, i2: SnapResult) {
     return i1.snap.priority - i2.snap.priority;

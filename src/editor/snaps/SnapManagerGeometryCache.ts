@@ -14,8 +14,8 @@ export class SnapManagerGeometryCache {
         this.update();
     }
 
-    private _snappers: THREE.Object3D[] = [];
-    get snappers() { return this._snappers }
+    private _basic: THREE.Object3D[] = [];
+    get basic() { return this._basic }
 
     get layers() { return this.snaps.layers }
 
@@ -31,9 +31,15 @@ export class SnapManagerGeometryCache {
         for (const points of geometrySnaps) {
             geometrySnapCache.add(points);
         }
-        for (const snap of basicSnaps) result.push(snap.snapper);
-        for (const snap of crossSnaps) result.push(snap.snapper);
-        this._snappers = result;
+        for (const snap of basicSnaps) {
+            if (snap instanceof PointSnap) {
+                geometrySnapCache.add(new Set([snap]));
+                continue;
+            }
+            result.push(snap.snapper);
+        }
+        geometrySnapCache.add(new Set(crossSnaps));
+        this._basic = result;
     }
 
     lookup(intersectable: intersectable.Intersectable): Snap {

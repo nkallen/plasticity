@@ -12,7 +12,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
-import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap } from '../../src/editor/snaps/Snap';
+import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, LineAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -270,8 +270,7 @@ describe('restrictToLine', () => {
 
     test("restrictionsFor", () => {
         const restrictions = pointPicker.restrictionSnapsFor();
-        expect(restrictions.length).toBe(1);
-        expect(restrictions[0]).toBeInstanceOf(AxisSnap);
+        expect(restrictions.length).toBe(0);
     })
 
     test("snaps", () => {
@@ -279,7 +278,7 @@ describe('restrictToLine', () => {
     })
 
     test("choice", () => {
-        expect(pointPicker.choice!.snap).toBeInstanceOf(AxisSnap);
+        expect(pointPicker.choice!.snap).toBeInstanceOf(LineAxisSnap);
     })
 });
 
