@@ -60,8 +60,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
 
     applyChoice(choice: ChoosableSnap, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const valid = input.filter(info => choice.isValid(info.position));
-        if (valid.length === 0)
-            return [];
+        if (valid.length === 0) return [];
         const first = valid[0];
         valid.unshift({ ...first, snap: choice });
         return valid;

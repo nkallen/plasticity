@@ -85,7 +85,6 @@ export abstract class SnapPickerStrategy {
     processXRay(viewport: Viewport, results: (SnapResult & { distance: number })[], minDistance: number) {
         const isXRay = viewport.isXRay;
         if (!isXRay) {
-            // FIXME: this has a bug on intersection points
             results = findAllIntersectionsVeryCloseTogether(results, minDistance);
         }
         return results;
@@ -115,6 +114,7 @@ export abstract class SnapPickerStrategy {
 }
 
 function findAllIntersectionsVeryCloseTogether<T extends { distance: number }>(intersections: T[], minDistance: number) {
+    console.log(intersections, minDistance);
     if (intersections.length === 0) return [];
 
     const result = [];
@@ -123,5 +123,7 @@ function findAllIntersectionsVeryCloseTogether<T extends { distance: number }>(i
             result.push(intersection);
         }
     }
+    console.log(result);
+    console.log("===");
     return result;
 }
