@@ -34,8 +34,8 @@ export class SelectionCommandRegistrar {
             'selection:convert:face': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Face)),
             'selection:convert:solid': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Solid)),
 
-            'snaps:temporarily-enable': () => this.editor.snaps.xor = true,
-            'snaps:temporarily-disable': () => this.editor.snaps.xor = false,
+            'snaps:temporarily-enable': () => this.editor.snaps.xor = false,
+            'snaps:temporarily-disable': () => this.editor.snaps.xor = true,
         })
     }
 }

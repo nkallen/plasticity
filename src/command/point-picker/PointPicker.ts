@@ -98,7 +98,7 @@ class PointPickerKeyboardManager {
     }
 
     private showKeybindingInfo(...snaps: Snap[]) {
-        const { signals , pointPicker} = this;
+        const { signals, pointPicker } = this;
         for (const snap of snaps) {
             if (snap instanceof PointAxisSnap) {
                 signals.keybindingsRegistered.dispatch([snap.commandName]);
@@ -196,8 +196,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 const onKeyDown = (e: KeyboardEvent) => {
                     if (isNavigating) return;
 
-                    if (e.key == "Control") {
-                    } else if (e.key == "Shift") {
+                    if (e.key == "Shift") {
                         this.model.choose(info?.snap, info, true);
                     }
                 }
@@ -205,8 +204,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 const onKeyUp = (e: KeyboardEvent) => {
                     if (isNavigating) return;
 
-                    if (e.key == "Control") {
-                    } else if (e.key == "Shift") {
+                    if (e.key == "Shift") {
                         const oldChoice = this.model.choice;
                         this.model.choose(undefined);
                         // TODO: need to pass all last snap results
