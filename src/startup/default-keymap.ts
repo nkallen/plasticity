@@ -315,4 +315,8 @@ export default {
         "tab": "command:quasimode:start",
         "^tab": "command:quasimode:stop",
     },
+
+    "body[command][gizmo] plasticity-viewport": {
+        "enter": "gizmo:finish",
+    }
 }

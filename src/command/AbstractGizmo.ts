@@ -135,14 +135,17 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                 // Add handlers when triggered, for example, on pointerdown
                 const addEventHandlers = (event: PointerEvent) => {
                     const reenableControls = viewport.disableControls();
-                    // domElement.setPointerCapture(event.pointerId);
                     document.addEventListener('pointermove', onPointerMove);
                     document.addEventListener('pointerup', onPointerUp);
+                    const disp = this.editor.registry.addOne(domElement, "gizmo:finish", () => {
+                        const lastEvent = new PointerEvent("pointerup");
+                        onPointerUp(lastEvent);
+                    });
                     return new Disposable(() => {
                         reenableControls.dispose();
-                        // domElement.releasePointerCapture(event.pointerId);
                         document.removeEventListener('pointerup', onPointerUp);
                         document.removeEventListener('pointermove', onPointerMove);
+                        disp.dispose();
                     });
                 }
 
