@@ -54,8 +54,8 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
         const model = this.db.lookup(this.item);
         const transformed = model.Duplicate().Cast<c3d.Item>(model.IsA());
         const mat = new c3d.Matrix3D();
-        mat.Symmetry(point2point(origin), vec2vec(normal, 1));
-        mat.SetOffset(point2point(normal.clone().multiplyScalar(move)));
+        const offset = origin.clone().add(normal.clone().multiplyScalar(move))
+        mat.Symmetry(point2point(offset), vec2vec(normal, 1));
         transformed.Transform(mat);
 
         return transformed;

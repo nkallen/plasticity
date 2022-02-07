@@ -18,7 +18,7 @@ export class RadialArrayCommand extends Command {
 
         const dialog = new RadialArrayDialog(array, this.editor.signals);
 
-        dialog.execute(async (params) => {
+        dialog.execute(async params => {
             array.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
@@ -36,7 +36,7 @@ export class RadialArrayCommand extends Command {
 
         const { point: p1, info: { constructionPlane } } = await dialog.prompt("Select center point", () => {
             const pointPicker = new PointPicker(this.editor);
-            pointPicker.restrictToPlaneThroughPoint(centroid);
+            // pointPicker.restrictToPlaneThroughPoint(centroid);
             return pointPicker.execute().resource(this);
         })();
 

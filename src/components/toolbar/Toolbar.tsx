@@ -47,6 +47,7 @@ export class Model {
         }
         if (selection.curves.size > 0) {
             swept.add(cmd.PipeCommand);
+            bool.add(cmd.CutCommand);
         }
         if (selection.regions.size > 0) {
             swept.add(cmd.ExtrudeCommand);
