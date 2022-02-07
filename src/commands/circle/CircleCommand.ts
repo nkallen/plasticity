@@ -5,7 +5,7 @@ import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';
 import { CircleDialog } from "./CircleDialog";
-import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './CircleFactory';
+import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './CircleFactory';
 import { CircleKeyboardGizmo } from "./CircleKeyboardGizmo";
 
 export class CenterCircleCommand extends Command {
@@ -17,11 +17,6 @@ export class CenterCircleCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = point;
-
-        const dialog = new CircleDialog(circle, this.editor.signals);
-        dialog.execute(params => {
-            circle.update();
-        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const keyboard = new CircleKeyboardGizmo(this.editor);
         keyboard.execute(e => {
@@ -36,13 +31,33 @@ export class CenterCircleCommand extends Command {
         await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             circle.point = p2;
             circle.orientation = orientation;
-            dialog.render();
             circle.update();
         }).resource(this);
 
-        await this.finished;
-
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
+
+        const next = new EditCircleCommand(this.editor);
+        next.circle = result;
+        this.editor.enqueue(next, false);
+    }
+}
+
+export class EditCircleCommand extends Command {
+    circle!: visual.SpaceInstance<visual.Curve3D>;
+    remember = false;
+
+    async execute(): Promise<void> {
+        const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        edit.circle = this.circle;
+
+        const dialog = new CircleDialog(edit, this.editor.signals);
+        await dialog.execute(params => {
+            edit.update();
+            dialog.render();
+        }).rejectOnInterrupt().resource(this);
+
+        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
     }
 }
