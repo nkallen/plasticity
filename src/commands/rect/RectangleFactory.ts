@@ -58,6 +58,8 @@ export class ThreePointRectangleFactory extends RectangleFactory {
     }
 }
 
+const origin = new THREE.Vector3();
+
 export abstract class DiagonalRectangleFactory extends RectangleFactory {
     orientation = new THREE.Quaternion();
 
@@ -69,17 +71,22 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3): FourCorners {
         const { mat, inv, c1, c2 } = this;
 
-        mat.lookAt(new THREE.Vector3(), normal, new THREE.Vector3(0, 0, 1));
+        const up = Math.abs(normal.dot(Z)) > 1 - 10e-6 ? X : Z;
+
+        mat.lookAt(origin, normal, up);
         inv.copy(mat).invert();
-        
+
         c1.copy(corner1).applyMatrix4(inv);
         c2.copy(corner2).applyMatrix4(inv);
 
+        let p2 = new THREE.Vector3(c1.x, c2.y, c2.z);
+        let p4 = new THREE.Vector3(c2.x, c1.y, c1.z);
+
         return {
             p1: corner1,
-            p2: new THREE.Vector3(c2.x, c1.y, c1.z).applyMatrix4(mat),
+            p2: p2.applyMatrix4(mat),
             p3: corner2,
-            p4: new THREE.Vector3(c1.x, c2.y, c2.z).applyMatrix4(mat),
+            p4: p4.applyMatrix4(mat),
         };
     }
 
@@ -98,6 +105,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
 }
 
 const Z = new THREE.Vector3(0, 0, 1);
+const Y = new THREE.Vector3(0, 1, 0);
 const X = new THREE.Vector3(1, 0, 0);
 
 export class CornerRectangleFactory extends DiagonalRectangleFactory {

@@ -397,6 +397,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
     protected material = this.editor.gizmos.default;
     readonly helper = new AxisHelper(this.material.line);
+    protected minShaft = 0.1;
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
@@ -420,7 +421,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
         knob.scale.copy(relativeScale);
         Helper.scaleIndependentOfZoom(tip, camera);
         const factor = Helper.scaleIndependentOfZoom(knob, camera);
-        const shaftLength = _length + 1 * factor;
+        const shaftLength = _length + this.minShaft * factor;
         shaft.scale.y = shaftLength;
         tip.position.set(0, shaftLength, 0);
         knob.position.copy(tip.position);

@@ -7,6 +7,12 @@ import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './BoxFactory';
 import LineFactory from '../line/LineFactory';
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from '../rect/RectangleFactory';
+import { EditBoxGizmo } from "./BoxGizmo";
+import { BoxDialog } from "./BoxDialog";
+import { ObjectPicker } from "../../command/ObjectPicker";
+import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class ThreePointBoxCommand extends Command {
     async execute(): Promise<void> {
@@ -54,7 +60,10 @@ export class CornerBoxCommand extends Command {
     async execute(): Promise<void> {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
-        if (selection.solids.size > 0) box.targets = [...selection.solids];
+        box.targets = [...selection.solids];
+
+        const dialog = new BoxDialog(box, this.editor.signals);
+        const gizmo = new EditBoxGizmo(box, this.editor);
 
         let pointPicker = new PointPicker(this.editor);
         pointPicker.facePreferenceMode = 'strong';
@@ -90,6 +99,34 @@ export class CornerBoxCommand extends Command {
             box.update();
             keyboard.toggle(box.isOverlapping);
         }).resource(this);
+
+        dialog.execute(params => {
+            gizmo.render(params);
+            box.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        dialog.prompt("Select target bodies", () => {
+            const objectPicker = new ObjectPicker(this.editor);
+            objectPicker.selection.selected.add(box.targets);
+            return objectPicker.execute(async delta => {
+                const targets = [...objectPicker.selection.selected.solids];
+                box.targets = targets;
+                await box.update();
+                keyboard.toggle(box.isOverlapping);
+            }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
+        }, async () => {
+            box.targets = [];
+            await box.update();
+            keyboard.toggle(box.isOverlapping);
+        });
+
+        gizmo.quaternion.copy(box.orientation);
+        gizmo.position.copy(box.p1);
+        gizmo.execute(async (params) => {
+            await box.update();
+        }).resource(this);
+
+        await this.finished;
 
         const results = await box.commit() as visual.Solid[];
         selection.add(results);

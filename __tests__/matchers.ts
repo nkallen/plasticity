@@ -1,6 +1,4 @@
 import * as THREE from "three";
-import { PointPickerModel } from "../src/command/point-picker/PointPicker";
-import { Snap } from "../src/editor/snaps/Snap";
 
 declare global {
     namespace jest {
@@ -13,16 +11,18 @@ declare global {
 }
 
 expect.extend({
-    toHaveQuaternion(received: THREE.Object3D, other: THREE.Quaternion) {
-        const pass = received.quaternion.equals(other);
+    toHaveQuaternion(received: { quaternion: THREE.Quaternion } | { orientation: THREE.Quaternion }, other: THREE.Quaternion) {
+        // @ts-ignore
+        const quat = received.quaternion ?? received.orientation;
+        const pass = Math.abs(quat.dot(other)) > 1 - 10e-6;
         if (pass) {
             return {
-                message: () => `expected quaternion ${received.quaternion.toArray()} not to equal ${other.toArray()}`,
+                message: () => `expected quaternion ${quat.toArray()} not to equal ${other.toArray()}`,
                 pass: pass && !this.isNot,
             }
         } else {
             return {
-                message: () => `expected quaternion ${received.quaternion.toArray()} to equal ${other.toArray()}`,
+                message: () => `expected quaternion ${quat.toArray()} to equal ${other.toArray()}`,
                 pass: pass && !this.isNot,
             }
         }

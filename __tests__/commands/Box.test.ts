@@ -61,6 +61,62 @@ describe(CornerBoxFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
+
+    test('heightNormal & quaternion', async () => {
+        makeBox.p1 = new THREE.Vector3(0, 0, 0);
+        makeBox.p2 = new THREE.Vector3(1, 1, 0);
+        makeBox.p3 = new THREE.Vector3(0, 0, 1);
+        makeBox.orientation = new THREE.Quaternion();
+        expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(makeBox).toHaveQuaternion(new THREE.Quaternion());
+    })
+
+    test('heightNormal & quaternion', async () => {
+        makeBox.p1 = new THREE.Vector3(1, 1, 0);
+        makeBox.p2 = new THREE.Vector3(0, 0, 0);
+        makeBox.p3 = new THREE.Vector3(0, 0, 1);
+        makeBox.orientation = new THREE.Quaternion();
+        expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, 0));
+    })
+
+    test('orientation of box quadrant 1', async () => {
+        makeBox.p1 = new THREE.Vector3(0, 0, 0);
+        makeBox.p2 = new THREE.Vector3(1, 1, 0);
+        makeBox.p3 = new THREE.Vector3(0, 0, 1);
+        makeBox.orientation = new THREE.Quaternion();
+        expect(makeBox.width).toBe(1);
+        expect(makeBox.length).toBe(1);
+        expect(makeBox.height).toBe(1);
+        const item = await makeBox.commit() as visual.SpaceItem;
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        // expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, 0));
+    })
+
+    test('orientation of box quadrant 3', async () => {
+        makeBox.p1 = new THREE.Vector3(0, 0, 0);
+        makeBox.p2 = new THREE.Vector3(-1, -1, 0);
+        makeBox.p3 = new THREE.Vector3(-1, -1, -1);
+        makeBox.orientation = new THREE.Quaternion();
+        expect(makeBox.width).toBe(1);
+        expect(makeBox.length).toBe(1);
+        expect(makeBox.height).toBe(-1);
+        const item = await makeBox.commit() as visual.SpaceItem;
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.5, -0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, 0));
+    })
 });
 
 describe(CenterBoxFactory, () => {
@@ -190,3 +246,7 @@ describe(PossiblyBooleanCenterBoxFactory, () => {
 })
 
 
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);

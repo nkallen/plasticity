@@ -88,16 +88,43 @@ describe(CenterRectangleFactory, () => {
 
 describe(DiagonalRectangleFactory, () => {
     describe('orthogonal', () => {
-        test('normal = z', () => {
-            const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
-                new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(1, 1, 0),
-                new THREE.Vector3(0, 0, 1),
-            )
-            expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-            expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+        describe('results are always clockwise', () => {
+            test('quadrant 1', () => {
+                const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(1, 1, 0),
+                    new THREE.Vector3(0, 0, 1),
+                )
+                expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+                expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+                expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+                expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            })
+
+            test('quadrant 2', () => {
+                const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(-1, 1, 0),
+                    new THREE.Vector3(0, 0, 1),
+                )
+                expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+                expect(p2).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+                expect(p3).toApproximatelyEqual(new THREE.Vector3(-1, 1, 0));
+                expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            })
+
+            test('quadrant 4', () => {
+                const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(1, -1, 0),
+                    new THREE.Vector3(0, 0, 1),
+                )
+                expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+                expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+                expect(p3).toApproximatelyEqual(new THREE.Vector3(1, -1, 0));
+                expect(p4).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+            })
+
         })
 
         test('normal = x', () => {
@@ -107,9 +134,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(1, 0, 0),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(0, 1, 1));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
         })
 
         test('normal = y', () => {
@@ -119,9 +146,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(0, 1, 0),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
         })
 
         test('weird numerical precision edge case', () => {
@@ -131,9 +158,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(-0.9999999999999998, 6.123233995736e-17, 0),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(-1, -1, 1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(-1, 1, 1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(-1, -1, 2));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(-1, 1, 2));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(-1, -1, 2));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(-1, 1, 1));
         })
 
         test('n=1,0,1', () => {
@@ -143,9 +170,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(1, 0, 1).normalize(),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.5));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 1));
         })
 
         test('n=1,-1,0', () => {
@@ -155,9 +182,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(1, -1, 0).normalize(),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 1));
         })
 
         test('n=0,1,1', () => {
@@ -167,9 +194,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(0, 1, 1).normalize(),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.5));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(0, 1, 0.5));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.5));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 1));
         })
 
         test('n=1,1,1', () => {
@@ -179,9 +206,9 @@ describe(DiagonalRectangleFactory, () => {
                 new THREE.Vector3(1, 1, 1).normalize(),
             )
             expect(p1).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
-            expect(p2).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
             expect(p3).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
-            expect(p4).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
+            expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
+            expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
         })
 
     })

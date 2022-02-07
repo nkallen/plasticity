@@ -5,7 +5,7 @@ import { ContourFilletFactory } from "../../src/commands/modify_contour/ContourF
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import { ContourRebuilder, ModifyContourSegmentFactory, OffsetPrecomputeRadiusInfo, OffsetResult } from "../../src/commands/modify_contour/ModifyContourSegmentFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
-import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
+import { CornerRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -412,12 +412,12 @@ describe('A triangle', () => {
 
 describe('A rectangle', () => {
     /**
-     *       1
+     *       2
      *      ___
-     *  0  |   | 2
+     *  3  |   | 1
      *     |___|
      * 
-     *       3
+     *       0
      */
     beforeEach(async () => {
         const makeRectangle = new CornerRectangleFactory(db, materials, signals);
@@ -442,14 +442,30 @@ describe('A rectangle', () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     });
 
+    it('offsets the first segment', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = -1;
+        modifyContour.segment = 3;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(4);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+    });
+
     describe('with a fillet', () => {
         /**
-         *       1
+         *       2
          *      ___.
-         *  0  |   | 2
+         *  3  |   | 1
          *     |___|
          * 
-         *       3
+         *       0
          */
 
         let filleted: visual.SpaceInstance<visual.Curve3D>;
@@ -473,8 +489,8 @@ describe('A rectangle', () => {
 
         it('offsets the first segment', async () => {
             modifyContour.contour = filleted;
-            modifyContour.distance = 1;
-            modifyContour.segment = 0;
+            modifyContour.distance = -1;
+            modifyContour.segment = 4;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
@@ -487,10 +503,10 @@ describe('A rectangle', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
-        it('offsets the first segment', async () => {
+        it('offsets the 3rd segment', async () => {
             modifyContour.contour = filleted;
             modifyContour.distance = 1;
-            modifyContour.segment = 3;
+            modifyContour.segment = 1;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
@@ -507,12 +523,12 @@ describe('A rectangle', () => {
 
     describe('with two fillets', () => {
         /**
-         *       1
+         *       2
          *     .___.
-         *  0  |   | 2
+         *  3  |   | 1
          *     |___|
          * 
-         *       3
+         *       0
          */
         let filleted: visual.SpaceInstance<visual.Curve3D>;
 
@@ -536,8 +552,8 @@ describe('A rectangle', () => {
 
         it('offsets the first segment', async () => {
             modifyContour.contour = filleted;
-            modifyContour.distance = 1;
-            modifyContour.segment = 0;
+            modifyContour.distance = -1;
+            modifyContour.segment = 5;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
