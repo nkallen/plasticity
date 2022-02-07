@@ -2,7 +2,6 @@ import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { ArrayFactory } from "./ArrayFactory";
 import { ArrayKeyboardGizmo } from "./ArrayKeyboardGizmo";
 import { RadialArrayDialog } from "./RadialArrayDialog";
@@ -36,7 +35,6 @@ export class RadialArrayCommand extends Command {
 
         const { point: p1, info: { constructionPlane } } = await dialog.prompt("Select center point", () => {
             const pointPicker = new PointPicker(this.editor);
-            // pointPicker.restrictToPlaneThroughPoint(centroid);
             return pointPicker.execute().resource(this);
         })();
 
@@ -50,6 +48,7 @@ export class RadialArrayCommand extends Command {
                     array.num2--;
                     break;
             }
+            dialog.render();
             array.update();
         }).resource(this);
 

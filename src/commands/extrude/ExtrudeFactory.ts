@@ -110,7 +110,13 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
                 contours2d.push(model.GetContour());
             } else if (item.IsA() === c3d.SpaceType.Contour3D) {
                 const model = item.Cast<c3d.Contour3D>(item.IsA());
-                curves3d.push(model);
+                if (model.IsPlanar()) {
+                    const { curve2d } = model.GetPlaneCurve(false);
+                    const cast = curve2d.Cast<c3d.Contour>(c3d.PlaneType.Contour);
+                    contours2d.push(cast);
+                } else {
+                    curves3d.push(model);
+                }
             } else {
                 const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                 if (model.IsPlanar()) {

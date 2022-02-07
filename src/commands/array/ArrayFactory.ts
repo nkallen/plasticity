@@ -36,13 +36,19 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
     isPolar = true;
     dir1!: THREE.Vector3;
     step1 = 0;
-    num1 = 2;
+    private _num1 = 2;
+    get num1() { return this._num1 }
+    set num1(num1: number) {
+        if (num1 < 1) throw new Error("invalid argument");
+        this._num1 = num1
+    }
 
     dir2!: THREE.Vector3;
 
     private _num2 = 0;
     get num2() { return this._num2 }
     set num2(num2: number) {
+        if (num2 < 1) throw new Error("invalid")
         const degrees = this.degrees;
         this._num2 = Math.floor(num2);
         this.degrees = degrees;
