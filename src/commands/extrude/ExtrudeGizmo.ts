@@ -49,6 +49,8 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
 }
 
 export class ExtrudeDistanceGizmo extends DistanceGizmo {
+    protected minShaft = 1;
+    
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
