@@ -5,27 +5,32 @@ import { DistanceGizmo } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { EditBoxParams } from "./BoxFactory";
 
-const X = new THREE.Vector3(1, 0, 0);
+const x = new THREE.Vector3();
+const y = new THREE.Vector3();
+const z = new THREE.Vector3();
 const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
 
 export class EditBoxGizmo extends CompositeGizmo<EditBoxParams> {
     private readonly widthGizmo = new ExtrudeDistanceGizmo("box:width", this.editor);
     private readonly lengthGizmo = new ExtrudeDistanceGizmo("box:length", this.editor);
     private readonly heightGizmo = new ExtrudeDistanceGizmo("box:height", this.editor);
 
+    basis!: THREE.Matrix4;
+
     protected prepare(mode: Mode) {
-        const { widthGizmo, lengthGizmo, heightGizmo, params } = this;
+        const { widthGizmo, lengthGizmo, heightGizmo, params, basis } = this;
+        basis.extractBasis(x, y, z);
+
         widthGizmo.relativeScale.setScalar(0.8);
         lengthGizmo.relativeScale.setScalar(0.8);
         heightGizmo.relativeScale.setScalar(0.8);
 
         widthGizmo.value = params.width;
-        widthGizmo.quaternion.setFromUnitVectors(Y, X);
+        widthGizmo.quaternion.setFromUnitVectors(Y, x);
         lengthGizmo.value = params.length
-        lengthGizmo.quaternion.setFromUnitVectors(Y, Y);
+        lengthGizmo.quaternion.setFromUnitVectors(Y, y);
         heightGizmo.value = params.height
-        heightGizmo.quaternion.setFromUnitVectors(Y, Z);
+        heightGizmo.quaternion.setFromUnitVectors(Y, z);
 
         this.add(widthGizmo, lengthGizmo, heightGizmo);
     }

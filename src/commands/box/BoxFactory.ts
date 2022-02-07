@@ -126,11 +126,10 @@ abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParam
         return BoxFactory.heightNormal(p1, p2, p3);
     }
 
-    protected _orientation = new THREE.Quaternion();
-    get orientation() { return this._orientation; }
+    readonly basis = new THREE.Matrix4();
 
     set orientation(orientation: THREE.Quaternion) {
-        this._normal.copy(Z).applyQuaternion(this._orientation);
+        this._normal.copy(Z).applyQuaternion(orientation);
     }
 
     private readonly _normal = new THREE.Vector3();
@@ -172,9 +171,7 @@ export class CornerBoxFactory extends DiagonalBoxFactory {
         const BC = p3.clone().sub(p2).normalize();
         const { h } = ThreePointBoxFactory.reorientHeight(p1, p2, p3, _p3);;
         this.__height = Math.abs(h);
-        const mat = new THREE.Matrix4();
-        mat.makeBasis(AB, BC, normal);
-        this._orientation.setFromRotationMatrix(mat).normalize();
+        this.basis.makeBasis(AB, BC, normal);
     }
 
     async calculate() {
@@ -234,7 +231,7 @@ export class PossiblyBooleanThreePointBoxFactory extends PossiblyBooleanBoxFacto
 }
 
 abstract class PossiblyBooleanDiagonalBoxFactory extends PossiblyBooleanBoxFactory<DiagonalBoxFactory> implements DiagonalBoxParams {
-    get orientation() { return this.fantom.orientation }
+    get basis() { return this.fantom.basis }
     get heightNormal() { return this.fantom.heightNormal }
 
     set orientation(orientation: THREE.Quaternion) { this.fantom.orientation = orientation }

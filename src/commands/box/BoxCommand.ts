@@ -120,7 +120,7 @@ export class CornerBoxCommand extends Command {
             keyboard.toggle(box.isOverlapping);
         });
 
-        gizmo.quaternion.copy(box.orientation);
+        gizmo.basis = box.basis;
         gizmo.position.copy(box.p1);
         gizmo.execute(async (params) => {
             dialog.render();

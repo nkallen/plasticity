@@ -68,7 +68,6 @@ describe(CornerBoxFactory, () => {
         makeBox.p3 = new THREE.Vector3(0, 0, 1);
         makeBox.orientation = new THREE.Quaternion();
         expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(makeBox).toHaveQuaternion(new THREE.Quaternion());
     })
 
     test('heightNormal & quaternion', async () => {
@@ -77,7 +76,6 @@ describe(CornerBoxFactory, () => {
         makeBox.p3 = new THREE.Vector3(0, 0, 1);
         makeBox.orientation = new THREE.Quaternion();
         expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, 0));
     })
 
     test('orientation of box quadrant 1', async () => {
@@ -96,7 +94,6 @@ describe(CornerBoxFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
         expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
     })
 
     test('orientation of box quadrant 2', async () => {
@@ -115,7 +112,6 @@ describe(CornerBoxFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 1, 1));
         expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
-        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 1, 0, 0));
     })
 
     test('orientation of box quadrant 3', async () => {
@@ -134,7 +130,6 @@ describe(CornerBoxFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(makeBox.heightNormal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(makeBox).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, 0));
     })
 });
 
