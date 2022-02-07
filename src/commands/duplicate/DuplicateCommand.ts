@@ -29,8 +29,7 @@ export class DuplicateCommand extends Command {
         const objects = await Promise.all(promises);
 
         const bbox = new THREE.Box3();
-        for (const object of objects)
-            bbox.expandByObject(object);
+        for (const object of objects) bbox.expandByObject(object);
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
