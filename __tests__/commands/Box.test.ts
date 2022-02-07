@@ -106,7 +106,7 @@ describe(CornerBoxFactory, () => {
         makeBox.orientation = new THREE.Quaternion();
         expect(makeBox.width).toBe(1);
         expect(makeBox.length).toBe(1);
-        expect(makeBox.height).toBe(-1);
+        expect(makeBox.height).toBe(1);
         const item = await makeBox.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
@@ -125,7 +125,7 @@ describe(CornerBoxFactory, () => {
         makeBox.orientation = new THREE.Quaternion();
         expect(makeBox.width).toBe(1);
         expect(makeBox.length).toBe(1);
-        expect(makeBox.height).toBe(-1);
+        expect(makeBox.height).toBe(1);
         const item = await makeBox.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();

@@ -171,9 +171,9 @@ export class CornerBoxFactory extends DiagonalBoxFactory {
         const AB = p2.clone().sub(p1).normalize();
         const BC = p3.clone().sub(p2).normalize();
         const { h } = ThreePointBoxFactory.reorientHeight(p1, p2, p3, _p3);;
-        this.__height = h;
+        this.__height = Math.abs(h);
         const mat = new THREE.Matrix4();
-        mat.makeBasis(AB, BC, normal.multiplyScalar(Math.sign(h)));
+        mat.makeBasis(AB, BC, normal);
         this._orientation.setFromRotationMatrix(mat).normalize();
     }
 
