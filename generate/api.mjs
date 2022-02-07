@@ -313,6 +313,11 @@ export default {
             extends: "PolyCurve",
             dependencies: ["PolyCurve.h"],
         },
+        CubicSpline: {
+            rawHeader: "cur_cubic_spline.h",
+            extends: "PolyCurve",
+            dependencies: ["PolyCurve.h"],
+        },
         Polyline: {
             rawHeader: "cur_polyline.h",
             extends: "PolyCurve",
@@ -1170,7 +1175,10 @@ export default {
         CubicSpline3D: {
             rawHeader: "cur_cubic_spline3d.h",
             extends: "PolyCurve3D",
-            dependencies: ["PolyCurve3D.h"],
+            dependencies: ["PolyCurve3D.h", "CubicSpline.h"],
+            functions: [
+                { signature: "MbCubicSpline3D * MbCubicSpline3D::Create(const MbCubicSpline & initFlat, const MbPlacement3D & plane )", isStatic: true },
+            ]
         },
         Hermit3D: {
             rawHeader: "cur_hermit3d.h",

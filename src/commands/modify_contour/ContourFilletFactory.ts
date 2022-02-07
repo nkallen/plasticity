@@ -1,10 +1,8 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { CornerAngle, cornerInfo, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
-import JoinCurvesFactory from '../curve/JoinCurvesFactory';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
-import LineFactory from '../line/LineFactory';
+import { CornerAngle, cornerInfo, inst2curve, unit } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 
 /**
  * Filleting curves is idiosyncratic. The underlying c3d method uses Contours only. Thus, to fillet a polyline, it

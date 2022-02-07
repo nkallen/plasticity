@@ -315,7 +315,6 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
             process.unshift(curve3d);
         } else if (cast instanceof c3d.SurfaceIntersectionCurve) {
             process.unshift(cast.GetSpaceCurve()!);
-            break;
         } else if (cast instanceof c3d.ContourOnPlane) {
             const placement = cast.GetPlacement();
             const contour = cast.GetContour();
@@ -352,6 +351,8 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         return c3d.Nurbs3D.Create(cast, placement)!;
     } else if (cast instanceof c3d.Polyline) {
         return new c3d.Polyline3D(cast, placement)!;
+    } else if (cast instanceof c3d.CubicSpline) {
+        return c3d.CubicSpline3D.Create(cast, placement)!;
     } else {
         throw new Error("Unsupported curve: " + cast.constructor.name);
     }

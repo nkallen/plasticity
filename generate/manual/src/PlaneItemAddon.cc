@@ -9,6 +9,7 @@
 #include "../include/Nurbs.h"
 #include "../include/Polyline.h"
 #include "../include/Hermit.h"
+#include "../include/CubicSpline.h"
 
 Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -51,6 +52,8 @@ Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
         return Polyline::NewInstance(env, (MbPolyline *)(_underlying));
      case pt_Hermit:
         return Hermit::NewInstance(env, (MbHermit *)(_underlying));
+     case pt_CubicSpline:
+        return CubicSpline::NewInstance(env, (MbCubicSpline *)(_underlying));
    default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << " -- perhaps change PlaneItemAddon.cc \n";
