@@ -63,4 +63,5 @@ export class EditorSignals {
     clipboardChanged: signals.Signal = new signals.Signal();
     typeDisabled: signals.Signal<DisablableType> = new signals.Signal();
     typeEnabled: signals.Signal<DisablableType> = new signals.Signal();
+    visibleLayersChanged: signals.Signal = new signals.Signal();
 }
