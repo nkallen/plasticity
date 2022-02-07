@@ -123,6 +123,7 @@ export class CornerBoxCommand extends Command {
         gizmo.quaternion.copy(box.orientation);
         gizmo.position.copy(box.p1);
         gizmo.execute(async (params) => {
+            dialog.render();
             await box.update();
         }).resource(this);
 

@@ -22,15 +22,14 @@ export interface EditBoxParams {
 }
 
 abstract class BoxFactory extends GeometryFactory implements BoxParams, EditBoxParams {
-    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     abstract p1: THREE.Vector3;
     abstract p2: THREE.Vector3;
     abstract p3: THREE.Vector3;
 
     async calculate() {
-        const { width: _width, length: _length, height: _height } = this;
-        const { p1, p2, p3, p4 } = this.orthogonal(_width, _length, _height);
+        const { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4),]
         return c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, this.names);
@@ -76,23 +75,21 @@ export class ThreePointBoxFactory extends BoxFactory {
         let { p1, p2, p3 } = this;
         p1.copy(_p1); p2.copy(_p2); p3.copy(_p3);
 
-        const heightNormal = this.heightNormal(p1, p2, p3);
-        const h = height.copy(upper).sub(p3).dot(heightNormal);
-
-        if (Math.abs(h) < 10e-5) throw new ValidationError("invalid height");
-
-        const p4 = heightNormal.multiplyScalar(h).add(p3);
-        if (h < 0) [p1, p2] = [p2, p1];
-
         if (_width !== undefined) {
             p2.sub(p1).normalize().multiplyScalar(_width).add(p1);
         }
         if (_length !== undefined) {
             p3.sub(_p2).normalize().multiplyScalar(_length).add(p2);
         }
-        if (_height !== undefined) {
-            p4.sub(_p3).normalize().multiplyScalar(_height).add(p3);
-        }
+
+        const heightNormal = this.heightNormal(p1, p2, p3);
+        let h = height.copy(upper).sub(p3).dot(heightNormal);
+        if (_height !== undefined) h = Math.sign(h) * _height;
+
+        if (Math.abs(h) < 10e-5) throw new ValidationError("invalid height");
+
+        const p4 = heightNormal.multiplyScalar(h).add(p3);
+        if (h < 0) [p1, p2] = [p2, p1];
 
         return { p1, p2, p3, p4, h };
     }
@@ -129,19 +126,8 @@ abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParam
         return BoxFactory.heightNormal(p1, p2, p3);
     }
 
-    private _orientation = new THREE.Quaternion();
-    private temp = new THREE.Quaternion();
-    get orientation() {
-        // FIXME: do at p3=
-        const { corner1, p2: corner2, normal, temp } = this;
-        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, normal);
-        const AB = p2.clone().sub(p1).normalize();
-        const BC = p3.clone().sub(p2).normalize();
-        const mat = new THREE.Matrix4();
-        mat.makeBasis(AB, BC, normal);
-        this._orientation.setFromRotationMatrix(mat);
-        return this._orientation;
-    }
+    protected _orientation = new THREE.Quaternion();
+    get orientation() { return this._orientation; }
 
     set orientation(orientation: THREE.Quaternion) {
         this._normal.copy(Z).applyQuaternion(this._orientation);
@@ -156,16 +142,19 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 export class CornerBoxFactory extends DiagonalBoxFactory {
-    private _width!: number;
-    get width() { return this._width }
+    private _width?: number;
+    private __width!: number;
+    get width() { return this._width ?? this.__width }
     set width(width: number) { this._width = width }
 
-    private _length!: number;
-    get length() { return this._length }
+    private _length?: number;
+    private __length!: number;
+    get length() { return this._length ?? this.__length }
     set length(length: number) { this._length = length }
 
-    private _height!: number;
-    get height() { return this._height }
+    private _height?: number;
+    private __height!: number;
+    get height() { return this._height ?? this.__height }
     set height(height: number) { this._height = height }
 
     p1!: THREE.Vector3;
@@ -177,10 +166,23 @@ export class CornerBoxFactory extends DiagonalBoxFactory {
         this._p3 = _p3;
         const { corner1, p2: corner2, normal } = this;
         const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, normal);
-        this._width = p2.distanceTo(p1);
-        this._length = p3.distanceTo(p2);
-        const { h } = ThreePointBoxFactory.reorientHeight(p1, p2, p3, _p3);
-        this._height = h;
+        this.__width = p2.distanceTo(p1);
+        this.__length = p3.distanceTo(p2);
+        const AB = p2.clone().sub(p1).normalize();
+        const BC = p3.clone().sub(p2).normalize();
+        const { h } = ThreePointBoxFactory.reorientHeight(p1, p2, p3, _p3);;
+        this.__height = h;
+        const mat = new THREE.Matrix4();
+        mat.makeBasis(AB, BC, normal.multiplyScalar(Math.sign(h)));
+        this._orientation.setFromRotationMatrix(mat).normalize();
+    }
+
+    async calculate() {
+        const { _width, _length, _height } = this;
+        const { p1, p2, p3, p4 } = this.orthogonal(_width, _length, _height);
+
+        const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4),]
+        return c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, this.names);
     }
 
     get corner1() { return this.p1 }
