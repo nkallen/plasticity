@@ -211,6 +211,10 @@ export class FaceCenterPointSnap extends PointSnap {
     get normalSnap(): PointAxisSnap {
         return this.faceSnap.additionalSnapsFor(this.position)[0];
     }
+
+    get placement() {
+        return this.faceSnap.placement;
+    }
 }
 
 export class CurveEdgeSnap extends Snap {
@@ -249,6 +253,13 @@ export class CurveEdgeSnap extends Snap {
     }
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined {
+        const planar = this.planes;
+        if (planar.length === 0) return undefined;
+        else if (planar.length === 1) return planar[0];
+        else return new OrRestriction(planar);
+    }
+
+    get planes() {
         const facePlus = this.model.GetFacePlus();
         const faceMinus = this.model.GetFaceMinus();
         const planar = [];
@@ -260,9 +271,7 @@ export class CurveEdgeSnap extends Snap {
             const { point, normal } = faceMinus.GetAnyPointOn();
             planar.push(new PlaneSnap(vec2vec(normal, 1), point2point(point)));
         }
-        if (planar.length === 0) return undefined;
-        else if (planar.length === 1) return planar[0];
-        else return new OrRestriction(planar);
+        return planar;
     }
 }
 
@@ -443,6 +452,12 @@ export class FaceSnap extends Snap implements ChoosableSnap {
         const position = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
         if (position === null) return;
         return { position, orientation };
+    }
+
+    get placement() {
+        if (!this.model.IsPlanar()) return undefined;
+        const { point, normal } = this.model.GetAnyPointOn();
+        return new c3d.Placement3D(point, normal, false);
     }
 }
 

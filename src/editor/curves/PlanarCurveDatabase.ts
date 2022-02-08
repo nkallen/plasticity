@@ -255,8 +255,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     }
 
     private planarizeAndNormalize(curve3d: c3d.Curve3D): { curve: c3d.Curve; placement: c3d.Placement3D; } | undefined {
-        const hint = new c3d.Placement3D();
-        const planar = curve3d2curve2d(curve3d, hint);
+        const planar = curve3d2curve2d(curve3d);
         if (planar === undefined) return;
 
         const { curve, placement } = planar;

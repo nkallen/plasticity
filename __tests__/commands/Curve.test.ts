@@ -1,10 +1,13 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import CurveFactory, { CurveWithPreviewFactory } from '../../src/commands/curve/CurveFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
-import { PlaneSnap, TanTanSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
+import { PlaneSnap, PointSnap, TanTanSnap } from "../../src/editor/snaps/Snap";
+import { vec2vec } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -23,6 +26,38 @@ describe(CurveFactory, () => {
     let makeCurve: CurveFactory;
     beforeEach(() => {
         makeCurve = new CurveFactory(db, materials, signals);
+    })
+
+    describe('projectOntoConstructionSurface', () => {
+        test('ambiguous line with matching planar snap', async () => {
+            const cartPoints = [new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(0, 1, 1)];
+            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Polyline3D);
+            const projected = await CurveFactory.projectOntoConstructionSurface(curve, new PlaneSnap(Y, Y), new ConstructionPlaneSnap(X, Y));
+            expect(projected.IsPlanar());
+            const { curve2d, placement } = projected.GetPlaneCurve(false);
+            expect(curve2d.IsA()).toBe(c3d.PlaneType.Polyline);
+            expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(Y);
+        });
+
+        test('ambiguous line with non-matching planar snap but matching construction plane', async () => {
+            const cartPoints = [new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(0, 1, 1)];
+            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Polyline3D);
+            const projected = await CurveFactory.projectOntoConstructionSurface(curve, new PlaneSnap(Z, Y), new ConstructionPlaneSnap(X, Y));
+            expect(projected.IsPlanar());
+            const { curve2d, placement } = projected.GetPlaneCurve(false);
+            expect(curve2d.IsA()).toBe(c3d.PlaneType.Polyline);
+            expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(X);
+        });
+
+        test('ambiguous line with nonplanar snap but matching construction plane', async () => {
+            const cartPoints = [new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(0, 1, 1)];
+            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Polyline3D);
+            const projected = await CurveFactory.projectOntoConstructionSurface(curve, new PointSnap(undefined, new THREE.Vector3()), new ConstructionPlaneSnap(X, Y));
+            expect(projected.IsPlanar());
+            const { curve2d, placement } = projected.GetPlaneCurve(false);
+            expect(curve2d.IsA()).toBe(c3d.PlaneType.Polyline);
+            expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(X);
+        });
     })
 
     test('invokes the appropriate c3d commands', async () => {
@@ -165,3 +200,7 @@ describe(CurveWithPreviewFactory, () => {
         expect(db.temporaryObjects.children.length).toBe(0);
     })
 })
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);

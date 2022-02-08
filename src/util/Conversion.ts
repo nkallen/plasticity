@@ -93,11 +93,22 @@ export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D
 const X = new c3d.Axis3D(new c3d.Vector3D(1, 0, 0));
 const Y = new c3d.Axis3D(new c3d.Vector3D(0, 1, 0));
 
-export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = new c3d.Placement3D()): ContourAndPlacement | undefined {
-    if (curve3d.IsStraight(true)) {
+// NOTE: right now this is a delicate balancing act and subject to revision
+// Lines can be on an infinite number of planes.
+// A hint is a strong preference for which plane a line should be on
+// Without a hint, if a line is already associated with a plane, it's preferable to use that
+// IsStraight(false) and IsStraight(true) behave differently. A hermit curve that happens to be straight will return true for one and not the other
+export function curve3d2curve2d(curve3d: c3d.Curve3D, hint?: c3d.Placement3D, strict = false): ContourAndPlacement | undefined {
+    if (hint === undefined && curve3d.IsPlanar() && curve3d.IsStraight()) {
+        const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
+        const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
+        return { curve: dup, placement };
+    } else if (curve3d.IsStraight(true)) {
+        hint ??= new c3d.Placement3D();
         let result;
         result = planarizeLine(curve3d, hint);
         if (result !== undefined) return result;
+        if (strict) return;
         const rotatedX = new c3d.Placement3D(hint);
         rotatedX.Rotate(X, Math.PI / 2);
         result = planarizeLine(curve3d, rotatedX);

@@ -17,9 +17,7 @@ abstract class RectangleFactory extends GeometryFactory {
 
         const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4)];
 
-        let line: c3d.Curve3D = new c3d.Polyline3D(points, true);
-        line = await CurveFactory.projectOntoConstructionSurface(line, this.constructionPlane);
-
+        const line: c3d.Curve3D = new c3d.Polyline3D(points, true);
         return new c3d.SpaceInstance(line);
     }
 
