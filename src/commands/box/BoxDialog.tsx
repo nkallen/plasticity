@@ -4,7 +4,7 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { EditBoxParams } from "./BoxFactory";
 
 export class BoxDialog extends AbstractDialog<EditBoxParams> {
-    name = "Cylinder";
+    name = "Box";
 
     constructor(protected readonly params: EditBoxParams, signals: EditorSignals) {
         super(signals);
