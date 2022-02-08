@@ -4,8 +4,6 @@ import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { TrimDialog } from './TrimDialog';
 import TrimFactory from "./TrimFactory";
 
-
-
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
         const dialog = new TrimDialog({}, this.editor.signals);
@@ -25,11 +23,9 @@ export class TrimCommand extends Command {
             }).resource(this);
         })();
 
-        for (const curve of selected.curves) {
-            const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            factory.fragment = curve;
-            await factory.commit();
-        }
+        const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.fragments = [...selected.curves];
+        await factory.commit();
 
         this.editor.enqueue(new TrimCommand(this.editor), false);
     }

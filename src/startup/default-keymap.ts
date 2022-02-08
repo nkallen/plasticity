@@ -222,6 +222,7 @@ export default {
         "shift-4": "selection:mode:toggle:solid",
 
         "c": "command:cut",
+        "j": "command:join-curves",
         "g": "command:move",
         "r": "command:rotate",
         "s": "command:scale",

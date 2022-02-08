@@ -63,8 +63,8 @@ describe(TrimFactory, () => {
         });
 
         test("it works", async () => {
-            expect(db.find(visual.PlaneInstance, true).length).toBe(1);
             expect(db.find(visual.SpaceInstance, true).length).toBe(6);
+            expect(db.find(visual.PlaneInstance, true).length).toBe(1);
             const { fragments } = curves.lookup(circle1);
             const fragment = await fragments[0];
             trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
@@ -230,9 +230,7 @@ describe(TrimFactory, () => {
             });
 
             test('fractional on both sides', async () => {
-                trim.curve = rectangle;
-                trim.start = 2.3;
-                trim.stop = 2.7;
+                trim.cut(rectangle, 2.3, 2.7);
                 const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
                 expect(trimmed.length).toBe(1);
 
@@ -243,9 +241,7 @@ describe(TrimFactory, () => {
             })
 
             test('fractional on first side', async () => {
-                trim.curve = rectangle;
-                trim.start = 2.3;
-                trim.stop = 3;
+                trim.cut(rectangle, 2.3, 3);
                 const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
                 expect(trimmed.length).toBe(1);
 
@@ -256,9 +252,7 @@ describe(TrimFactory, () => {
             })
 
             test('fractional on second side', async () => {
-                trim.curve = rectangle;
-                trim.start = 2;
-                trim.stop = 2.7;
+                trim.cut(rectangle, 2, 2.7);
                 const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
                 expect(trimmed.length).toBe(1);
 

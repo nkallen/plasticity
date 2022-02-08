@@ -2,8 +2,6 @@ import Command from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
 import JoinCurvesFactory from './JoinCurvesFactory';
 
-
-
 export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
         const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
