@@ -5,7 +5,7 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from "../../editor/EditorSignals";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
-import { CurveEdgeSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, Snap, TanTanSnap } from "../../editor/snaps/Snap";
+import { CurveEdgeSnap, CurvePointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { ContourAndPlacement, curve3d2curve2d, point2point } from "../../util/Conversion";
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
@@ -35,17 +35,22 @@ export default class CurveFactory extends GeometryFactory {
             if (snap instanceof PlaneSnap || snap instanceof FaceSnap || snap instanceof FaceCenterPointSnap) {
                 return this.projectOntoPlaneSnap(curve, snap) || this.projectOntoConstructionPlane(curve, constructionPlane);
             } else if (snap instanceof CurveEdgeSnap) {
-                const planeSnaps = snap.planes;
-                for (const snap of planeSnaps) {
-                    const result = this.projectOntoPlaneSnap(curve, snap);
-                    if (result !== undefined) return result;
-                }
-                return this.projectOntoConstructionPlane(curve, constructionPlane);
+                return this.projectOntoCurveEdgeSnap(curve, snap) || this.projectOntoConstructionPlane(curve, constructionPlane);
+            } else if (snap instanceof EdgePointSnap) {
+                return this.projectOntoCurveEdgeSnap(curve, snap.edgeSnap) || this.projectOntoConstructionPlane(curve, constructionPlane);
             } else {
                 return this.projectOntoConstructionPlane(curve, constructionPlane);
             }
         } else {
             return curve;
+        }
+    }
+
+    private static projectOntoCurveEdgeSnap(curve: c3d.Curve3D, snap: CurveEdgeSnap) {
+        const planeSnaps = snap.planes;
+        for (const snap of planeSnaps) {
+            const result = this.projectOntoPlaneSnap(curve, snap);
+            if (result !== undefined) return result;
         }
     }
 
