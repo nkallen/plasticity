@@ -4,6 +4,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { PlaneSnap, TanTanSnap } from "../../src/editor/snaps/Snap";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -36,6 +37,56 @@ describe(CurveFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+    })
+
+    test('line', async () => {
+        makeCurve.push(new THREE.Vector3());
+        makeCurve.push(new THREE.Vector3(1, 1, 0));
+        const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(item).toBeInstanceOf(visual.SpaceInstance);
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+    })
+
+    test('line with tantan snap', async () => {
+        const p1 = new THREE.Vector3();
+        const p2 = new THREE.Vector3(1, 1, 0);
+        const p3 = new THREE.Vector3(2, 2, 0);
+        const tantan = new TanTanSnap(p3, p2);
+        makeCurve.push(p1);
+        makeCurve.push(p2);
+        makeCurve.snap = tantan;
+        const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(item).toBeInstanceOf(visual.SpaceInstance);
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(1.5, 1.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+    })
+
+    test('line with tantan snap undone', async () => {
+        const p1 = new THREE.Vector3();
+        const p2 = new THREE.Vector3(1, 1, 0);
+        const p3 = new THREE.Vector3(2, 2, 0);
+        const tantan = new TanTanSnap(p3, p2);
+        makeCurve.push(p1);
+        makeCurve.push(p2);
+        makeCurve.snap = tantan;
+        makeCurve.snap = new PlaneSnap();
+        const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(item).toBeInstanceOf(visual.SpaceInstance);
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     })
 })
 

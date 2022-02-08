@@ -16,7 +16,7 @@ curveMinimumPoints.set(c3d.SpaceType.Nurbs3D, 4);
 curveMinimumPoints.set(c3d.SpaceType.CubicSpline3D, 3);
 
 export default class CurveFactory extends GeometryFactory {
-    static async projectOntoConstructionPlane(curve: c3d.Curve3D, constructionPlane?: ConstructionPlane) {
+    static async projectOntoConstructionSurface(curve: c3d.Curve3D, constructionPlane?: ConstructionPlane) {
         if (constructionPlane === undefined) return curve;
 
         if (constructionPlane instanceof FaceConstructionPlaneSnap) {
@@ -48,7 +48,7 @@ export default class CurveFactory extends GeometryFactory {
 
         const cartPoints = points.map(p => point2point(p));
         let curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
-        curve = await CurveFactory.projectOntoConstructionPlane(curve, this.constructionPlane);
+        curve = await CurveFactory.projectOntoConstructionSurface(curve, this.constructionPlane);
 
         const instance = new c3d.SpaceInstance(curve);
         instance.SetStyle(style);
