@@ -274,7 +274,12 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
             const instance = this.db.lookup(inst);
             const item = instance.GetSpaceItem()!;
             const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
-            const planar = curve3d2curve2d(curve3d, this.constructionPlane?.placement ?? new c3d.Placement3D());
+            // TODO: need more tests.
+            // We want to find a cut that will work for the user.
+            // The current construction plane takes precendence. After that, the plane associated with the curve. Finally, the global XYZ planes.
+            let planar = curve3d2curve2d(curve3d, this.constructionPlane?.placement);
+            if (planar === undefined) planar = curve3d2curve2d(curve3d);
+            if (planar === undefined) planar = curve3d2curve2d(curve3d, new c3d.Placement3D());
             if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
             result.push(planar);
         }
