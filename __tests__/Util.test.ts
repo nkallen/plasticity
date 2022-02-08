@@ -15,6 +15,10 @@ import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
+const origin = new c3d.CartPoint3D(0, 0, 0);
+const X = new c3d.Vector3D(1, 0, 0);
+const Y = new c3d.Vector3D(0, 1, 0);
+
 describe('RefCounter', () => {
     let refCounter: RefCounter<unknown>;
 
@@ -92,7 +96,7 @@ describe("curve3d2curve2d", () => {
         expect(curve2d).not.toBeUndefined();
     });
 
-    test("when given a line and compatible hint", async () => {
+    test("when given a line and coplanar hint", async () => {
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(-2, 2, 1));
         makeLine.points.push(new THREE.Vector3(2, 2, 1));
@@ -105,6 +109,19 @@ describe("curve3d2curve2d", () => {
         expect(curve2d).not.toBeUndefined();
     });
 
+    test("when given a line and hint that is not coplanar but a simple rotation is coplanar", async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, 2, 1));
+        makeLine.points.push(new THREE.Vector3(2, 2, 1));
+        const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const item = db.lookup(view).GetSpaceItem()!;
+        const curve = item.Cast<c3d.Curve3D>(item.IsA());
+
+        const compatibleWithRotation = new c3d.Placement3D(origin, X, Y, false);
+        const curve2d = curve3d2curve2d(curve, compatibleWithRotation);
+        expect(curve2d).not.toBeUndefined();
+    });
 
     test("when given a line and an incompatible hint", async () => {
         const makeLine = new CurveFactory(db, materials, signals);
@@ -115,7 +132,7 @@ describe("curve3d2curve2d", () => {
         const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
-        const incompatible = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 1, 1), new c3d.Vector3D(1, 0, 0), false);
+        const incompatible = new c3d.Placement3D(origin, new c3d.Vector3D(1, 1, 1), X, false);
         const curve2d = curve3d2curve2d(curve, incompatible);
         expect(curve2d).toBeUndefined();
     });
@@ -179,7 +196,7 @@ describe("normalizePlacement", () => {
     })
 
     test("when matches existing placement but must be transformed", async () => {
-        const offCenterPlacement = new c3d.Placement3D(new c3d.CartPoint3D(100, 100, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
+        const offCenterPlacement = new c3d.Placement3D(new c3d.CartPoint3D(100, 100, 0), new c3d.Vector3D(0, 0, 1), X, false);
         const { curve: curve2d, placement } = curve3d2curve2d(curve3d, offCenterPlacement)!;
         const start = curve2d.GetLimitPoint(1);
         expect(start.x).toBe(unit(-3));
@@ -201,7 +218,7 @@ describe("normalizePlacement", () => {
         const item = db.lookup(view).GetSpaceItem()!;
         curve3d = item.Cast<c3d.Curve3D>(item.IsA());
 
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 2), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false))!;
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 2), new c3d.Vector3D(0, 0, 1), X, false))!;
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(2);
@@ -218,7 +235,7 @@ describe("normalizePlacement", () => {
         const item = db.lookup(view).GetSpaceItem()!;
         curve3d = item.Cast<c3d.Curve3D>(item.IsA());
 
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), new c3d.Vector3D(0, 1, 0), false))!;
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(origin, X, Y, false))!;
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(2);
@@ -230,9 +247,9 @@ describe("normalizePlacement", () => {
 
 describe('isSamePlacement', () => {
     test('it works', () => {
-        const p1 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
-        const p2 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), false);
-        const p3 = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(-1, 0, 0), false);
+        const p1 = new c3d.Placement3D(origin, X, false);
+        const p2 = new c3d.Placement3D(origin, X, false);
+        const p3 = new c3d.Placement3D(origin, new c3d.Vector3D(-1, 0, 0), false);
         expect(isSamePlacement(p1, p2)).toBe(true);
         expect(isSamePlacement(p1, p3)).toBe(true);
     })
@@ -407,7 +424,7 @@ describe('normalizeCurve', () => {
         it('works', async () => {
             const line1 = new c3d.LineSegment(new c3d.CartPoint(0, 0), new c3d.CartPoint(0, 1));
             const line2 = new c3d.LineSegment(new c3d.CartPoint(0, 1), new c3d.CartPoint(2, 1));
-            const plane = new c3d.Plane(new c3d.CartPoint3D(0, 0, 0), new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(1, 1, 0));
+            const plane = new c3d.Plane(origin, new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(1, 1, 0));
             const contour = new c3d.ContourOnPlane(plane, new c3d.Contour([line1, line2], false), false);
             const normalized = await normalizeCurve(contour);
             expect(normalized.IsClosed()).toBe(false);

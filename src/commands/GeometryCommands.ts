@@ -1,6 +1,7 @@
 import { ThreePointArcCommand } from "./arc/ThreePointArcCommand";
 import { RadialArrayCommand } from "./array/ArrayCommand";
-import { BooleanCommand, CutCommand } from "./boolean/BooleanCommand";
+import { BooleanCommand } from "./boolean/BooleanCommand";
+import { CutCommand } from "./boolean/CutCommand";
 import { CenterBoxCommand, CornerBoxCommand, ThreePointBoxCommand } from "./box/BoxCommand";
 import { CharacterCurveCommand } from "./character-curve/CharacterCurveCommand";
 import { CenterCircleCommand, CenterPointArcCommand, ThreePointCircleCommand, TwoPointCircleCommand } from "./circle/CircleCommand";

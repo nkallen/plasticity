@@ -90,33 +90,50 @@ export function inst2curve(instance: c3d.Item): c3d.Curve3D | undefined {
 
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D, surface?: c3d.Surface }
 
+const X = new c3d.Axis3D(new c3d.Vector3D(1, 0, 0));
+const Y = new c3d.Axis3D(new c3d.Vector3D(0, 1, 0));
+
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = new c3d.Placement3D()): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
-        hint = new c3d.Placement3D(hint);
-        const points2d = [];
-
-        const inout = point2point(curve3d.GetLimitPoint(1));
-        const origin = point2point(hint.GetOrigin());
-        inout.sub(origin);
-        const Z = vec2vec(hint.GetAxisZ(), 1);
-        Z.multiplyScalar(Z.dot(inout));
-
-        hint.Move(vec2vec(Z));
-
-        for (const point of [curve3d.GetLimitPoint(1), curve3d.GetLimitPoint(2)]) {
-            const location = hint.PointRelative(point, 10e-3);
-            if (location !== c3d.ItemLocation.OnItem) return;
-            const { x, y } = hint.PointProjection(point);
-            points2d.push(new c3d.CartPoint(x, y));
-        }
-        const curve2d = c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
-        return { curve: curve2d, placement: hint };
+        let result;
+        result = planarizeLine(curve3d, hint);
+        if (result !== undefined) return result;
+        const rotatedX = new c3d.Placement3D(hint);
+        rotatedX.Rotate(X, Math.PI / 2);
+        result = planarizeLine(curve3d, rotatedX);
+        if (result !== undefined) return result;
+        const rotatedY = new c3d.Placement3D(hint);
+        rotatedY.Rotate(Y, Math.PI / 2);
+        return planarizeLine(curve3d, rotatedY);
     } else if (curve3d.IsPlanar()) {
         const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
         const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
         return { curve: dup, placement };
     }
     return undefined;
+}
+
+function planarizeLine(curve3d: c3d.Curve3D, hint: c3d.Placement3D) {
+    hint = new c3d.Placement3D(hint);
+    const points2d = [];
+
+    const inout = point2point(curve3d.GetLimitPoint(1));
+    const origin = point2point(hint.GetOrigin());
+    inout.sub(origin);
+    const Z = vec2vec(hint.GetAxisZ(), 1);
+    Z.multiplyScalar(Z.dot(inout));
+
+    hint.Move(vec2vec(Z));
+
+    for (const point of [curve3d.GetLimitPoint(1), curve3d.GetLimitPoint(2)]) {
+        const location = hint.PointRelative(point, 10e-3);
+        if (location !== c3d.ItemLocation.OnItem) return;
+        const { x, y } = hint.PointProjection(point);
+        points2d.push(new c3d.CartPoint(x, y));
+    }
+    const curve2d = c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
+    return { curve: curve2d, placement: hint };
+
 }
 
 export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3D, candidates: Set<c3d.Placement3D>) {
@@ -147,7 +164,7 @@ export function isSamePlacement(placement1: c3d.Placement3D, placement2: c3d.Pla
     const delta = point2point(placement1.GetOrigin()).sub(origin);
     const ZdotOffset = Math.abs(vec2vec(Z1, 1).dot(delta));
 
-    return Z1.Colinear(Z2)  && ZdotOffset < 10e-4;
+    return Z1.Colinear(Z2) && ZdotOffset < 10e-4;
 }
 
 export function isSmoothlyConnected(before: c3d.Curve3D, active: c3d.Curve3D, after?: c3d.Curve3D): boolean {

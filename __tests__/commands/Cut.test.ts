@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { IntersectionFactory } from '../../src/commands/boolean/BooleanFactory';
 import { CutAndSplitFactory, CutFactory, MultiCutFactory, SplitFactory } from '../../src/commands/boolean/CutFactory';
 import { CenterBoxFactory, ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
@@ -34,7 +33,6 @@ describe(CutFactory, () => {
     })
 
     test('takes a cutting curve and a solid and produces a divided solid', async () => {
-
         const makeCurve = new CurveFactory(db, materials, signals);
         makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
         makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
@@ -114,6 +112,21 @@ describe(CutFactory, () => {
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(2, -2, 0));
         makeLine.points.push(new THREE.Vector3(2, 2, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
+    test('works with dialogonal lines on y to z', async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(0, 1, 0));
+        makeLine.points.push(new THREE.Vector3(0, -1, 2));
         const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const cut = new CutFactory(db, materials, signals);
