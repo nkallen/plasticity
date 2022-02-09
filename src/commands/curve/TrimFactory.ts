@@ -18,7 +18,6 @@ export default class TrimFactory extends GeometryFactory {
     private _originals: visual.SpaceInstance<visual.Curve3D>[] = [];
     set fragments(fragments: visual.SpaceInstance<visual.Curve3D>[]) {
         const result = new Map<visual.SpaceInstance<visual.Curve3D>, Fragment>();
-        const originals = new Set<visual.SpaceInstance<visual.Curve3D>>();
         for (const fragment of fragments) {
             const fragmentInfo = fragment.underlying.fragmentInfo;
             if (fragmentInfo === undefined) throw new Error("invalid precondition");
