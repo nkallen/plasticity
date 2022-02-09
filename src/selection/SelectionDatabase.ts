@@ -339,13 +339,13 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     restoreFromMemento(m: SelectionMemento) {
-        (this.solidIds as Selection['solidIds']) = m.selectedSolidIds;
-        (this.parentsWithSelectedChildren as Selection['parentsWithSelectedChildren']) = m.parentsWithSelectedChildren;
-        (this.edgeIds as Selection['edgeIds']) = m.selectedEdgeIds;
-        (this.faceIds as Selection['faceIds']) = m.selectedFaceIds;
-        (this.curveIds as Selection['curveIds']) = m.selectedCurveIds;
-        (this.regionIds as Selection['regionIds']) = m.selectedRegionIds;
-        (this.controlPointIds as Selection['controlPointIds']) = m.selectedControlPointIds;
+        (this.solidIds as Selection['solidIds']) = new Set(m.selectedSolidIds);
+        (this.parentsWithSelectedChildren as Selection['parentsWithSelectedChildren']) = new RefCounter(m.parentsWithSelectedChildren);
+        (this.edgeIds as Selection['edgeIds']) = new Set(m.selectedEdgeIds);
+        (this.faceIds as Selection['faceIds']) = new Set(m.selectedFaceIds);
+        (this.curveIds as Selection['curveIds']) = new Set(m.selectedCurveIds);
+        (this.regionIds as Selection['regionIds']) = new Set(m.selectedRegionIds);
+        (this.controlPointIds as Selection['controlPointIds']) = new Set(m.selectedControlPointIds);
 
         this.signals.selectionChanged.dispatch({ selection: this });
     }

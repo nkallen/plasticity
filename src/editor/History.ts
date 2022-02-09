@@ -4,16 +4,14 @@ import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { ProxyCamera } from '../components/viewport/ProxyCamera';
 import { RefCounter } from '../util/Util';
 import * as visual from "../visual_model/VisualModel";
-import ContourManager from './curves/ContourManager';
+import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
-import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
+import { ControlPointData, DatabaseLike, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
-import { GeometryDatabase } from './GeometryDatabase';
-import { DatabaseLike } from "./DatabaseLike";
 import MaterialDatabase from './MaterialDatabase';
-import ModifierManager, { ModifierStack } from './ModifierManager';
+import { ModifierStack } from './ModifierManager';
 import { PointSnap } from "./snaps/Snap";
-import { SnapManager } from "./snaps/SnapManager";
+import { DisablableType } from "./TypeManager";
 
 export class Memento {
     constructor(
@@ -29,11 +27,12 @@ export class Memento {
 
 export class GeometryMemento {
     constructor(
-        readonly geometryModel: GeometryDatabase["geometryModel"],
-        readonly topologyModel: GeometryDatabase["topologyModel"],
-        readonly controlPointModel: GeometryDatabase["controlPointModel"],
-        readonly hidden: Set<c3d.SimpleName>,
-        readonly automatics: GeometryDatabase["automatics"],
+        readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
+        readonly topologyModel: ReadonlyMap<string, TopologyData>,
+        readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
+        readonly hidden: ReadonlySet<c3d.SimpleName>,
+        readonly invisible: ReadonlySet<c3d.SimpleName>,
+        readonly automatics: ReadonlySet<c3d.SimpleName>,
     ) { }
 
     async serialize(): Promise<Buffer> {
@@ -53,23 +52,25 @@ export class GeometryMemento {
     }
 }
 
+// FIXME: make ReadonlyRefCounter
+
 export class SelectionMemento {
     constructor(
-        readonly selectedSolidIds: Set<c3d.SimpleName>,
+        readonly selectedSolidIds: ReadonlySet<c3d.SimpleName>,
         readonly parentsWithSelectedChildren: RefCounter<c3d.SimpleName>,
-        readonly selectedEdgeIds: Set<string>,
-        readonly selectedFaceIds: Set<string>,
-        readonly selectedCurveIds: Set<c3d.SimpleName>,
-        readonly selectedRegionIds: Set<c3d.SimpleName>,
-        readonly selectedControlPointIds: Set<string>,
+        readonly selectedEdgeIds: ReadonlySet<string>,
+        readonly selectedFaceIds: ReadonlySet<string>,
+        readonly selectedCurveIds: ReadonlySet<c3d.SimpleName>,
+        readonly selectedRegionIds: ReadonlySet<c3d.SimpleName>,
+        readonly selectedControlPointIds: ReadonlySet<string>,
     ) { }
 }
 
 export class CameraMemento {
     constructor(
         readonly mode: ProxyCamera["mode"],
-        readonly position: THREE.Vector3,
-        readonly quaternion: THREE.Quaternion,
+        readonly position: Readonly<THREE.Vector3>,
+        readonly quaternion: Readonly<THREE.Quaternion>,
         readonly zoom: number,
         readonly offsetWidth: number,
         readonly offsetHeight: number,
@@ -97,8 +98,8 @@ export class CameraMemento {
 
 export class ConstructionPlaneMemento {
     constructor(
-        readonly n: THREE.Vector3,
-        readonly o: THREE.Vector3
+        readonly n: Readonly<THREE.Vector3>,
+        readonly o: Readonly<THREE.Vector3>
     ) { }
 
     toJSON() {
@@ -119,7 +120,7 @@ export class ConstructionPlaneMemento {
 export class ViewportMemento {
     constructor(
         readonly camera: CameraMemento,
-        readonly target: THREE.Vector3,
+        readonly target: Readonly<THREE.Vector3>,
         readonly isXRay: boolean,
         readonly constructionPlane: ConstructionPlaneMemento,
     ) { }
@@ -145,33 +146,33 @@ export class ViewportMemento {
 
 export class SnapMemento {
     constructor(
-        readonly id2snaps: SnapManager['id2snaps'],
-        readonly hidden: SnapManager['hidden']
+        readonly id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.SimpleName, Set<PointSnap>>>,
+        readonly hidden: ReadonlyMap<c3d.SimpleName, Set<PointSnap>>
     ) { }
 }
 
 export class CrossPointMemento {
     constructor(
-        readonly curve2touched: Map<c3d.SimpleName, Set<c3d.SimpleName>>,
-        readonly id2cross: Map<c3d.SimpleName, Set<CrossPoint>>,
-        readonly id2curve: Map<c3d.SimpleName, c3d.Curve3D>,
-        readonly crosses: Set<CrossPoint>,
+        readonly curve2touched: ReadonlyMap<c3d.SimpleName, Set<c3d.SimpleName>>,
+        readonly id2cross: ReadonlyMap<c3d.SimpleName, Set<CrossPoint>>,
+        readonly id2curve: ReadonlyMap<c3d.SimpleName, c3d.Curve3D>,
+        readonly crosses: ReadonlySet<CrossPoint>,
     ) { }
 }
 
 export class CurveMemento {
     constructor(
-        readonly curve2info: PlanarCurveDatabase["curve2info"],
-        readonly id2planarCurve: PlanarCurveDatabase["id2planarCurve"],
-        readonly placements: PlanarCurveDatabase["placements"],
+        readonly curve2info: ReadonlyMap<c3d.SimpleName, CurveInfo>,
+        readonly id2planarCurve: ReadonlyMap<c3d.SimpleName, c3d.Curve>,
+        readonly placements: ReadonlySet<c3d.Placement3D>,
     ) { }
 }
 
 export class ModifierMemento {
     constructor(
-        readonly name2stack: ModifierManager['name2stack'],
-        readonly version2name: ModifierManager['version2name'],
-        readonly modified2name: ModifierManager['modified2name'],
+        readonly name2stack: ReadonlyMap<c3d.SimpleName, ModifierStack>,
+        readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
+        readonly modified2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
     ) { }
 
     serialize(): Buffer {
@@ -230,9 +231,9 @@ export class ModifierMemento {
 
 export class ModifierStackMemento {
     constructor(
-        readonly premodified: ModifierStack['premodified'],
-        readonly modified: ModifierStack['modified'],
-        readonly modifiers: ModifierStack['modifiers'],
+        readonly premodified: visual.Solid,
+        readonly modified: visual.Solid,
+        readonly modifiers: readonly SymmetryFactory[],
     ) { }
 
     toJSON() {
@@ -435,7 +436,8 @@ export class History {
         if (this._undoStack.length > 0 &&
             this._undoStack[this._undoStack.length - 1].before === before) return;
         const after = this.originator.saveToMemento();
-        this._undoStack.push({ name, before, after });
+        const item = { name, before, after };
+        this._undoStack.push(item);
         this._redoStack.length = 0;
         this.signals.historyAdded.dispatch();
     }

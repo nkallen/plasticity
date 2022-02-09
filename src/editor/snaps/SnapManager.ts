@@ -16,7 +16,7 @@ export enum SnapType {
     Crosses = 2 << 1,
 }
 
-type SnapMap = Map<c3d.SimpleName, Set<PointSnap>>;
+export type SnapMap = Map<c3d.SimpleName, Set<PointSnap>>;
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     private _enabled = true;
@@ -316,10 +316,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     saveToMemento(): SnapMemento {
         const id2snaps = this.id2snaps;
-        const id2snapsCopy = new Map<DisablableType, SnapMap>();
-        for (const [key, value] of id2snaps) {
-            id2snapsCopy.set(key, new Map(value));
-        }
+        const id2snapsCopy = copyId2Snaps(id2snaps);
 
         return new SnapMemento(
             id2snapsCopy,
@@ -327,8 +324,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     restoreFromMemento(m: SnapMemento) {
-        (this.id2snaps as SnapManager['id2snaps']) = m.id2snaps;
-        (this.hidden as SnapManager['hidden']) = m.hidden;
+        (this.id2snaps as SnapManager['id2snaps']) = copyId2Snaps(m.id2snaps);
+        (this.hidden as SnapManager['hidden']) = new Map(m.hidden);
     }
 
     serialize(): Promise<Buffer> {
@@ -352,3 +349,12 @@ export const originSnap = new PointSnap("Origin");
 export const xAxisSnap = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
 export const yAxisSnap = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
 export const zAxisSnap = new AxisSnap("Z", new THREE.Vector3(0, 0, 1));
+
+function copyId2Snaps(id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.SimpleName, Set<PointSnap>>>) {
+    const id2snapsCopy = new Map<DisablableType, SnapMap>();
+    for (const [key, value] of id2snaps) {
+        id2snapsCopy.set(key, new Map(value));
+    }
+    return id2snapsCopy;
+}
+

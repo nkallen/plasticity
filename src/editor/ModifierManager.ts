@@ -104,7 +104,7 @@ export class ModifierStack {
             underlying: undefined as any,
             show() { },
             cancel() { },
-            hide() {},
+            hide() { },
         };
         if (temps.length > 1) throw new Error("invalid postcondition: " + temps.length);
         const temp = temps[0];
@@ -154,7 +154,7 @@ export class ModifierStack {
     }
 
     static restoreFromMemento(m: ModifierStackMemento, db: DatabaseLike, materials: MaterialDatabase) {
-        return new ModifierStack(m.premodified, m.modified, m.modifiers, db, materials)
+        return new ModifierStack(m.premodified, m.modified, new Array(...m.modifiers), db, materials)
     }
 
     toJSON() {

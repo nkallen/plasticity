@@ -411,15 +411,17 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
             new Set(this.hidden),
+            new Set(this.invisible),
             new Set(this.automatics));
     }
 
     restoreFromMemento(m: GeometryMemento) {
-        (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
-        (this.topologyModel as GeometryDatabase['topologyModel']) = m.topologyModel;
-        (this.controlPointModel as GeometryDatabase['controlPointModel']) = m.controlPointModel;
-        (this.hidden as GeometryDatabase['hidden']) = m.hidden;
-        (this.automatics as GeometryDatabase['automatics']) = m.automatics;
+        (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
+        (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
+        (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
+        (this.hidden as GeometryDatabase['hidden']) = new Set(m.hidden);
+        (this.invisible as GeometryDatabase['invisible']) = new Set(m.invisible);
+        (this.automatics as GeometryDatabase['automatics']) = new Set(m.automatics);
     }
 
     async serialize(): Promise<Buffer> {

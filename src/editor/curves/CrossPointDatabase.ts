@@ -138,10 +138,10 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
     }
 
     restoreFromMemento(m: CrossPointMemento) {
-        (this.curve2touched as CrossPointDatabase['curve2touched']) = m.curve2touched;
-        (this.id2cross as CrossPointDatabase['id2cross']) = m.id2cross;
-        (this.id2curve as CrossPointDatabase['id2curve']) = m.id2curve;
-        (this._crosses as CrossPointDatabase['crosses']) = m.crosses;
+        (this.curve2touched as CrossPointDatabase['curve2touched']) = new Map(m.curve2touched);
+        (this.id2cross as CrossPointDatabase['id2cross']) = new Map(m.id2cross);
+        (this.id2curve as CrossPointDatabase['id2curve']) = new Map(m.id2curve);
+        (this._crosses as CrossPointDatabase['crosses']) = new Set(m.crosses);
     }
 
     serialize(): Promise<Buffer> { throw new Error('Method not implemented.') }
