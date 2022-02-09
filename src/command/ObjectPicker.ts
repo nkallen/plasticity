@@ -1,22 +1,21 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
-import { EditorSignals } from '../editor/EditorSignals';
+import { RaycasterParameters } from '../components/viewport/ViewportControl';
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { NonemptyClickStrategy } from '../selection/Click';
 import { HasSelectedAndHovered, HasSelection, Selectable } from '../selection/SelectionDatabase';
+import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
 import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
-import { Executable } from './Quasimode';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
-import * as visual from '../visual_model/VisualModel';
-import { NonemptyClickStrategy } from '../selection/Click';
-import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
-import { RaycasterParameters } from '../components/viewport/ViewportControl';
+import { Executable } from './Quasimode';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -95,6 +94,8 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             disposables.add(new Disposable(() => bridgeRemoved.detach()));
         }
 
+        // FIXME: because code below is using objectSelected/objectDeselected -- which are triggered before selectionDelta --
+        // the callback will sometimes not be called -- the signal will be unregistered before there's a change to call it
         if (cb !== undefined) {
             signals.selectionDelta.add(cb);
             disposables.add(new Disposable(() => {
@@ -111,9 +112,13 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
 
             let count = 0;
             const selected = signals.objectSelected.add(() => {
-                count++; if (count >= min && count >= max) finish();
+                count++;
+                if (count >= min && count >= max) finish();
             });
-            const deselected = signals.objectDeselected.add(() => count--);
+            const deselected = signals.objectDeselected.add(() => {
+                count--;
+                if (count < 0) throw new Error("invalid state");
+            });
             disposables.add(new Disposable(() => {
                 selected.detach();
                 deselected.detach();

@@ -156,7 +156,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         await Promise.all(promises);
     }
 
-    private removeInfo(curve: c3d.SimpleName): CurveInfo | undefined {
+    private async removeInfo(curve: c3d.SimpleName): Promise<CurveInfo | undefined> {
         const { curve2info, db } = this;
 
         const info = curve2info.get(curve);
@@ -165,12 +165,13 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
         const { fragments } = info;
 
-        for (const fragment of fragments) {
-            fragment.then(fragment => {
-                const item = db.lookupItemById(fragment).view;
-                db.removeItem(item, 'automatic');
-            });
+        const fs = await Promise.all(fragments);
+        const promises = [];
+        for (const fragment of fs) {
+            const item = db.lookupItemById(fragment).view;
+            promises.push(db.removeItem(item, 'automatic'));
         }
+        await Promise.all(promises);
         return info;
     }
 
@@ -200,30 +201,32 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     }
 
     async commit(data: Transaction): Promise<void> {
-        const promises = [];
+        const additions = [];
+        const removals = [];
         for (const touchee of data.dirty) {
-            this.removeInfo(touchee);
+            removals.push(this.removeInfo(touchee));
         }
         for (const touchee of data.deleted) {
             if (data.dirty.has(touchee)) continue;
 
-            this.removeInfo(touchee);
+            removals.push(this.removeInfo(touchee));
         }
         for (const touchee of data.dirty) {
             if (data.deleted.has(touchee)) continue;
 
             const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;
-            promises.push(this.add(inst));
+            additions.push(this.add(inst));
         }
         for (const touchee of data.added) {
             if (data.deleted.has(touchee)) continue;
             if (data.dirty.has(touchee)) continue;
 
             const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;
-            promises.push(this.add(inst));
+            additions.push(this.add(inst));
         }
 
-        await Promise.all(promises);
+        await Promise.all(removals);
+        await Promise.all(additions);
         return;
     }
 

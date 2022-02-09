@@ -125,7 +125,6 @@ export default class ContourManager extends DatabaseProxy {
                 return;
             case 'transaction':
                 this.state.transaction.added.add(curve.simpleName);
-                break;
         }
     }
 

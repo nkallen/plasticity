@@ -33,7 +33,6 @@ export class PlaceCommand extends Command {
         place.originOrientation = originOrientation;
 
         keyboard.execute(s => {
-            console.log(s);
             switch(s) {
                 case 'flip':
                     place.flip = !place.flip;

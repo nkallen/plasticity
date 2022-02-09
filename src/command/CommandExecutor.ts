@@ -95,7 +95,7 @@ export class CommandExecutor {
                     await command.execute();
                 });
                 command.finish(); // ensure all resources are cleaned up
-            })
+            });
             if (command.state === 'Finished') {
                 if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
                 if (command.shouldAddToHistory(selectionChanged)) history.add(command.pretty, state);
