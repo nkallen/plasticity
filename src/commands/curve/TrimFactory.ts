@@ -46,7 +46,7 @@ export default class TrimFactory extends GeometryFactory {
         const { infos } = this;
 
         const results = [];
-        for (const [inst, fragment] of infos) {
+        for (const [_, fragment] of infos) {
             const { infos } = fragment;
             if (infos.length === 1) { // FIXME: need more robust
                 const { start, stop } = infos[0];

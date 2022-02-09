@@ -55,6 +55,20 @@ describe(Interval, () => {
         })
     })
 
+    describe('trim backward', () => {
+        const i = new Interval(2.2, 2);
+
+        test('when the trim hits a border of the interval', () => {
+            expect(i.trim(1.8, 2)).toEqual([new Interval(2.2, 1.8)]);
+            expect(i.trim(2.2, 3)).toEqual([new Interval(3, 2)]);
+            expect(i.trim(2, 3)).toEqual([new Interval(3, 2)]);
+            expect(i.trim(2.1, 2.2)).toEqual([new Interval(2.2, 2)]);
+            expect(i.trim(2, 2.1)).toEqual([new Interval(2.2, 2)]);
+
+            expect(i.trim(2.2, 2.3)).toEqual([new Interval(2.3, 2)]);
+        })
+    })
+
     describe('multitrim', () => {
         const i = new Interval(5, 10);
 
@@ -120,10 +134,20 @@ describe(IntervalWithPoints, () => {
             expect(i.trim(7, 8)).toEqual([new IntervalWithPoints(8, 7, [10, 6])]);
         })
 
-        test('edge cases', () => {
+        test('edge cases - square', () => {
             const i = new IntervalWithPoints(0, 4, [1, 2, 3], true);
             expect(i.trim(3, 0)).toEqual([new IntervalWithPoints(0, 3, [1, 2])]);
             expect(i.trim(1, 2)).toEqual([new IntervalWithPoints(2, 1, [3, 4])]);
+        })
+
+        test('edge cases - triangle', () => {
+            const i = new IntervalWithPoints(0, 3, [1, 2], true);
+            expect(i.trim(2, 2.2)).toEqual([new IntervalWithPoints(2.2, 2, [3, 1])]);
+            expect(i.trim(2, 3)).toEqual([new IntervalWithPoints(0, 2, [1])]);
+            expect(i.trim(2.2, 3)).toEqual([new IntervalWithPoints(0, 2.2, [1, 2])]);
+            
+            const j = new IntervalWithPoints(2.2, 2, [3, 1]);
+            expect(j.trim(1.8, 2)).toEqual([new IntervalWithPoints(2.2, 1.8, [3, 1])]);
         })
     })
 });
