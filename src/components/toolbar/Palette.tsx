@@ -192,6 +192,12 @@ export default (editor: Editor) => {
                             <plasticity-command name="two-point-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                             <plasticity-command name="three-point-circle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
+                        <plasticity-command name="polygon"></plasticity-command>
+                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
+                            <plasticity-command name="corner-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="center-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                            <plasticity-command name="three-point-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
+                        </plasticity-button-group>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="three-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                             <plasticity-command name="center-point-arc" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
@@ -200,12 +206,6 @@ export default (editor: Editor) => {
                             <plasticity-command name="center-ellipse" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                             <plasticity-command name="three-point-ellipse" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         </plasticity-button-group>
-                        <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
-                            <plasticity-command name="corner-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
-                            <plasticity-command name="center-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
-                            <plasticity-command name="three-point-rectangle" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
-                        </plasticity-button-group>
-                        <plasticity-command name="polygon"></plasticity-command>
                         <plasticity-button-group class="shadow-lg first:rounded-t last:rounded-b overflow-clip">
                             <plasticity-command name="spiral" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                             <plasticity-command name="character-curve" class="first:rounded-t last:rounded-b overflow-clip"></plasticity-command>

@@ -116,8 +116,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
                 if (count >= min && count >= max) finish();
             });
             const deselected = signals.objectDeselected.add(() => {
-                count--;
-                if (count < 0) throw new Error("invalid state");
+                count = Math.max(--count, 0);
             });
             disposables.add(new Disposable(() => {
                 selected.detach();

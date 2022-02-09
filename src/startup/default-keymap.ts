@@ -236,7 +236,21 @@ export default {
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
-        "shift-q": "command:rebuild",
+        "alt-q": "command:rebuild",
+
+        "shift-a": "command:line",
+        "shift-s": "command:curve",
+        "shift-d": "command:center-circle",
+        "shift-f": "command:polygon",
+
+        "shift-z": "command:sphere",
+        "shift-x": "command:cylinder",
+
+        "shift-q": "command:corner-rectangle",
+        "shift-w": "command:center-rectangle",
+
+        "shift-c": "command:corner-box",
+        "shift-v": "command:center-box",
 
         "q": "command:boolean",
 
@@ -244,7 +258,7 @@ export default {
         "shift-h": "command:hide-unselected",
         "alt-h": "command:unhide-all",
 
-        "shift-d": "command:duplicate",
+        "ctrl-d": "command:duplicate",
 
         "shift-r": "repeat-last-command",
         "cmd-z": "edit:undo",
@@ -264,7 +278,6 @@ export default {
         "cmd-o": "file:open",
         "ctrl-o": "file:open",
 
-        "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
         "escape": "command:deselect-all",
     },
