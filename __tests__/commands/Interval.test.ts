@@ -1,6 +1,6 @@
 
+import { Interval, IntervalWithPoints } from '../../src/commands/curve/Interval';
 import '../matchers';
-import { Interval } from '../../src/commands/curve/Interval';
 
 describe(Interval, () => {
     describe('trim open', () => {
@@ -67,3 +67,63 @@ describe(Interval, () => {
         })
     })
 })
+
+describe(IntervalWithPoints, () => {
+    describe('trim open', () => {
+        const i = new IntervalWithPoints(5, 10, [6, 7, 8], false);
+
+        test('when the trim is bigger than the interval', () => {
+            expect(i.trim(5, 10)).toEqual([]);
+            expect(i.trim(0, 20)).toEqual([]);
+        })
+
+        test('when the trim is left of the interval', () => {
+            expect(i.trim(4, 6)).toEqual([new IntervalWithPoints(6, 10, [7, 8])]);
+        })
+
+        test('when the trim is right of the interval', () => {
+            expect(i.trim(9, 11)).toEqual([new IntervalWithPoints(5, 9, [6, 7, 8])]);
+        })
+
+        test('when the trim is inside of the interval', () => {
+            expect(i.trim(6, 9)).toEqual([new IntervalWithPoints(5, 6, []), new IntervalWithPoints(9, 10, [])]);
+        })
+
+        test('when the trim is outside of the interval', () => {
+            expect(i.trim(11, 12)).toEqual([new IntervalWithPoints(5, 10, [6, 7, 8])]);
+            expect(i.trim(1, 2)).toEqual([new IntervalWithPoints(5, 10, [6, 7, 8])]);
+        })
+
+        test('when the trim is hits a border of the interval', () => {
+            expect(i.trim(9, 10)).toEqual([new IntervalWithPoints(5, 9, [6, 7, 8])]);
+            expect(i.trim(5, 6)).toEqual([new IntervalWithPoints(6, 10, [7, 8])]);
+        })
+    });
+
+    describe('trim cyclic', () => {
+        const i = new IntervalWithPoints(5, 10, [6, 7, 8], true);
+
+        test('when the trim is bigger than the interval', () => {
+            expect(i.trim(5, 10)).toEqual([]);
+            expect(i.trim(0, 20)).toEqual([]);
+        })
+
+        test('when the trim is left of the interval', () => {
+            expect(i.trim(4, 6)).toEqual([new IntervalWithPoints(6, 9, [7, 8])]);
+        })
+
+        test('when the trim is right of the interval', () => {
+            expect(i.trim(9, 11)).toEqual([new IntervalWithPoints(6, 9, [7, 8])]);
+        })
+
+        test('when the trim is inside of the interval', () => {
+            expect(i.trim(7, 8)).toEqual([new IntervalWithPoints(8, 7, [10, 6])]);
+        })
+
+        test('edge cases', () => {
+            const i = new IntervalWithPoints(0, 4, [1, 2, 3], true);
+            expect(i.trim(3, 0)).toEqual([new IntervalWithPoints(0, 3, [1, 2])]);
+            expect(i.trim(1, 2)).toEqual([new IntervalWithPoints(2, 1, [3, 4])]);
+        })
+    })
+});

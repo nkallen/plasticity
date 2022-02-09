@@ -155,11 +155,11 @@ export class Editor {
     async export() {
         const { canceled, filePath } = await remote.dialog.showSaveDialog({
             filters: [
-                { name: 'Wavefront OBJ', extensions: ['obj'] },
+                { name: 'C3D files', extensions: ['c3d'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },
-                { name: 'C3D files', extensions: ['c3d'] }
+                { name: 'Wavefront OBJ', extensions: ['obj'] },
             ]
         });
         if (canceled) return;

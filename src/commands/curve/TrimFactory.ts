@@ -1,8 +1,8 @@
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { inst2curve } from '../../util/Conversion';
 import { GeometryFactory } from '../../command/GeometryFactory';
-import { Interval } from './Interval';
+import { inst2curve } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
+import { Interval, IntervalWithPoints } from './Interval';
 
 interface Fragment {
     infos: visual.FragmentInfo[];
@@ -66,45 +66,20 @@ export default class TrimFactory extends GeometryFactory {
     private async trimPolyline(fragment: Fragment) {
         const { curve, infos } = fragment;
         const polyline = curve.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
-        const allPoints = polyline.GetPoints();
+
+        const interval = polyline2interval(polyline);
+        const keep = interval.multitrim(infos.map(({ start, stop }) => [start, stop]));
         const result = [];
-        for (const { start, stop } of infos) {
-            const startPoint = polyline.PointOn(start);
-            const stopPoint = polyline.PointOn(stop);
-
-            const ts = [...Array(allPoints.length).keys()];
-
-            if (polyline.IsClosed()) {
-                const vertices = [];
-                if (start === stop) throw new Error("invalid precondition");
-                for (let i = Math.ceil(stop); i != Math.floor(start); i = (i + 1) % ts.length) {
-                    vertices.push(i);
-                }
-                if (stop !== Math.ceil(stop)) vertices.unshift(stop);
-                vertices.push(Math.floor(start));
-                if (start !== Math.floor(start)) vertices.push(start);
-                const points = vertices.map(t => curve.PointOn(t));
-                const line = new c3d.Polyline3D(points, false);
-                result.push(new c3d.SpaceInstance(line));
-            } else {
-                const first = ts.filter(p => p < start);
-                if (first.length > 0) {
-                    const points = first.map(t => allPoints[t]);
-                    points.push(startPoint);
-                    const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
-                    result.push(new c3d.SpaceInstance(line));
-                }
-
-                const second = ts.filter(p => p > stop);
-                if (second.length > 0) {
-                    const points = second.map(t => allPoints[t]);
-                    points.unshift(stopPoint);
-                    const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
-                    result.push(new c3d.SpaceInstance(line));
-                }
+        for (const i of keep) {
+            const points = [];
+            points.push(curve.PointOn(i.start));
+            for (const t of i.ts) {
+                points.push(curve.PointOn(t));
             }
+            points.push(curve.PointOn(i.end));
+            result.push(new c3d.Polyline3D(points, false));
         }
-        return result;
+        return result.map(c => new c3d.SpaceInstance(c));
     }
 
     private async trimGeneral(fragment: Fragment) {
@@ -125,4 +100,16 @@ function curve2interval(curve: c3d.Curve3D) {
     const cyclic = curve.IsPeriodic();
     return new Interval(start, end, cyclic);
 }
+
+function polyline2interval(curve: c3d.Polyline3D) {
+    const start = curve.GetTMin();
+    const end = curve.GetTMax();
+    const cyclic = curve.IsPeriodic();
+    const ts: number[] = [];
+    for (let i = Math.floor(start); i < end; i++) {
+        if (i > start && i < end) ts.push(i);
+    }
+    return new IntervalWithPoints(start, end, ts, cyclic);
+}
+
 
