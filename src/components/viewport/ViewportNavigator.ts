@@ -53,24 +53,40 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
             const box = new THREE.Mesh(boxGeometry, ViewportNavigatorExecutor.getBoxMaterial(new THREE.Color('#AAAAAA')));
 
             const planeGeometry = new THREE.PlaneBufferGeometry(1.5 * halfSize, 1.5 * halfSize);
+
             const front = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             front.rotation.x = Math.PI / 2;
             front.position.set(0, -halfSize, 0);
             front.userData.type = Orientation.negY;
 
+            const back = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
+            back.rotation.x = -Math.PI / 2;
+            back.position.set(0, halfSize, 0);
+            back.userData.type = Orientation.posY;
+
             const left = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             left.rotation.y = -Math.PI / 2;
             left.position.set(-halfSize, 0, 0);
-            left.userData.type = Orientation.posX;
+            left.userData.type = Orientation.negX;
+
+            const right = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
+            right.rotation.y = Math.PI / 2;
+            right.position.set(halfSize, 0, 0);
+            right.userData.type = Orientation.posX;
+
+            const top = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
+            top.rotation.z = Math.PI;
+            top.position.set(0, 0, halfSize);
+            top.userData.type = Orientation.posZ;
 
             const bottom = new THREE.Mesh(planeGeometry, ViewportNavigatorExecutor.getPlaneMaterial(new THREE.Color('#777777')));
             bottom.rotation.y = Math.PI;
             bottom.position.set(0, 0, -halfSize);
-            bottom.userData.type = Orientation.posZ;
+            bottom.userData.type = Orientation.negZ;
 
             this.add(box);
-            this.add(front, left, bottom);
-            interactiveObjects.push(front, left, bottom);
+            this.add(front, back, left, right, top, bottom);
+            interactiveObjects.push(front, back, left, right, top, bottom);
         }
 
         AxisText: {
