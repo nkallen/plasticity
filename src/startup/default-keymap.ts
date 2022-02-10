@@ -227,7 +227,6 @@ export default {
         "r": "command:rotate",
         "s": "command:scale",
         "p": "command:pipe",
-        "ctrl-a": "command:place",
         "b": "command:fillet-solid",
         "e": "command:extrude",
         "t": "command:trim",
@@ -236,29 +235,27 @@ export default {
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
+
         "alt-q": "command:rebuild",
+        "shift-d": "command:duplicate",
+        "ctrl-d": "command:place",
 
         "shift-a": "command:line",
         "shift-s": "command:curve",
-        "shift-d": "command:center-circle",
-        "shift-f": "command:polygon",
 
         "shift-z": "command:sphere",
         "shift-x": "command:cylinder",
+        "shift-c": "command:corner-box",
+        "shift-v": "command:center-box",
 
         "shift-q": "command:corner-rectangle",
         "shift-w": "command:center-rectangle",
-
-        "shift-c": "command:corner-box",
-        "shift-v": "command:center-box",
 
         "q": "command:boolean",
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",
         "alt-h": "command:unhide-all",
-
-        "ctrl-d": "command:duplicate",
 
         "shift-r": "repeat-last-command",
         "cmd-z": "edit:undo",

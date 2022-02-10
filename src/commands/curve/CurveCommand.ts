@@ -8,7 +8,7 @@ import * as visual from "../../visual_model/VisualModel";
 import { CurveWithPreviewFactory } from "./CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./CurveKeyboardGizmo";
 
-export const Y = new THREE.Vector3(0, 1, 0);
+const Y = new THREE.Vector3(0, 1, 0);
 
 export class CurveCommand extends Command {
     protected type = c3d.SpaceType.Hermit3D;

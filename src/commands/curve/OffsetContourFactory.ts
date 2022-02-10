@@ -73,6 +73,7 @@ export class OffsetFaceFactory extends GeometryFactory {
                 if (edge.IsSeam() || edge.IsPole()) continue;
                 contour.AddCurveWithRuledCheck(edge.GetIntersectionCurve());
             }
+            break;
         }
 
         const tau = contour.Tangent(contour.GetTMin());
@@ -174,7 +175,7 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
             const result = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(curve, dist);
             return new c3d.SpaceInstance(result);
         } else {
-            const vec = new c3d.Vector3D(0, dist, 0);
+            const vec = new c3d.Vector3D(dist, 0, 0);
             const params = new c3d.SpatialOffsetCurveParams(vec, names);
             const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
             return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
