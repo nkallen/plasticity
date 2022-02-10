@@ -132,8 +132,8 @@ export class SnapPresenter {
         const { editor, cursorHelper, helpers } = this;
 
         helpers.clear();
-        const { names, helpers: newHelpers, nearby: indicators } = presentation;
-        for (const i of indicators) helpers.add(i);
+        const { names, helpers: newHelpers, nearby } = presentation;
+        for (const n of nearby) helpers.add(n);
 
         const info = presentation.info;
         if (info === undefined) {

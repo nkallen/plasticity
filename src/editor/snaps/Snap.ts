@@ -495,7 +495,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
 const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
-const lineDashedMaterial = new THREE.LineDashedMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.15 });
+const lineSubtleMaterial = new THREE.LineDashedMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.15 });
 export const axisSnapMaterial = new LineMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.1, dashed: true, dashScale: 100, dashSize: 100 });
 
 export class AxisSnap extends Snap implements ChoosableSnap {
@@ -522,6 +522,7 @@ export class AxisSnap extends Snap implements ChoosableSnap {
         this.orientation.setFromUnitVectors(Z, n)
 
         if (this.constructor === AxisSnap) this.init();
+        // NOTE: All subclasses must call init()!
     }
 
     private readonly projection = new THREE.Vector3();
@@ -540,12 +541,11 @@ export class AxisSnap extends Snap implements ChoosableSnap {
     }
 
     move(delta: THREE.Vector3) {
-        const { n } = this;
         return new PointAxisSnap(this.name!.toLowerCase(), this.n, this.o.clone().add(delta));
     }
 
     rotate(quat: THREE.Quaternion) {
-        const { n, o } = this;
+        const { o } = this;
         return new AxisSnap(this.name?.toLowerCase(), this.n.clone().applyQuaternion(quat), o);
     }
 
@@ -582,17 +582,13 @@ dotGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(
 const dotMaterial = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false });
 
 export class PointAxisSnap extends AxisSnap {
-    readonly helper = new THREE.Group();
+    private readonly sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
 
     constructor(readonly name: string, n: THREE.Vector3, position: THREE.Vector3) {
         super(name, n, position);
-        const helperline = new THREE.Line(axisGeometry_line, lineDashedMaterial);
-        helperline.position.copy(this.snapper.position);
-        helperline.quaternion.copy(this.snapper.quaternion);
-        this.helper.add(helperline);
-        const sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
-        sourcePointIndicator.position.copy(position);
-        this.helper.add(sourcePointIndicator);
+        const helper = this.helper as THREE.Line;
+        helper.material = lineSubtleMaterial;
+        helper.add(this.sourcePointIndicator);
         this.init();
     }
 
@@ -608,6 +604,11 @@ export class NormalAxisSnap extends PointAxisSnap {
 }
 
 export class LineAxisSnap extends AxisSnap {
+    constructor(n: THREE.Vector3, position: THREE.Vector3) {
+        super(undefined, n, position)
+        this.init();
+    }
+
     override isValid(pt: THREE.Vector3): boolean {
         const { n } = this;
         return Math.abs(pt.dot(n)) > 10e-6;

@@ -214,9 +214,11 @@ export class PointPickerModel {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new LineAxisSnap(undefined, direction, origin);
+        const line = new LineAxisSnap(direction, origin);
         this._restriction = line;
-        this._choice = { snap: line, sticky: false }; // FIXME: this is abusing the api a bit, think of a better way
+        this._choice = { snap: line, sticky: false };
+        this.choose(line, undefined, false);
+        // FIXME: the user is able to hit shift and make this choice disappear, which is a bug; introduce another boolean?
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
