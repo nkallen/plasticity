@@ -44,8 +44,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
 
     applyRestrictions(pointPicker: PointPickerModel, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
-        if (restriction === undefined)
-            return input;
+        if (restriction === undefined) return input;
 
         const output = [];
         for (const info of input) {
@@ -58,7 +57,7 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
         return output;
     }
 
-    applyChoice(choice: ChoosableSnap, viewport: Viewport, input: SnapResult[]): SnapResult[] {
+    projectIntersectionOntoChoice(choice: ChoosableSnap, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const valid = input.filter(info => choice.isValid(info.position));
         if (valid.length === 0) return [];
         const first = valid[0];

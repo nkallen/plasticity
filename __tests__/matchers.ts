@@ -11,9 +11,9 @@ declare global {
 }
 
 expect.extend({
-    toHaveQuaternion(received: { quaternion: THREE.Quaternion } | { orientation: THREE.Quaternion }, other: THREE.Quaternion) {
+    toHaveQuaternion(received: { quaternion: THREE.Quaternion } | { orientation: THREE.Quaternion } | THREE.Quaternion, other: THREE.Quaternion) {
         // @ts-ignore
-        const quat = received.quaternion ?? received.orientation;
+        const quat = received.quaternion ?? received.orientation ?? received;
         const pass = Math.abs(quat.dot(other)) > 1 - 10e-6;
         if (pass) {
             return {

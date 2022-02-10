@@ -68,7 +68,7 @@ export class SnapPicker {
 
     intersect(additional: THREE.Object3D[], points: PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
         if (!snaps.enabled) return [];
-        const { strategy, raycaster, viewport, viewport: { isXRay, constructionPlane: { orientation: constructionPlaneOrientation } } } = this;
+        const { strategy, raycaster, viewport } = this;
 
         strategy.configureIntersectRaycaster(raycaster, snaps, viewport);
         const everything = [...points, snaps.geometrySnaps];

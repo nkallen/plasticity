@@ -52,7 +52,8 @@ export class PointPickerSnapPicker {
 
         if (!cache.enabled) {
             if (choice !== undefined) {
-                return strategy.intersectChoice(choice, raycaster);
+                const chosen = strategy.intersectChoice(choice, raycaster);
+                return strategy.applyRestrictions(pointPicker, viewport, chosen);
             } else {
                 return strategy.intersectConstructionPlane(pointPicker, raycaster, viewport);
             }
@@ -66,9 +67,9 @@ export class PointPickerSnapPicker {
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);
-            const result = strategy.applyChoice(choice.snap, viewport, intersections);
-            if (result.length === 0) return chosen;
-            else return result;
+            const projected = strategy.projectIntersectionOntoChoice(choice.snap, viewport, intersections);
+            const result = projected.length > 0 ? projected : chosen;
+            return strategy.applyRestrictions(pointPicker, viewport, result);
         }
 
         intersections = intersections.concat(strategy.intersectConstructionPlane(pointPicker, raycaster, viewport));
