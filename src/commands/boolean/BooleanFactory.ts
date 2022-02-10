@@ -41,14 +41,16 @@ export class BooleanFactory extends GeometryFactory implements BooleanParams {
     protected _tools: { views: visual.Solid[], models: c3d.Solid[] } = { views: [], models: [] };
     get tools(): visual.Solid[] { return this._tools.views }
     set tools(tools: visual.Solid[] | c3d.Solid[]) {
-        const models = tools[0] instanceof visual.Solid
-            ? tools.map(t => this.db.lookup(t as visual.Solid))
-            : tools as c3d.Solid[];
-        this._tools = { views: [], models };
+        if (tools[0] instanceof visual.Solid) {
+            const models = tools.map(t => this.db.lookup(t as visual.Solid))
+            this._tools = { views: tools as visual.Solid[], models };
+        } else {
+            this._tools = { views: [], models: tools as c3d.Solid[] }
+        }
     }
 
     set tool(solid: visual.Solid | c3d.Solid) {
-        this._tools.models = [solid instanceof visual.Solid ? this.db.lookup(solid) : solid];
+        this.tools = [solid] as visual.Solid[] | c3d.Solid[];
     }
 
     protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.BooleanSolid, this.db.version), c3d.ESides.SideNone, 0);
@@ -102,7 +104,6 @@ export class BooleanFactory extends GeometryFactory implements BooleanParams {
     get shouldRemoveOriginalItemOnCommit() {
         return true;
         //         return this._isOverlapping;
-
     }
 }
 
@@ -172,7 +173,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     }
 
     private readonly phantoms = new BooleanPhantomStrategy(this.db);
-    protected async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
+    async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
         const { phantoms } = this;
         phantoms.operationType = this.operationType;
         phantoms.tools = this._tools;
@@ -183,7 +184,7 @@ export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
     }
 }
 
-class BooleanPhantomStrategy {
+export class BooleanPhantomStrategy {
     operationType!: c3d.OperationType;
     tools!: { views: visual.Solid[], models: c3d.Solid[] };
     targets!: { views: visual.Solid[], models: c3d.Solid[] };
@@ -191,7 +192,7 @@ class BooleanPhantomStrategy {
 
     constructor(private readonly db: DatabaseLike) { }
 
-    async calculateToolPhantoms(): Promise<PhantomInfo[]> {
+    private async calculateToolPhantoms(): Promise<PhantomInfo[]> {
         const { operationType, tools: { models, views } } = this;
 
         let material: MaterialOverride;
@@ -206,7 +207,7 @@ class BooleanPhantomStrategy {
         return result;
     }
 
-    async calculateTargetPhantoms(): Promise<PhantomInfo[]> {
+    private async calculateTargetPhantoms(): Promise<PhantomInfo[]> {
         return this.targets.models.map((target, i) => ({ phantom: target, material: phantom_blue, ancestor: this.targets.views[i] }));
     }
 
@@ -306,7 +307,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     }
 
     private readonly phantoms = new BooleanPhantomStrategy(this.db);
-    protected override async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
+    override async doPhantoms(abortEarly: () => boolean): Promise<TemporaryObject[]> {
         const { phantoms } = this;
         phantoms.operationType = this.operationType;
         phantoms.tools = this._tools;
@@ -332,6 +333,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
             unionSingleton.operationType = operationType;
             const [first, ...rest] = targets;
             unionSingleton.target = first;
+            unionSingleton.move = this.move;
             unionSingleton['_tools'] = { models: [...tools, ...rest], views: [] };
             return [await unionSingleton.calculate()];
         } else {
