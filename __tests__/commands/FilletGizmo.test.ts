@@ -3,23 +3,23 @@
  */
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { MovementInfo } from "../../src/command/AbstractGizmo";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
-import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import { FilletMagnitudeGizmo, FilletSolidGizmo } from "../../src/commands/fillet/FilletGizmo";
+import { ChamferAndFilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
+import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import * as visual from '../../src/visual_model/VisualModel';
 import { Cancel } from "../../src/util/Cancellable";
-import { Helpers } from "../../src/util/Helpers";
-import '../matchers';
 import { CancellablePromise } from "../../src/util/CancellablePromise";
-import { FilletMagnitudeGizmo, FilletSolidGizmo } from "../../src/commands/fillet/FilletGizmo";
-import { ChamferAndFilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
-import { Viewport } from "../../src/components/viewport/Viewport";
+import { Helpers } from "../../src/util/Helpers";
+import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
-import { Intersector, MovementInfo } from "../../src/command/AbstractGizmo";
+import '../matchers';
 
 let db: GeometryDatabase;
 let fillet: MaxFilletFactory;

@@ -102,7 +102,7 @@ export class FilletSolidCommand extends Command {
         // fillet.start(); // FIXME:
 
         const variable = new PointPicker(this.editor);
-        const restriction = variable.restrictToEdges(fillet.edges); // FIXME:
+        const restriction = variable.restrictToEdges(fillet.edges);
         variable.raycasterParams.Line2.threshold = 200;
         variable.raycasterParams.Points.threshold = 50;
         keyboard.execute(async (s) => {

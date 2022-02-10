@@ -12,6 +12,7 @@ import * as fillet from './FilletFactory';
 import { FilletParams } from './FilletFactory';
 
 const Y = new THREE.Vector3(0, 1, 0);
+Object.freeze(Y);
 
 export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new FilletMagnitudeGizmo("fillet-solid:distance", this.editor);
@@ -95,7 +96,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
             }
         } else if (mode === c3d.CreatorType.FilletSolid) {
             for (const variable of variables) {
-                variable.visible = false;
+                variable.visible = true;
                 variable.stateMachine!.isEnabled = true;
             }
         }
