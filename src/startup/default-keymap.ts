@@ -39,6 +39,11 @@ export default {
         "d": "gizmo:pipe:section-size",
         "t": "gizmo:pipe:thickness",
         "a": "gizmo:pipe:angle",
+
+        "q": "keyboard:pipe:union",
+        "w": "keyboard:pipe:difference",
+        "e": "keyboard:pipe:intersect",
+        "r": "keyboard:pipe:new-body",
     },
 
     "[command='boolean'] plasticity-viewport": {

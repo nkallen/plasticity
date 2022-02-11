@@ -15,6 +15,10 @@ export class PipeDialog extends AbstractDialog<PipeParams> {
 
         render(
             <>
+                <ol>
+                    <plasticity-prompt name="Select target bodies" description="to cut or join into"></plasticity-prompt>
+                </ol>
+
                 <ul>
                     <li>
                         <label for="vertexCount">Vertex count</label>

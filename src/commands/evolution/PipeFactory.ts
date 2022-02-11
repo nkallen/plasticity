@@ -1,9 +1,12 @@
+import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { delegate } from '../../command/FactoryBuilder';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { composeMainName, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
+import { MultiBooleanFactory } from '../boolean/BooleanFactory';
+import { PossiblyBooleanFactory } from '../boolean/PossiblyBooleanFactory';
 import { SweptParams } from "./RevolutionFactory";
-import * as THREE from "three";
 
 export interface PipeParams extends SweptParams {
     sectionSize: number;
@@ -86,4 +89,22 @@ export class PipeFactory extends GeometryFactory implements PipeParams {
     }
 }
 
-const Y = new c3d.Axis3D(new c3d.Vector3D(0, 1, 0));
+export class PossiblyBooleanPipeFactory extends PossiblyBooleanFactory<PipeFactory> implements PipeParams {
+    readonly fantom = new PipeFactory(this.db, this.materials, this.signals);
+    protected bool = new MultiBooleanFactory(this.db, this.materials, this.signals);
+    readonly factories = [this.fantom];
+
+    @delegate.default(0.1) sectionSize!: number;
+    @delegate.default(0) thickness1!: number;
+    @delegate.default(0) thickness2!: number;
+    @delegate.default(0) angle!: number;
+
+    @delegate.get vertexCount!: number;
+    @delegate.get degrees!: number;
+    @delegate.get thickness!: number;
+
+    @delegate spine!: visual.SpaceInstance<visual.Curve3D>;
+
+    @delegate.get origin!: THREE.Vector3;
+    @delegate.get direction!: THREE.Vector3;
+}
