@@ -366,8 +366,9 @@ export class Max<T> {
         const end = performance.now();
         const tdelta = end - start;
         budget -= tdelta;
+        const range = upperBound - lastGood;
 
-        return this.binary_search(lastGood, lastResult, (lastGood + begin) / 2, upperBound, cb, budget);
+        return this.binary_search(lastGood, lastResult, lastGood + range / 2, upperBound, cb, budget);
     }
 
     static async binary_search<T>(lastGood: number, result: T | undefined, candidate: number, max: number, cb: (n: number) => Promise<T>, budget: number): Promise<MaxSearchResult<T>> {
