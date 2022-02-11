@@ -227,12 +227,12 @@ describe(MultiFilletFactory, () => {
         const [f1, f2] = multi.factories;
         const max = await multi.start();
         expect(max[0]).toBeCloseTo(1, 1);
-        expect(max[1]).toBeCloseTo(50.8, 1);
+        expect(max[1]).toBeCloseTo(50.56, 1);
         const f1_calculate = jest.spyOn(f1, 'calculate');
         const f2_calculate = jest.spyOn(f2, 'calculate');
         multi.distance = 1000;
-        expect(multi.distance1).toBeCloseTo(50.8, 1);
-        expect(multi.distance2).toBeCloseTo(50.8, 1);
+        expect(multi.distance1).toBeCloseTo(50.56, 1);
+        expect(multi.distance2).toBeCloseTo(50.56, 1);
         const result = await multi.commit() as visual.Solid[];
         expect(result.length).toBe(2);
         expect(f1_calculate).toBeCalledTimes(1);

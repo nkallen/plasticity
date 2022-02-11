@@ -194,23 +194,18 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 }
 
                 const onKeyDown = (e: KeyboardEvent) => {
-                    console.log("onkeydown", e);
+                    if (e.repeat) return;
                     if (isNavigating) return;
-                    console.log("onkeydown", 1);
 
                     if (e.key == "Shift") {
-                        console.log("onkeydown", 2);
                         this.model.choose(info?.snap, info, true);
                     }
                 }
 
                 const onKeyUp = (e: KeyboardEvent) => {
-                    console.log("onkeyup", e);
                     if (isNavigating) return;
-                    console.log("onkeyup", 1);
 
                     if (e.key == "Shift") {
-                        console.log("onkeyup", 2);
                         const oldChoice = this.model.choice;
                         this.model.choose(undefined);
                         // TODO: need to pass all last snap results

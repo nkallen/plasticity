@@ -296,10 +296,10 @@ export class Max<T> {
                 const factory = this.factory;
 
                 console.time("searching for max fillet");
-                const search = await Max.search(0.01, undefined, 0.1, 100, d => {
+                const search = await Max.exponential_search(0.01, 100, d => {
                     factory.distance = d;
                     return factory.calculate();
-                }, 1000);
+                }, 2000);
                 console.timeEnd("searching for max fillet");
 
                 switch (search.tag) {
@@ -344,10 +344,36 @@ export class Max<T> {
         }
     }
 
-    static async search<T>(lastGood: number, result: T | undefined, candidate: number, max: number, cb: (n: number) => Promise<T>, budget: number): Promise<MaxSearchResult<T>> {
+    static async exponential_search<T>(begin: number, max: number, cb: (n: number) => Promise<T>, budget: number): Promise<MaxSearchResult<T>> {
+        const start = performance.now();
+
+        let lastGood = begin;
+        let lastResult: T | undefined = undefined;
+        while (begin < max) {
+            const end = performance.now();
+            const tdelta = end - start;
+            if (tdelta > budget) return { tag: 'upper-bound', value: max }
+
+            try {
+                lastResult = await cb(begin);
+                lastGood = begin;
+                begin *= 2;
+            } catch (e) {
+                break;
+            }
+        }
+        const upperBound = begin;
+        const end = performance.now();
+        const tdelta = end - start;
+        budget -= tdelta;
+
+        return this.binary_search(lastGood, lastResult, (lastGood + begin) / 2, upperBound, cb, budget);
+    }
+
+    static async binary_search<T>(lastGood: number, result: T | undefined, candidate: number, max: number, cb: (n: number) => Promise<T>, budget: number): Promise<MaxSearchResult<T>> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
-        if (Math.abs(candidate - lastGood) < candidate / 100) return { tag: 'max', value: lastGood, result: result! };
+        if (Math.abs(candidate - lastGood) < Math.max(0.01, candidate / 100)) return { tag: 'max', value: lastGood, result: result! };
         if (budget <= 0) return { tag: 'upper-bound', value: max }
 
         const start = performance.now();
@@ -355,11 +381,11 @@ export class Max<T> {
             const result = await cb(candidate);
             const end = performance.now();
             const tdelta = end - start;
-            return this.search(candidate, result, candidate + (max - candidate) / 2, max, cb, budget - tdelta);
+            return this.binary_search(candidate, result, candidate + (max - candidate) / 2, max, cb, budget - tdelta);
         } catch (e) {
             const end = performance.now();
             const tdelta = end - start;
-            return this.search(lastGood, result, lastGood + (candidate - lastGood) / 2, candidate, cb, budget - tdelta);
+            return this.binary_search(lastGood, result, lastGood + (candidate - lastGood) / 2, candidate, cb, budget - tdelta);
         }
     }
 }
