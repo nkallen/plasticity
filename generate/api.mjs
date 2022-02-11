@@ -1888,10 +1888,10 @@ export default {
         },
         ActionPhantom: {
             rawHeader: "action_phantom.h",
-            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
+            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h", "EdgeFunction.h"],
             functions: [
                 {
-                    signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
+                    signature: "MbResultType SmoothPhantom(MbSolid & solid, SArray<MbEdgeFunction> & edges, const SmoothValues & params, RPArray<MbSurface> & result)",
                     result: isReturn
                 },
                 {

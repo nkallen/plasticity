@@ -99,7 +99,7 @@ export class FilletSolidCommand extends Command {
                 fillet.update();
             })();
         }
-        // fillet.start(); // FIXME:
+        // fillet.start();
 
         const variable = new PointPicker(this.editor);
         const restriction = variable.restrictToEdges(fillet.edges);

@@ -6,6 +6,7 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import { composeMainName, deunit, unit } from '../../util/Conversion';
+import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 
 export interface FilletParams {
@@ -115,13 +116,13 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
-        const { _solid: { model: solid } } = this;
+        const { _solid: { model: solid }, params, edgeFunctions, curveEdges, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
         if (this.mode === c3d.CreatorType.ChamferSolid) {
-            return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
+            return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, curveEdges, params, this.names);
         } else {
-            return c3d.ActionSolid.FilletSolid_async(solid, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
+            return c3d.ActionSolid.FilletSolid_async(solid, c3d.CopyMode.Copy, edgeFunctions, [], params, names);
         }
     }
 
@@ -136,40 +137,60 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     private max = new Max<c3d.Solid>(this.searcher);
 
     calculate() {
-        return this.max.exec(this.distance1, d => {
-            this.distance1 = d;
+        return this.max.exec(this.distance1, this.distance2, (d1, d2) => {
+            this.distance1 = d1; this.distance2 = d2;
             return this.updater.calculate();
         })
     }
 
-    start() {
-        return this.max.start()
-    }
+    start() { return this.max.start() }
 
-    @delegate solid!: visual.Solid;
-    @delegate edges!: visual.CurveEdge[];
+    @dirty @delegate solid!: visual.Solid;
+    @dirty @delegate edges!: visual.CurveEdge[];
 
-    @delegate.default(0) distance2!: number;
-    @delegate.default(c3d.SmoothForm.Fillet) form!: c3d.SmoothForm;
-    @delegate.default(0) conic!: number;
-    @delegate.default(true) prolong!: boolean;
-    @delegate.default(c3d.CornerForm.uniform) smoothCorner!: c3d.CornerForm;
-    @delegate.default(c3d.ThreeStates.neutral) keepCant!: c3d.ThreeStates;
-    @delegate.default(false) strict!: boolean;
-    @delegate.default(unit(FilletFactory.LengthSentinel)) begLength!: number;
-    @delegate.default(unit(FilletFactory.LengthSentinel)) endLength!: number;
-    @delegate.default(false) equable!: boolean;
+    @dirty @delegate.default(c3d.SmoothForm.Fillet) form!: c3d.SmoothForm;
+    @dirty @delegate.default(0) conic!: number;
+    @dirty @delegate.default(true) prolong!: boolean;
+    @dirty @delegate.default(c3d.CornerForm.uniform) smoothCorner!: c3d.CornerForm;
+    @dirty @delegate.default(c3d.ThreeStates.neutral) keepCant!: c3d.ThreeStates;
+    @dirty @delegate.default(false) strict!: boolean;
+    @dirty @delegate.default(unit(FilletFactory.LengthSentinel)) begLength!: number;
+    @dirty @delegate.default(unit(FilletFactory.LengthSentinel)) endLength!: number;
+    @dirty @delegate.default(false) equable!: boolean;
 
     get distance() { return this.updater.distance }
-    set distance(distance: number) { this.searcher.distance = distance; this.updater.distance = distance }
+    set distance(distance: number) {
+        const max = this.max.max;
+        if (max !== undefined && distance > max) {
+            this.searcher.distance = max;
+            this.updater.distance = max;
+        } else {
+            this.searcher.distance = distance;
+            this.updater.distance = distance;
+        }
+    }
 
     set distance1(distance1: number) { this.searcher.distance1 = distance1; this.updater.distance1 = distance1 }
     get distance1() { return this.updater.distance1 }
+    set distance2(distance2: number) { this.searcher.distance2 = distance2; this.updater.distance2 = distance2 }
+    get distance2() { return this.updater.distance2 }
 
     get functions() { return this.updater.functions }
     get mode() { return this.updater.mode }
 
     get originalItem() { return this.updater.originalItem }
+}
+
+function dirty(target: MaxFilletFactory, propertyKey: keyof MaxFilletFactory) {
+    const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey)!;
+    const oldSet = descriptor.set!;
+    Object.defineProperty(target, propertyKey, {
+        get: descriptor.get,
+        set(t: any) {
+            oldSet.call(this, t);
+            this['max'].dirty();
+        }
+    })
 }
 
 export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> implements FilletParams {
@@ -183,11 +204,28 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
     @delegate.default(FilletFactory.LengthSentinel) endLength!: number;
     @delegate.default(false) equable!: boolean;
 
-    @delegate.default(0) distance1!: number;
-    @delegate.default(0) distance2!: number;
-
+    get distance() {
+        if (this.factories.length === 0) return 0;
+        return this.factories[this.factories.length - 1].distance;
+    }
     set distance(d: number) {
-        this.distance1 = this.distance2 = d;
+        for (const factory of this.factories) factory.distance = d;
+    }
+
+    get distance1() {
+        if (this.factories.length === 0) return 0;
+        return this.factories[this.factories.length - 1].distance1;
+    }
+    set distance1(d: number) {
+        for (const factory of this.factories) factory.distance1 = d;
+    }
+
+    get distance2() {
+        if (this.factories.length === 0) return 0;
+        return this.factories[this.factories.length - 1].distance1;
+    }
+    set distance2(d: number) {
+        for (const factory of this.factories) factory.distance2 = d;
     }
 
     private _edges!: visual.CurveEdge[];
@@ -208,7 +246,7 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
     }
 
     start() {
-        this.factories.forEach(f => f.start());
+        return Promise.all(this.factories.map(f => f.start()));
     }
 
     get mode(): Mode {
@@ -223,76 +261,105 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
 /**
  * The following class "clamps" fillets to a max
  */
-type State<T> = { tag: 'start' } | { tag: 'finding' } | { tag: 'found', value: number } | { tag: 'computed', value: number, result: T }
+type State<T> = { tag: 'start' } | { tag: 'finding' } | { tag: 'found', upperBound: number } | { tag: 'computed', value: number, result: T }
+
+type MaxSearchResult<T> = { tag: 'max', value: number, result: T } | { tag: 'upper-bound', value: number } | { tag: 'no-idea' };
 
 export class Max<T> {
-    private state: State<T> = { tag: 'start' }
+    private state: AtomicRef<State<T>> = new AtomicRef({ tag: 'start' });
 
-    constructor(
-        private readonly factory: FilletFactory,
-    ) { }
+    constructor(private readonly factory: FilletFactory) {
+    }
+
+    get max() {
+        const { value: state } = this.state.get();
+        switch (state.tag) {
+            case 'found':
+                return state.upperBound;
+            case 'computed':
+                return state.value;
+        }
+    }
+
+    dirty() {
+        this.state.set({ tag: 'start' });
+    }
 
     async start() {
-        switch (this.state.tag) {
+        const get = this.state.get();
+        const { value: state } = get;
+        let clock: number | undefined = get.clock;
+        switch (state.tag) {
             case 'start':
-                this.state = { tag: 'finding' }
+                clock = this.state.compareAndSet(clock, { tag: 'finding' });
+                if (clock === undefined) return;
                 const factory = this.factory;
 
                 console.time("searching for max fillet");
-                const result = await Max.search(0.01, 0.1, 100, d => {
+                const search = await Max.search(0.01, undefined, 0.1, 100, d => {
                     factory.distance = d;
                     return factory.calculate();
                 }, 1000);
                 console.timeEnd("searching for max fillet");
 
-                this.state = { tag: 'found', value: result }
-                return result;
+                switch (search.tag) {
+                    case 'max':
+                        this.state.compareAndSet(clock, { tag: 'computed', value: search.value, result: search.result as unknown as T });
+                        return search.value;
+                    case 'upper-bound':
+                        this.state.compareAndSet(clock, { tag: 'found', upperBound: search.value });
+                        return;
+                    default:
+                        throw new Error('not yet supported')
+                }
+
             default: throw new Error("invalid state");
         }
     }
 
-    async exec(delta: number, fn: (max: number) => Promise<T>): Promise<T> {
-        switch (this.state.tag) {
+    async exec(distance1: number, distance2: number, fn: (distance1: number, distance2: number) => Promise<T>): Promise<T> {
+        const { value: state, clock } = this.state.get();
+        if (Math.abs(distance1 - distance2) > 10e-6) return fn(distance1, distance2);
+
+        switch (state.tag) {
             case 'start':
             case 'finding':
-                return fn(delta);
+                return fn(distance1, distance2);
             case 'found':
-                const max = this.state.value;
-                if (delta >= max) {
-                    const result = await fn(max);
-                    this.state = { tag: 'computed', value: max, result }
+                const max = state.upperBound;
+                if (distance1 >= max) {
+                    const result = await fn(max, max);
+                    this.state.compareAndSet(clock, { tag: 'computed', value: max, result });
                     return result;
                 } else {
-                    return fn(delta);
+                    return fn(distance1, distance2);
                 }
             case 'computed':
-                if (delta >= this.state.value) {
+                if (distance1 >= state.value) {
                     console.warn("skipping work because delta exceeds max");
-                    return this.state.result;
+                    return state.result;
                 } else {
-                    this.state = { tag: 'found', value: this.state.value }
-                    return await this.exec(delta, fn);
+                    return fn(distance1, distance2);
                 }
-                break;
         }
     }
 
-    static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>, budget: number): Promise<number> {
+    static async search<T>(lastGood: number, result: T | undefined, candidate: number, max: number, cb: (n: number) => Promise<T>, budget: number): Promise<MaxSearchResult<T>> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
-        if (Math.abs(candidate - lastGood) < candidate / 100) return Promise.resolve(lastGood);
-        if (budget <= 0) return max;
+        if (Math.abs(candidate - lastGood) < candidate / 100) return { tag: 'max', value: lastGood, result: result! };
+        if (budget <= 0) return { tag: 'upper-bound', value: max }
 
         const start = performance.now();
         try {
-            await cb(candidate);
+            const result = await cb(candidate);
             const end = performance.now();
             const tdelta = end - start;
-            return this.search(candidate, candidate + (max - candidate) / 2, max, cb, budget - tdelta);
+            return this.search(candidate, result, candidate + (max - candidate) / 2, max, cb, budget - tdelta);
         } catch (e) {
             const end = performance.now();
             const tdelta = end - start;
-            return this.search(lastGood, lastGood + (candidate - lastGood) / 2, candidate, cb, budget - tdelta);
+            return this.search(lastGood, result, lastGood + (candidate - lastGood) / 2, candidate, cb, budget - tdelta);
         }
     }
 }

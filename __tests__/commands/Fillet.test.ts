@@ -69,36 +69,63 @@ describe(MaxFilletFactory, () => {
         makeFillet = new MaxFilletFactory(db, materials, signals);
     })
 
-    test('distance within range', async () => {
+    let box: visual.Solid;
+    let edge: visual.CurveEdge;
+    beforeEach(async () => {
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = await makeBox.commit() as visual.Solid;
-        const edge = box.edges.get(0);
+        box = await makeBox.commit() as visual.Solid;
+        edge = box.edges.get(0);
+    })
 
+    test('distance within range', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [edge];
+
+        const result = await makeFillet.start();
+        expect(result).toBeCloseTo(1, 1);
+
         makeFillet.distance = 0.1;
 
         await makeFillet.commit();
     });
 
     test('distance > max', async () => {
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = await makeBox.commit() as visual.Solid;
-        const edge = box.edges.get(0);
-
-        await makeFillet.start();
-
         makeFillet.solid = box;
         makeFillet.edges = [edge];
-        makeFillet.distance = 100;
 
-        await makeFillet.commit();
+        const result = await makeFillet.start();
+        expect(result).toBeCloseTo(1, 1);
+
+        makeFillet.distance = 100;
+        await expect(makeFillet.commit()).resolves.not.toThrow();
+    })
+
+    test('distance1 != distance2', async () => {
+        makeFillet.solid = box;
+        makeFillet.edges = [edge];
+
+        const result = await makeFillet.start();
+        expect(result).toBeCloseTo(1, 1);
+
+        makeFillet.distance1 = 100;
+        makeFillet.distance2 = 200;
+        await expect(makeFillet.commit()).rejects.toThrow();
+    })
+
+    test('dirty', async () => {
+        makeFillet.solid = box;
+        makeFillet.edges = [edge];
+
+        const result = await makeFillet.start();
+        expect(result).toBeCloseTo(1, 1);
+
+        makeFillet.form = c3d.SmoothForm.Span;
+
+        makeFillet.distance = 100;
+        await expect(makeFillet.commit()).rejects.toThrow();
     })
 });
 
@@ -131,29 +158,29 @@ describe(Max, () => {
         const fn = jest.fn();
 
         // no max has yet been found, so it invokes callback
-        await max.exec(1000, fn);
+        await max.exec(1000, 1000, fn);
         expect(fn).toBeCalledTimes(1);
         expect(fn.mock.calls[0][0]).toBe(1000);
 
-        await max.start();
+        const result = await max.start();
+        expect(result).toBeCloseTo(1, 1);
 
         // invokes callback with truncated value
-        await max.exec(1000, fn);
-        expect(fn).toBeCalledTimes(2);
-        expect(fn.mock.calls[1][0]).toBeCloseTo(1, 1);
+        await max.exec(1000, 1000, fn);
+        expect(fn).toBeCalledTimes(1);
 
         // skips work, since we already computed max
-        await max.exec(1000, fn);
+        await max.exec(1000, 1000, fn);
+        expect(fn).toBeCalledTimes(1);
+
+        // recomputes since we have a valid value < max
+        await max.exec(0.5, 0.5, fn);
         expect(fn).toBeCalledTimes(2);
+        expect(fn.mock.calls[1][0]).toBeCloseTo(0.5);
 
-        // recomputes since we have a new valid value
-        await max.exec(0.5, fn);
-        expect(fn).toBeCalledTimes(3);
-        expect(fn.mock.calls[2][0]).toBeCloseTo(0.5);
-
-        // recomputes since we have a new valid value
-        await max.exec(1000, fn);
-        expect(fn).toBeCalledTimes(4);
+        // still stores the old max
+        await max.exec(1000, 1000, fn);
+        expect(fn).toBeCalledTimes(2);
     })
 })
 
@@ -184,5 +211,31 @@ describe(MultiFilletFactory, () => {
         multi.distance = 1;
         const result = await multi.commit() as visual.Solid[];
         expect(result.length).toBe(2);
+    })
+
+    it('distance* before object is set', async () => {
+        const multi = new MultiFilletFactory(db, materials, signals);
+        expect(multi.distance).toBe(0)
+        expect(multi.distance1).toBe(0)
+        expect(multi.distance2).toBe(0)
+    })
+
+    it('using distance (not distance1 or distance2) uses the optimization', async () => {
+        const multi = new MultiFilletFactory(db, materials, signals);
+        multi.edges = [box1.edges.get(0), box2.edges.get(0)];
+        expect(multi.factories.length).toBe(2);
+        const [f1, f2] = multi.factories;
+        const max = await multi.start();
+        expect(max[0]).toBeCloseTo(1, 1);
+        expect(max[1]).toBeCloseTo(50.8, 1);
+        const f1_calculate = jest.spyOn(f1, 'calculate');
+        const f2_calculate = jest.spyOn(f2, 'calculate');
+        multi.distance = 1000;
+        expect(multi.distance1).toBeCloseTo(50.8, 1);
+        expect(multi.distance2).toBeCloseTo(50.8, 1);
+        const result = await multi.commit() as visual.Solid[];
+        expect(result.length).toBe(2);
+        expect(f1_calculate).toBeCalledTimes(1);
+        expect(f2_calculate).toBeCalledTimes(1);
     })
 })

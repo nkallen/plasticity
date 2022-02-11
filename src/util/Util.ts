@@ -109,12 +109,12 @@ export class AtomicRef<T> {
         return { clock: this.clock, value: this.value };
     }
 
-    compareAndSet(clock: number, value: T) {
+    compareAndSet(clock: number, value: T): number | undefined {
         if (this.clock === clock) {
             this.set(value);
             this.clock++;
-            return true;
-        } else return false;
+            return this.clock;
+        } else return undefined;
     }
 
     eq(clock: number) {
