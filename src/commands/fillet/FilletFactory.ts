@@ -301,6 +301,7 @@ export class Max<T> {
                     return factory.calculate();
                 }, 2000);
                 console.timeEnd("searching for max fillet");
+                console.info(search);
 
                 switch (search.tag) {
                     case 'max':

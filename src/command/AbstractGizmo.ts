@@ -2,16 +2,16 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
-import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
+import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
 import { SnapManager } from "../editor/snaps/SnapManager";
-import { CancellablePromise } from "../util/CancellablePromise";
-import { Helper, Helpers } from "../util/Helpers";
 import { SnapManagerGeometryCache } from "../editor/snaps/SnapManagerGeometryCache";
 import { SnapResult } from "../editor/snaps/SnapPicker";
-import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
+import { CancellablePromise } from "../util/CancellablePromise";
+import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import { Executable } from "./Quasimode";
 import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
@@ -208,7 +208,7 @@ export class BasicGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, 
         }
 
         const onKeyPress = (event: KeyboardEvent) => {
-            stateMachine.keyPress(event.key);
+            stateMachine.keyPress(event);
         }
 
         const onPointerHover = (event: PointerEvent) => {
@@ -459,13 +459,13 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
         }
     }
 
-    keyPress(key: string): void {
+    keyPress(event: KeyboardEvent): void {
         if (!this.isActive) return;
         if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'command':
-                this.state.text += key;
+                this.state.text += event.key;
                 this.gizmo.onKeyPress(this.cb, this.state.text);
                 this.editor.signals.gizmoChanged.dispatch();
                 break;

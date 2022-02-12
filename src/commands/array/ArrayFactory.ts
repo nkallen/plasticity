@@ -48,7 +48,7 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
     private _num2 = 0;
     get num2() { return this._num2 }
     set num2(num2: number) {
-        if (num2 < 1) throw new Error("invalid")
+        num2 = Math.max(1, num2);
         const degrees = this.degrees;
         this._num2 = Math.floor(num2);
         this.degrees = degrees;
@@ -78,8 +78,8 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
         } else if (curve !== undefined) {
             const result = [];
             let matrices = params.GenerateTransformMatrices();
-            matrices = matrices.slice(0, 100); // NOTE: a bit paranoid about users making a mistake
-            let normalize = matrices[1];
+            matrices = matrices.slice(1, 100); // NOTE: a bit paranoid about users making a mistake
+            let normalize = matrices[0];
             normalize = normalize.Div(new c3d.Matrix3D());
             const normalized = curve.Duplicate().Cast<c3d.Curve3D>(curve.IsA());
             normalized.Transform(normalize);

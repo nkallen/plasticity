@@ -3,7 +3,7 @@ global.console = {
     log: console.log,
     error: console.error,
     warn: jest.fn(),
-    info: console.info,
+    info: jest.fn(),
     debug: console.debug,
     assert: (cond, ...args) => expect(cond).toBeTruthy(),
     trace: console.trace,

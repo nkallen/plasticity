@@ -11,14 +11,20 @@ import { ModifyFaceFactory } from './ModifyFaceFactory';
 export interface OffsetFaceParams {
     distance: number;
     angle: number;
+    degrees: number;
     faces: visual.Face[];
 }
 
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
-    angle = 0;
     operationType = c3d.ModifyingType.Offset;
     get distance() { return this.direction.x }
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
+    
+    angle = 0;
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
 
     async calculate() {
         const { solidModel, facesModel, direction, angle } = this;
@@ -92,6 +98,7 @@ export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetO
     @delegate faces!: visual.Face[];
     @delegate.default(0) distance!: number;
     @delegate.default(0) angle!: number;
+    @delegate.get degrees!: number;
 
     private thickened?: { solid: c3d.Solid, sign: boolean, faces: c3d.Face[] };
 
@@ -136,6 +143,9 @@ export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFa
 
     @delegate.default(0)
     angle!: number;
+
+    @delegate.get
+    degrees!: number;
 
     private _faces!: visual.Face[];
     @delegate.update

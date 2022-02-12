@@ -115,10 +115,12 @@ export class SymmetryFactory extends GeometryFactory {
         let cutAndMirrored = model
         if (shouldCut) {
             try {
-                const results = await c3d.ActionSolid.SolidCutting_async(cutAndMirrored, c3d.CopyMode.Copy, params);
+                const results = await c3d.ActionSolid.SolidCutting_async(model, c3d.CopyMode.Copy, params);
                 cutAndMirrored = results[1] ?? results[0];
                 original = cutAndMirrored;
-            } catch { }
+            } catch (e) {
+                console.info(e);
+            }
         }
         cutAndMirrored = await c3d.ActionSolid.MirrorSolid_async(cutAndMirrored, mirrorPlacement, names);
 
@@ -200,8 +202,8 @@ export class SymmetryFactory extends GeometryFactory {
         const { offsetOrigin } = this;
         offsetOrigin.set(0, 0, move / 2).applyQuaternion(quaternion).add(origin);
 
-        const point1 = new c3d.CartPoint(0, -1000);
-        const point2 = new c3d.CartPoint(0, 1000);
+        const point1 = new c3d.CartPoint(0, -100_000);
+        const point2 = new c3d.CartPoint(0, 100_000);
         const line = c3d.ActionCurve.Segment(point1, point2);
 
         const { X, Z } = this;
@@ -213,7 +215,7 @@ export class SymmetryFactory extends GeometryFactory {
         const cutPlacement = new c3d.Placement3D(c3d_offsetOrigin, x, z, false);
         const mirrorPlacement = new c3d.Placement3D(c3d_offsetOrigin, z, x, false);
 
-        const contour = new c3d.Contour([line], true);
+        const contour = new c3d.Contour([line], false);
         const direction = new c3d.Vector3D(0, 0, 0);
         const flags = new c3d.MergingFlags(true, true);
         const params = new c3d.ShellCuttingParams(cutPlacement, contour, false, direction, flags, true, names);

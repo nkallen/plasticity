@@ -82,7 +82,7 @@ describe(ArrayFactory, () => {
             array.degrees = 360;
             array.center = new THREE.Vector3();
             const item = await array.commit() as visual.Solid[];
-            expect(item.length).toBe(13);
+            expect(item.length).toBe(12);
         })
     })
 })

@@ -13,7 +13,7 @@ export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
 
     render() {
         const { agent } = this;
-        const { distance } = this.params;
+        const { distance, degrees } = this.params;
 
         render(
             <>
@@ -27,6 +27,12 @@ export class OffsetFaceDialog extends AbstractDialog<OffsetFaceParams> {
                         <label for="distance">Distance</label>
                         <div class="fields">
                             <plasticity-number-scrubber name="distance" value={distance} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
+                    </li>
+                    <li>
+                        <label for="degrees">Degrees</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="degrees" value={degrees} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                 </ul>

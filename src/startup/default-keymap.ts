@@ -4,19 +4,19 @@ export default {
     },
 
     "[command='polygon'] plasticity-viewport": {
-        "wheel+up": "gizmo:polygon:add-vertex",
-        "wheel+down": "gizmo:polygon:subtract-vertex",
+        "ctrl-wheel+up": "gizmo:polygon:add-vertex",
+        "ctrl-wheel+down": "gizmo:polygon:subtract-vertex",
         "v": "gizmo:polygon:mode",
     },
 
     "[command='radial-array'] plasticity-viewport": {
-        "wheel+up": "gizmo:array:add",
-        "wheel+down": "gizmo:array:subtract",
+        "ctrl-wheel+up": "gizmo:array:add",
+        "ctrl-wheel+down": "gizmo:array:subtract",
     },
 
     "[command='rebuild'] plasticity-viewport": {
-        "wheel+up": "gizmo:rebuild:forward",
-        "wheel+down": "gizmo:rebuild:backward",
+        "ctrl-wheel+up": "gizmo:rebuild:forward",
+        "ctrl-wheel+down": "gizmo:rebuild:backward",
     },
 
     "[command='spiral'] plasticity-viewport": {

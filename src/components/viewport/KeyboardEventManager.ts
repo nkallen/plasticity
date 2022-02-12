@@ -110,7 +110,7 @@ export default class KeyboardEventManager {
     }
 
     private wheel2keyboard(name: string, event: WheelEvent): KeyboardEvent {
-        const e = KeymapManager.buildKeydownEvent(name, event as any) as unknown as KeyboardEvent;
+        const e = KeymapManager.buildKeydownEvent(name, modifiers(event)) as unknown as KeyboardEvent;
         // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
         // to allow the original event to be stopped if something takes precedence.
         const stopPropagation = e.stopPropagation.bind(e);
@@ -136,13 +136,7 @@ export default class KeyboardEventManager {
 }
 
 export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
-    const build = {
-        ctrl: event.ctrlKey,
-        alt: event.altKey,
-        shift: event.shiftKey,
-        cmd: event.metaKey,
-        target: event.target as Element | undefined,
-    }
+    const build = modifiers(event)
     let name = "mouse";
     if (event.button !== -1) name += event.button;
     else if (event.type === 'pointermove' && event.buttons != 0) {
@@ -153,4 +147,14 @@ export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
         else if (event.buttons === 16) name += '5';
     }
     return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
+}
+
+function modifiers(event: MouseEvent) {
+    return {
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+        shift: event.shiftKey,
+        cmd: event.metaKey,
+        target: event.target as Element | undefined,
+    };
 }
