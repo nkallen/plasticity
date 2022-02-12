@@ -2,7 +2,7 @@ import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
-import { CutDialog } from "./BooleanDialog";
+import { CutDialog } from "./CutDialog";
 import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
 

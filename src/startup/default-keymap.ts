@@ -240,6 +240,7 @@ export default {
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
+        "l": "command:loft",
 
         "alt-q": "command:rebuild",
         "shift-d": "command:duplicate",

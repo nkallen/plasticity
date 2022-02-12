@@ -94,8 +94,6 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             disposables.add(new Disposable(() => bridgeRemoved.detach()));
         }
 
-        // FIXME: because code below is using objectSelected/objectDeselected -- which are triggered before selectionDelta --
-        // the callback will sometimes not be called -- the signal will be unregistered before there's a change to call it
         if (cb !== undefined) {
             signals.selectionDelta.add(cb);
             disposables.add(new Disposable(() => {
@@ -111,16 +109,14 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             const finish = () => cancellable.finish();
 
             let count = 0;
-            const selected = signals.objectSelected.add(() => {
-                count++;
+            const selected = signals.selectionDelta.add(delta => {
+                count += delta.added.size;
+                count -= delta.removed.size;
+                count = Math.max(0, count);
                 if (count >= min && count >= max) finish();
-            });
-            const deselected = signals.objectDeselected.add(() => {
-                count = Math.max(--count, 0);
             });
             disposables.add(new Disposable(() => {
                 selected.detach();
-                deselected.detach();
             }));
 
             for (const viewport of this.editor.viewports) {

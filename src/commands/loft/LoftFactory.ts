@@ -1,14 +1,29 @@
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { point2point, curve3d2curve2d, vec2vec, composeMainName, unit, inst2curve } from '../../util/Conversion';
+import { derive } from '../../command/FactoryBuilder';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
+import { composeMainName, curve3d2curve2d, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 
-export default class LoftFactory extends GeometryFactory {
+export interface LoftParams {
+    thickness1: number;
+    thickness2: number;
+    thickness: number;
+}
+
+export default class LoftFactory extends GeometryFactory implements LoftParams {
     private models!: { contour: c3d.Contour, placement: c3d.Placement3D }[];
-    thickness = 0;
+    thickness1 = 0;
+    thickness2 = 0;
 
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveLoftedSolid, this.db.version), c3d.ESides.SideNone, 0);
+    protected _spine!: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D };
+    @derive(visual.Curve3D) get spine(): visual.SpaceInstance<visual.Curve3D> { throw '' }
+    set spine(spine: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) { }
 
+    get thickness() { return this.thickness1 }
+    set thickness(thickness: number) {
+        this.thickness1 = this.thickness2 = thickness;
+    }
+    
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         const models = [];
 
@@ -23,7 +38,7 @@ export default class LoftFactory extends GeometryFactory {
         this.models = models;
     }
 
-    get spine(): { point: THREE.Vector3, Z: THREE.Vector3 }[] {
+    get info(): { point: THREE.Vector3, Z: THREE.Vector3 }[] {
         const points = [];
         for (const { contour, placement } of this.models) {
             const center = contour.GetWeightCentre();
@@ -33,8 +48,10 @@ export default class LoftFactory extends GeometryFactory {
         return points;
     }
 
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveLoftedSolid, this.db.version), c3d.ESides.SideNone, 0);
+
     async calculate() {
-        const { thickness, models, names } = this;
+        const { thickness1, thickness2, models, names, _spine: { model: spine } } = this;
 
         const ns = [];
         for (const { contour } of models) {
@@ -42,12 +59,12 @@ export default class LoftFactory extends GeometryFactory {
             ns.push(maker);
         }
         const params = new c3d.LoftedValues();
-        params.thickness1 = unit(thickness);
-        params.thickness2 = unit(thickness);
+        params.thickness1 = unit(thickness1);
+        params.thickness2 = unit(thickness2);
         params.shellClosed = true;
         const placements = models.map(m => m.placement);
         const contours = models.map(m => m.contour);
-        const solid = c3d.ActionSolid.LoftedSolid(placements, contours, null, params, [], names, ns);
+        const solid = c3d.ActionSolid.LoftedSolid(placements, contours, spine ?? null, params, [], names, ns);
         return solid;
     }
 }

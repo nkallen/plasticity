@@ -1,22 +1,23 @@
 import { render } from 'preact';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditorSignals } from "../../editor/EditorSignals";
-import { BooleanParams } from "./BooleanFactory";
+import { CutParams } from "./CutFactory";
 
-export class BooleanDialog extends AbstractDialog<BooleanParams> {
-    name = "Boolean";
 
-    constructor(protected readonly params: BooleanParams, signals: EditorSignals) {
+export class CutDialog extends AbstractDialog<CutParams> {
+    name = "Cut";
+
+    constructor(protected readonly params: CutParams, signals: EditorSignals) {
         super(signals);
     }
 
     render() {
-        const { mergingFaces, mergingEdges, operationType } = this.params;
+        const { mergingFaces, mergingEdges } = this.params;
         render(
             <>
                 <ol>
                     <plasticity-prompt name="Select target bodies" description="to cut or join into"></plasticity-prompt>
-                    <plasticity-prompt name="Select tool bodies" description="to cut or join with"></plasticity-prompt>
+                    <plasticity-prompt name="Select cutters" description="— curves or faces to cut with"></plasticity-prompt>
                 </ol>
 
                 <ul>
@@ -33,5 +34,5 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
             </>, this);
     }
 }
-customElements.define('boolean-dialog', BooleanDialog);
 
+customElements.define('cut-dialog', CutDialog);

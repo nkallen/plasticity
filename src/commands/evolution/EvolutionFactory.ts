@@ -18,7 +18,6 @@ export class EvolutionFactory extends SweepFactory implements EvolutionParams {
     @derive(visual.Curve3D) get spine(): visual.SpaceInstance<visual.Curve3D> { throw '' }
     set spine(spine: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) { }
 
-
     protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveEvolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     protected surface!: c3d.Surface;
