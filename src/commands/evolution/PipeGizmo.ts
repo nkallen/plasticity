@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";
 import { PipeParams } from "./PipeFactory";
