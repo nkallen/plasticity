@@ -29,7 +29,6 @@ export class Backup {
         console.time("load backup: " + tempFilePath);
         const data = await fs.promises.readFile(tempFilePath);
         await this.originator.deserialize(data);
-        this.signals.historyChanged.dispatch();
         this.originator.debug();
         console.timeEnd("load backup: " + tempFilePath);
     }

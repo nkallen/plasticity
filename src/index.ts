@@ -24,13 +24,15 @@ if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
     fse.copySync(path.join(__dirname, 'dot-plasticity'), process.env.PLASTICITY_HOME);
 }
 
-const createWindow = (): void => {
+let mainWindow: BrowserWindow;
+
+const createWindow = () => {
     const mainWindowState = window({
         defaultWidth: 1920,
         defaultHeight: 1080
     });
 
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         x: mainWindowState.x,
         y: mainWindowState.y,
         width: mainWindowState.width,
@@ -51,24 +53,24 @@ const createWindow = (): void => {
 
     // and load the index.html of the app.
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    mainWindowState.manage(mainWindow);
 
     mainWindow.webContents.on('did-finish-load', () => {
-        mainWindowState.manage(mainWindow);
         mainWindow.show();
     })
-
-    ipcMain.handle('reload', async (event, args) => {
-        mainWindow
-    })
-
-    ipcMain.handle('show-open-dialog', async (event, args) => {
-        dialog.showOpenDialog(args);
-    })
-
-    ipcMain.handle('show-save-dialog', async (event, args) => {
-        dialog.showSaveDialog(args);
-    })
 };
+
+ipcMain.handle('reload', async (event, args) => {
+    mainWindow.reload();
+})
+
+ipcMain.handle('show-open-dialog', async (event, args) => {
+    return dialog.showOpenDialog(args);
+})
+
+ipcMain.handle('show-save-dialog', async (event, args) => {
+    return dialog.showSaveDialog(args);
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
