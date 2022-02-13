@@ -53,6 +53,3 @@ export class FakeMaterials implements MaterialDatabase {
 
     setResolution(_size: THREE.Vector2) { }
 }
-
-const isNear = new THREE.Sprite();
-const willSnap = new THREE.Sprite();
