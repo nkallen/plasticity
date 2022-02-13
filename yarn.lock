@@ -5034,15 +5034,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas@npm:^2.8.0":
-  version: 2.8.0
-  resolution: "canvas@npm:2.8.0"
+"canvas@npm:^2.9.0":
+  version: 2.9.0
+  resolution: "canvas@npm:2.9.0"
   dependencies:
     "@mapbox/node-pre-gyp": ^1.0.0
-    nan: ^2.14.0
+    nan: ^2.15.0
     node-gyp: latest
     simple-get: ^3.0.3
-  checksum: 4cc909f63eaf88d22f9164601903745abcc6ccb7f70090b9389dc2cb68cbf139c220dbd75837e6d04602ff122b44a2eb17413bca850f9c6c602f74f1f0f1cc3f
+  checksum: 376ccd47340a46c04d5cabafd6feb1b7ae82c92dc3ae6db68c9cbac17ec1c43d2bf6aab60019690e9d49bf40b41bee3e4e0a8901f39b53e993789698e77e2699
   languageName: node
   linkType: hard
 
@@ -12009,7 +12009,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.12.1, nan@npm:^2.14.0":
+"nan@npm:^2.12.1":
   version: 2.14.2
   resolution: "nan@npm:2.14.2"
   dependencies:
@@ -12018,7 +12018,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.13.2":
+"nan@npm:^2.13.2, nan@npm:^2.15.0":
   version: 2.15.0
   resolution: "nan@npm:2.15.0"
   dependencies:
@@ -13311,7 +13311,7 @@ fsevents@^1.2.7:
     atom-keymap-plasticity: 9.0.0
     autoprefixer: ^10.4.2
     babel-loader: ^8.2.2
-    canvas: ^2.8.0
+    canvas: ^2.9.0
     child_process: ^1.0.2
     clear-cut: ^2.0.2
     copy-webpack-plugin: ^8.1.1
@@ -15901,7 +15901,7 @@ resolve@1.1.7:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
+  checksum: fc9f7282b59b61aaa71c15a8684c5e6c02062768eb9f01d9645b80a3ceec1a79834a2988b8184b7bee0a5984698f325adc3ef190d776c7616a240f3debf36173
   languageName: node
   linkType: hard
 

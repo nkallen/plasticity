@@ -1,7 +1,7 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "0.3.57",
+    "version": "0.4.0",
     "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
@@ -17,7 +17,7 @@
         "rebuild": "node-gyp rebuild -j max",
         "test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=45% --silent",
         "ci": "node ./node_modules/jest/bin/jest --maxWorkers=2",
-        "watch-test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=45% --watchAll",
+        "watch-test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=55% --watchAll",
         "watch-generate": "find generate | entr -s 'clear && yarn generate && yarn build && clear && echo \"Succesfully generated & built!\"'",
         "watch-build": "find lib | entr -s 'clear && yarn build && clear && echo Succesfully built!'",
         "gbs": "yarn generate && yarn build && yarn start",
@@ -120,7 +120,7 @@
         "@typescript-eslint/parser": "^4.22.0",
         "autoprefixer": "^10.4.2",
         "babel-loader": "^8.2.2",
-        "canvas": "^2.8.0",
+        "canvas": "^2.9.0",
         "child_process": "^1.0.2",
         "copy-webpack-plugin": "^8.1.1",
         "css-loader": "^4.2.1",

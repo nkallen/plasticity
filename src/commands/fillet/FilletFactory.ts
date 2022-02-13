@@ -1,11 +1,11 @@
 import c3d from '../../../build/Release/c3d.node';
 import { delegate, derive } from '../../command/FactoryBuilder';
-import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { GeometryFactory, GeometryFactoryCache, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import MaterialDatabase from '../../editor/MaterialDatabase';
-import { composeMainName, deunit, unit } from '../../util/Conversion';
+import { composeMainName, deunit, truncunit, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 
@@ -34,8 +34,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     curveEdges!: c3d.CurveEdge[];
     functions!: Map<string, c3d.CubicFunction>;
 
-    constructor(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals) {
-        super(db, materials, signals);
+    constructor(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals, cache?: GeometryFactoryCache) {
+        super(db, materials, signals, cache);
 
         const params = new c3d.SmoothValues();
         params.distance1 = 0;
@@ -80,14 +80,14 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get distance() { return deunit(this.params.distance1) }
     set distance(d: number) {
         const { params } = this;
-        params.distance1 = unit(d);
-        params.distance2 = unit(d);
+        params.distance1 = truncunit(d, 2);
+        params.distance2 = truncunit(d, 2);
     }
 
     get distance1() { return deunit(this.params.distance1) }
-    set distance1(d: number) { this.params.distance1 = unit(d) }
+    set distance1(d: number) { this.params.distance1 = truncunit(d, 2) }
     get distance2() { return deunit(this.params.distance2) }
-    set distance2(d: number) { this.params.distance2 = unit(d) }
+    set distance2(d: number) { this.params.distance2 = truncunit(d, 2) }
     get form() { return this.params.form }
     set form(d: c3d.SmoothForm) { this.params.form = d }
     get conic() { return this.params.conic }
@@ -118,7 +118,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     async calculate() {
         const { _solid: { model: solid }, params, edgeFunctions, curveEdges, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
-
         if (this.mode === c3d.CreatorType.ChamferSolid) {
             return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, curveEdges, params, this.names);
         } else {
@@ -126,21 +125,47 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         }
     }
 
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        if (this.mode === c3d.CreatorType.ChamferSolid) return [];
+        const { _solid: { model: solid }, params } = this;
+        const surfaces = await c3d.ActionPhantom.SmoothPhantom_async(solid, this.edgeFunctions, params);
+        return surfaces.map(s => ({
+            phantom: new c3d.SpaceInstance(s),
+            material: {},
+        }));
+    }
+
     get originalItem() { return this._solid.view }
+
+    toJSON() {
+        const { distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict } = this;
+        return {
+            dataType: 'FilletFactory',
+            distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict
+        }
+    }
+
+    override get cacheKey() {
+        return JSON.stringify(this.toJSON());
+    }
 }
 
 export class MaxFilletFactory extends GeometryFactory implements FilletParams {
-    private searcher = new FilletFactory(this.db, this.materials, this.signals);
-    private updater = new FilletFactory(this.db, this.materials, this.signals);
+    private searcher = new FilletFactory(this.db, this.materials, this.signals, this.cache);
+    private updater = new FilletFactory(this.db, this.materials, this.signals, this.cache);
     readonly factories = [this.searcher, this.updater];
 
-    private max = new Max<c3d.Solid>(this.searcher);
+    private max = new Max<c3d.Item | c3d.Item[]>(this.searcher);
 
     calculate() {
         return this.max.exec(this.distance1, this.distance2, (d1, d2) => {
             this.distance1 = d1; this.distance2 = d2;
-            return this.updater.calculate();
+            return this.updater.calculateWithCache();
         })
+    }
+
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        return [];
     }
 
     start() { return this.max.start() }
@@ -298,8 +323,8 @@ export class Max<T> {
                 console.time("searching for max fillet");
                 const search = await Max.exponential_search(0.01, 100, d => {
                     factory.distance = d;
-                    return factory.calculate();
-                }, 2000);
+                    return factory.calculateWithCache();
+                }, 500);
                 console.timeEnd("searching for max fillet");
                 console.info(search);
 

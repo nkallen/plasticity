@@ -16,6 +16,7 @@ import { TypeManager } from './TypeManager';
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
 const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
+const formNote = new c3d.FormNote(true, true, false, false, false);
 
 type Builder = build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | build.PlaneInstanceBuilder<visual.Region> | build.SolidBuilder;
 
@@ -70,8 +71,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         if (name === undefined) name = this.positiveCounter++;
         else (this.positiveCounter = Math.max(this.positiveCounter, name + 1));
 
-        const note = new c3d.FormNote(true, true, true, false, false);
-        const builder = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // TODO: it would be nice to move this out of the queue but tests fail
+        const builder = await this.meshes(model, name, formNote, this.precisionAndDistanceFor(model)); // TODO: it would be nice to move this out of the queue but tests fail
         const view = builder.build(name, this.topologyModel, this.controlPointModel);
         view.userData.simpleName = name;
 
@@ -106,9 +106,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const { signals } = this;
-        const note = new c3d.FormNote(true, true, false, false, false);
         const tempId = this.negativeCounter--;
-        const builder = await this.meshes(model, tempId, note, this.precisionAndDistanceFor(model, 'temporary'), materials);
+        const builder = await this.meshes(model, tempId, formNote, this.precisionAndDistanceFor(model, 'temporary'), materials, ancestor?.simpleName);
         const view = builder.build(tempId);
         into.add(view);
 
@@ -243,7 +242,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.visibleObjects;
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride, ancestralName?: c3d.SimpleName): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -261,18 +260,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
         const promises = [];
         for (const [precision, distance] of precision_distance) {
-            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials));
+            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials, ancestralName));
         }
         await Promise.all(promises);
 
         return builder;
     }
 
-    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
+    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride, ancestralName?: c3d.SimpleName): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const stats = Measure.get("create-mesh");
         stats.begin();
-        const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid);
+        const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid, ancestralName);
         stats.end();
 
         switch (obj.IsA()) {

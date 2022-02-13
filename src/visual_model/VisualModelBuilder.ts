@@ -230,22 +230,24 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
             arrayLength += (position.length - 3) * 2;
         }
         const array = new Float32Array(arrayLength);
-        let offset = 0;
-        for (const [i, position] of positions.entries()) {
+        let offset = 0, i = 0;
+        for (const position of positions) {
+            const plength = position.length;
             // converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
-            for (let i = 0; i < position.length; i += 3) {
-                array[offset + 2 * i + 0] = position[i + 0];
-                array[offset + 2 * i + 1] = position[i + 1];
-                array[offset + 2 * i + 2] = position[i + 2];
-                array[offset + 2 * i + 3] = position[i + 3];
-                array[offset + 2 * i + 4] = position[i + 4];
-                array[offset + 2 * i + 5] = position[i + 5];
+            for (let j = 0; j < plength; j += 3) {
+                const start = offset + 2 * j;
+                array[start + 0] = position[j + 0];
+                array[start + 1] = position[j + 1];
+                array[start + 2] = position[j + 2];
+                if (plength < j + 5) continue; // performance optimization for complex models
+                array[start + 3] = position[j + 3];
+                array[start + 4] = position[j + 4];
+                array[start + 5] = position[j + 5];
             }
             const length = (position.length - 3) * 2;
-            groups.push({ start: offset, count: length, materialIndex: i });
+            groups.push({ start: offset, count: length, materialIndex: i++ });
             offset += length;
         }
-
         const geometry = new LineSegmentsGeometry();
         geometry.setPositions(array);
 

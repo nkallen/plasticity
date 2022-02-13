@@ -1,4 +1,5 @@
 import c3d from '../../build/Release/c3d.node';
+import { Delay } from '../util/SequentialExecutor';
 
 export interface MeshLike {
     faces: c3d.MeshBuffer[];
@@ -6,7 +7,7 @@ export interface MeshLike {
 }
 
 export interface MeshCreator {
-    create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike>;
+    create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike>;
 }
 
 export interface CachingMeshCreator extends MeshCreator {
@@ -14,7 +15,7 @@ export interface CachingMeshCreator extends MeshCreator {
 }
 
 export class SyncMeshCreator implements MeshCreator {
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
         const item = obj.CreateMesh(stepData, formNote)!;
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const grids = mesh.GetBuffers();
@@ -28,7 +29,7 @@ export class SyncMeshCreator implements MeshCreator {
 
 // This is the basic mesh creation strategy. It definitely works correctly, but because it lacks parallelism it is slow
 export class BasicMeshCreator implements MeshCreator {
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
         const item = await obj.CreateMesh_async(stepData, formNote);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const grids = mesh.GetBuffers();
@@ -40,18 +41,44 @@ export class BasicMeshCreator implements MeshCreator {
     }
 }
 
-// Optimized for solids, computes faces in parallel
+// Optimized for solids, computes faces in parallel; faces are cached and so are entire objects.
 export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     private readonly fallback = new BasicMeshCreator();
-    private cache?: Map<bigint, c3d.Grid>;
+    private faceCache?: Map<c3d.SimpleName, Map<number, c3d.Grid>>;
+    private objectCache?: Map<FormAndPrecisionKey, Map<bigint, Promise<MeshLike>>>;
 
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
-        const { cache } = this;
-
-        if (obj.IsA() !== c3d.SpaceType.Solid) {
-            return this.fallback.create(obj, stepData, formNote, outlinesOnly);
-        }
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
+        if (obj.IsA() !== c3d.SpaceType.Solid) return this.fallback.create(obj, stepData, formNote, outlinesOnly, name);
         const solid = obj as c3d.Solid;
+
+        const { faceCache, objectCache } = this;
+        const delay = new Delay<MeshLike>();
+        ObjectCache: {
+            const id = obj.Id();
+            if (objectCache !== undefined) {
+                const key = formAndPrecisionCacheKey(stepData, formNote);
+                let level = objectCache.get(key);
+                if (level === undefined) {
+                    level = new Map();
+                    objectCache.set(key, level);
+                }
+                const memoized = level.get(id);
+                if (memoized !== undefined) return memoized;
+                else level.set(id, delay.promise);
+            }
+        }
+
+        let cache: Map<number, c3d.Grid> | undefined = undefined;
+        FaceCache: {
+            if (faceCache !== undefined && name !== undefined) {
+                if (faceCache.has(name)) {
+                    cache = faceCache.get(name)!;
+                } else {
+                    cache = new Map();
+                    faceCache.set(name, cache);
+                }
+            }
+        }
 
         c3d.Mutex.EnterParallelRegion();
 
@@ -59,10 +86,11 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         // is the recommended approach. Also, note that we could create instead one mesh for all of these grids, it's equivalent.
         const facePromises: Promise<void>[] = [];
         const mesh = new c3d.Mesh(false);
-        for (const face of solid.GetFaces()) {
-            const id = face.Id();
-            if (cache?.has(id)) {
-                mesh.AddExistingGrid(cache.get(id)!);
+        for (const [i, face] of solid.GetFaces().entries()) {
+            const id = face.GetColor();
+            face.SetColor(i);
+            if (!face.GetOwnChanged() && cache?.has(id)) {
+                mesh.AddExistingGrid(cache?.get(id)!);
             } else {
                 const grid = mesh.AddGrid()!;
                 face.AttributesConvert(grid);
@@ -71,7 +99,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
                 grid.SetPrimitiveType(c3d.RefType.TopItem);
                 grid.SetStepData(stepData);
                 const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair());
-                if (cache !== undefined) promise.then(() => cache.set(id, grid));
+                if (cache !== undefined) promise.then(() => cache?.set(id, grid));
                 facePromises.push(promise);
             }
         }
@@ -96,18 +124,28 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
 
         c3d.Mutex.ExitParallelRegion();
 
-        return {
+        const result = {
             faces: grids,
             edges: polygons,
         };
+        delay.resolve(result);
+        return result;
     }
 
     async caching(f: () => Promise<void>): Promise<void> {
-        this.cache = new Map();
+        this.faceCache = new Map();
+        this.objectCache = new Map();
         try { await f() }
         catch (e) { throw e }
         finally {
-            this.cache = undefined;
+            this.faceCache = undefined;
+            this.objectCache = undefined;
         }
     }
+}
+
+type FormAndPrecisionKey = number;
+// NOTE: currently we only need SAG, so for perf reasons let's only use that
+function formAndPrecisionCacheKey(stepData: c3d.StepData, formNote: c3d.FormNote): FormAndPrecisionKey {
+    return stepData.GetSag();
 }

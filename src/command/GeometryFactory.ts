@@ -19,6 +19,7 @@ type State = { tag: 'none', last: undefined }
     | { tag: 'committed' }
 
 export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride, ancestor?: visual.Item }
+export type GeometryFactoryCache = Map<string, Promise<c3d.Item | c3d.Item[]>>;
 
 /**
  * A GeometryFactory is an object responsible for making and transforming geometrical objects, like
@@ -71,7 +72,8 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     constructor(
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
-        protected readonly signals: EditorSignals
+        protected readonly signals: EditorSignals,
+        protected readonly cache: GeometryFactoryCache = new Map()
     ) { super() }
 
     protected temps: TemporaryObject[] = [];
@@ -250,6 +252,25 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
     calculate(options?: any): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
     calculatePhantoms(): Promise<PhantomInfo[]> { return Promise.resolve([]) }
+
+    protected get cacheKey(): string | undefined { return undefined }
+    calculateWithCache(options?: any): Promise<c3d.Item | c3d.Item[]> {
+        let result;
+        const cacheKey = this.cacheKey;
+        if (cacheKey !== undefined) {
+            if (this.cache.has(cacheKey)) {
+                const memoized = this.cache.get(cacheKey)!;
+                result = memoized;
+            } else {
+                result = this.calculate(options);
+                result.catch(e => { });
+                this.cache.set(cacheKey, result);
+            }
+        } else {
+            result = this.calculate(options);
+        }
+        return result;
+    }
 
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() { return toArray(this.originalItem) }

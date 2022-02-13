@@ -31,6 +31,11 @@ export function vec2vec(from: THREE.Vector3 | c3d.Vector3D | c3d.Vector, factor 
     }
 }
 
+export function truncunit(x: number, precision?: number) {
+    if (precision !== undefined) return Math.trunc(unit(x) * precision) / precision;
+    else return unit(x);
+}
+
 export function unit(x: number): number {
     return x * 100;
 }

@@ -80,7 +80,7 @@ describe(MaxFilletFactory, () => {
         edge = box.edges.get(0);
     })
 
-    test.only('distance within range', async () => {
+    test('distance within range', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [edge];
 
