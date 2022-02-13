@@ -34,10 +34,6 @@
     "config": {
         "forge": {
             "packagerConfig": {},
-            "electronRebuildConfig": {
-                "mode": "parallel",
-                "forceABI": 89
-            },
             "makers": [
                 {
                     "name": "@electron-forge/maker-squirrel",
@@ -125,8 +121,8 @@
         "copy-webpack-plugin": "^8.1.1",
         "css-loader": "^4.2.1",
         "ejs": "^3.1.6",
-        "electron": "13.2.3",
-        "electron-rebuild": "^2.3.5",
+        "electron": "^17.0.0",
+        "electron-rebuild": "^3.2.7",
         "eslint": "^7.6.0",
         "eslint-plugin-import": "^2.20.0",
         "file-loader": "^6.2.0",
@@ -158,15 +154,14 @@
         "@electron/remote": "^1.2.1",
         "@jest-runner/electron": "^3.0.1",
         "@types/assert": "^1.5.4",
-        "atom-keymap-plasticity": "9.0.0",
+        "atom-keymap-plasticity": "^10.0.0",
         "clear-cut": "^2.0.2",
         "crypto-browserify": "^3.12.0",
         "electron-squirrel-startup": "^1.0.0",
         "electron-window-state": "^5.0.3",
         "event-kit": "^2.5.3",
-        "iconoir": "^1.0.0",
         "json5": "^2.2.0",
-        "node-gyp": "^8.1.0",
+        "node-gyp": "^8.4.1",
         "path-browserify": "^1.0.1",
         "preact": "^10.5.13",
         "signals": "^1.0.0",

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, crashReporter } from 'electron';
+import { app, BrowserWindow, crashReporter, dialog, ipcMain } from 'electron';
 if (require('electron-squirrel-startup')) app.quit();
 
 export const isMac = process.platform === 'darwin'
@@ -18,9 +18,6 @@ crashReporter.start({
     submitURL: 'https://submit.backtrace.io/blurbs/8ba2ca632371bdac451b9bef87af76923b0b61191ae04459f622260035ea8a3b/minidump',
     uploadToServer: true
 });
-
-// This is required by atom-keymap
-app.allowRendererProcessReuse = false
 
 process.env.PLASTICITY_HOME = path.join(os.homedir(), '.plasticity');
 if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
@@ -48,7 +45,6 @@ const createWindow = (): void => {
             nodeIntegration: true,
             contextIsolation: false,
             nodeIntegrationInWorker: true,
-            enableRemoteModule: true,
         }
     });
     // mainWindow.removeMenu();
@@ -59,6 +55,18 @@ const createWindow = (): void => {
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindowState.manage(mainWindow);
         mainWindow.show();
+    })
+
+    ipcMain.handle('reload', async (event, args) => {
+        mainWindow
+    })
+
+    ipcMain.handle('show-open-dialog', async (event, args) => {
+        dialog.showOpenDialog(args);
+    })
+
+    ipcMain.handle('show-save-dialog', async (event, args) => {
+        dialog.showSaveDialog(args);
     })
 };
 

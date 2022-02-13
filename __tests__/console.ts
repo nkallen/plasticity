@@ -25,3 +25,10 @@ global.performance = {
     measure: jest.fn(),
 }
 
+if (typeof navigator !== 'undefined') navigator.keyboard = {
+getLayoutMap() {
+        return Promise.resolve({
+            get() { }
+        });
+    }
+}

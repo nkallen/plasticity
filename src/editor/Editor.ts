@@ -1,5 +1,5 @@
 import KeymapManager from "atom-keymap-plasticity";
-import { remote } from 'electron';
+import { ipcRenderer } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../command/Command';
@@ -33,7 +33,6 @@ import { ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
-import { SpriteDatabase } from "./SpriteDatabase";
 
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
@@ -48,7 +47,6 @@ export class Editor {
     readonly registry = new CommandRegistry();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
-    readonly sprites = new SpriteDatabase();
     readonly meshCreator = new ParallelMeshCreator();
     readonly _db = new GeometryDatabase(this.meshCreator, this.materials, this.signals);
 
@@ -135,11 +133,11 @@ export class Editor {
 
     clear() {
         this.backup.clear();
-        remote.getCurrentWindow().reload();
+        ipcRenderer.invoke('reload');
     }
 
     async open() {
-        const { filePaths } = await remote.dialog.showOpenDialog({
+        const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
             properties: ['openFile', 'multiSelections'],
             filters: [
                 { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat'] },
@@ -153,7 +151,7 @@ export class Editor {
     }
 
     async export() {
-        const { canceled, filePath } = await remote.dialog.showSaveDialog({
+        const { canceled, filePath } = await ipcRenderer.invoke('show-save-dialog', {
             filters: [
                 { name: 'C3D files', extensions: ['c3d'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },

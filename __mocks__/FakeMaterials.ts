@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 
 const line = new LineMaterial();
 const highlight = new LineMaterial();
@@ -57,8 +56,3 @@ export class FakeMaterials implements MaterialDatabase {
 
 const isNear = new THREE.Sprite();
 const willSnap = new THREE.Sprite();
-
-export class FakeSprites implements SpriteDatabase {
-    isNear() { return isNear }
-    willSnap() { return willSnap }
-}
