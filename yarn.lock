@@ -3978,9 +3978,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"atom-keymap-plasticity@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "atom-keymap-plasticity@npm:10.0.0"
+"atom-keymap-plasticity@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "atom-keymap-plasticity@npm:10.0.1"
   dependencies:
     clear-cut: ^2
     emissary: ^1.1.0
@@ -3988,7 +3988,7 @@ __metadata:
     fs-plus: ^3.0.0
     grim: ^1.2.1
     property-accessors: ^1
-  checksum: 38b0390001de49b1882624926ad508aaac4c8db88a7013ef6ac81d97f4312caf9f7fafaa56a9c37c2216fe7c6b675f0038d3e34fa7226f9ee61c3f3a1b877c54
+  checksum: a670a24ea006bb31bd6aa9ee99e773d131976a4a0f13b4d8ea10cd45f430f8c53f47e54fbefec06ffd935a531ff23ccf3bc81c0d8ecd8287de5de96b2bdf182a
   languageName: node
   linkType: hard
 
@@ -12662,7 +12662,7 @@ __metadata:
     "@types/webpack-env": ^1.16.2
     "@typescript-eslint/eslint-plugin": ^4.22.0
     "@typescript-eslint/parser": ^4.22.0
-    atom-keymap-plasticity: ^10.0.0
+    atom-keymap-plasticity: ^10.0.1
     autoprefixer: ^10.4.2
     babel-loader: ^8.2.2
     canvas: ^2.9.0
@@ -15111,7 +15111,7 @@ __metadata:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
+  checksum: fc9f7282b59b61aaa71c15a8684c5e6c02062768eb9f01d9645b80a3ceec1a79834a2988b8184b7bee0a5984698f325adc3ef190d776c7616a240f3debf36173
   languageName: node
   linkType: hard
 

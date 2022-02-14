@@ -59,6 +59,7 @@ const createWindow = () => {
 
     mainWindow.webContents.on('unresponsive', () => {
         mainWindow.webContents.forcefullyCrashRenderer();
+        mainWindow.webContents.devToolsWebContents?.reload();
         mainWindow.webContents.reload();
     });
 
