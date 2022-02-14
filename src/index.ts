@@ -24,15 +24,13 @@ if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
     fse.copySync(path.join(__dirname, 'dot-plasticity'), process.env.PLASTICITY_HOME);
 }
 
-let mainWindow: BrowserWindow;
-
 const createWindow = () => {
     const mainWindowState = window({
         defaultWidth: 1920,
         defaultHeight: 1080
     });
 
-    mainWindow = new BrowserWindow({
+    const mainWindow = new BrowserWindow({
         x: mainWindowState.x,
         y: mainWindowState.y,
         width: mainWindowState.width,
@@ -57,11 +55,18 @@ const createWindow = () => {
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
-    })
+    });
+
+    mainWindow.webContents.on('unresponsive', () => {
+        mainWindow.webContents.forcefullyCrashRenderer();
+        mainWindow.webContents.reload();
+    });
+
 };
 
 ipcMain.handle('reload', async (event, args) => {
-    mainWindow.reload();
+    BrowserWindow.getFocusedWindow()?.webContents.forcefullyCrashRenderer()
+    BrowserWindow.getFocusedWindow()?.webContents.reload();
 })
 
 ipcMain.handle('show-open-dialog', async (event, args) => {

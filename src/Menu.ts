@@ -1,4 +1,4 @@
-import { app, Menu, MenuItemConstructorOptions } from 'electron';
+import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
 import { isMac } from './index';
 
 export function buildMenu() {
@@ -49,7 +49,7 @@ export function buildMenu() {
             label: 'Edit',
             submenu: [
                 { role: 'undo', accelerator: "CommandOrControl+Z", enabled: false },
-                { role: 'redo', accelerator: "Shift+CommandOrControl+Z" , enabled: false},
+                { role: 'redo', accelerator: "Shift+CommandOrControl+Z", enabled: false },
                 { label: 'Repeat last command', accelerator: "Shift+R", enabled: false },
                 { type: 'separator' },
                 { role: 'delete', accelerator: "X", enabled: false },
@@ -79,8 +79,10 @@ export function buildMenu() {
     template.push({
         label: 'View',
         submenu: [
-            { role: 'reload' },
-            { role: 'forceReload' },
+            { label: 'Reload', accelerator: 'CommandOrControl+R', click: async () => {
+                BrowserWindow.getFocusedWindow()?.webContents.forcefullyCrashRenderer();
+                BrowserWindow.getFocusedWindow()?.webContents.reload();
+            }},
             { role: 'toggleDevTools' },
             { type: 'separator' },
             { role: 'resetZoom' },
@@ -130,5 +132,5 @@ export function buildMenu() {
 }
 
 export function buildContextMenu() {
-    
+
 }
