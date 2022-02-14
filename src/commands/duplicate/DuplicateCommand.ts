@@ -1,9 +1,7 @@
-import * as THREE from "three";
 import Command from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
 import { CreateFaceFactory } from "../modifyface/ModifyFaceFactory";
-import { MoveGizmo } from '../translate/MoveGizmo';
-import { MoveFactory } from '../translate/TranslateFactory';
+import { MoveItemCommand } from "../translate/TranslateCommand";
 
 export class DuplicateCommand extends Command {
     async execute(): Promise<void> {
@@ -28,23 +26,6 @@ export class DuplicateCommand extends Command {
 
         const objects = await Promise.all(promises);
 
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        move.pivot = centroid;
-        move.items = objects;
-
-        const gizmo = new MoveGizmo(move, this.editor);
-        gizmo.position.copy(centroid);
-        await gizmo.execute(s => {
-            move.update();
-        }).resource(this);
-
-        const selection = await move.commit();
-
         for (const solid of solids)
             selected.removeSolid(solid);
         for (const curve of curves)
@@ -54,6 +35,8 @@ export class DuplicateCommand extends Command {
         for (const face of faces)
             selected.removeFace(face);
 
-        this.editor.selection.selected.add(selection);
+        this.editor.selection.selected.add(objects);
+
+        this.editor.enqueue(new MoveItemCommand(this.editor), false);
     }
 }
