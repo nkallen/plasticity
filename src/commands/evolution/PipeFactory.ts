@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { delegate } from '../../command/FactoryBuilder';
-import { GeometryFactory } from '../../command/GeometryFactory';
-import { composeMainName, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
+import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
+import { MaterialOverride } from "../../editor/DatabaseLike";
+import { composeMainName, inst2curve, point2point, toArray, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { MultiBooleanFactory } from '../boolean/BooleanFactory';
+import { BooleanFactory, MultiBooleanFactory, phantom_blue, phantom_green, phantom_red } from '../boolean/BooleanFactory';
 import { PossiblyBooleanFactory } from '../boolean/PossiblyBooleanFactory';
 import { SweptParams } from "./RevolutionFactory";
 
@@ -107,4 +108,37 @@ export class PossiblyBooleanPipeFactory extends PossiblyBooleanFactory<PipeFacto
 
     @delegate.get origin!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
+
+    // NOTE: the following functions don't check for intersection, and therefore are faster in some particularly
+    // nasty cases
+    
+    async calculatePhantoms(): Promise<PhantomInfo[]> {
+        if (this.targets.length === 0 || this.newBody) return [];
+
+        let material: MaterialOverride;
+        if (this.operationType === c3d.OperationType.Difference)
+            material = phantom_red;
+        else if (this.operationType === c3d.OperationType.Intersect)
+            material = phantom_green;
+        else
+            material = phantom_blue;
+
+        const phantoms = toArray(await this.fantom.calculate()) as c3d.Solid[];
+        return phantoms.map(phantom => ({ phantom, material }));
+    }
+
+    async calculate() {
+        const phantoms = toArray(await this.fantom.calculate()) as c3d.Solid[];
+        if (this.targets.length === 0 || this.newBody) return phantoms;
+        this._isOverlapping = true; this._isSurface = false;
+
+        if (!this.newBody) {
+            this.bool.operationType = this.operationType;
+            this.bool.tools = phantoms;
+            const result = await this.bool.calculate() as c3d.Solid[];
+            return result;
+        } else {
+            return phantoms;
+        }
+    }
 }

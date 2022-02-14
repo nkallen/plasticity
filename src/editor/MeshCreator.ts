@@ -44,7 +44,7 @@ export class BasicMeshCreator implements MeshCreator {
 // Optimized for solids, computes faces in parallel; faces are cached and so are entire objects.
 export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     private readonly fallback = new BasicMeshCreator();
-    private faceCache?: Map<c3d.SimpleName, Map<number, c3d.Grid>>;
+    private faceCache?: Map<c3d.SimpleName, Map<string, c3d.Grid>>;
     private objectCache?: Map<FormAndPrecisionKey, Map<bigint, Promise<MeshLike>>>;
 
     async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
@@ -68,7 +68,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
             }
         }
 
-        let cache: Map<number, c3d.Grid> | undefined = undefined;
+        let cache: Map<string, c3d.Grid> | undefined = undefined;
         FaceCache: {
             if (faceCache !== undefined && name !== undefined) {
                 if (faceCache.has(name)) {
@@ -87,7 +87,8 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         const facePromises: Promise<void>[] = [];
         const mesh = new c3d.Mesh(false);
         for (const [i, face] of solid.GetFaces().entries()) {
-            const id = face.GetColor();
+            // Here, "color" is re-used as face index. A face with the same index, the same name, and !GetOwnChanged() is considered cachable
+            const id = `${face.GetColor()}/${face.GetNameHash()}`;
             face.SetColor(i);
             if (!face.GetOwnChanged() && cache?.has(id)) {
                 mesh.AddExistingGrid(cache?.get(id)!);
