@@ -183,7 +183,7 @@ export default (editor: Editor) => {
 
         render() {
             return render(
-                <div class="flex absolute right-2 top-1/2 flex-col space-y-2 -translate-y-1/2">
+                <div class="flex absolute right-2 top-1/2 flex-col space-y-2 -translate-y-1/2 z-40">
                     <section class="flex flex-col space-y-0.5">
                         <plasticity-command name="line" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>
                         <plasticity-command name="curve" class="shadow-lg first:rounded-t last:rounded-b overflow-clip"></plasticity-command>

@@ -126,7 +126,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             outlinePassHover.downSampleRatio = 1;
             this.outlinePassHover = outlinePassHover;
 
-            const navigatorGizmo = new ViewportNavigatorGizmo(this, 128);
+            const navigatorGizmo = new ViewportNavigatorGizmo(this, 100);
             const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
             const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 

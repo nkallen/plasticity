@@ -9,9 +9,10 @@ export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 
 const halfSize = 0.5;
 const turnRate = 3 * Math.PI; // turn rate in angles per second
+const frustrum = 1.6;
 
 export class ViewportNavigatorGizmo extends THREE.Object3D {
-    readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
+    readonly camera = new THREE.OrthographicCamera(- frustrum, frustrum, frustrum, - frustrum, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
 
     constructor(private readonly viewport: Viewport, readonly dim: number) {
