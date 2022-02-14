@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { deunit, point2point, unit } from "../../util/Conversion";
 import { GeometryFactory } from '../../command/GeometryFactory';
+import { point2point, unit } from "../../util/Conversion";
 
 export interface SpiralParams {
     p1: THREE.Vector3;
@@ -10,6 +10,7 @@ export interface SpiralParams {
     radius: number;
     step: number;
     angle: number;
+    degrees: number;
 }
 export class SpiralFactory extends GeometryFactory implements SpiralParams {
     p1!: THREE.Vector3;
@@ -17,8 +18,13 @@ export class SpiralFactory extends GeometryFactory implements SpiralParams {
     p3 = new THREE.Vector3();
     radius!: number;
     step = 4;
-    angle = 0;
 
+    angle = 0;
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
+    
     async calculate() {
         const { p1, p2, p3, radius, step, angle } = this;
         const pitch = unit(p2.distanceTo(p1)) / step;

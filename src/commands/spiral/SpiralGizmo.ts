@@ -5,13 +5,15 @@ import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { FilletMagnitudeGizmo } from "../fillet/FilletGizmo";
 import { AngleGizmo } from "../../command/MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
+import { ExtrudeDistanceGizmo } from "../extrude/ExtrudeGizmo";
+import { deunit } from "../../util/Conversion";
 
 const Y = new THREE.Vector3(0, 1, 0);
 const X = new THREE.Vector3(1, 0, 0);
 
 export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
     private readonly angleGizmo = new SpiralAngleGizmo("spiral:angle", this.editor);
-    private readonly lengthGizmo = new FilletMagnitudeGizmo("spiral:length", this.editor);
+    private readonly lengthGizmo = new ExtrudeDistanceGizmo("spiral:length", this.editor);
     private readonly radiusGizmo = new FilletMagnitudeGizmo("spiral:radius", this.editor);
 
     protected prepare(mode: Mode) {
@@ -22,7 +24,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
 
         lengthGizmo.position.copy(p1);
         const quat = new THREE.Quaternion();
-        lengthGizmo.value = 1;
+        lengthGizmo.value = p2.distanceTo(p1);
         axis.normalize();
         quat.setFromUnitVectors(Y, axis);
         lengthGizmo.quaternion.copy(quat);
@@ -44,15 +46,14 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
         const { p2, p1 } = params;
 
-        const axis = new THREE.Vector3().copy(p2).sub(p1);
+        const axis = new THREE.Vector3().copy(p2).sub(p1).normalize();
 
         this.addGizmo(angleGizmo, angle => {
             params.angle = angle;
             cb(params);
         });
         this.addGizmo(lengthGizmo, length => {
-            p2.copy(axis).multiplyScalar(length).add(p1);
-            params.p2 = p2;
+            params.p2.copy(axis).multiplyScalar(length).add(p1);
             cb(params);
         });
         this.addGizmo(radiusGizmo, radius => {

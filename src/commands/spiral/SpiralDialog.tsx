@@ -11,7 +11,7 @@ export class SpiralDialog extends AbstractDialog<SpiralParams> {
     }
 
     render() {
-        const { step, radius, angle } = this.params;
+        const { step, radius, degrees } = this.params;
 
         render(
             <>
@@ -29,9 +29,9 @@ export class SpiralDialog extends AbstractDialog<SpiralParams> {
                         </div>
                     </li>
                     <li>
-                        <label for="angle">Angle</label>
+                        <label for="degrees">Angle</label>
                         <div class="fields">
-                            <plasticity-number-scrubber name="angle" value={angle} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="degrees" value={degrees} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                 </ul></>, this);

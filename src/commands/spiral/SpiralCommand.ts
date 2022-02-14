@@ -42,6 +42,7 @@ export class SpiralCommand extends Command {
         const spiralGizmo = new SpiralGizmo(spiral, this.editor);
         spiralGizmo.execute(params => {
             spiral.update();
+            dialog.render();
         }).resource(this);
 
         await this.finished;
