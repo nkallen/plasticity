@@ -35,7 +35,6 @@ export class PipeCommand extends Command {
                 pipe.targets = targets;
                 await pipe.update();
                 keyboard.toggle(pipe.isOverlapping);
-                console.log(pipe.isOverlapping);
             }, 1, Number.MAX_SAFE_INTEGER, SelectionMode.Solid).resource(this)
         }, async () => {
             pipe.targets = [];

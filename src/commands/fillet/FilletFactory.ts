@@ -165,6 +165,7 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
+        // return this.updater.calculatePhantoms(); // TODO: this isn't safe, the object needs to be duplicated first
         return [];
     }
 
@@ -265,6 +266,9 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
             const individual = new MaxFilletFactory(this.db, this.materials, this.signals);
             individual.solid = solid;
             individual.edges = edges;
+            individual.distance1 = this.distance1;
+            individual.distance2 = this.distance2;
+            // FIXME: need to copy over all current values
             individuals.push(individual);
         }
         this.factories = individuals;

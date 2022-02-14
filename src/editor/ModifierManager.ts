@@ -397,9 +397,9 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     restoreFromMemento(m: ModifierMemento) {
-        (this.name2stack as ModifierMemento['name2stack']) = m.name2stack;
-        (this.version2name as ModifierMemento['version2name']) = m.version2name;
-        (this.modified2name as ModifierMemento['modified2name']) = m.modified2name;
+        (this.name2stack as ModifierMemento['name2stack']) = new Map(m.name2stack);
+        (this.version2name as ModifierMemento['version2name']) = new Map(m.version2name);
+        (this.modified2name as ModifierMemento['modified2name']) = new Map(m.modified2name);
     }
 
     async serialize(): Promise<Buffer> {
