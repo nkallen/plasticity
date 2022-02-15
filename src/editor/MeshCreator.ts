@@ -88,10 +88,11 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         const mesh = new c3d.Mesh(false);
         for (const [i, face] of solid.GetFaces().entries()) {
             // Here, "color" is re-used as face index. A face with the same index, the same name, and !GetOwnChanged() is considered cachable
-            const id = `${face.GetColor()}/${face.GetNameHash()}`;
+            const cacheKey = `${face.GetColor()}/${face.GetNameHash()}`;
             face.SetColor(i);
-            if (!face.GetOwnChanged() && cache?.has(id)) {
-                mesh.AddExistingGrid(cache?.get(id)!);
+            const isCacheable = !face.GetOwnChanged() && cache !== undefined;
+            if (isCacheable && cache!.has(cacheKey)) {
+                mesh.AddExistingGrid(cache?.get(cacheKey)!);
             } else {
                 const grid = mesh.AddGrid()!;
                 face.AttributesConvert(grid);
@@ -100,7 +101,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
                 grid.SetPrimitiveType(c3d.RefType.TopItem);
                 grid.SetStepData(stepData);
                 const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair());
-                if (cache !== undefined) promise.then(() => cache?.set(id, grid));
+                if (isCacheable) promise.then(() => cache?.set(cacheKey, grid));
                 facePromises.push(promise);
             }
         }
