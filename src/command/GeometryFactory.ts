@@ -280,9 +280,6 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     async update(): Promise<void> { await this.doUpdate(() => false) }
     async commit(): Promise<visual.Item | visual.Item[]> { return this.doCommit() }
     cancel() { this.doCancel() }
-    // NOTE: All factories should be explicitly commit or cancel.
-    finish() { }
-    interrupt() { }
 }
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {
@@ -300,7 +297,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     const phantoms = this.doPhantoms(abortEarly);
                     const temps = this.doUpdate(abortEarly);
                     phantoms.then(() => {
-                        if (state.step === 'begin') state.step = state.step = 'phantoms-completed';
+                        if (state.step === 'begin') state.step = 'phantoms-completed';
                         else state.step = 'all-completed';
                         // ensure phantoms are rendered as soon as they're ready:
                         if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
@@ -459,9 +456,8 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
         return [];
     }
 
-    // NOTE: All factories should be explicitly commit or cancel.
-    finish() { }
-    interrupt() { }
+    finish() { /* NOTE: finish is a noop */ }
+    interrupt() { this.cancel() }
 }
 
 function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
