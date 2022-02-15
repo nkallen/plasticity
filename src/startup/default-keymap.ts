@@ -3,6 +3,10 @@ export default {
         "v": "gizmo:circle:mode",
     },
 
+    "[command='corner-rectangle'] plasticity-viewport, [command='center-rectangle'] plasticity-viewport": {
+        "^alt": "keyboard:rectangle:mode",
+    },
+
     "[command='polygon'] plasticity-viewport": {
         "ctrl-wheel+up": "gizmo:polygon:add-vertex",
         "ctrl-wheel+down": "gizmo:polygon:subtract-vertex",

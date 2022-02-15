@@ -25,7 +25,7 @@ export class RebuildFactory extends GeometryFactory {
         this._index = index;
     }
 
-    private bases!: c3d.SpaceItem[];
+    private bases: c3d.SpaceItem[] = [];
 
     async calculate() {
         const { dup, index } = this;

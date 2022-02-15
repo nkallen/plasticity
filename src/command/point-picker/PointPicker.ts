@@ -117,6 +117,12 @@ class PointPickerKeyboardManager {
     }
 }
 
+export interface PointPickerOptions {
+    rejectOnFinish?: boolean;
+    result?: PointResult;
+}
+const defaultOptions: PointPickerOptions = { rejectOnFinish: false }
+
 export class PointPicker implements Executable<PointResult, PointResult> {
     private readonly model = new PointPickerModel(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly keyboard = new PointPickerKeyboardManager(this.model, this.editor.registry, this.editor.signals);
@@ -130,7 +136,21 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
     constructor(private readonly editor: EditorLike) { }
 
-    execute<T>(cb?: (pt: PointResult) => T, rejectOnFinish = false): CancellablePromise<PointResult> {
+    execute<T>(cb?: ((pt: PointResult) => T) | PointPickerOptions, options?: PointPickerOptions): CancellablePromise<PointResult> {
+        if (cb !== undefined) {
+            if (typeof cb !== 'function') {
+                if (options !== undefined) throw new Error("invalid arguments");
+    
+                options = cb as PointPickerOptions;
+                cb = undefined;
+                if (options.result !== undefined) return CancellablePromise.resolve(options.result);
+            } else if (options?.result !== undefined) {
+                cb(options.result)
+            }
+        }
+        const _options = { ...defaultOptions, ...options };
+        const _cb = cb;
+
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { editor, editor: { signals }, model, keyboard, snapCache } = this;
@@ -180,7 +200,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     if (info === undefined) return;
                     const { position } = info;
 
-                    if (cb !== undefined) cb({ point: position, info });
+                    if (_cb !== undefined) _cb({ point: position, info });
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -216,7 +236,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
                 const d = keyboard.registerKeyboardCommands(viewport.domElement, replayLastMove);
                 const f = this.editor.registry.addOne(domElement, "point-picker:finish", _ => {
-                    if (rejectOnFinish) {
+                    if (_options.rejectOnFinish) {
                         dispose();
                         reject(new Finish());
                         return;
