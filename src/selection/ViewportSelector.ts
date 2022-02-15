@@ -50,7 +50,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
+        const selected = this.selectionBox.selectObjects(this.db.selectableObjects) as unknown as intersectable.Intersectable[];
         this.processBoxHover(new Set(selected), moveEvent);
     }
 
@@ -67,7 +67,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
+        const selected = this.selectionBox.selectObjects(this.db.selectableObjects) as unknown as intersectable.Intersectable[];
         this.processBoxSelect(new Set(selected), upEvent);
     }
 

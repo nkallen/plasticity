@@ -79,18 +79,18 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.geometrySnaps.length).toBe(1);
     expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
-    db.hide(box);
+    db.makeHidden(box, true);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
 
-    db.unhide(box);
+    db.makeHidden(box, false);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
     expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
-    db.hide(box);
+    db.makeHidden(box, true);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);

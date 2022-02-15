@@ -53,6 +53,7 @@ export default (editor: Editor) => {
                 {items.map(item => {
                     const visible = db.isVisible(item);
                     const hidden = db.isHidden(item);
+                    const selectable = db.isSelectable(item);
                     const isSelected = selection.has(item);
                     return <li key={item.simpleName} class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
                         <plasticity-icon name={item instanceof visual.Solid ? 'solid' : 'curve'} class="text-accent-500"></plasticity-icon>
@@ -62,6 +63,9 @@ export default (editor: Editor) => {
                         </button>
                         <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
+                        </button>
+                        <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setSelectable(e, item, !selectable)}>
+                            <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
                         </button>
                     </li>;
                 })}
@@ -82,6 +86,13 @@ export default (editor: Editor) => {
 
         setHidden = (e: MouseEvent, item: visual.Item, value: boolean) => {
             const command = new ToggleHiddenCommand(editor, item, value);
+            editor.enqueue(command, true);
+            e.stopPropagation();
+            this.render();
+        }
+
+        setSelectable = (e: MouseEvent, item: visual.Item, value: boolean) => {
+            const command = new ToggleSelectableCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
             this.render();
@@ -139,8 +150,24 @@ class ToggleHiddenCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { editor: { db, selection }, item, value } = this;
         console.log(value);
-        if (!value) db.hide(item)
-        else db.unhide(item);
+        db.makeHidden(this.item, this.value);
+        selection.selected.remove(item);
+    }
+}
+
+class ToggleSelectableCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly item: visual.Item,
+        private readonly value: boolean,
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { editor: { db, selection }, item, value } = this;
+        console.log(value);
+        db.makeSelectable(this.item, this.value);
         selection.selected.remove(item);
     }
 }

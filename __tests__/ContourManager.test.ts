@@ -115,10 +115,10 @@ test("two overlapping coplanar circles, adding and hiding creates the right regi
     circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
-    await contours.hide(circle2);
+    await contours.makeHidden(circle2, true);
     expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 
-    await contours.hide(circle1);
+    await contours.makeHidden(circle1, true);
     expect(_db.find(visual.PlaneInstance, true).length).toBe(0);
 
     await contours.unhideAll();

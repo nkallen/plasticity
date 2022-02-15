@@ -33,6 +33,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly hidden = new Set<c3d.SimpleName>();
     private readonly invisible = new Set<c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
+    private readonly unselectable = new Set<c3d.SimpleName>();
 
     constructor(
         private readonly meshCreator: MeshCreator,
@@ -239,7 +240,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get selectableObjects(): visual.Item[] {
-        return this.visibleObjects;
+        const { unselectable } = this;
+        return this.visibleObjects.filter(i => !unselectable.has(i.simpleName));
     }
 
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride, ancestralName?: c3d.SimpleName): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
@@ -366,20 +368,38 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
+    isSelectable(item: visual.Item): boolean {
+        return !this.unselectable.has(item.simpleName);
+    }
+
+    makeSelectable(item: visual.Item, newValue: boolean) {
+        const { unselectable } = this;
+        const oldValue = !unselectable.has(item.simpleName);
+        if (newValue) {
+            if (oldValue) return;
+            unselectable.delete(item.simpleName);
+        } else {
+            if (!oldValue) return;
+            unselectable.add(item.simpleName);
+        }
+    }
+
     isHidden(item: visual.Item): boolean {
         return !this.hidden.has(item.simpleName);
     }
-    
-    async hide(item: visual.Item) {
-        if (this.hidden.has(item.simpleName)) return;
-        this.hidden.add(item.simpleName);
-        this.signals.objectHidden.dispatch(item);
-    }
 
-    async unhide(item: visual.Item) {
-        if (!this.hidden.has(item.simpleName)) return;
-        this.hidden.delete(item.simpleName);
-        this.signals.objectUnhidden.dispatch(item);
+    async makeHidden(item: visual.Item, newValue: boolean) {
+        const { hidden } = this;
+        const oldValue = hidden.has(item.simpleName);
+        if (newValue) {
+            if (oldValue) return;
+            hidden.add(item.simpleName);
+            this.signals.objectHidden.dispatch(item);
+        } else {
+            if (!oldValue) return;
+            hidden.delete(item.simpleName);
+            this.signals.objectUnhidden.dispatch(item);
+        }
     }
 
     async makeVisible(item: visual.Item, newValue: boolean) {

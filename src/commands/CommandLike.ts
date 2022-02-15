@@ -50,11 +50,20 @@ export class RebuildCommand extends cmd.CommandLike {
     }
 }
 
+export class LockSelectedCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const { solids, curves, regions } = this.editor.selection.selected;
+        const selectedItems = [...solids, ...curves, ...regions];
+        for (const item of selectedItems) this.editor.db.makeSelectable(item, false);
+        this.editor.selection.selected.removeAll();
+    }
+}
+
 export class HideSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
-        for (const item of selectedItems) this.editor.db.hide(item);
+        for (const item of selectedItems) this.editor.db.makeHidden(item, true);
         this.editor.selection.selected.removeAll();
     }
 }
@@ -65,7 +74,7 @@ export class HideUnselectedCommand extends cmd.CommandLike {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = new Set([...solids.ids, ...curves.ids, ...regions.ids]);
         for (const { view } of db.findAll()) {
-            if (!selectedItems.has(view.simpleName)) this.editor.db.hide(view);
+            if (!selectedItems.has(view.simpleName)) this.editor.db.makeHidden(view, true);
         }
     }
 }

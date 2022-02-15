@@ -103,37 +103,18 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.findAll(includeAutomatics);
     }
 
-    get visibleObjects(): visual.Item[] {
-        return this.db.visibleObjects;
-    }
+    get visibleObjects(): visual.Item[] { return this.db.visibleObjects }
+    get selectableObjects(): visual.Item[] { return this.db.selectableObjects }
 
-    get selectableObjects(): visual.Item[] {
-        return this.db.selectableObjects;
-    }
+    isHidden(item: visual.Item) { return this.db.isHidden(item) }
+    makeHidden(item: visual.Item, value: boolean): Promise<void> { return this.db.makeHidden(item, value) }
+    unhideAll(): Promise<visual.Item[]> { return this.db.unhideAll() }
 
-    isHidden(item: visual.Item) {
-        return this.db.isHidden(item);
-    }
+    isVisible(item: visual.Item) { return this.db.isVisible(item) }
+    makeVisible(item: visual.Item, value: boolean): Promise<void> { return this.db.makeVisible(item, value) }
 
-    hide(item: visual.Item): Promise<void> {
-        return this.db.hide(item);
-    }
-
-    unhide(item: visual.Item): Promise<void> {
-        return this.db.unhide(item);
-    }
-
-    unhideAll(): Promise<visual.Item[]> {
-        return this.db.unhideAll();
-    }
-
-    makeVisible(item: visual.Item, value: boolean): Promise<void> {
-        return this.db.makeVisible(item, value);
-    }
-
-    isVisible(item: visual.Item) {
-        return this.db.isVisible(item);
-    }
+    isSelectable(item: visual.Item) { return this.db.isSelectable(item) }
+    makeSelectable(item: visual.Item, value: boolean) { this.db.makeSelectable(item, value) }
 
     async deserialize(data: Buffer): Promise<void> {
         return this.db.deserialize(data);

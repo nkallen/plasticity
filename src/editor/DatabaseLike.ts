@@ -79,12 +79,14 @@ export interface DatabaseLike {
     get selectableObjects(): visual.Item[];
     
     isHidden(item: visual.Item): boolean;
-    hide(item: visual.Item): Promise<void>;
-    unhide(item: visual.Item): Promise<void>;
+    makeHidden(item: visual.Item, value: boolean): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
 
     isVisible(item: visual.Item): boolean;
     makeVisible(item: visual.Item, value: boolean): Promise<void>;
+
+    isSelectable(item: visual.Item): boolean;
+    makeSelectable(item: visual.Item, value: boolean): void;
 
     deserialize(data: Buffer): Promise<void>;
     load(model: c3d.Model | c3d.Assembly): Promise<void>;

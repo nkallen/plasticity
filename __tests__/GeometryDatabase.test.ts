@@ -128,11 +128,11 @@ test("hide & unhide", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
 
-    db.hide(v);
+    db.makeHidden(v, true);
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(0);
 
-    db.unhide(v);
+    db.makeHidden(v, false);
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
 })
@@ -153,6 +153,24 @@ test("toggle visibility", async () => {
     db.makeVisible(v, true);
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
+})
+
+test("toggle selectable", async () => {
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.selectableObjects.length).toBe(0);
+
+    const v = await db.addItem(box) as visual.Solid;
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.selectableObjects.length).toBe(1);
+
+    db.makeSelectable(v, false);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.selectableObjects.length).toBe(0);
+
+    db.makeSelectable(v, true);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.selectableObjects.length).toBe(1);
 })
 
 test("lookupTopologyItem", async () => {

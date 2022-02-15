@@ -43,18 +43,14 @@ export default class ContourManager extends DatabaseProxy {
         super(db);
     }
 
-    async hide(item: visual.Item) {
-        const result = await this.db.hide(item);
+    async makeHidden(item: visual.Item, value: boolean) {
+        const result = await this.db.makeHidden(item, value);
         if (item instanceof visual.SpaceInstance) {
-            await this.removeCurve(item);
-        }
-        return result;
-    }
-
-    async unhide(item: visual.Item) {
-        const result = await this.db.unhide(item);
-        if (item instanceof visual.SpaceInstance) {
-            await this.addCurve(item);
+            if (value) {
+                await this.removeCurve(item);
+            } else {
+                await this.addCurve(item);
+            }
         }
         return result;
     }

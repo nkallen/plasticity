@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Layers } from "three";
 
 export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
 
