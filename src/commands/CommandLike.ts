@@ -83,7 +83,7 @@ export class InvertHiddenCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const db = this.editor.db;
         for (const { view } of db.findAll()) {
-            db.makeHidden(view, db.isHidden(view));
+            db.makeHidden(view, !db.isHidden(view));
         }
     }
 }
