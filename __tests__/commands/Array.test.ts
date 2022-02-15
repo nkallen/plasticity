@@ -49,15 +49,16 @@ describe(ArrayFactory, () => {
             array.degrees = 360;
             array.center = new THREE.Vector3();
             const items = await array.commit() as visual.Solid[];
+            expect(items.length).toBe(12);
             const item = items[0];
 
             const bbox = new THREE.Box3();
             const center = new THREE.Vector3();
             bbox.setFromObject(item);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 10, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 9.5, -0.5));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 0.5));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 10, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 11, 1));
         });
     })
 

@@ -73,23 +73,22 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
     async calculate() {
         const { params, names, _solid: { model: solid }, _curve: { model: curve }, num1, num2 } = this;
 
-        if (solid !== undefined) {
-            return [await c3d.ActionSolid.DuplicationSolid_async(solid, params, names)];
-        } else if (curve !== undefined) {
-            const result = [];
-            let matrices = params.GenerateTransformMatrices();
-            matrices = matrices.slice(1, 100); // NOTE: a bit paranoid about users making a mistake
-            let normalize = matrices[0];
-            normalize = normalize.Div(new c3d.Matrix3D());
-            const normalized = curve.Duplicate().Cast<c3d.Curve3D>(curve.IsA());
-            normalized.Transform(normalize);
-            for (const matrix of matrices) {
-                const dup = normalized.Duplicate().Cast<c3d.Curve3D>(normalized.IsA());
-                dup.Transform(matrix);
-                result.push(new c3d.SpaceInstance(dup));
-            }
-            return result;
-        } else throw new Error("invalid precondition");
+        const item = solid ?? curve;
+        if (item === undefined) throw new Error("invalid precondition");
+        const result = [];
+        let matrices = params.GenerateTransformMatrices();
+        matrices = matrices.slice(1, 100); // NOTE: a bit paranoid about users making a mistake
+        let normalize = matrices[0];
+        normalize = normalize.Div(new c3d.Matrix3D());
+        const normalized = item.Duplicate().Cast<c3d.Item>(item.IsA());
+        normalized.Transform(normalize);
+        for (const matrix of matrices) {
+            const dup = normalized.Duplicate().Cast<c3d.Item>(normalized.IsA());
+            dup.Transform(matrix);
+            if (dup instanceof c3d.Curve3D) result.push(new c3d.SpaceInstance(dup));
+            else result.push(dup);
+        }
+        return result;
     }
 
     get originalItem() {
