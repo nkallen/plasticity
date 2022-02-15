@@ -19,6 +19,8 @@ export class EditorSignals {
     objectReplaced: signals.Signal<Replacement> = new signals.Signal();
     objectHidden: signals.Signal<visual.Item> = new signals.Signal();
     objectUnhidden: signals.Signal<visual.Item> = new signals.Signal();
+    objectSelectable: signals.Signal<visual.Item> = new signals.Signal();
+    objectUnselectable: signals.Signal<visual.Item> = new signals.Signal();
     objectSelected: signals.Signal<Selectable> = new signals.Signal();
     objectDeselected: signals.Signal<Selectable> = new signals.Signal();
     objectHovered: signals.Signal<Selectable> = new signals.Signal();

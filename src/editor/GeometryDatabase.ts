@@ -378,14 +378,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         if (newValue) {
             if (oldValue) return;
             unselectable.delete(item.simpleName);
+            this.signals.objectSelectable.dispatch(item);
         } else {
             if (!oldValue) return;
             unselectable.add(item.simpleName);
+            this.signals.objectUnselectable.dispatch(item);
         }
     }
 
     isHidden(item: visual.Item): boolean {
-        return !this.hidden.has(item.simpleName);
+        return this.hidden.has(item.simpleName);
     }
 
     async makeHidden(item: visual.Item, newValue: boolean) {

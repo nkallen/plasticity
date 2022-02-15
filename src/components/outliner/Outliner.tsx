@@ -14,11 +14,19 @@ export default (editor: Editor) => {
             this.render();
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.selectionChanged.add(this.render);
+            editor.signals.objectHidden.add(this.render);
+            editor.signals.objectUnhidden.add(this.render);
+            editor.signals.objectSelectable.add(this.render);
+            editor.signals.objectUnselectable.add(this.render);
         }
 
         disconnectedCallback() {
             editor.signals.sceneGraphChanged.remove(this.render);
-            editor.signals.selectionChanged.add(this.render);
+            editor.signals.selectionChanged.remove(this.render);
+            editor.signals.objectHidden.remove(this.render);
+            editor.signals.objectUnhidden.remove(this.render);
+            editor.signals.objectSelectable.remove(this.render);
+            editor.signals.objectUnselectable.remove(this.render);
         }
 
         render = () => {
@@ -59,7 +67,7 @@ export default (editor: Editor) => {
                         <plasticity-icon name={item instanceof visual.Solid ? 'solid' : 'curve'} class="text-accent-500"></plasticity-icon>
                         <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{item instanceof visual.Solid ? 'Solid' : 'Curve'} {item.simpleName}</div>
                         <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setHidden(e, item, !hidden)}>
-                            <plasticity-icon key={hidden} name={hidden ? 'eye' : 'eye-off'}></plasticity-icon>
+                            <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
@@ -149,7 +157,6 @@ class ToggleHiddenCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         const { editor: { db, selection }, item, value } = this;
-        console.log(value);
         db.makeHidden(this.item, this.value);
         selection.selected.remove(item);
     }
@@ -166,7 +173,6 @@ class ToggleSelectableCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         const { editor: { db, selection }, item, value } = this;
-        console.log(value);
         db.makeSelectable(this.item, this.value);
         selection.selected.remove(item);
     }

@@ -491,6 +491,10 @@ export default (editor: Editor) => {
                             <path d="M8 8V8.5V12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M3 3L21 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
+                case 'blank':
+                    return render(
+                        <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        </svg>, this);                        
                 case 'alert':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
