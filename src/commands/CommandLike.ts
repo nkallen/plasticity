@@ -79,6 +79,15 @@ export class HideUnselectedCommand extends cmd.CommandLike {
     }
 }
 
+export class InvertHiddenCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const db = this.editor.db;
+        for (const { view } of db.findAll()) {
+            db.makeHidden(view, db.isHidden(view));
+        }
+    }
+}
+
 export class UnhideAllCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         this.editor.db.unhideAll();

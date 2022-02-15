@@ -262,6 +262,7 @@ export default {
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",
         "alt-h": "command:unhide-all",
+        "ctrl-h": "command:invert-hidden",
 
         "shift-r": "repeat-last-command",
         "cmd-z": "edit:undo",
