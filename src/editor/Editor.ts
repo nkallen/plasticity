@@ -131,8 +131,8 @@ export class Editor {
         this._activeViewport = v;
     }
 
-    clear() {
-        this.backup.clear();
+    async clear() {
+        await this.backup.clear();
         ipcRenderer.invoke('reload');
     }
 
