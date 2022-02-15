@@ -457,6 +457,27 @@ export default (editor: Editor) => {
                             <path d="M7.36185 7.5611C5.68002 8.73968 4.27894 10.4188 3 12C4.88856 14.991 8.2817 18 12 18C13.5499 18 15.0434 17.4772 16.3949 16.6508" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M12 6C16.0084 6 18.7015 9.1582 21 12C20.6815 12.5043 20.3203 13.0092 19.922 13.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
+                case 'light-bulb-on':
+                    return render(
+                        <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 2L20 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 2L4 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 16L20 15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 16L4 15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M9 18H15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 21H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M11.9998 3C7.9997 3 5.95186 4.95029 5.99985 8C6.02324 9.48689 6.4997 10.5 7.49985 11.5C8.5 12.5 9 13 8.99985 15H14.9998C15 13.0001 15.5 12.5 16.4997 11.5001L16.4998 11.5C17.4997 10.5 17.9765 9.48689 17.9998 8C18.0478 4.95029 16 3 11.9998 3Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>, this);
+                case 'light-bulb-off':
+                    return render(
+                        <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 18H15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 21H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M16.4999 11.5C17.4997 10.5 17.9765 9.48689 17.9999 8C18.0479 4.95029 16 3 11.9999 3C10.8324 3 9.83119 3.16613 8.99988 3.47724" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M8.99985 15C9 13 8.5 12.5 7.49985 11.5C6.4997 10.5 6.02324 9.48689 5.99985 8C5.99142 7.46458 6.0476 6.96304 6.1676 6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 3L21 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>, this);
+
                 case 'alert':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -366,6 +366,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
+    isHidden(item: visual.Item): boolean {
+        return !this.hidden.has(item.simpleName);
+    }
+    
     async hide(item: visual.Item) {
         if (this.hidden.has(item.simpleName)) return;
         this.hidden.add(item.simpleName);

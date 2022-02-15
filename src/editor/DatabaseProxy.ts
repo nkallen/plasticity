@@ -111,6 +111,10 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.selectableObjects;
     }
 
+    isHidden(item: visual.Item) {
+        return this.db.isHidden(item);
+    }
+
     hide(item: visual.Item): Promise<void> {
         return this.db.hide(item);
     }

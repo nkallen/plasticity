@@ -22,7 +22,7 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { db, db: { types} } = editor;
+            const { db, db: { types } } = editor;
             render(
                 <div class="py-3 px-4">
                     <section class="mb-4">
@@ -52,12 +52,16 @@ export default (editor: Editor) => {
             return <ol class="space-y-1" key={name}>
                 {items.map(item => {
                     const visible = db.isVisible(item);
+                    const hidden = db.isHidden(item);
                     const isSelected = selection.has(item);
                     return <li key={item.simpleName} class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
-                        <plasticity-icon name="curve" class="text-accent-500"></plasticity-icon>
-                        <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{item.constructor.name} {item.simpleName}</div>
+                        <plasticity-icon name={item instanceof visual.Solid ? 'solid' : 'curve'} class="text-accent-500"></plasticity-icon>
+                        <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{item instanceof visual.Solid ? 'Solid' : 'Curve'} {item.simpleName}</div>
+                        <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setHidden(e, item, !hidden)}>
+                            <plasticity-icon key={hidden} name={hidden ? 'eye' : 'eye-off'}></plasticity-icon>
+                        </button>
                         <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
-                            <plasticity-icon key={visible} name={visible ? 'eye' : 'eye-off'}></plasticity-icon>
+                            <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                         </button>
                     </li>;
                 })}
@@ -71,6 +75,13 @@ export default (editor: Editor) => {
 
         setVisibility = (e: MouseEvent, item: visual.Item, value: boolean) => {
             const command = new ToggleVisibilityCommand(editor, item, value);
+            editor.enqueue(command, true);
+            e.stopPropagation();
+            this.render();
+        }
+
+        setHidden = (e: MouseEvent, item: visual.Item, value: boolean) => {
+            const command = new ToggleHiddenCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
             this.render();
@@ -113,5 +124,23 @@ class ToggleVisibilityCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         this.editor.db.makeVisible(this.item, this.value);
         this.editor.selection.selected.remove(this.item);
+    }
+}
+
+class ToggleHiddenCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly item: visual.Item,
+        private readonly value: boolean,
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { editor: { db, selection }, item, value } = this;
+        console.log(value);
+        if (!value) db.hide(item)
+        else db.unhide(item);
+        selection.selected.remove(item);
     }
 }

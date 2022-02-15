@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { composeMainName, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
-import { GeometryFactory } from '../../command/GeometryFactory';
-import * as visual from "../../visual_model/VisualModel";
 import { derive } from "../../command/FactoryBuilder";
+import { GeometryFactory } from '../../command/GeometryFactory';
+import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
+import * as visual from "../../visual_model/VisualModel";
 
 export interface ArrayParams {
     isPolar: boolean;

@@ -78,6 +78,7 @@ export interface DatabaseLike {
     get visibleObjects(): visual.Item[];
     get selectableObjects(): visual.Item[];
     
+    isHidden(item: visual.Item): boolean;
     hide(item: visual.Item): Promise<void>;
     unhide(item: visual.Item): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
