@@ -151,7 +151,7 @@ describe(ParallelMeshCreator, () => {
             });
         })
 
-        describe('face cache', () => {
+        describe.skip('face cache', () => {
             let box: visual.Solid;
             let item1: c3d.Solid, item2: c3d.Solid;
 
@@ -172,34 +172,38 @@ describe(ParallelMeshCreator, () => {
 
             test('with cache, same ancestral name, face hit', async () => {
                 await parallel.caching(async () => {
-                    await parallel.create(item1, stepData, formNote, true, box.simpleName);
+                    await parallel.create(item1, stepData, formNote, true, db.lookup(box));
                     expect(calculateGrid).toBeCalledTimes(7);
                     calculateGrid.mockClear();
 
-                    await parallel.create(item2, stepData, formNote, true, box.simpleName);
+                    await parallel.create(item2, stepData, formNote, true, db.lookup(box));
                     expect(calculateGrid).toBeCalledTimes(5);
                 });
             });
 
             test('with cache, diff ancestral name, face hit', async () => {
                 await parallel.caching(async () => {
-                    await parallel.create(item1, stepData, formNote, true, 1);
+                    await parallel.create(item1, stepData, formNote, true, db.lookup(box));
                     expect(calculateGrid).toBeCalledTimes(7);
                     calculateGrid.mockClear();
 
-                    await parallel.create(item2, stepData, formNote, true, 2);
+                    makeSphere.center = new THREE.Vector3();
+                    makeSphere.radius = 1;
+                    const sphere = await makeSphere.calculate() as c3d.Solid;
+        
+                    await parallel.create(item2, stepData, formNote, true, sphere);
                     expect(calculateGrid).toBeCalledTimes(7);
                 });
             });
 
             test('with different caches, same ancestral name, face hit', async () => {
                 await parallel.caching(async () => {
-                    await parallel.create(item1, stepData, formNote, true, box.simpleName);
+                    await parallel.create(item1, stepData, formNote, true, db.lookup(box));
                     expect(calculateGrid).toBeCalledTimes(7);
                     calculateGrid.mockClear();
                 });
                 await parallel.caching(async () => {
-                    await parallel.create(item2, stepData, formNote, true, box.simpleName);
+                    await parallel.create(item2, stepData, formNote, true, db.lookup(box));
                     expect(calculateGrid).toBeCalledTimes(7);
                 });
             });

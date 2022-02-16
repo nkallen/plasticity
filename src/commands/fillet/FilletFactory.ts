@@ -119,6 +119,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     async calculate() {
         const { _solid: { model: solid }, params, edgeFunctions, curveEdges, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
+
         if (this.mode === c3d.CreatorType.ChamferSolid) {
             return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, curveEdges, params, this.names);
         } else {

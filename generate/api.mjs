@@ -1,3 +1,5 @@
+import { isRegExp } from "underscore";
+
 const isReturn = { isReturn: true };
 const isNullable = { isNullable: true };
 const isErrorBool = { isErrorBool: true };
@@ -218,7 +220,8 @@ export default {
             extends: "Item",
             dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h"],
             initializers: [
-                "MbFaceShell * shell, MbCreator * creator"
+                "MbFaceShell * shell, MbCreator * creator",
+                "MbFaceShell & shell, const MbSolid & solid, MbCreator * creator = NULL",
             ],
             functions: [
                 { signature: "void GetEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
@@ -504,10 +507,36 @@ export default {
         FaceShell: {
             rawHeader: "topology_faceset.h",
             extends: "TopItem",
-            dependencies: ["TopItem.h", "CurveEdge.h"],
+            dependencies: ["TopItem.h", "CurveEdge.h", "EdgeFacesIndexes.h", "ShellHistory.h", "RegDuplicate.h", "Function.h", "Curve3D.h"],
             initializers: [""],
             functions: [
                 { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
+                { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
+                { signature: "bool FindFacesIndexByEdges(const RPArray<MbCurveEdge> & init, SArray<MbEdgeFacesIndexes> &indexes, bool any = false)", indexes: isReturn, return: isErrorBool },
+                { signature: "bool FindEdgesByFacesIndex(const SArray<MbEdgeFacesIndexes> & indexes, RPArray<MbFunction> * functions, RPArray<MbCurve3D> * slideways, RPArray<MbCurveEdge> & initCurves, RPArray<MbFunction> & initFunctions, RPArray<MbCurve3D> & initSlideways)", initCurves: isReturn, return: isErrorBool },
+                "MbFaceShell * Copy(MbeCopyMode sameShell, MbShellHistory * history = NULL, MbRegDuplicate * iReg = NULL)",
+                "MbCurveEdge * GetEdge(size_t index)",
+            ]
+        },
+        EdgeFacesIndexes: {
+            rawHeader: "op_binding_data.h",
+            dependencies: [],
+            initializers: [""],
+            functions: [],
+            fields: [
+                "size_t edgeIndex",
+                "size_t facePIndex",
+                "size_t faceMIndex",
+                "SimpleName itemName",
+            ]
+        },
+        ShellHistory: {
+            rawHeader: "shell_history.h",
+            dependencies: ["Face.h", "FaceShell.h"],
+            initializers: [""],
+            functions: [
+                "void InitOrigins(const RPArray<MbFace> & origin)",
+                "void SetOrigins(MbFaceShell & shell)",
             ]
         },
         ElementarySolid: {
@@ -1003,6 +1032,7 @@ export default {
                 "bool IsPlanar()",
                 { signature: "bool GetCylinderAxis(MbAxis3D & axis)", axis: isReturn, return: isErrorBool },
                 "bool UpdateSurfaceBounds(bool curveBoundedOnly = true)",
+                "bool IsOwnChangedItem(bool checkVertices = false)",
             ]
         },
         Vertex: {

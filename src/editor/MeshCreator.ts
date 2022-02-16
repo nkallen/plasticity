@@ -1,3 +1,4 @@
+import { CompressedPixelFormat } from 'three';
 import c3d from '../../build/Release/c3d.node';
 import { Delay } from '../util/SequentialExecutor';
 
@@ -7,7 +8,7 @@ export interface MeshLike {
 }
 
 export interface MeshCreator {
-    create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike>;
+    create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike>;
 }
 
 export interface CachingMeshCreator extends MeshCreator {
@@ -15,7 +16,7 @@ export interface CachingMeshCreator extends MeshCreator {
 }
 
 export class SyncMeshCreator implements MeshCreator {
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike> {
         const item = obj.CreateMesh(stepData, formNote)!;
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const grids = mesh.GetBuffers();
@@ -29,7 +30,7 @@ export class SyncMeshCreator implements MeshCreator {
 
 // This is the basic mesh creation strategy. It definitely works correctly, but because it lacks parallelism it is slow
 export class BasicMeshCreator implements MeshCreator {
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike> {
         const item = await obj.CreateMesh_async(stepData, formNote);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const grids = mesh.GetBuffers();
@@ -44,11 +45,11 @@ export class BasicMeshCreator implements MeshCreator {
 // Optimized for solids, computes faces in parallel; faces are cached and so are entire objects.
 export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     private readonly fallback = new BasicMeshCreator();
-    private faceCache?: Map<c3d.SimpleName, Map<string, c3d.Grid>>;
+    private faceCache?: Map<c3d.Item, Map<string, c3d.Grid>>;
     private objectCache?: Map<FormAndPrecisionKey, Map<bigint, Promise<MeshLike>>>;
 
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, name?: c3d.SimpleName): Promise<MeshLike> {
-        if (obj.IsA() !== c3d.SpaceType.Solid) return this.fallback.create(obj, stepData, formNote, outlinesOnly, name);
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike> {
+        if (obj.IsA() !== c3d.SpaceType.Solid) return this.fallback.create(obj, stepData, formNote, outlinesOnly, ancestor);
         const solid = obj as c3d.Solid;
 
         const { faceCache, objectCache } = this;
@@ -70,12 +71,12 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
 
         let cache: Map<string, c3d.Grid> | undefined = undefined;
         FaceCache: {
-            if (faceCache !== undefined && name !== undefined) {
-                if (faceCache.has(name)) {
-                    cache = faceCache.get(name)!;
+            if (faceCache !== undefined && ancestor !== undefined) {
+                if (faceCache.has(ancestor)) {
+                    cache = faceCache.get(ancestor)!;
                 } else {
                     cache = new Map();
-                    faceCache.set(name, cache);
+                    faceCache.set(ancestor, cache);
                 }
             }
         }
@@ -135,7 +136,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     }
 
     async caching(f: () => Promise<void>): Promise<void> {
-        this.faceCache = new Map();
+        // this.faceCache = new Map();
         this.objectCache = new Map();
         try { await f() }
         catch (e) { throw e }
