@@ -35,7 +35,11 @@ export class Backup {
 
     async clear() {
         const tempFilePath = await this.tempFilePath();
-        await fs.promises.rm(tempFilePath);
+        try {
+            await fs.promises.rm(tempFilePath);
+        } catch (e) {
+            console.warn(e);
+        }
     }
 
     async makeTempDir() {

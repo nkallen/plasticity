@@ -10,6 +10,9 @@ import fse from 'fs-extra';
 import { buildContextMenu, buildMenu } from './Menu';
 import window from 'electron-window-state';
 
+const idealNumberOfThreads = Math.max(4, Math.min(8, os.cpus().length / 2));
+process.env.UV_THREADPOOL_SIZE = `${idealNumberOfThreads}`;
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
