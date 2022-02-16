@@ -8,6 +8,7 @@ import MaterialDatabase from '../../editor/MaterialDatabase';
 import { composeMainName, deunit, truncunit, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
+import { FunctionWrapper } from './FunctionWrapper';
 
 export interface FilletParams {
     edges: visual.CurveEdge[];
@@ -32,7 +33,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     edgeFunctions!: c3d.EdgeFunction[];
     curveEdges!: c3d.CurveEdge[];
-    functions!: Map<string, c3d.CubicFunction>;
+    functions!: Map<string, FunctionWrapper>;
 
     constructor(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals, cache?: GeometryFactoryCache) {
         super(db, materials, signals, cache);
@@ -63,13 +64,13 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     set edges(edges: visual.CurveEdge[]) {
         const edgeFunctions = [];
         const curveEdges = [];
-        const name2function = new Map<string, c3d.CubicFunction>();
+        const name2function = new Map<string, FunctionWrapper>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
             curveEdges.push(model);
-            const fn = new c3d.CubicFunction(1, 1);
+            const fn = new FunctionWrapper(new c3d.CubicFunction(1, 1));
             name2function.set(edge.simpleName, fn);
-            edgeFunctions.push(new c3d.EdgeFunction(model, fn));
+            edgeFunctions.push(new c3d.EdgeFunction(model, fn.underlying));
         }
         this.edgeFunctions = edgeFunctions;
         this.curveEdges = curveEdges;
@@ -138,10 +139,12 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get originalItem() { return this._solid.view }
 
     toJSON() {
-        const { distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict } = this;
+        const { distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict, functions } = this;
+        const fns = [...functions.values()].map(f => f.toJSON());
         return {
             dataType: 'FilletFactory',
-            distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict
+            distance1, distance2, form, conic, prolong, smoothCorner, begLength, endLength, keepCant, strict,
+            fns
         }
     }
 
@@ -206,6 +209,7 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
 
     get originalItem() { return this.updater.originalItem }
 }
+
 
 function dirty(target: MaxFilletFactory, propertyKey: keyof MaxFilletFactory) {
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey)!;
@@ -282,7 +286,7 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
         return this.distance1 < 0 ? c3d.CreatorType.ChamferSolid : c3d.CreatorType.FilletSolid;
     }
 
-    get functions(): FilletFactory['functions'] {
+    get functions(): MaxFilletFactory['functions'] {
         return this.factories.map(f => f.functions)[this.factories.length - 1];
     }
 }

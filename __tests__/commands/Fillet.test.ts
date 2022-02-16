@@ -2,6 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import FilletFactory, { Max, MaxFilletFactory, MultiFilletFactory } from "../../src/commands/fillet/FilletFactory";
+import { FunctionWrapper } from "../../src/commands/fillet/FunctionWrapper";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -29,12 +30,17 @@ describe(FilletFactory, () => {
         makeFillet = new FilletFactory(db, materials, signals);
     })
 
-    test('positive distance', async () => {
+    let box: visual.Solid;
+    beforeEach(async () => {
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = await makeBox.commit() as visual.Solid;
+        box = await makeBox.commit() as visual.Solid;
+    })
+
+
+    test('positive distance', async () => {
         const edge = box.edges.get(0);
 
         makeFillet.solid = box;
@@ -46,11 +52,6 @@ describe(FilletFactory, () => {
     })
 
     test('negative distance', async () => {
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = await makeBox.commit() as visual.Solid;
         const edge = box.edges.get(0);
 
         makeFillet.solid = box;
@@ -59,6 +60,25 @@ describe(FilletFactory, () => {
         await makeFillet.commit();
 
         expect(makeFillet.mode).toBe(c3d.CreatorType.ChamferSolid);
+    })
+
+    test('variable fillet', async () => {
+        const edge = box.edges.get(0);
+
+        makeFillet.solid = box;
+        makeFillet.edges = [edge];
+        makeFillet.distance = 0.1;
+        const fn = makeFillet.functions.get(edge.simpleName)!;
+        fn.InsertValue(1, 10);
+        const result = await makeFillet.commit() as visual.Item;
+
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(result);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 });
 
@@ -239,3 +259,35 @@ describe(MultiFilletFactory, () => {
         expect(f2_calculate).toBeCalledTimes(1);
     })
 })
+
+describe(FunctionWrapper, () => {
+    test('it makes a json', () => {
+        const underlying = new c3d.CubicFunction(1, 1);
+        const wrapper = new FunctionWrapper(underlying);
+        wrapper.InsertValue(0, 2);
+        expect(wrapper.toJSON()).toEqual({ t: 0, value: 2 });
+    })
+
+    let makeFillet: FilletFactory;
+
+    beforeEach(() => {
+        makeFillet = new FilletFactory(db, materials, signals);
+    })
+
+    test('is reflected in the fillet json', async () => {
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        const box = await makeBox.commit() as visual.Solid;
+        const edge = box.edges.get(0);
+
+        makeFillet.solid = box;
+        makeFillet.edges = [edge];
+        makeFillet.distance = 0.1;
+        const fn = makeFillet.functions.get(edge.simpleName)!;
+        fn.InsertValue(1, 10);
+        expect(makeFillet.toJSON().fns).toEqual([{ t: 1, value: 10 }]);
+        await makeFillet.commit();
+    })
+});
