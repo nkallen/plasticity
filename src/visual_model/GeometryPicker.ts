@@ -11,7 +11,7 @@ export class GeometryPicker {
         private readonly layers: LayerManager,
         private readonly raycasterParams: THREE.RaycasterParameters,
     ) {
-        this.raycaster.layers = layers.visible;
+        this.raycaster.layers = layers.visible as THREE.Layers;
     }
 
     intersect(objects: THREE.Object3D[], isXRay = this.viewport.isXRay): intersectable.Intersection[] {

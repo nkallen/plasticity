@@ -225,7 +225,6 @@ Curves: {
     }
 
     ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const inst = this.parentItem;
         const is: THREE.Intersection[] = [];
         raycaster.intersectObject(this.points, false, is);
         for (const i of is) {

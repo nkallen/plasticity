@@ -256,11 +256,11 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
 }
 
 export class CurveEdgeGroupBuilder extends CurveBuilder<CurveEdge> {
-    get make() { return CurveEdge; }
+    get make() { return CurveEdge }
 }
 
 export class CurveSegmentGroupBuilder extends CurveBuilder<CurveSegment> {
-    get make() { return CurveSegment; }
+    get make() { return CurveSegment }
 }
 
 export class ControlPointGroupBuilder {

@@ -283,7 +283,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             // FIXME: this is inefficient
             scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
 
-            camera.layers = this.editor.layers.visible;
+            camera.layers = this.editor.layers.visible as THREE.Layers;
             composer.render();
 
             if (frameNumber > lastFrameNumber) {

@@ -10,11 +10,12 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
+import theme from '../../src/startup/default-theme';
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, GeometryGroupUtils, SpaceInstance } from '../../src/visual_model/VisualModel';
-import { CurveEdgeGroupBuilder } from '../../src/visual_model/VisualModelBuilder';
+import { ControlPointGroupBuilder, CurveEdgeGroupBuilder, CurveSegmentGroupBuilder } from '../../src/visual_model/VisualModelBuilder';
+import { BetterRaycastingPoints } from "../../src/visual_model/VisualModelRaycasting";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import theme from '../../src/startup/default-theme';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -88,7 +89,6 @@ describe(CurveGroup, () => {
             builder.add(edgebuffer2, 0, new LineMaterial(), new LineMaterial());
             builder.add(edgebuffer3, 0, new LineMaterial(), new LineMaterial());
             group = builder.build();
-
         });
 
         test('it works', () => {
@@ -136,5 +136,24 @@ describe(ControlPointGroup, () => {
     test('get sets position', () => {
         const point = circle.underlying.points.get(0);
         expect(point.position).toEqual(new THREE.Vector3(1, 0, 0));
+    })
+})
+
+describe(Curve3D, () => {
+    test('befragment zeros out points', () => {
+        const buffer = {
+            position: new Float32Array([0, 0, 0, 1, 0, 0]),
+            style: 0, simpleName: 0, name: undefined as any, i: 0
+        } as c3d.EdgeBuffer;
+        const builder = new CurveSegmentGroupBuilder();
+        builder.add(buffer, 0, new LineMaterial(), new LineMaterial());
+        const group = builder.build();
+
+        const points = new ControlPointGroup(10, new BetterRaycastingPoints());
+        const curve = new Curve3D(group, points);
+        expect(curve.points.length).toBe(10);
+        curve.befragment(1, 1, new SpaceInstance());
+        expect(curve.points.length).toBe(0);
+        expect(curve.points.points.geometry.attributes.position.count).toBe(0);
     })
 })

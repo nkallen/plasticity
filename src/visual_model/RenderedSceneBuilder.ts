@@ -173,16 +173,17 @@ export class RenderedSceneBuilder {
         curve.occludedLine.layers.set(occludedLayer);
         curve.layers.set(layer);
         const geometry = curve.points.geometry;
-        if (geometry !== undefined) {
-            const colors = geometry.attributes.color;
-            const array = colors.array as unknown as Uint8Array;
-            for (let i = 0; i < array.length / 3; i++) {
-                array[i * 3 + 0] = controlPoint_unhighlighted.r * 255;
-                array[i * 3 + 1] = controlPoint_unhighlighted.g * 255;
-                array[i * 3 + 2] = controlPoint_unhighlighted.b * 255;
-            }
-            colors.needsUpdate = true;
+        const colors = geometry.attributes.color;
+        if (colors === undefined) return;
+        const colorsArray = colors.array as unknown as Uint8Array;
+        for (let i = 0; i < colorsArray.length / 3; i++) {
+            const id = visual.ControlPoint.simpleName(item.simpleName, i);
+            const color = selected.controlPointIds.has(id) ? controlPoint_highlighted : controlPoint_unhighlighted;
+            colorsArray[i * 3 + 0] = color.r * 255;
+            colorsArray[i * 3 + 1] = color.g * 255;
+            colorsArray[i * 3 + 2] = color.b * 255;
         }
+        colors.needsUpdate = true;
     }
 
     private highlightControlPoints() {

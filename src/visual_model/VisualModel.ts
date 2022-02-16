@@ -180,9 +180,9 @@ export class Curve3D extends SpaceItem {
         return new Curve3D(segments.build(), points);
     }
 
-    constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: ControlPointGroup) {
+    constructor(readonly segments: CurveGroup<CurveSegment>, private _points: ControlPointGroup) {
         super();
-        this.add(segments, points);
+        this.add(segments, _points);
         this.layers.set(Layers.Curve);
     }
 
@@ -202,21 +202,29 @@ export class Curve3D extends SpaceItem {
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
-        this.points.dispose();
+        this._points.dispose();
+        this._points.removeFromParent();
+        this._points = new ControlPointGroup(0, emptyPoints);
+        this.add(this._points);
     }
 
     get isFragment(): boolean {
         return !!this.userData.untrimmedAncestor;
     }
 
+    get points() { return this._points }
     get line() { return this.segments.line }
     get occludedLine() { return this.segments.occludedLine }
 
     dispose() {
         this.segments.dispose();
-        this.points.dispose();
+        this._points.dispose();
     }
 }
+
+const emptyGeometry = new THREE.BufferGeometry();
+emptyGeometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3));
+const emptyPoints = new THREE.Points(emptyGeometry);
 
 export class Surface extends SpaceItem {
     static build(grid: c3d.MeshBuffer, material: THREE.Material): Surface {

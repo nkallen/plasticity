@@ -17,7 +17,7 @@ export interface EditorLike extends cmd.EditorLike {
 
 export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new BoxSelectionHelper(this.viewport.domElement, 'select-box');
-    private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
+    private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.intersectable);
 
     constructor(
         viewport: Viewport,

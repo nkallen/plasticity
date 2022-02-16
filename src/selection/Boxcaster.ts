@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { ReadonlyLayers } from "../editor/LayerManager";
 
 export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
 
@@ -23,7 +24,7 @@ export class Boxcaster {
     private mode: 'contains' | 'intersects' = 'contains';
     private readonly deep = Number.MAX_VALUE;
 
-    constructor(private readonly camera: CameraLike, public layers = new THREE.Layers()) {
+    constructor(private readonly camera: CameraLike, public layers: ReadonlyLayers = new THREE.Layers()) {
     }
 
     selectObject<T extends Boxcastable>(object: T, selected: T[] = []): T[] {

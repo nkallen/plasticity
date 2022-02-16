@@ -12,8 +12,8 @@ export default class LayerManager {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
-    get intersectable() { return this._intersectable }
-    get visible() { return this._visible }
+    get intersectable(): ReadonlyLayers { return this._intersectable }
+    get visible(): ReadonlyLayers { return this._visible }
 
     constructor(private readonly selection: HasSelection, private readonly signals: EditorSignals) {
         this.selectionModeChanged = this.selectionModeChanged.bind(this);
@@ -89,10 +89,8 @@ export default class LayerManager {
         }
 
         if (mode.has(SelectionMode.ControlPoint)) {
-            _intersectable.enable(visual.Layers.ControlPoint);
             this.showControlPoints();
         } else {
-            _intersectable.disable(visual.Layers.ControlPoint);
             this.hideControlPoints();
         }
     }
@@ -127,4 +125,10 @@ export default class LayerManager {
         _visible.toggle(visual.Layers.XRay);
         _intersectable.toggle(visual.Layers.XRay);
     }
+}
+
+export interface ReadonlyLayers {
+    mask: number;
+    test(layers: THREE.Layers): boolean;
+    isEnabled(channel: number): boolean;
 }
