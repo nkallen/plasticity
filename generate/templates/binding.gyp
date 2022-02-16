@@ -52,7 +52,9 @@
                             'library_dirs': ['<(module_root_dir)/vendor/c3d/Release'],
                             'libraries': [
                                 '-Lvendor/c3d/Release', '-lc3d'
-                                "-Wl,-rpath,'$$ORIGIN'",
+                            ],
+                            "ldflags": [
+                                "-Wl,-rpath,'$$ORIGIN'"
                             ],
                             "cflags+": [ "-std=c++11" ],
                             "cflags_c+": [ "-std=c++11" ],
