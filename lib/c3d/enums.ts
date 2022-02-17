@@ -801,5 +801,6 @@ Object.assign(c3d, {
     ExtensionWay,
     LateralKind,
     HoleType,
-    SlotType
+    SlotType,
+    ChangedType
 });

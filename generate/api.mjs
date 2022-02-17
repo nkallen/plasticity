@@ -221,7 +221,7 @@ export default {
             dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h"],
             initializers: [
                 "MbFaceShell * shell, MbCreator * creator",
-                "MbFaceShell & shell, const MbSolid & solid, MbCreator * creator = NULL",
+                "MbFaceShell & shell, const MbSolid & solid, MbCreator * creator = nullptr",
             ],
             functions: [
                 { signature: "void GetEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
@@ -513,9 +513,10 @@ export default {
                 { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 { signature: "bool FindFacesIndexByEdges(const RPArray<MbCurveEdge> & init, SArray<MbEdgeFacesIndexes> &indexes, bool any = false)", indexes: isReturn, return: isErrorBool },
-                { signature: "bool FindEdgesByFacesIndex(const SArray<MbEdgeFacesIndexes> & indexes, RPArray<MbFunction> * functions, RPArray<MbCurve3D> * slideways, RPArray<MbCurveEdge> & initCurves, RPArray<MbFunction> & initFunctions, RPArray<MbCurve3D> & initSlideways)", initCurves: isReturn, return: isErrorBool },
+                { signature: "bool FindEdgesByFacesIndex(const SArray<MbEdgeFacesIndexes> & indexes, RPArray<MbFunction> * functions, RPArray<MbCurve3D> * slideways, RPArray<MbCurveEdge> & initCurves, RPArray<MbFunction> & initFunctions, RPArray<MbCurve3D> & initSlideways)", initCurves: isReturn, return: isErrorBool, functions: isNullable, slideways: isNullable },
                 "MbFaceShell * Copy(MbeCopyMode sameShell, MbShellHistory * history = NULL, MbRegDuplicate * iReg = NULL)",
                 "MbCurveEdge * GetEdge(size_t index)",
+                "void SetOwnChangedThrough(MbeChangedType n)",
             ]
         },
         EdgeFacesIndexes: {
