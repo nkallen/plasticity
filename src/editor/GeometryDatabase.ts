@@ -484,6 +484,17 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         await Promise.all(promises);
     }
 
+    copy(solid: c3d.Solid, edges: c3d.CurveEdge[]) {
+        const shell = solid.GetShell()!;
+        const indices = shell.FindFacesIndexByEdges(edges);
+        const history = new c3d.ShellHistory();
+        const copyShell = shell.Copy(c3d.CopyMode.KeepHistory, history)!;
+        copyShell.SetOwnChangedThrough(c3d.ChangedType.Unchanged);
+        const copySolid = new c3d.Solid(copyShell, solid, undefined);
+        const copyEdges = copyShell.FindEdgesByFacesIndex(indices, null, null, [], []);
+        return { solid: copySolid, edges: copyEdges }
+    }
+    
     validate() {
     }
 
