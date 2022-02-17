@@ -32,6 +32,7 @@ rules.push({
 });
 
 const libraries = [];
+if (process.platform == "linux") libraries.push({ from: "build/Release/*.so", to: "[name][ext]" });
 if (process.platform == "darwin") libraries.push({ from: "build/Release/*.dylib", to: "[name][ext]" });
 if (process.platform == "win32") libraries.push({ from: "build/Release/*.dll", to: "[name][ext]" });
 plugins.push(
