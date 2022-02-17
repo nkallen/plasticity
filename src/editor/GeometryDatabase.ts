@@ -484,17 +484,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         await Promise.all(promises);
     }
 
-    copy(solid: c3d.Solid, edges: c3d.CurveEdge[]) {
-        const shell = solid.GetShell()!;
-        const indices = shell.FindFacesIndexByEdges(edges);
-        const history = new c3d.ShellHistory();
-        const copyShell = shell.Copy(c3d.CopyMode.KeepHistory, history)!;
-        copyShell.SetOwnChangedThrough(c3d.ChangedType.Unchanged);
-        const copySolid = new c3d.Solid(copyShell, solid, undefined);
-        const copyEdges = copyShell.FindEdgesByFacesIndex(indices, null, null, [], []);
-        return { solid: copySolid, edges: copyEdges }
+    register(solid: c3d.Solid, history: Map<bigint, bigint>) {
+        this.meshCreator.register(solid, history);
     }
-    
+
     validate() {
     }
 
@@ -513,4 +506,22 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         console.groupEnd();
         console.groupEnd();
     }
+}
+
+export function copyduplicate(solid: c3d.Solid, indices: { functions: c3d.Function[], slideways: c3d.Curve3D[], indexes: c3d.EdgeFacesIndexes[] }): { solid: c3d.Solid; edges: c3d.CurveEdge[], functions: c3d.Function[], history: Map<bigint, bigint> } {
+    const shell = solid.GetShell()!;
+    const history = new c3d.ShellHistory();
+    const copyShell = shell.Copy(c3d.CopyMode.KeepHistory, history)!;
+    copyShell.SetOwnChangedThrough(c3d.ChangedType.Unchanged);
+    const copySolid = new c3d.Solid(copyShell, solid, undefined);
+    const { functions, slideways, initCurves } = copyShell.FindEdgesByFacesIndex(indices.indexes, indices.functions, indices.slideways);
+
+    const origins = history.SetOriginFaces();
+    const copies = history.SetCopyFaces();
+    const map = new Map<bigint, bigint>();
+    for (const [i, face] of origins.entries()) {
+        map.set(copies[i].Id(), face.Id());
+    }
+
+    return { solid: copySolid, edges: initCurves, functions, history: map }
 }

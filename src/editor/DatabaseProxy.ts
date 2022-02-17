@@ -116,11 +116,10 @@ export class DatabaseProxy implements DatabaseLike {
     isSelectable(item: visual.Item) { return this.db.isSelectable(item) }
     makeSelectable(item: visual.Item, value: boolean) { this.db.makeSelectable(item, value) }
 
-    async deserialize(data: Buffer): Promise<void> {
-        return this.db.deserialize(data);
+    register(solid: c3d.Solid, history: Map<bigint, bigint>) {
+        this.db.register(solid, history);
     }
 
-    async load(model: c3d.Model | c3d.Assembly): Promise<void> {
-        return this.db.load(model);
-    }
+    async deserialize(data: Buffer): Promise<void> { return this.db.deserialize(data) }
+    async load(model: c3d.Model | c3d.Assembly): Promise<void> { return this.db.load(model) }
 }

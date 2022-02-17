@@ -9,6 +9,7 @@ export interface MeshLike {
 
 export interface MeshCreator {
     create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike>;
+    register(solid: c3d.Solid, history: Map<bigint, bigint>): void;
 }
 
 export interface CachingMeshCreator extends MeshCreator {
@@ -26,6 +27,9 @@ export class SyncMeshCreator implements MeshCreator {
             edges: polygons,
         };
     }
+
+    async caching(f: () => Promise<void>) { }
+    register(solid: c3d.Solid, history: Map<bigint, bigint>) { }
 }
 
 // This is the basic mesh creation strategy. It definitely works correctly, but because it lacks parallelism it is slow
@@ -40,19 +44,24 @@ export class BasicMeshCreator implements MeshCreator {
             edges: polygons,
         };
     }
+
+    async caching(f: () => Promise<void>) { }
+    register(solid: c3d.Solid, history: Map<bigint, bigint>) { }
 }
 
 // Optimized for solids, computes faces in parallel; faces are cached and so are entire objects.
 export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     private readonly fallback = new BasicMeshCreator();
-    private faceCache?: Map<c3d.Item, Map<string, c3d.Grid>>;
+    private faceCache?: Map<bigint, c3d.Grid>;
     private objectCache?: Map<FormAndPrecisionKey, Map<bigint, Promise<MeshLike>>>;
+    private historyCache?: Map<c3d.Solid, Map<bigint, bigint>>;
 
     async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean, ancestor?: c3d.Item): Promise<MeshLike> {
         if (obj.IsA() !== c3d.SpaceType.Solid) return this.fallback.create(obj, stepData, formNote, outlinesOnly, ancestor);
         const solid = obj as c3d.Solid;
+        const shell = solid.GetShell()!;
 
-        const { faceCache, objectCache } = this;
+        const { faceCache, historyCache, objectCache } = this;
         const delay = new Delay<MeshLike>();
         ObjectCache: {
             const id = obj.Id();
@@ -69,17 +78,8 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
             }
         }
 
-        let cache: Map<string, c3d.Grid> | undefined = undefined;
-        FaceCache: {
-            if (faceCache !== undefined && ancestor !== undefined) {
-                if (faceCache.has(ancestor)) {
-                    cache = faceCache.get(ancestor)!;
-                } else {
-                    cache = new Map();
-                    faceCache.set(ancestor, cache);
-                }
-            }
-        }
+        let history: Map<bigint, bigint> | undefined = undefined;
+        history = historyCache?.get(solid);
 
         c3d.Mutex.EnterParallelRegion();
 
@@ -87,13 +87,11 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         // is the recommended approach. Also, note that we could create instead one mesh for all of these grids, it's equivalent.
         const facePromises: Promise<void>[] = [];
         const mesh = new c3d.Mesh(false);
-        for (const [i, face] of solid.GetFaces().entries()) {
-            // Here, "color" is re-used as face index. A face with the same index, the same name, and !GetOwnChanged() is considered cachable
-            const cacheKey = `${face.GetColor()}/${face.GetNameHash()}`;
-            face.SetColor(i);
-            const isCacheable = !face.GetOwnChanged() && cache !== undefined;
-            if (isCacheable && cache!.has(cacheKey)) {
-                mesh.AddExistingGrid(cache?.get(cacheKey)!);
+        for (const face of shell.GetFaces()) {
+            const id = history?.get(face.Id());
+            const isCacheable = !face.GetOwnChanged() && id !== undefined && faceCache !== undefined;
+            if (isCacheable && faceCache!.has(id)) {
+                mesh.AddExistingGrid(faceCache?.get(id)!);
             } else {
                 const grid = mesh.AddGrid()!;
                 face.AttributesConvert(grid);
@@ -102,7 +100,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
                 grid.SetPrimitiveType(c3d.RefType.TopItem);
                 grid.SetStepData(stepData);
                 const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair());
-                if (isCacheable) promise.then(() => cache?.set(cacheKey, grid));
+                if (isCacheable) promise.then(() => faceCache?.set(id, grid));
                 facePromises.push(promise);
             }
         }
@@ -136,14 +134,20 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     }
 
     async caching(f: () => Promise<void>): Promise<void> {
-        // this.faceCache = new Map();
+        this.faceCache = new Map();
         this.objectCache = new Map();
+        this.historyCache = new Map();
         try { await f() }
         catch (e) { throw e }
         finally {
             this.faceCache = undefined;
             this.objectCache = undefined;
+            this.historyCache = undefined;
         }
+    }
+
+    register(solid: c3d.Solid, history: Map<bigint, bigint>) {
+        this.historyCache?.set(solid, history);
     }
 }
 

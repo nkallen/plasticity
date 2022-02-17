@@ -4,6 +4,7 @@ import { GeometryFactory, GeometryFactoryCache, NoOpError, PhantomInfo } from '.
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
+import { copyduplicate } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import { composeMainName, deunit, truncunit, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
@@ -60,18 +61,27 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     set solid(solid: visual.Solid | c3d.Solid) { }
 
     private _edges!: visual.CurveEdge[];
+    private indices!: { functions: c3d.Function[], slideways: c3d.Curve3D[], indexes: c3d.EdgeFacesIndexes[] }
     get edges() { return this._edges }
     set edges(edges: visual.CurveEdge[]) {
         const edgeFunctions = [];
         const curveEdges = [];
         const name2function = new Map<string, FunctionWrapper>();
+        const names = [];
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
             curveEdges.push(model);
-            const fn = new FunctionWrapper(new c3d.CubicFunction(1, 1));
-            name2function.set(edge.simpleName, fn);
-            edgeFunctions.push(new c3d.EdgeFunction(model, fn.underlying));
+            names.push(edge.simpleName);
         }
+        for (const [i, edge] of curveEdges.entries()) {
+            const fn = new FunctionWrapper(new c3d.CubicFunction(1, 1));
+            const simpleName = names[i];
+            name2function.set(simpleName, fn);
+            edgeFunctions.push(new c3d.EdgeFunction(edge, fn.underlying));
+        }
+        const { _solid: { model: solid } } = this;
+        const shell = solid.GetShell()!;
+        this.indices = shell.FindFacesIndexByEdges(edgeFunctions);
         this.edgeFunctions = edgeFunctions;
         this.curveEdges = curveEdges;
         this.functions = name2function;
@@ -81,14 +91,14 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get distance() { return deunit(this.params.distance1) }
     set distance(d: number) {
         const { params } = this;
-        params.distance1 = truncunit(d, 2);
-        params.distance2 = truncunit(d, 2);
+        params.distance1 = truncunit(d, 3);
+        params.distance2 = truncunit(d, 3);
     }
 
     get distance1() { return deunit(this.params.distance1) }
-    set distance1(d: number) { this.params.distance1 = truncunit(d, 2) }
+    set distance1(d: number) { this.params.distance1 = truncunit(d, 3) }
     get distance2() { return deunit(this.params.distance2) }
-    set distance2(d: number) { this.params.distance2 = truncunit(d, 2) }
+    set distance2(d: number) { this.params.distance2 = truncunit(d, 3) }
     get form() { return this.params.form }
     set form(d: c3d.SmoothForm) { this.params.form = d }
     get conic() { return this.params.conic }
@@ -117,13 +127,23 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
-        const { _solid: { model: solid }, params, edgeFunctions, curveEdges, names } = this;
+        const { _solid: { model: solid }, params, indices, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
+        const { solid: copy, edges, functions, history } = copyduplicate(solid, indices);
+
         if (this.mode === c3d.CreatorType.ChamferSolid) {
-            return c3d.ActionSolid.ChamferSolid_async(solid, c3d.CopyMode.Copy, curveEdges, params, this.names);
+            const result = await c3d.ActionSolid.ChamferSolid_async(copy, c3d.CopyMode.Same, edges, params, this.names);
+            this.db.register(result, history);
+            return result;
         } else {
-            return c3d.ActionSolid.FilletSolid_async(solid, c3d.CopyMode.Copy, edgeFunctions, [], params, names);
+            const edgeFunctions = [];
+            for (const [i, edge] of edges.entries()) {
+                edgeFunctions.push(new c3d.EdgeFunction(edge, indices.functions[i]));
+            }
+            const result = await c3d.ActionSolid.FilletSolid_async(copy, c3d.CopyMode.Same, edgeFunctions, [], params, names);
+            this.db.register(result, history);
+            return result;
         }
     }
 

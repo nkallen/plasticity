@@ -58,7 +58,14 @@
                 <%_ if (arg.isPrimitive) { _%>
                 this-><%- arg.name %> = <%- arg.name %>;
                 <%_ } else if (arg.isOnStack) { _%>
-                this-><%- arg.name %> = new (<%- arg.rawType %>)(<%- arg.name %>);
+                    <%_ if (arg.isArray) { _%>
+                        this-><%- arg.name %> = new <%- arg.rawType %>(<%- arg.name %>.Count());
+                        for (size_t i = 0; i < <%- arg.name %>.Count(); i++) {
+                            (*this-><%- arg.name %>)[i] = <%- arg.name %>[i];
+                        }
+                    <%_ } else { _%>
+                        this-><%- arg.name %> = new (<%- arg.rawType %>)(<%- arg.name %>);
+                    <%_ } _%>
                 <%_ } else if (arg.isSPtr) { _%>
                 this-><%- arg.name %> = <%- arg.name %>;
                 <%_ } else if (!arg.isPointer && !arg.shouldAlloc) { _%>

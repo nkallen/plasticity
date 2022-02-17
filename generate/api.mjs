@@ -241,6 +241,7 @@ export default {
                 "const MbCube GetCube()",
                 "void SetOwnChangedThrough(MbeChangedType type)",
                 "void MakeRight()",
+                "bool IsRight()",
                 "MbeItemLocation SolidClassification(const MbSolid & solid, double epsilon = Math::metricRegion)"
             ]
         },
@@ -507,13 +508,14 @@ export default {
         FaceShell: {
             rawHeader: "topology_faceset.h",
             extends: "TopItem",
-            dependencies: ["TopItem.h", "CurveEdge.h", "EdgeFacesIndexes.h", "ShellHistory.h", "RegDuplicate.h", "Function.h", "Curve3D.h"],
+            dependencies: ["TopItem.h", "CurveEdge.h", "EdgeFunction.h", "Function.h", "EdgeFacesIndexes.h", "ShellHistory.h", "RegDuplicate.h", "Function.h", "Curve3D.h"],
             initializers: [""],
             functions: [
                 { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
-                { signature: "bool FindFacesIndexByEdges(const RPArray<MbCurveEdge> & init, SArray<MbEdgeFacesIndexes> &indexes, bool any = false)", indexes: isReturn, return: isErrorBool },
-                { signature: "bool FindEdgesByFacesIndex(const SArray<MbEdgeFacesIndexes> & indexes, RPArray<MbFunction> * functions, RPArray<MbCurve3D> * slideways, RPArray<MbCurveEdge> & initCurves, RPArray<MbFunction> & initFunctions, RPArray<MbCurve3D> & initSlideways)", initCurves: isReturn, return: isErrorBool, functions: isNullable, slideways: isNullable },
+                { signature: "bool FindFacesIndexByEdges(const SArray<MbEdgeFunction> & init, RPArray<MbFunction> & functions, RPArray<MbCurve3D> & slideways, SArray<MbEdgeFacesIndexes> & indexes)", indexes: isReturn, functions: isReturn, slideways: isReturn, return: isErrorBool },
+                // { signature: "bool FindFacesIndexByEdges(const RPArray<MbCurveEdge> & init, SArray<MbEdgeFacesIndexes> &indexes, bool any = false)", indexes: isReturn, return: isErrorBool },
+                { signature: "bool FindEdgesByFacesIndex(const SArray<MbEdgeFacesIndexes> & indexes, RPArray<MbFunction> * functions, RPArray<MbCurve3D> * slideways, RPArray<MbCurveEdge> & initCurves, RPArray<MbFunction> & initFunctions, RPArray<MbCurve3D> & initSlideways)", initCurves: isReturn, return: isErrorBool, functions: isReturn, slideways: isReturn },
                 "MbFaceShell * Copy(MbeCopyMode sameShell, MbShellHistory * history = NULL, MbRegDuplicate * iReg = NULL)",
                 "MbCurveEdge * GetEdge(size_t index)",
                 "void SetOwnChangedThrough(MbeChangedType n)",
@@ -538,6 +540,8 @@ export default {
             functions: [
                 "void InitOrigins(const RPArray<MbFace> & origin)",
                 "void SetOrigins(MbFaceShell & shell)",
+                "RPArray<MbFace> & SetOriginFaces()",
+                "RPArray<MbFace> & SetCopyFaces()",
             ]
         },
         ElementarySolid: {

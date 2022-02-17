@@ -8,7 +8,7 @@
     _to = arr_<%- arg.name %>;
 <%_ } else if (arg.isArray) { _%>
     Napi::Array arr_<%- arg.name %> = Napi::Array::New(env);
-    for (size_t i = 0; i < <%- arg.name %>-><%- arg.isVector ? 'size' : 'Count' %>(); i++) {
+    for (size_t i = 0; i < <%- arg.name %><%- skipCopy || arg.shouldAlloc ? '->' : '.' %><%- arg.isVector ? 'size' : 'Count' %>(); i++) {
         <%_ if (arg.elementType.rawType === "double") { _%>
             arr_<%- arg.name %>[i] = (*<%- arg.name %>)[i];
         <%_ } else { _%>
@@ -18,7 +18,7 @@
                 <% } else if (arg.isStructArray) { %>
                     new <%- arg.elementType.rawType %>((*<%- arg.name %>)[i])
                 <% } else { %>
-                    (*<%- arg.name %>)[i]
+                    (<%- skipCopy || arg.shouldAlloc ? '*' : '' %><%- arg.name %>)[i]
                 <% } %>
             );
         <%_ } _%>

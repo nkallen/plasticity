@@ -209,7 +209,7 @@ class ModuleDeclaration extends ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&:]+)\s+(?<name>[\w:]+)\(\s*(?<params>[\w\s<>,&*:=()]*)\s*\)/
+    static declaration = /(?<return>[\w\s<>,&*]+)\s+(?<name>[\w:]+)\(\s*(?<params>[\w\s<>,&*:=()]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         let options = {};
@@ -396,7 +396,7 @@ class ParamDeclaration extends TypeDeclaration {
 }
 
 class ReturnDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+)(\s+(?<ref>[*&]\s*))?/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<((?<elementConst>const)\s+)?(?<elementType>\w+)\>)?)(\s+(?<ref>[*&]*)\s*)?/;
 
     constructor(desc, typeRegistry, options) {
         const matchType = ReturnDeclaration.declaration.exec(desc);
@@ -410,6 +410,12 @@ class ReturnDeclaration extends TypeDeclaration {
         if (this.options?.ignore) this.ignore = true;
         this.const = matchType.groups.const;
         this.ref = matchType.groups.ref;
+
+        if (matchType.groups.elementType) {
+            this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
+            this.elementType.isReference = /RPArray|LIterator/.test(this.rawType);
+            this.elementType.klass = typeRegistry.resolveClass(this.elementType.jsType);
+        }
     }
 
     get isReturn() {

@@ -88,6 +88,8 @@ export interface DatabaseLike {
     isSelectable(item: visual.Item): boolean;
     makeSelectable(item: visual.Item, value: boolean): void;
 
+    register(solid: c3d.Solid, history: Map<bigint, bigint>): void;
+
     deserialize(data: Buffer): Promise<void>;
     load(model: c3d.Model | c3d.Assembly): Promise<void>;
 }
