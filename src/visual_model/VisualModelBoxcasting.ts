@@ -354,7 +354,7 @@ Curves: {
     }
 
     CurveSegment.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
-        const parent = this.parent as CurveGroup<CurveEdge>;
+        const parent = this.parent as CurveGroup<CurveSegment>;
         const { line: { matrixWorld } } = parent;
         if (this.boundingBox === undefined) this.computeBoundingBox();
         _box.copy(this.boundingBox!);
@@ -370,7 +370,7 @@ Curves: {
     }
 
     CurveSegment.prototype.containsGeometry = function (boxcaster: Boxcaster) {
-        const parent = this.parent as CurveGroup<CurveEdge>;
+        const parent = this.parent as CurveGroup<CurveSegment>;
         const { line: { geometry, matrixWorld } } = parent;
         const { group } = this;
 

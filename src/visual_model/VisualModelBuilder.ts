@@ -107,7 +107,7 @@ export class FaceGroupBuilder {
         const materials = [];
         const models = [];
         for (const [mesh, model] of meshes) {
-            // FIXME: this is a temporary hack awaiting SD#7292000
+            // FIXME: - i think this is an error condition?
             if (mesh.geometry.index!.array.length === 0) continue;
             geos.push(mesh.geometry);
             materials.push(mesh.material as THREE.Material);
@@ -153,7 +153,7 @@ export class FaceGroupBuilder {
 
 export type LineInfo = {
     position: Float32Array;
-    userData: any;
+    userData: { name: c3d.Name, simpleName: string, index: number };
     material: LineMaterial;
     occludedMaterial: LineMaterial;
     model: c3d.CurveEdge;
@@ -161,10 +161,8 @@ export type LineInfo = {
 
 abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
     private readonly lines: LineInfo[] = [];
-    private parentId!: c3d.SimpleName;
 
     add(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
-        this.parentId = parentId;
         const position = edge.position;
         const simpleName = CurveEdge.simpleName(parentId, edge.i);
         const userData = {
@@ -210,7 +208,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
                 if (topologyData === undefined) {
                     views = new Set<CurveEdge>();
                     topologyData = { model, views }
-                    topologyModel.set(edge.userData.simpleName, topologyData);
+                    topologyModel.set(edge.simpleName, topologyData);
                 } else {
                     views = topologyData.views;
                 }

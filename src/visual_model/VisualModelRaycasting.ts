@@ -3,11 +3,16 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { point2point, vec2vec } from '../util/Conversion';
 import { RaycasterParams } from "../editor/snaps/SnapPicker";
+import { point2point, vec2vec } from '../util/Conversion';
+import { RaycastableTopologyItem } from "./Intersectable";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
+    interface TopologyItem {
+        raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void;
+    }
+
     interface Face {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
@@ -23,6 +28,7 @@ declare module './VisualModel' {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
         boundingSphere?: THREE.Sphere;
+        raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void;
     }
 }
 
@@ -52,7 +58,19 @@ Solids: {
             if (!_ray.intersectsBox(geometry.boundingBox)) return;
         }
 
-        raycaster.intersectObjects([...this], false, intersects);
+        const objects = [...this];
+        for (const object of objects) {
+            if (object.layers.test(raycaster.layers)) {
+                raycastableTopologyItem.topologyItem = object;
+                raycastableTopologyItem.raycast(raycaster, intersects);
+            }
+        }
+
+        intersects.sort(ascSort);
+    }
+
+    RaycastableTopologyItem.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        this['_topologyItem'].raycast(raycaster, intersects);
     }
 
     Face.prototype.computeBoundingBox = function () {
@@ -79,9 +97,11 @@ Solids: {
         if (intersected) {
             const point = point2point(crossPoint, 1).applyMatrix4(matrixWorld);
             intersects.push({
-                object: this,
+                object: raycastableTopologyItem,
                 distance: raycaster.ray.origin.distanceTo(point),
                 point,
+                // @ts-expect-error
+                topologyItem: this,
             });
         }
     }
@@ -94,7 +114,7 @@ Solids: {
 
         let { linewidth } = line.material;
         const raycasterParams = raycaster.params as RaycasterParams;
-		const threshold = ( 'Line2' in raycasterParams !== undefined ) ? raycasterParams.Line2.threshold || 0 : 0;
+        const threshold = ('Line2' in raycasterParams !== undefined) ? raycasterParams.Line2.threshold || 0 : 0;
         linewidth += threshold;
 
         BoundingSphere: {
@@ -184,7 +204,12 @@ Solids: {
         raycaster.intersectObject(_lineSegments, false, is);
 
         for (const i of is) {
-            intersects.push({ ...i, object: this, })
+            intersects.push({ 
+                ...i,
+                object: raycastableTopologyItem,
+                // @ts-expect-error
+                topologyItem: this
+            })
         }
     }
 }
@@ -345,5 +370,10 @@ const _lineSegmentsGeometry = new LineSegmentsGeometry();
 _lineSegmentsGeometry.setAttribute('instanceStart', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 0)); // xyz
 _lineSegmentsGeometry.setAttribute('instanceEnd', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 3)); // xyz
 const _position = new THREE.Vector3();
+const raycastableTopologyItem = new RaycastableTopologyItem();
+
+function ascSort(a: { distance: number }, b: { distance: number }) {
+    return a.distance - b.distance;
+}
 
 export { };

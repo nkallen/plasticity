@@ -135,13 +135,6 @@ export class ModifierStack {
         const { modified, premodified, materials } = this;
         if (modified !== premodified) {
             this.db.removeItem(modified);
-            for (const face of premodified.allFaces) {
-                face.traverse(child => {
-                    if (child instanceof THREE.Mesh) {
-                        child.material = materials.mesh();
-                    }
-                });
-            }
         }
     }
 

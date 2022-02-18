@@ -21,6 +21,7 @@ import { CurveEndPointSnap, EdgePointSnap, FaceSnap, PointAxisSnap, PointSnap } 
 import { SnapManager } from '../../src/editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
 import { RaycasterParams } from "../../src/editor/snaps/SnapPicker";
+import { RaycastableTopologyItem } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
@@ -75,6 +76,7 @@ describe(PointPickerSnapPicker, () => {
     });
 
     let box: visual.Solid;
+    let topologyItem: visual.Face;
 
     beforeEach(async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -85,10 +87,11 @@ describe(PointPickerSnapPicker, () => {
         box = await makeBox.commit() as visual.Solid;
         box.updateMatrixWorld();
         cache.update();
+        topologyItem = box.faces.get(0);
     })
 
     test('intersect', () => {
-        const intersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        const intersection = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([intersection]).mockReturnValueOnce([]);
         const result = picker.intersect(pointPicker, cache, db);
         expect(result[0].snap).toBeInstanceOf(FaceSnap);
@@ -97,7 +100,7 @@ describe(PointPickerSnapPicker, () => {
     test('returns nearest', () => {
         const object = [...cache.geometrySnaps.points][0];
         const closer = { point: new THREE.Vector3(), distance: 0.1, object, index: 1 };
-        const farther = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([farther]).mockReturnValueOnce([closer]);
         const results = picker.intersect(pointPicker, cache, db);
         expect(results.length).toBe(1);
@@ -105,7 +108,7 @@ describe(PointPickerSnapPicker, () => {
     });
 
     test('preference overrides nearest', () => {
-        const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: box.faces.get(0) };
+        const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([]);
         const faceSnap = picker.intersect(pointPicker, cache, db)[0].snap;
         if (!(faceSnap instanceof FaceSnap)) throw '';

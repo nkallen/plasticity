@@ -352,11 +352,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     private removeTopologyItems(parent: visual.Item) {
-        parent.traverse(o => {
-            if (o instanceof visual.TopologyItem) {
-                this.topologyModel.delete(o.simpleName);
-            }
-        })
+        const { topologyModel } = this;
+        if (parent instanceof visual.Solid) {
+            for (const face of parent.allFaces) topologyModel.delete(face.simpleName);
+            for (const edge of parent.allFaces) topologyModel.delete(edge.simpleName);
+        }
     }
 
     lookupControlPointById(id: string): ControlPointData {
@@ -514,7 +514,7 @@ export function copyduplicate(solid: c3d.Solid, indices: { functions: c3d.Functi
     const copyShell = shell.Copy(c3d.CopyMode.KeepHistory, history)!;
     copyShell.SetOwnChangedThrough(c3d.ChangedType.Unchanged);
     const copySolid = new c3d.Solid(copyShell, solid, undefined);
-    const { functions, slideways, initCurves } = copyShell.FindEdgesByFacesIndex(indices.indexes, indices.functions, indices.slideways);
+    const { functions, initCurves } = copyShell.FindEdgesByFacesIndex(indices.indexes, indices.functions, indices.slideways);
 
     const origins = history.SetOriginFaces();
     const copies = history.SetCopyFaces();

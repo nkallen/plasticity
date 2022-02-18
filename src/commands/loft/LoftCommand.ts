@@ -22,12 +22,9 @@ export class LoftCommand extends Command {
 
         GetSpine: {
             dialog.prompt("Select spine", () => {
-                console.log("hihi")
                 const objectPicker = new ObjectPicker(this.editor);
                 return objectPicker.execute(delta => {
-                    console.log("ruok?");
                     const spine = objectPicker.selection.selected.curves.first;
-                    console.log("Aasdfasdf", spine);
                     loft.spine = spine;
                     loft.update();
                 }, 1, 1, SelectionMode.Curve).resource(this);

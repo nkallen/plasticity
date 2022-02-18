@@ -13,7 +13,7 @@ import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrateg
 import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
-import { Intersectable, Intersection } from '../visual_model/Intersectable';
+import { Raycastable, Intersection, Intersectable } from '../visual_model/Intersectable';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import { Executable } from './Quasimode';
 

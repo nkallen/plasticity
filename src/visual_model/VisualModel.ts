@@ -3,7 +3,6 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { deunit } from "../util/Conversion";
 import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
 import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 
@@ -139,6 +138,7 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
     dispose() { this.underlying.dispose() }
 }
 
+// TODO: this should not subclass THREE.Object3D
 export class ControlPoint extends THREE.Object3D {
     static simpleName(parentId: c3d.SimpleName, index: number) {
         return `control-point,${parentId},${index}`;
@@ -160,16 +160,15 @@ export class ControlPoint extends THREE.Object3D {
 
 export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
 
-export class CurveSegment extends THREE.Object3D {
-    constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
-        super();
-        this.userData = userData;
-    }
+export class CurveSegment {
+    readonly simpleName: string;
+    readonly index: number;
+    parent!: CurveGroup<CurveSegment>;
+    get parentItem() { return this.parent.parentItem }
 
-    get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent!.parent!.parent;
-        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
-        return result;
+    constructor(readonly group: Readonly<GeometryGroup>, userData: { simpleName: string, index: number }) {
+        this.simpleName = userData.simpleName;
+        this.index = userData.index;
     }
 
     dispose() { }
@@ -275,22 +274,12 @@ export class Region extends PlaneItem {
     dispose() { this.mesh.geometry.dispose() }
 }
 
-export abstract class TopologyItem extends THREE.Object3D {
+export abstract class TopologyItem {
+    layers = new THREE.Layers();
     private _useNominal: undefined;
-
-    get parentItem(): Solid {
-        const result = this.parent?.parent?.parent?.parent;
-        if (!(result instanceof Solid)) {
-            console.error(this);
-            throw new Error("Invalid precondition");
-        }
-        return result as Solid;
-    }
-
-    get simpleName(): string { return this.userData.simpleName }
-    get index(): number { return this.userData.index }
-
+    constructor(readonly simpleName: string, readonly index: number) { }
     abstract dispose(): void;
+    abstract get parentItem(): Solid;
 }
 
 export abstract class Edge extends TopologyItem { }
@@ -300,11 +289,12 @@ export class CurveEdge extends Edge {
         return `edge,${parentId},${index}`;
     }
 
-    constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
-        super();
-        this.userData = userData;
+    parent!: CurveGroup<CurveEdge>;
+    get parentItem() { return this.parent.parentItem }
+
+    constructor(readonly group: Readonly<GeometryGroup>, userData: { simpleName: string, index: number }) {
+        super(userData.simpleName, userData.index);
         this.layers.set(Layers.CurveEdge);
-        this.visible = false; // FIXME: this is just a performance optimization; we really need to remove CurveEdge and Face from the scene
     }
 
     slice(kind: 'line' | 'line2' = 'line2') {
@@ -349,30 +339,16 @@ export class GeometryGroupUtils {
 }
 
 export class Face extends TopologyItem {
+    parent!: FaceGroup;
+    get parentItem() { return this.parent.parentItem }
+
     static simpleName(parentId: c3d.SimpleName, index: number) {
         return `face,${parentId},${index}`;
     }
 
-    constructor(readonly group: Readonly<GeometryGroup>, readonly grid: c3d.Grid, userData: any) {
-        super();
-        this.userData = userData;
+    constructor(readonly group: Readonly<GeometryGroup>, readonly grid: c3d.Grid, userData: { simpleName: string, index: number }) {
+        super(userData.simpleName, userData.index);
         this.layers.set(Layers.Face);
-        this.visible = false;  // FIXME: this is just a performance optimization; we really need to remove CurveEdge and Face from the scene
-    }
-
-    // FIXME: delete this 
-    makeSnap(): THREE.Mesh {
-        const faceGroup = this.parent as FaceGroup;
-        const geometry = new THREE.BufferGeometry();
-        const original = faceGroup.mesh.geometry;
-        geometry.attributes = original.attributes;
-        geometry.index = original.index;
-        geometry.boundingBox = original.boundingBox;
-        geometry.boundingSphere = original.boundingSphere;
-        geometry.addGroup(this.group.start, this.group.count, 0);
-        const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
-        mesh.scale.setScalar(deunit(1));
-        return mesh;
     }
 
     dispose() { }
@@ -384,7 +360,8 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
     readonly temp = new THREE.Group();
     constructor(readonly mesh: THREE.Group, readonly edges: ReadonlyArray<T>) {
         super();
-        if (edges.length > 0) this.add(...edges);
+        const that = this as CurveGroup<CurveEdge> | CurveGroup<CurveSegment>
+        for (const edge of edges) edge.parent = that;
         this.add(this.temp);
         this.add(this.mesh);
     }
@@ -438,6 +415,18 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
     get line() { return this.mesh.children[0] as LineSegments2 }
     get occludedLine() { return this.mesh.children[1] as LineSegments2 }
 
+    get parentItem(): Solid {
+        const result = this.parent?.parent?.parent;
+        if (!(result instanceof Solid)) {
+            console.error(this);
+            throw new Error("Invalid precondition");
+        }
+        return result as Solid;
+    }
+
+    get simpleName(): string { return this.userData.simpleName }
+    get index(): number { return this.userData.index }
+
     dispose() {
         for (const edge of this.edges) edge.dispose();
         for (const child of this.mesh.children) {
@@ -457,7 +446,7 @@ export class FaceGroup extends THREE.Group {
     constructor(readonly mesh: THREE.Mesh, readonly faces: ReadonlyArray<Face>, readonly groups: ReadonlyArray<GeometryGroup>) {
         super();
         this.add(mesh);
-        this.add(...faces);
+        for (const face of faces) face.parent = this;
     }
 
     *[Symbol.iterator]() {
@@ -465,6 +454,15 @@ export class FaceGroup extends THREE.Group {
     }
 
     get(i: number): Face { return this.faces[i] }
+
+    get parentItem(): Solid {
+        const result = this.parent?.parent?.parent;
+        if (!(result instanceof Solid)) {
+            console.error(this);
+            throw new Error("Invalid precondition");
+        }
+        return result as Solid;
+    }
 
     dispose() {
         for (const face of this.faces) face.dispose();

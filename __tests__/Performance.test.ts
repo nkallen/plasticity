@@ -33,7 +33,7 @@ beforeEach(async () => {
 describe.skip("Performance tests", () => {
     // NAIVE: 10980 10962 10931 11096
     // FIRST OPTIMIZATION: 3285 3251 3264 3316 3318
-    // IF Edge and Face are no longer subclasses of THREE.Object3D 2889 2957 2916
+    // SECOND OPTIMIZATION: (Edge and Face are no longer subclasses of THREE.Object3D) 2834 2896 2998 2857 2823
     test.only('deserialize', async () => {
         const start = performance.now();
         await db.deserialize(data);
@@ -46,7 +46,7 @@ describe.skip("Performance tests", () => {
     // If CurveEdgeSnap snapper can be avoided: 6138 6125 6120
     // Generate helper lazily: 5538 5544 5541
     test.skip('snaps', async () => {
-        const snaps = new SnapManager(db, new CrossPointDatabase(), new TypeManager(signals), signals);
+        const snaps = new SnapManager(db, new CrossPointDatabase(), signals);
         const start = performance.now();
         await db.deserialize(data);
         const end = performance.now();

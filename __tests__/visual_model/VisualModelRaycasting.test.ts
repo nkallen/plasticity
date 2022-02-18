@@ -4,6 +4,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { RaycastableTopologyItem } from "../../src/visual_model/Intersectable";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -45,8 +46,11 @@ describe(visual.CurveEdge, () => {
 
     test('raycast', async () => {
         const edge = box.edges.get(0);
-        const intersects = raycaster.intersectObject(edge);
+        const raycastable = new RaycastableTopologyItem(edge);
+        const intersects = raycaster.intersectObject(raycastable);
         expect(intersects.length).toBe(1);
-        expect(intersects[0].object).toBe(edge);
+        expect(intersects[0].object).toBeInstanceOf(RaycastableTopologyItem);
+        // @ts-expect-error
+        expect(intersects[0].topologyItem).toBe(edge);
     });
 });

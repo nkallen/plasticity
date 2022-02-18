@@ -18,11 +18,12 @@ export class GeometryPicker {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
-        let intersections = raycaster.intersectObjects(objects, false) as THREE.Intersection<intersectable.Intersectable>[];
+        let intersections = raycaster.intersectObjects(objects, false) as THREE.Intersection<intersectable.Raycastable>[];
         if (!isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }
-        return intersections.sort(sort);
+        const sorted = intersections.sort(sort);
+        return raycastable2intersectable(sorted);
     }
 
     private viewport!: Viewport;
@@ -33,7 +34,7 @@ export class GeometryPicker {
 
 }
 
-function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectable.Intersectable>[]) {
+function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectable.Raycastable>[]) {
     if (intersections.length === 0) return [];
 
     const nearest = intersections[0];
@@ -46,7 +47,7 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectabl
     return result;
 }
 
-function sort(i1: THREE.Intersection<intersectable.Intersectable>, i2: THREE.Intersection<intersectable.Intersectable>) {
+function sort(i1: THREE.Intersection<intersectable.Raycastable>, i2: THREE.Intersection<intersectable.Raycastable>) {
     const o1 = i1.object, o2 = i2.object;
     const p1 = o1.priority, p2 = o2.priority;
     if (p1 === p2) {
@@ -69,3 +70,17 @@ Curve3D.prototype.priority = 2;
 CurveEdge.prototype.priority = 3;
 Region.prototype.priority = 4;
 Face.prototype.priority = 5;
+
+function raycastable2intersectable(sorted: THREE.Intersection<intersectable.Raycastable>[]): intersectable.Intersection[] {
+    const result = [];
+    for (const intersection of sorted) {
+        const object = intersection.object;
+        const i = object instanceof intersectable.RaycastableTopologyItem
+            // @ts-expect-error
+            ? intersection.topologyItem
+            : object;
+        result.push({ ...intersection, object: i });
+    }
+    return result;
+}
+

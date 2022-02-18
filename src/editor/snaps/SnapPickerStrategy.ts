@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Viewport } from "../../components/viewport/Viewport";
+import { RaycastableTopologyItem } from "../../visual_model/Intersectable";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
@@ -100,7 +101,10 @@ export abstract class SnapPickerStrategy {
             let snap: Snap;
             if (object instanceof visual.Region) {
                 continue; // FIXME:
-            } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D) {
+            } else if (object instanceof RaycastableTopologyItem) {
+                // @ts-expect-error
+                snap = snaps.lookup(intersection.topologyItem);
+            } else if (object instanceof visual.Curve3D) {
                 snap = snaps.lookup(object);
             } else if (object instanceof visual.ControlPoint) {
                 continue; // FIXME:
@@ -108,6 +112,7 @@ export abstract class SnapPickerStrategy {
                 const snaps = object.userData.points as PointSnap[];
                 snap = snaps[intersection.index!];
             } else {
+                if (object === undefined || object.userData === undefined || object.userData.snap === undefined) throw new Error(`invalid precondition: ${object.constructor.name} has no snap`);
                 snap = object.userData.snap as Snap;
             }
             result.push({ snap, intersection });

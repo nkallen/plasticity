@@ -206,10 +206,7 @@ test("lookupTopologyItemById", async () => {
     const solid = await db.addItem(box) as visual.Solid;
     expect(db.visibleObjects.length).toBe(1);
 
-    const faces: visual.Face[] = [];
-    solid.traverse(o => {
-        if (o instanceof visual.Face) faces.push(o);
-    })
+    const faces = solid.allFaces;
     expect(faces.length).toBe(2 * 6);
 
     expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
