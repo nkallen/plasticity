@@ -184,7 +184,7 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     calculate() {
         return this.max.exec(this.distance1, this.distance2, (d1, d2) => {
             this.distance1 = d1; this.distance2 = d2;
-            return this.updater.calculate();
+            return this.updater.calculateWithCache();
         })
     }
 
@@ -352,7 +352,7 @@ export class Max<T> {
                 console.time("searching for max fillet");
                 const search = await Max.exponential_search(0.01, 100, d => {
                     factory.distance = d;
-                    return factory.calculate();
+                    return factory.calculateWithCache();
                 }, 500);
                 console.timeEnd("searching for max fillet");
                 console.info(search);
