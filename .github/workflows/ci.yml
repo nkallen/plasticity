@@ -138,7 +138,7 @@ jobs:
           brew install wget
           brew install p7zip
           wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip
-          7z x MacOS_SDK_11_3_ARM64_APPLE_CLANG_12.0.5.zip -ovendor/c3d/
+          7z x MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip -ovendor/c3d/
       - name: Setup license key
         run: |
           echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"
@@ -166,4 +166,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn publish --arch=arm64
+          yarn publish
