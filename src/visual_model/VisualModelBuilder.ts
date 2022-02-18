@@ -81,51 +81,37 @@ export class PlaneInstanceBuilder<T extends PlaneItem> implements Builder<PlaneI
 }
 
 export class FaceGroupBuilder {
-    private readonly meshes: [THREE.Mesh, c3d.Face][] = [];
+    private readonly grids: c3d.MeshBuffer[] = [];
+    private readonly materials: THREE.Material[] = [];
+    private readonly userDatas: { simpleName: string, index: number, }[] = [];
 
     add(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
-        geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
-        geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(deunit(1));
+        this.grids.push(grid);
+        this.materials.push(material);
         const userData = {
-            name: grid.name,
             simpleName: Face.simpleName(parentId, grid.i),
             index: grid.i,
-            grid: grid.grid,
         };
-        geometry.userData = userData;
 
-        this.meshes.push([mesh, grid.model]);
+        this.userDatas.push(userData);
     }
 
     build(topologyModel?: GeometryDatabase['topologyModel']): FaceGroup {
-        const geos = [];
-        const meshes = this.meshes;
-        const materials = [];
-        const models = [];
-        for (const [mesh, model] of meshes) {
-            // FIXME: - i think this is an error condition?
-            if (mesh.geometry.index!.array.length === 0) continue;
-            geos.push(mesh.geometry);
-            materials.push(mesh.material as THREE.Material);
-            models.push(model);
-        }
-        const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
+        const { grids, materials, userDatas } = this;
+        const merged = mergeBufferGeometries(grids);
         const groups = merged.groups;
 
         const mesh = new THREE.Mesh(merged, materials[0]);
 
         const faces = [];
         for (const [i, group] of groups.entries()) {
-            const userData = merged.userData.mergedUserData[i];
-            const model = models[i];
-            const grid = userData.grid;
-            delete userData.grid;
-            const face = new Face(group, grid, userData);
+            const grid = grids[i];
+            const userData = userDatas[i];
+
+            const model = grid.model;
+            const face = new Face(group, grid.grid, userData);
             faces.push(face);
+
             if (topologyModel !== undefined) {
                 const simpleName = userData.simpleName;
                 let topologyData = topologyModel.get(simpleName);
@@ -144,7 +130,6 @@ export class FaceGroupBuilder {
         mesh.scale.setScalar(deunit(1));
         mesh.renderOrder = RenderOrder.Face;
 
-        for (const geo of geos) geo.dispose();
         merged.clearGroups();
 
         return new FaceGroup(mesh, faces, groups);
@@ -308,4 +293,52 @@ export class ControlPointGroupBuilder {
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         return geometry;
     }
+}
+
+export function mergeBufferGeometries(grids: c3d.MeshBuffer[]) {
+    const indexes = [], positions = [], normals = [];
+    for (const { index, position, normal } of grids) {
+        // if (index.length === 0) continue;
+
+        indexes.push(index);
+        positions.push(position);
+        normals.push(normal);
+    }
+
+    const mergedGeometry = new THREE.BufferGeometry();
+    let offset = 0;
+    let indexOffset = 0;
+    const mergedIndex: number[] = [];
+    for (const [i, index] of indexes.entries()) {
+        const count = index.length;
+
+        for (let j = 0; j < count; ++j) {
+            mergedIndex.push(index[j] + indexOffset);
+        }
+        indexOffset += positions[i].length / 3;
+        mergedGeometry.addGroup(offset, count, i);
+
+        offset += count;
+    }
+    mergedGeometry.setIndex(mergedIndex);
+
+    const mergedPositions = mergeBufferAttributes(positions);
+    const mergedNormals = mergeBufferAttributes(normals);
+    mergedGeometry.setAttribute('position', mergedPositions);
+    mergedGeometry.setAttribute('normal', mergedNormals);
+
+    return mergedGeometry;
+}
+
+export function mergeBufferAttributes(attributes: Float32Array[]) {
+    let arrayLength = 0;
+    for (const attribute of attributes) arrayLength += attribute.length;
+    const array = new Float32Array(arrayLength);
+    let offset = 0;
+    for (const attribute of attributes) {
+        array.set(attribute, offset);
+        offset += attribute.length;
+    }
+
+    return new THREE.BufferAttribute(array, 3);
 }

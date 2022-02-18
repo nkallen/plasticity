@@ -13,7 +13,7 @@ import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import theme from '../../src/startup/default-theme';
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, GeometryGroupUtils, SpaceInstance } from '../../src/visual_model/VisualModel';
-import { ControlPointGroupBuilder, CurveEdgeGroupBuilder, CurveSegmentGroupBuilder } from '../../src/visual_model/VisualModelBuilder';
+import { ControlPointGroupBuilder, CurveEdgeGroupBuilder, CurveSegmentGroupBuilder, mergeBufferAttributes, mergeBufferGeometries } from '../../src/visual_model/VisualModelBuilder';
 import { BetterRaycastingPoints } from "../../src/visual_model/VisualModelRaycasting";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 
@@ -157,3 +157,26 @@ describe(Curve3D, () => {
         expect(curve.points.points.geometry.attributes.position.count).toBe(0);
     })
 })
+
+describe(mergeBufferAttributes, () => {
+    test('it works', () => {
+        const merged = mergeBufferAttributes([new Float32Array([1, 2, 3]), new Float32Array([4, 5, 6])])
+        expect(merged.array).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
+        expect(merged.count).toBe(2);
+        expect(merged.itemSize).toBe(3);
+    })
+});
+
+describe(mergeBufferGeometries, () => {
+    test('it works', () => {
+        const grids: c3d.MeshBuffer[] = [
+            { index: new Uint32Array([1, 2]), position: new Float32Array([1, 2, 3]), normal: new Float32Array([10, 11, 12]) },
+            { index: new Uint32Array([3, 4]), position: new Float32Array([4, 5, 6]), normal: new Float32Array([13, 14, 15]) },
+        ]
+        const result = mergeBufferGeometries(grids);
+        expect(result.index!.array).toEqual(new Uint16Array([1, 2, 4, 5]));
+        expect(result.attributes.position.array).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
+        expect(result.attributes.normal.array).toEqual(new Float32Array([10, 11, 12, 13, 14, 15]));
+    })
+
+});

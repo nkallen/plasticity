@@ -6,7 +6,6 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
-import { TypeManager } from '../src/editor/TypeManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -34,6 +33,7 @@ describe.skip("Performance tests", () => {
     // NAIVE: 10980 10962 10931 11096
     // FIRST OPTIMIZATION: 3285 3251 3264 3316 3318
     // SECOND OPTIMIZATION: (Edge and Face are no longer subclasses of THREE.Object3D) 2834 2896 2998 2857 2823
+    // THIRD OPTIMIZATION: merge buffer geometry 2565 2493 2495 2474 2521.
     test.only('deserialize', async () => {
         const start = performance.now();
         await db.deserialize(data);

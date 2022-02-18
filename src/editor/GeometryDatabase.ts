@@ -515,7 +515,6 @@ export function copyduplicate(solid: c3d.Solid, indices: { functions: c3d.Functi
     copyShell.SetOwnChangedThrough(c3d.ChangedType.Unchanged);
     const copySolid = new c3d.Solid(copyShell, solid, undefined);
     const { functions, initCurves } = copyShell.FindEdgesByFacesIndex(indices.indexes, indices.functions, indices.slideways);
-
     const origins = history.SetOriginFaces();
     const copies = history.SetCopyFaces();
     const map = new Map<bigint, bigint>();
