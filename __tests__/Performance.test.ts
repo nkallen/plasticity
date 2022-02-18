@@ -34,6 +34,8 @@ describe.skip("Performance tests", () => {
     // FIRST OPTIMIZATION: 3285 3251 3264 3316 3318
     // SECOND OPTIMIZATION: (Edge and Face are no longer subclasses of THREE.Object3D) 2834 2896 2998 2857 2823
     // THIRD OPTIMIZATION: merge buffer geometry 2565 2493 2495 2474 2521.
+    // FOURTH: mesh generation optimization:s 2120 2065 2097 2068 2074
+    // IF we can cache edges during triangulation: 1500
     test.only('deserialize', async () => {
         const start = performance.now();
         await db.deserialize(data);

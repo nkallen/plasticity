@@ -138,7 +138,7 @@ export class FaceGroupBuilder {
 
 export type LineInfo = {
     position: Float32Array;
-    userData: { name: c3d.Name, simpleName: string, index: number };
+    userData: { simpleName: string, index: number };
     material: LineMaterial;
     occludedMaterial: LineMaterial;
     model: c3d.CurveEdge;
@@ -151,7 +151,6 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
         const position = edge.position;
         const simpleName = CurveEdge.simpleName(parentId, edge.i);
         const userData = {
-            name: edge.name,
             simpleName,
             index: edge.i
         };

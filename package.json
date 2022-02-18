@@ -23,7 +23,7 @@
         "gbs": "yarn generate && yarn build && yarn start",
         "backtrace": "dsymutil build/Release/c3d.node -o build/release/c3d.dSYM && zip -r build/release/c3d.zip build/release/c3d.dSYM && curl --data-binary @build/release/c3d.zip -H 'Expect:' \"https://blurbs.sp.backtrace.io:6098/post?format=symbols&token=$(cat backtrace-access-token.txt)\"",
         "backtrace-lib": "dsymutil vendor/c3d/Debug/libc3d.dylib -o build/release/libc3d.dSYM && zip -r build/release/libc3d.zip build/release/libc3d.dSYM && curl --data-binary @build/release/libc3d.zip -H 'Expect:' \"https://blurbs.sp.backtrace.io:6098/post?format=symbols&token=$(cat backtrace-access-token.txt)\"",
-        "benchmark": "yarn test Performance"
+        "bench": "yarn test Performance"
     },
     "keywords": [],
     "author": {

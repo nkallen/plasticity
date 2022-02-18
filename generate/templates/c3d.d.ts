@@ -46,7 +46,6 @@ declare module "*c3d.node" {
         normal: Float32Array;
         style: number;
         simpleName: number;
-        name: Name;
         i: number;
         grid: Grid;
         model: Face;
@@ -56,7 +55,6 @@ declare module "*c3d.node" {
         position: Float32Array;
         style: number;
         simpleName: number;
-        name: Name;
         i: number;
         model: c3d.CurveEdge
     }

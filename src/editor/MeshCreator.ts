@@ -52,7 +52,7 @@ export class BasicMeshCreator implements MeshCreator {
 // Optimized for solids, computes faces in parallel; faces are cached and so are entire objects.
 export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
     private readonly fallback = new BasicMeshCreator();
-    private faceCache?: Map<bigint, c3d.Grid>;
+    private faceCache?: Map<bigint, c3d.MeshBuffer>;
     private objectCache?: Map<FormAndPrecisionKey, Map<bigint, Promise<MeshLike>>>;
     private historyCache?: Map<c3d.Solid, Map<bigint, bigint>>;
 
@@ -77,7 +77,6 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
                 else level.set(id, delay.promise);
             }
         }
-
         let history: Map<bigint, bigint> | undefined = undefined;
         history = historyCache?.get(solid);
 
@@ -85,48 +84,58 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
 
         // Here we create mesh & grid for each face. Note that Face.CreateMesh doesn't work correctly in this context, and the below
         // is the recommended approach. Also, note that we could create instead one mesh for all of these grids, it's equivalent.
-        const facePromises: Promise<void>[] = [];
+        const facePromises: Promise<c3d.MeshBuffer>[] = [];
         const mesh = new c3d.Mesh(false);
-        for (const face of shell.GetFaces()) {
+        const faces = shell.GetFaces();
+        const existing = [];
+        for (const [i, face] of faces.entries()) {
             const id = history?.get(face.Id());
             const isCacheable = !face.GetOwnChanged() && id !== undefined && faceCache !== undefined;
-            if (isCacheable && faceCache!.has(id)) {
-                mesh.AddExistingGrid(faceCache?.get(id)!);
+            const existingGrid = isCacheable ? faceCache?.get(id) : undefined;
+            if (isCacheable && existingGrid !== undefined) {
+                existing.push(existingGrid);
             } else {
                 const grid = mesh.AddGrid()!;
                 face.AttributesConvert(grid);
                 grid.SetItem(face);
-                grid.SetPrimitiveName(face.GetNameHash());
+                const simpleName = face.GetNameHash();
+                grid.SetPrimitiveName(simpleName);
                 grid.SetPrimitiveType(c3d.RefType.TopItem);
                 grid.SetStepData(stepData);
-                const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair());
-                if (isCacheable) promise.then(() => faceCache?.set(id, grid));
+                const promise = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair()).then(() => {
+                    const { index, position, normal } = grid.GetBuffers();
+                    const bufs: c3d.MeshBuffer = { index, position, normal, grid, model: face, style: face.GetStyle(), simpleName, i };
+                    return bufs;
+                });
+                if (isCacheable) promise.then(bufs => faceCache?.set(id, bufs));
                 facePromises.push(promise);
             }
         }
 
         const edgePromises: Promise<c3d.Mesh>[] = [];
-        for (const edge of solid.GetEdges()) {
+        const edges = solid.GetEdges();
+        for (const edge of edges) {
             edgePromises.push(edge.CalculateMesh_async(stepData, formNote));
         }
 
-        await Promise.all(facePromises);
-        const grids = mesh.GetBuffers();
+        const allFaces = existing.concat(await Promise.all(facePromises));
 
-        const edges = await Promise.all(edgePromises);
+        const edgesMeshes = await Promise.all(edgePromises);
         const polygons: c3d.EdgeBuffer[] = [];
-        for (const [i, edge] of edges.entries()) {
-            const outlines = edge.GetEdges(outlinesOnly);
+        for (const [i, edgeMesh] of edgesMeshes.entries()) {
+            const edge = edges[i];
+            const outlines = edgeMesh.GetEdges(outlinesOnly);
             if (outlines.length === 0) continue;
             const polygon = outlines[0];
             polygon.i = i;
             polygons.push(polygon);
+            polygon.model = edge;
         }
 
         c3d.Mutex.ExitParallelRegion();
 
         const result = {
-            faces: grids,
+            faces: allFaces,
             edges: polygons,
         };
         delay.resolve(result);

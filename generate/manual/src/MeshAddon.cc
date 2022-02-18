@@ -4,6 +4,31 @@
 #include "../include/Solid.h"
 #include "../include/Grid.h"
 
+Napi::Value Grid::GetBuffers_async(const Napi::CallbackInfo &info)
+{
+    return info.Env().Undefined();
+}
+
+Napi::Value Grid::GetBuffers(const Napi::CallbackInfo &info)
+{
+    MbGrid *underlying = this->_underlying;
+
+    Napi::Env env = info.Env();
+    Napi::Object result = Napi::Object::New(env);
+    Napi::ArrayBuffer tbuf = Napi::ArrayBuffer::New(env, (void *)underlying->GetTrianglesAddr(), sizeof(MbTriangle) * underlying->TrianglesCount());
+    Napi::Uint32Array index = Napi::Uint32Array::New(env, 3 * underlying->TrianglesCount(), tbuf, 0);
+    Napi::ArrayBuffer pbuf = Napi::ArrayBuffer::New(env, (void *)underlying->GetFloatPointsAddr(), sizeof(MbFloatPoint3D) * underlying->PointsCount());
+    Napi::Float32Array position = Napi::Float32Array::New(env, 3 * underlying->PointsCount(), pbuf, 0);
+    Napi::ArrayBuffer nbuf = Napi::ArrayBuffer::New(env, (void *)underlying->GetFloatNormalsAddr(), sizeof(MbFloatPoint3D) * underlying->PointsCount());
+    Napi::Float32Array normal = Napi::Float32Array::New(env, 3 * underlying->NormalsCount(), nbuf, 0);
+
+    result.Set(Napi::String::New(env, "index"), index);
+    result.Set(Napi::String::New(env, "position"), position);
+    result.Set(Napi::String::New(env, "normal"), normal);
+
+    return result;
+}
+
 Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, MbGrid *grid)
 {
     Napi::Env env = info.Env();
@@ -28,7 +53,6 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, MbGrid *g
     if (top != NULL)
     {
         MbFace *face = (MbFace *)top;
-        result.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(face->GetName())));
         result.Set(Napi::String::New(env, "model"), Face::NewInstance(env, face));
     }
 
@@ -137,7 +161,6 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                     continue;
 
                 MbCurveEdge *edge = (MbCurveEdge *)item;
-                jsInfo.Set(Napi::String::New(env, "model"), CurveEdge::NewInstance(env, edge));
 
                 if (edge->IsPole())
                     continue;
@@ -145,8 +168,6 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                     continue;
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
-                jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
-                jsInfo.Set(Napi::String::New(env, "i"), Napi::Number::New(env, edgeIndex - 1));
                 jsInfo.Set(Napi::String::New(env, "polygon"), Napi::Number::New(env, edgeIndex - 1));
             }
             else

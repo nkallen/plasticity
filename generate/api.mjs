@@ -1597,6 +1597,7 @@ export default {
                 "const MbCube & GetCube()",
                 "const void * CreateGridTopology(bool keepExisting)",
                 "bool IsGridTopologyReady()",
+                { signature: "void GetBuffers(MeshBuffer & result)", isManual: true, result: isReturn },
             ]
         },
         Polygon3D: {
