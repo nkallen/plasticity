@@ -113,6 +113,7 @@ export class ParallelMeshCreator implements MeshCreator, CachingMeshCreator {
         }
 
         const edgePromises: Promise<c3d.Mesh>[] = [];
+        // TODO: replace this approach with face.GetEdges(set) which can be cached
         const edges = solid.GetEdges();
         for (const edge of edges) {
             edgePromises.push(edge.CalculateMesh_async(stepData, formNote));
