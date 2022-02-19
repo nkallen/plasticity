@@ -150,8 +150,9 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
 
     set edges(edges: visual.CurveEdge[]) {
         const curves = edges.map(e => this.db.lookupTopologyItem(e).MakeCurve()!);
-        const model = new c3d.Contour3D();
-        for (const curve of curves) model.AddCurveWithRuledCheck(curve);
+        const contours = c3d.ActionCurve3D.CreateContours(curves, 10);
+        if (contours.length !== 1) console.warn("Not one unique contour");
+        const model = contours[0];
         this.model = model;
         const { center, normal } = this.getCenterAndNormal(model);
         this._center = center;
