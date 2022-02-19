@@ -34,6 +34,9 @@ export class ImporterExporter {
             const command = new ExportCommand(this.editor);
             command.filePath = filePath!;
             this.editor.enqueue(command);
+        } else if (/\.c3d$/.test(filePath!)) {
+            const data = await c3d.Writer.WriteItems_async(model);
+            await fs.promises.writeFile(filePath, data.memory);
         } else {
             await c3d.Conversion.ExportIntoFile_async(model, filePath!);
         }

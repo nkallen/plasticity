@@ -1,7 +1,7 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "0.4.14",
+    "version": "0.4.15",
     "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
@@ -133,6 +133,7 @@
         "less": "^4.1.1",
         "less-loader": "7.3.0",
         "node-addon-api": "^4.0.0",
+        "node-gyp": "^8.4.1",
         "node-loader": "^2.0.0",
         "postcss": "^8.4.5",
         "postcss-loader": "^6.2.1",
@@ -161,7 +162,6 @@
         "electron-window-state": "^5.0.3",
         "event-kit": "^2.5.3",
         "json5": "^2.2.0",
-        "node-gyp": "^8.4.1",
         "path-browserify": "^1.0.1",
         "preact": "^10.5.13",
         "signals": "^1.0.0",

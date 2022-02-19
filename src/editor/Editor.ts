@@ -161,7 +161,8 @@ export class Editor {
             ]
         });
         if (canceled) return;
-        this.importer.export(this._db.saveToMemento().model, filePath!);
+        const memento = this._db.saveToMemento().model;
+        this.importer.export(memento, filePath!);
     }
 
     private async undo() {
