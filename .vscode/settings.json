@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.json": "json5",
         "typeinfo": "cpp",
         "complex": "cpp",
         "new": "cpp",
@@ -7,6 +8,7 @@
         "filesystem": "cpp",
         "memory": "cpp",
         "locale": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "vector": "cpp"
     }
 }

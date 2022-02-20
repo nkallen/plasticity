@@ -1779,6 +1779,30 @@ export default {
                 "double tailAngle",
                 "SlotValues::SlotType type",
             ]
+        },
+        SolidDuplicate: {
+            rawHeader: "model_item.h",
+            cppClassName: "_SolidDuplicate",
+            rawClassName: "SolidDuplicate",
+            jsClassName: "SolidDuplicate",
+            dependencies: ["SolidPool.h", "Solid.h"],
+            functions: [
+                { signature: "void GetBuffers(SolidDuplicateBuffer & result)", isManual: true, result: isReturn },
+                "MbSolid * GetCopy()"
+            ]
+        },
+        SolidPool: {
+            rawHeader: "model_item.h",
+            cppClassName: "_SolidPool",
+            rawClassName: "SolidPool",
+            jsClassName: "SolidPool",
+            dependencies: ["Solid.h", "SolidPool.h", "_SolidDuplicate.h"],
+            initializers: ["MbSolid & original"],
+            functions: [
+                "void Alloc(size_t n)",
+                "SolidDuplicate * pop()",
+                "size_t Count()",
+            ]
         }
     },
     modules: {

@@ -3,7 +3,6 @@
 
 #include <sstream>
 #include <stdio.h>
-#include <napi.h>
 
 #include <model.h>
 

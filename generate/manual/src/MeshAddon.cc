@@ -40,6 +40,7 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, MbGrid *g
     Napi::ArrayBuffer nbuf = Napi::ArrayBuffer::New(env, (void *)grid->GetFloatNormalsAddr(), sizeof(MbFloatPoint3D) * grid->PointsCount());
     Napi::Float32Array normal = Napi::Float32Array::New(env, 3 * grid->NormalsCount(), nbuf, 0);
 
+    // TODO: test if Napi::String::New is expensive
     result.Set(Napi::String::New(env, "index"), index);
     result.Set(Napi::String::New(env, "position"), position);
     result.Set(Napi::String::New(env, "normal"), normal);

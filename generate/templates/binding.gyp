@@ -20,6 +20,7 @@
                 "./lib/c3d/src/ModelAddon.cc",
                 "./lib/c3d/src/ProgressIndicator.cc",
                 "./lib/c3d/src/ActionCurveAddon.cc",
+                "./lib/c3d/src/SolidDuplicateAddon.cc",
                 <%_ for (c of classes) if (!c.ignore) { _%>
                     "./lib/c3d/src/<%- c.cppClassName %>.cc",
                 <%_ } _%>
