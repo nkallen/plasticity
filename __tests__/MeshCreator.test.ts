@@ -201,6 +201,25 @@ describe(FaceCacheMeshCreator, () => {
         await cache.create(item2, stepData, formNote, true);
         expect(calculateGrid).toBeCalledTimes(7);
     });
+
+    test.only('indices are correct', async () => {
+        makeFillet.solid = box;
+        makeFillet.edges = [box.edges.get(0)];
+        makeFillet.distance = 0.1;
+        item1 = await makeFillet.calculate();
+
+        const result = await cache.create(item1, stepData, formNote, true);
+        expect(result.edges.length).toBe(15);
+        for (let i = 0; i < result.edges.length; i++) {
+            const edge = result.edges[i];
+            expect(edge.i).toBe(i);
+        }
+        expect(result.faces.length).toBe(7);
+        for (let i = 0; i < result.faces.length; i++) {
+            const face = result.faces[i];
+            expect(face.i).toBe(i);
+        }
+    });
 })
 
 describe(DoCacheMeshCreator, () => {

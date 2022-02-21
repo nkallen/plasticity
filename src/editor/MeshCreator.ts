@@ -198,10 +198,11 @@ export class FaceCacheMeshCreator implements MeshCreator {
         const facePromises: Promise<c3d.MeshBuffer>[] = [];
         const edgePromises: Promise<c3d.EdgeBuffer[]>[] = [];
         const mesh = new c3d.Mesh(false);
-        const faces = shell.GetFaces();
         const cachedFaces = [];
         const cachedEdges = [];
-        const seenEdges = new Set<c3d.CurveEdge>();
+        let j = 0;
+        const faces = shell.GetFaces();
+        const seenEdges = new Set<bigint>();
         for (const [i, face] of faces.entries()) {
             const id = history.get(face.Id());
             const isCacheable = !face.GetOwnChanged() && id !== undefined;
@@ -212,9 +213,14 @@ export class FaceCacheMeshCreator implements MeshCreator {
                 cachedEdges.push(...edges);
             } else {
                 const facePromise = underlying.calculateFace(mesh, face, stepData, formNote, i);
-                const edges = face.GetEdges().filter(e => !seenEdges.has(e));
-                const edgeMeshPromises = edges.map(e => e.CalculateMesh_async(stepData, formNote));
-                const edgeBufferPromises = this.cacheFace(id, isCacheable, facePromise, edges, edgeMeshPromises, outlinesOnly);
+                const edges = face.GetEdges().filter(e => !seenEdges.has(e.Id()));
+                const indexes: number[] = [];
+                const edgeMeshPromises = edges.map(e => {
+                    seenEdges.add(e.Id());
+                    indexes.push(j++);
+                    return e.CalculateMesh_async(stepData, formNote)
+                });
+                const edgeBufferPromises = this.cacheFace(id, isCacheable, facePromise, edges, indexes, edgeMeshPromises, outlinesOnly);
                 facePromises.push(facePromise);
                 edgePromises.push(edgeBufferPromises);
             }
@@ -236,7 +242,7 @@ export class FaceCacheMeshCreator implements MeshCreator {
         };
     }
 
-    private async cacheFace(id: bigint | undefined, isCacheable: boolean, facePromise: Promise<c3d.MeshBuffer>, edges: c3d.CurveEdge[], edgePromises: Promise<c3d.Mesh>[], outlinesOnly: boolean) {
+    private async cacheFace(id: bigint | undefined, isCacheable: boolean, facePromise: Promise<c3d.MeshBuffer>, edges: c3d.CurveEdge[], indexes: number[], edgePromises: Promise<c3d.Mesh>[], outlinesOnly: boolean) {
         const faceCache = this.faceCache;
         const edges_ = await Promise.all(edgePromises);
         const edgeResult = [];
@@ -244,7 +250,7 @@ export class FaceCacheMeshCreator implements MeshCreator {
             const outlines = mesh.GetEdges(outlinesOnly);
             if (outlines.length === 0) continue;
             const polygon = outlines[0];
-            polygon.i = i;
+            polygon.i = indexes[i];
             polygon.model = edges[i];
             edgeResult.push(polygon);
         }

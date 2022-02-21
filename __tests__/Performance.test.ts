@@ -79,8 +79,8 @@ describe.skip("One item with many faces", () => {
         wheel = db.findAll()[0].model;
     })
 
-    // 149 140 144 142 142
-    test('create mesh no cache', async () => {
+    // 140 140 141 142 142
+    test.only('create mesh no cache', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
         const start = performance.now();
@@ -89,7 +89,8 @@ describe.skip("One item with many faces", () => {
         console.log(end - start);
     })
 
-    // 212 208 209 210 208
+    // 1: 212 208 209 210 208
+    // 2: 171 161 163 163 164
     test('create mesh empty cache', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
@@ -102,18 +103,20 @@ describe.skip("One item with many faces", () => {
     })
 
     // 5 6 5 5 6
-    test.only('create mesh empty cache', async () => {
+    test('create mesh empty cache', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
-        await meshCreator.caching(async () => {
-            const pool = copier.pool(wheel, 2);
-            const copy1 = await pool.Pop();
-            await meshCreator.create(copy1, stepData, formNote, true);
-            const copy2 = await pool.Pop();
-            const start = performance.now();
-            await meshCreator.create(copy2, stepData, formNote, true);
-            const end = performance.now();
-            console.log(end - start);
-        });
+        await copier.caching(async () => {
+            await meshCreator.caching(async () => {
+                const pool = copier.pool(wheel, 2);
+                const copy1 = await pool.Pop();
+                await meshCreator.create(copy1, stepData, formNote, true);
+                const copy2 = await pool.Pop();
+                const start = performance.now();
+                await meshCreator.create(copy2, stepData, formNote, true);
+                const end = performance.now();
+                console.log(end - start);
+            });
+        })
     })
 })

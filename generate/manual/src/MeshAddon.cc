@@ -169,7 +169,6 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                     continue;
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
-                jsInfo.Set(Napi::String::New(env, "polygon"), Napi::Number::New(env, edgeIndex - 1));
             }
             else
             {
