@@ -80,6 +80,18 @@ describe(FilletFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    });
+
+    test('cacheKey involves truncation', () => {
+        const edge = box.edges.get(0);
+        makeFillet.solid = box;
+        makeFillet.edges = [edge];
+        makeFillet.distance = 0.1;
+        const before = makeFillet.cacheKey;
+
+        makeFillet.distance = 0.10001;
+        const after = makeFillet.cacheKey;
+        expect(before).toEqual(after);
     })
 });
 
@@ -101,7 +113,7 @@ describe(MaxFilletFactory, () => {
         edge = box.edges.get(0);
     })
 
-    test.only('distance within range', async () => {
+    test('distance within range', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [edge];
 
@@ -241,7 +253,7 @@ describe(MultiFilletFactory, () => {
         expect(multi.distance2).toBe(0)
     })
 
-    it('using distance (not distance1 or distance2) uses the optimization', async () => {
+    it.skip('using distance (not distance1 or distance2) uses the optimization', async () => {
         const multi = new MultiFilletFactory(db, materials, signals);
         multi.edges = [box1.edges.get(0), box2.edges.get(0)];
         expect(multi.factories.length).toBe(2);

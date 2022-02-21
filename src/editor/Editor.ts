@@ -29,7 +29,7 @@ import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
-import { DoCacheMeshCreator, DontCacheMeshCreator, FaceCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
+import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';

@@ -139,29 +139,6 @@ describe('onClick', () => {
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
 
-    test.skip("reselecting curve removes control point selection", () => {
-        const intersectCurve = [{
-            point: new THREE.Vector3(),
-            object: curve.underlying
-        }];
-
-        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        expect(selectionDb.selected.curves.size).toBe(1);
-
-        const intersectControlPoint = [{
-            point: new THREE.Vector3(),
-            object: curve.underlying.points.get(0)
-        }];
-
-        changeSelection.onClick(intersectControlPoint, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        expect(selectionDb.selected.curves.size).toBe(0);
-        expect(selectionDb.selected.controlPoints.size).toBe(1);
-
-        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        expect(selectionDb.selected.curves.size).toBe(1);
-        expect(selectionDb.selected.controlPoints.size).toBe(0);
-    });
-
     test('clicking on a region selects the region', () => {
         const intersections = [];
         intersections.push({

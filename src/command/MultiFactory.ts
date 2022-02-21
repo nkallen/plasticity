@@ -14,7 +14,7 @@ export class MultiGeometryFactory<T extends MultiplyableFactory> extends Geometr
         const { factories } = this;
         const result = [];
         for (const factory of factories) {
-            result.push(factory.calculate());
+            result.push(factory.calculateWithCache());
         }
         return (await Promise.all(result)).flat();
     }

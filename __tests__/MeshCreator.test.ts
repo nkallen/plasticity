@@ -6,10 +6,10 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { BasicMeshCreator, FaceCacheMeshCreator, DontCacheMeshCreator, ObjectCacheMeshCreator, ParallelMeshCreator, DoCacheMeshCreator } from "../src/editor/MeshCreator";
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import * as visual from '../src/visual_model/VisualModel';
+import { BasicMeshCreator, DoCacheMeshCreator, FaceCacheMeshCreator, ObjectCacheMeshCreator, ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { SolidCopier } from "../src/editor/SolidCopier";
+import * as visual from '../src/visual_model/VisualModel';
+import { FakeMaterials } from "../__mocks__/FakeMaterials";
 
 let materials: MaterialDatabase;
 let db: GeometryDatabase;
@@ -144,14 +144,12 @@ describe(FaceCacheMeshCreator, () => {
     })
 
     let cache: FaceCacheMeshCreator;
-    let underlying: ParallelMeshCreator;
     beforeEach(() => {
         cache = new FaceCacheMeshCreator(new ParallelMeshCreator(), copier);
-        underlying = new ParallelMeshCreator();
         db = new GeometryDatabase(cache, copier, materials, signals);
         makeFillet = new FilletFactory(db, materials, signals);
     })
-    
+
     let box: visual.Solid;
     let item1: c3d.Solid, item2: c3d.Solid;
     beforeEach(async () => {
@@ -162,7 +160,30 @@ describe(FaceCacheMeshCreator, () => {
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         box = await makeBox.commit() as visual.Solid;
         calculateGrid.mockClear();
+    })
 
+    test('with cache face hit', async () => {
+        await copier.caching(async () => {
+            makeFillet.solid = box;
+            makeFillet.edges = [box.edges.get(0)];
+            makeFillet.distance = 0.1;
+            item1 = await makeFillet.calculate();
+
+            makeFillet.solid = box;
+            makeFillet.edges = [box.edges.get(0)];
+            makeFillet.distance = 0.15;
+            item2 = await makeFillet.calculate();
+
+            await cache.create(item1, stepData, formNote, true);
+            expect(calculateGrid).toBeCalledTimes(7);
+            calculateGrid.mockClear();
+
+            await cache.create(item2, stepData, formNote, true);
+            expect(calculateGrid).toBeCalledTimes(5);
+        });
+    });
+
+    test('with face history not populated', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [box.edges.get(0)];
         makeFillet.distance = 0.1;
@@ -172,32 +193,17 @@ describe(FaceCacheMeshCreator, () => {
         makeFillet.edges = [box.edges.get(0)];
         makeFillet.distance = 0.15;
         item2 = await makeFillet.calculate();
-    })
 
-    test('with cache face hit', async () => {
         await cache.create(item1, stepData, formNote, true);
         expect(calculateGrid).toBeCalledTimes(7);
         calculateGrid.mockClear();
 
         await cache.create(item2, stepData, formNote, true);
-        expect(calculateGrid).toBeCalledTimes(5);
-    });
-
-    test('with cache, diff ancestral name, face hit', async () => {
-        await cache.create(item1, stepData, formNote, true);
         expect(calculateGrid).toBeCalledTimes(7);
-        calculateGrid.mockClear();
-
-        makeSphere.center = new THREE.Vector3();
-        makeSphere.radius = 1;
-        const sphere = await makeSphere.calculate() as c3d.Solid;
-
-        await cache.create(sphere, stepData, formNote, true);
-        expect(calculateGrid).toBeCalledTimes(1);
     });
 })
 
-describe(FaceCacheMeshCreator, () => {
+describe(DoCacheMeshCreator, () => {
     let calculateGrid: jest.SpyInstance;
 
     beforeEach(() => {
@@ -212,7 +218,7 @@ describe(FaceCacheMeshCreator, () => {
         db = new GeometryDatabase(cache, copier, materials, signals);
         makeFillet = new FilletFactory(db, materials, signals);
     })
-    
+
     let box: visual.Solid;
     let item1: c3d.Solid, item2: c3d.Solid;
     beforeEach(async () => {
@@ -223,7 +229,9 @@ describe(FaceCacheMeshCreator, () => {
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         box = await makeBox.commit() as visual.Solid;
         calculateGrid.mockClear();
+    })
 
+    test('with cache turned off', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [box.edges.get(0)];
         makeFillet.distance = 0.1;
@@ -233,9 +241,7 @@ describe(FaceCacheMeshCreator, () => {
         makeFillet.edges = [box.edges.get(0)];
         makeFillet.distance = 0.15;
         item2 = await makeFillet.calculate();
-    })
 
-    test('with cache turned off', async () => {
         await cache.create(item1, stepData, formNote, true);
         expect(calculateGrid).toBeCalledTimes(7);
         calculateGrid.mockClear();
@@ -245,13 +251,25 @@ describe(FaceCacheMeshCreator, () => {
     });
 
     test('with cache turned on', async () => {
-        await cache.caching(async () => {
-            await cache.create(item1, stepData, formNote, true);
-            expect(calculateGrid).toBeCalledTimes(7);
-            calculateGrid.mockClear();
-    
-            await cache.create(item2, stepData, formNote, true);
-            expect(calculateGrid).toBeCalledTimes(5);
-        });
-    });
+        await copier.caching(async () => {
+            await cache.caching(async () => {
+                makeFillet.solid = box;
+                makeFillet.edges = [box.edges.get(0)];
+                makeFillet.distance = 0.1;
+                item1 = await makeFillet.calculate();
+
+                makeFillet.solid = box;
+                makeFillet.edges = [box.edges.get(0)];
+                makeFillet.distance = 0.15;
+                item2 = await makeFillet.calculate();
+
+                await cache.create(item1, stepData, formNote, true);
+                expect(calculateGrid).toBeCalledTimes(7);
+                calculateGrid.mockClear();
+
+                await cache.create(item2, stepData, formNote, true);
+                expect(calculateGrid).toBeCalledTimes(5);
+            });
+        })
+    })
 })

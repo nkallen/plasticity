@@ -196,13 +196,12 @@ export class FaceCacheMeshCreator implements MeshCreator {
         c3d.Mutex.EnterParallelRegion();
 
         const facePromises: Promise<c3d.MeshBuffer>[] = [];
-        const edgePromises: Promise<c3d.EdgeBuffer | undefined>[] = [];
+        const edgePromises: Promise<c3d.EdgeBuffer[]>[] = [];
         const mesh = new c3d.Mesh(false);
         const faces = shell.GetFaces();
         const cachedFaces = [];
         const cachedEdges = [];
         const seenEdges = new Set<c3d.CurveEdge>();
-        let j = 0;
         for (const [i, face] of faces.entries()) {
             const id = history.get(face.Id());
             const isCacheable = !face.GetOwnChanged() && id !== undefined;
@@ -214,22 +213,21 @@ export class FaceCacheMeshCreator implements MeshCreator {
             } else {
                 const facePromise = underlying.calculateFace(mesh, face, stepData, formNote, i);
                 const edges = face.GetEdges().filter(e => !seenEdges.has(e));
-                const faceEdgePromises = edges.map(e => underlying.calculateEdge(e, stepData, formNote, outlinesOnly, j++));
-                this.cacheFace(id, isCacheable, facePromise, faceEdgePromises);
+                const edgeMeshPromises = edges.map(e => e.CalculateMesh_async(stepData, formNote));
+                const edgeBufferPromises = this.cacheFace(id, isCacheable, facePromise, edges, edgeMeshPromises, outlinesOnly);
                 facePromises.push(facePromise);
-                edgePromises.push(...faceEdgePromises);
+                edgePromises.push(edgeBufferPromises);
             }
         }
 
-        const allFaces = cachedFaces.concat(await Promise.all(facePromises));
-
-        const edges_ = await Promise.all(edgePromises);
-        const edges = [];
-        for (const edge of edges_) {
-            if (edge !== undefined) edges.push(edge);
+        const edgeBufferss = await Promise.all(edgePromises);
+        const edgeBuffers = [];
+        for (const edge of edgeBufferss) {
+            edgeBuffers.push(...edge);
         }
-        const allEdges = cachedEdges.concat(edges);
+        const allEdges = cachedEdges.concat(edgeBuffers);
 
+        const allFaces = cachedFaces.concat(await Promise.all(facePromises));
         c3d.Mutex.ExitParallelRegion();
 
         return {
@@ -238,17 +236,23 @@ export class FaceCacheMeshCreator implements MeshCreator {
         };
     }
 
-    private async cacheFace(id: bigint | undefined, isCacheable: boolean, facePromise: Promise<c3d.MeshBuffer>, edgePromises: Promise<c3d.EdgeBuffer | undefined>[]) {
+    private async cacheFace(id: bigint | undefined, isCacheable: boolean, facePromise: Promise<c3d.MeshBuffer>, edges: c3d.CurveEdge[], edgePromises: Promise<c3d.Mesh>[], outlinesOnly: boolean) {
         const faceCache = this.faceCache;
-        if (isCacheable) {
-            const face = await facePromise;
-            const edges_ = await Promise.all(edgePromises);
-            const edges = [];
-            for (const edge of edges_) {
-                if (edge !== undefined) edges.push(edge);
-            }
-            faceCache.set(id!, [face, edges]);
+        const edges_ = await Promise.all(edgePromises);
+        const edgeResult = [];
+        for (const [i, mesh] of edges_.entries()) {
+            const outlines = mesh.GetEdges(outlinesOnly);
+            if (outlines.length === 0) continue;
+            const polygon = outlines[0];
+            polygon.i = i;
+            polygon.model = edges[i];
+            edgeResult.push(polygon);
         }
+        if (isCacheable) {
+            const faceResult = await facePromise;
+            faceCache.set(id!, [faceResult, edgeResult]);
+        }
+        return edgeResult;
     }
 }
 

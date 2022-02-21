@@ -1,12 +1,9 @@
 import c3d from '../../../build/Release/c3d.node';
 import { delegate, derive } from '../../command/FactoryBuilder';
-import { GeometryFactory, GeometryFactoryCache, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
+import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
-import { DatabaseLike } from "../../editor/DatabaseLike";
-import { EditorSignals } from '../../editor/EditorSignals';
-import MaterialDatabase from '../../editor/MaterialDatabase';
 import { SolidCopierPool } from '../../editor/SolidCopier';
-import { composeMainName, deunit, truncunit, unit } from '../../util/Conversion';
+import { composeMainName, deunit, trunc, truncunit, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 import { FunctionWrapper } from './FunctionWrapper';
@@ -35,26 +32,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     edgeFunctions!: c3d.EdgeFunction[];
     curveEdges!: c3d.CurveEdge[];
     functions!: Map<string, FunctionWrapper>;
-
-    constructor(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals, cache?: GeometryFactoryCache) {
-        super(db, materials, signals, cache);
-
-        const params = new c3d.SmoothValues();
-        params.distance1 = 0;
-        params.distance2 = 0;
-        params.form = c3d.SmoothForm.Fillet;
-        params.conic = 0;
-        params.prolong = true;
-        params.smoothCorner = c3d.CornerForm.uniform;
-        params.begLength = unit(FilletFactory.LengthSentinel);
-        params.endLength = unit(FilletFactory.LengthSentinel);
-        params.keepCant = c3d.ThreeStates.neutral;
-        params.strict = false;
-
-        this.params = params;
-    }
-
-    params: c3d.SmoothValues;
 
     protected _solid!: { view: visual.Solid, model: c3d.Solid, pool: SolidCopierPool };
     @derive(visual.Solid) get solid(): visual.Solid { throw '' }
@@ -88,35 +65,45 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this._edges = edges;
     }
 
-    get distance() { return deunit(this.params.distance1) }
+    get distance() { return this.distance1 }
     set distance(d: number) {
-        const { params } = this;
-        params.distance1 = truncunit(d, 3);
-        params.distance2 = truncunit(d, 3);
+        this.distance1 = d;
+        this.distance2 = d;
     }
 
-    get distance1() { return deunit(this.params.distance1) }
-    set distance1(d: number) { this.params.distance1 = truncunit(d, 3) }
-    get distance2() { return deunit(this.params.distance2) }
-    set distance2(d: number) { this.params.distance2 = truncunit(d, 3) }
-    get form() { return this.params.form }
-    set form(d: c3d.SmoothForm) { this.params.form = d }
-    get conic() { return this.params.conic }
-    set conic(d: number) { this.params.conic = d }
-    get prolong() { return this.params.prolong }
-    set prolong(d: boolean) { this.params.prolong = d }
-    get smoothCorner() { return this.params.smoothCorner }
-    set smoothCorner(d: c3d.CornerForm) { this.params.smoothCorner = d }
-    get keepCant() { return this.params.keepCant }
-    set keepCant(d: c3d.ThreeStates) { this.params.keepCant = d }
-    get strict() { return this.params.strict }
-    set strict(d: boolean) { this.params.strict = d }
-    get begLength() { return deunit(this.params.begLength) }
-    set begLength(d: number) { this.params.begLength = unit(d) }
-    get endLength() { return deunit(this.params.endLength) }
-    set endLength(d: number) { this.params.endLength = unit(d) }
-    get equable() { return this.params.equable }
-    set equable(d: boolean) { this.params.equable = d }
+    private _distance1 = 0;
+    get distance1() { return this._distance1 }
+    set distance1(distance1: number) { this._distance1 = trunc(distance1, 300) }
+
+    private _distance2 = 0;
+    get distance2() { return this._distance2 }
+    set distance2(distance2: number) { this._distance2 = trunc(distance2, 300) }
+
+    form = c3d.SmoothForm.Fillet;
+    conic = 0;
+    prolong = true;
+    smoothCorner = c3d.CornerForm.uniform;
+    begLength = FilletFactory.LengthSentinel;
+    endLength = FilletFactory.LengthSentinel;
+    keepCant = c3d.ThreeStates.neutral;
+    strict = false;
+    equable = false;
+
+    get params() {
+        const params = new c3d.SmoothValues();
+        params.distance1 = unit(this.distance1);
+        params.distance2 = unit(this.distance2);
+        params.form = this.form;
+        params.conic = this.conic;
+        params.prolong = this.prolong;
+        params.smoothCorner = this.smoothCorner;
+        params.begLength = unit(this.begLength);
+        params.endLength = unit(this.endLength);
+        params.keepCant = this.keepCant;
+        params.strict = this.strict;
+
+        return params;
+    }
 
     private get names() {
         return new c3d.SNameMaker(composeMainName(this.mode, this.db.version), c3d.ESides.SideNone, 0);
@@ -148,13 +135,14 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
-        if (this.mode === c3d.CreatorType.ChamferSolid) return [];
-        const { _solid: { model: solid }, params } = this;
-        const surfaces = await c3d.ActionPhantom.SmoothPhantom_async(solid, this.edgeFunctions, params);
-        return surfaces.map(s => ({
-            phantom: new c3d.SpaceInstance(s),
-            material: {},
-        }));
+        return [];
+        // if (this.mode === c3d.CreatorType.ChamferSolid) return [];
+        // const { _solid: { model: solid }, params } = this;
+        // const surfaces = await c3d.ActionPhantom.SmoothPhantom_async(solid, this.edgeFunctions, params);
+        // return surfaces.map(s => ({
+        //     phantom: new c3d.SpaceInstance(s),
+        //     material: {},
+        // }));
     }
 
     get originalItem() { return this._solid.view }
@@ -177,7 +165,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     private searcher = new FilletFactory(this.db, this.materials, this.signals, this.cache);
     private updater = new FilletFactory(this.db, this.materials, this.signals, this.cache);
-    readonly factories = [this.updater];
+    readonly factories = [this.searcher, this.updater];
 
     private max = new Max<c3d.Item | c3d.Item[]>(this.searcher);
 
@@ -243,7 +231,7 @@ function dirty(target: MaxFilletFactory, propertyKey: keyof MaxFilletFactory) {
     })
 }
 
-export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> implements FilletParams {
+export class MultiFilletFactory extends MultiGeometryFactory<FilletFactory> implements FilletParams {
     @delegate.default(c3d.SmoothForm.Fillet) form!: c3d.SmoothForm;
     @delegate.default(0) conic!: number;
     @delegate.default(true) prolong!: boolean;
@@ -287,7 +275,7 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
         const individuals = [];
         const map = groupBy('parentItem', edges);
         for (const [solid, edges] of map.entries()) {
-            const individual = new MaxFilletFactory(this.db, this.materials, this.signals);
+            const individual = new FilletFactory(this.db, this.materials, this.signals);
             individual.solid = solid;
             individual.edges = edges;
             individual.distance1 = this.distance1;
@@ -298,9 +286,9 @@ export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> i
         this.factories = individuals;
     }
 
-    start() {
-        return Promise.all(this.factories.map(f => f.start()));
-    }
+    // start() {
+    //     return Promise.all(this.factories.map(f => f.start()));
+    // }
 
     get mode(): Mode {
         return this.distance1 < 0 ? c3d.CreatorType.ChamferSolid : c3d.CreatorType.FilletSolid;

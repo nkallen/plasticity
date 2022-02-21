@@ -135,7 +135,7 @@ private:
         if (originalShell == nullptr)
             return nullptr;
 
-        const MbeCopyMode sameShell = cm_Copy;
+        const MbeCopyMode sameShell = cm_KeepSurface;
         MbFaceShell *copyShell = originalShell->Copy(sameShell);
         copyShell->SetOwnChangedThrough(tct_Unchanged);
         MbSolid *copySolid = new MbSolid(*copyShell, original, nullptr);

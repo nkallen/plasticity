@@ -7,6 +7,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { CachingMeshCreator } from "../editor/MeshCreator";
 import { PlaneDatabase } from "../editor/PlaneDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
+import { SolidCopier } from "../editor/SolidCopier";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { AlreadyFinishedError } from "../util/CancellablePromise";
@@ -27,6 +28,7 @@ export interface EditorLike {
     viewports: ReadonlyArray<Viewport>;
     meshCreator: CachingMeshCreator;
     snaps: SnapManager;
+    copier: SolidCopier;
 }
 
 export class CommandExecutor {
@@ -77,7 +79,7 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        const { snaps, signals, registry, originator, history, selection, contours, db, meshCreator } = this.editor;
+        const { snaps, signals, registry, originator, history, selection, contours, db, meshCreator, copier } = this.editor;
         signals.commandStarted.dispatch(command);
         const disposable = registry.add('plasticity-viewport', {
             'command:finish': () => command.finish(),
@@ -91,10 +93,12 @@ export class CommandExecutor {
             signals.objectDeselected.addOnce(() => selectionChanged = true);
             this.disableViewportSelector(command);
             await contours.transaction(async () => {
-                await meshCreator.caching(async () => {
-                    await command.execute();
-                });
-                command.finish(); // ensure all resources are cleaned up
+                await copier.caching(async() => {
+                    await meshCreator.caching(async () => {
+                        await command.execute();
+                    });
+                })
+                command.finish(); // ensure all resources are cleaned up // TODO: should this be inside the txn?
             });
             if (command.state === 'Finished') {
                 if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
