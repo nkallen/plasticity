@@ -56,23 +56,42 @@ export class ParallelMeshCreator implements MeshCreator {
         const mesh = new c3d.Mesh(false);
         const faces = shell.GetFaces();
         for (const [i, face] of faces.entries()) {
-            facePromises.push(this.calculateFace(mesh, face, stepData, formNote, i));
+            const grid = mesh.AddGrid()!;
+            face.AttributesConvert(grid);
+            grid.SetItem(face);
+            const simpleName = face.GetNameHash();
+            grid.SetPrimitiveName(simpleName);
+            grid.SetPrimitiveType(c3d.RefType.TopItem);
+            grid.SetStepData(stepData);
+            // NOTE: there is a significant performance penalty for using calculateFace, so it is inlined here
+            const buf = c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair()).then(() => {
+                const { index, position, normal } = grid.GetBuffers();
+                const bufs: c3d.MeshBuffer = { index, position, normal, grid, model: face, style: face.GetStyle(), simpleName, i };
+                return bufs;
+            })
+            facePromises.push(buf);
         }
 
-        const edgePromises: Promise<c3d.EdgeBuffer | undefined>[] = [];
+        const edgePromises: Promise<c3d.Mesh>[] = [];
         const edges = solid.GetEdges();
-        for (const [i, edge] of edges.entries()) {
-            const polygon = this.calculateEdge(edge, stepData, formNote, outlinesOnly, i);
-            edgePromises.push(polygon);
+        for (const edge of edges) {
+            edgePromises.push(edge.CalculateMesh_async(stepData, formNote));
+        }
+
+        const edgeResult_ = await Promise.all(edgePromises);
+        const edgeResult = [];
+        for (const [i, mesh] of edgeResult_.entries()) {
+            // NOTE: there is a significant performance penalty for using calculateEdges, so it is inlined here
+            const edge = edges[i];
+            const outlines = mesh.GetEdges(outlinesOnly);
+            if (outlines.length === 0) continue;
+            const polygon = outlines[0];
+            polygon.i = i;
+            polygon.model = edge;
+            edgeResult.push(polygon);
         }
 
         const faceResult = await Promise.all(facePromises);
-        const edgeResult_ = await Promise.all(edgePromises);
-        const edgeResult = [];
-        for (const edge of edgeResult_) {
-            if (edge !== undefined) edgeResult.push(edge);
-        }
-
         c3d.Mutex.ExitParallelRegion();
 
         return {
