@@ -177,7 +177,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     private searcher = new FilletFactory(this.db, this.materials, this.signals, this.cache);
     private updater = new FilletFactory(this.db, this.materials, this.signals, this.cache);
-    readonly factories = [this.searcher, this.updater];
+    readonly factories = [this.updater];
 
     private max = new Max<c3d.Item | c3d.Item[]>(this.searcher);
 

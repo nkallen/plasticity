@@ -11,15 +11,16 @@ export class SolidCopier {
 }
 
 const defaultPoolSize = 10;
+const refillAt = 5;
 export class SolidCopierPool {
     constructor(private readonly pool: c3d.SolidPool, private readonly faceHistory: Map<bigint, bigint>) {
-        this.pool.Alloc(defaultPoolSize);
+        this.pool.Alloc_async(defaultPoolSize);
     }
 
     async Pop(): Promise<c3d.Solid> {
         const { faceHistory } = this;
-        if (this.pool.Count() < defaultPoolSize / 2) this.pool.Alloc(defaultPoolSize);
         const result = await this.pool.Pop_async();
+        if (this.pool.Count() == refillAt) this.pool.Alloc_async(defaultPoolSize);
         const { originalFaceIds, copyFaceIds } = result.GetBuffers();
         for (let i = 0, n = originalFaceIds.length; i < n; i++) {
             faceHistory.set(copyFaceIds[i], originalFaceIds[i]);
