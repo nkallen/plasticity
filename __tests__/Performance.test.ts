@@ -6,6 +6,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
+import { SolidCopier } from '../src/editor/SolidCopier';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -18,7 +19,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
 });
 
 let data: Buffer;
@@ -29,7 +30,7 @@ beforeEach(async () => {
 
 // NOTE: run `ndb .` and run the "benchmark" script.
 
-describe.skip("Performance tests", () => {
+describe("Performance tests", () => {
     // NAIVE: 10980 10962 10931 11096
     // FIRST OPTIMIZATION: 3285 3251 3264 3316 3318
     // SECOND OPTIMIZATION: (Edge and Face are no longer subclasses of THREE.Object3D) 2834 2896 2998 2857 2823

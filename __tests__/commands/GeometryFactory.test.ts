@@ -2,10 +2,12 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AbstractGeometryFactory, GeometryFactory, PhantomInfo, ValidationError } from "../../src/command/GeometryFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
+import { TemporaryObject } from "../../src/editor/DatabaseLike";
 import { EditorSignals } from '../../src/editor/EditorSignals';
-import { GeometryDatabase, TemporaryObject } from '../../src/editor/GeometryDatabase';
+import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { SolidCopier } from "../../src/editor/SolidCopier";
 import { Delay } from "../../src/util/SequentialExecutor";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -18,7 +20,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
 })
 
 let sphere: c3d.Solid;
@@ -29,6 +31,8 @@ beforeEach(async () => {
     sphere = await makeSphere.calculate() as c3d.Solid;
 })
 class ReplacingFactory extends AbstractGeometryFactory {
+    finish(): void { throw new Error("Method not implemented."); }
+    interrupt(): void { throw new Error("Method not implemented."); }
     from!: visual.Solid[]
     to!: c3d.Solid[]
 

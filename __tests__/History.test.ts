@@ -9,15 +9,15 @@ import { Viewport } from '../src/components/viewport/Viewport';
 import ContourManager from '../src/editor/curves/ContourManager';
 import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
 import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
-import { History } from '../src/editor/History';
 import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, ViewportMemento } from '../src/editor/History';
+import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, History, ViewportMemento } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import ModifierManager, { ModifierStack } from '../src/editor/ModifierManager';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
+import { SolidCopier } from '../src/editor/SolidCopier';
 import { Selection, SelectionDatabase } from '../src/selection/SelectionDatabase';
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from '../__mocks__/FakeViewport';
@@ -75,7 +75,7 @@ describe(EditorOriginator, () => {
     test("saveToMemento & restoreFromMemento", () => {
         const memento = originator.saveToMemento();
 
-        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+        db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
 
@@ -97,7 +97,7 @@ describe(EditorOriginator, () => {
     test("serialize & deserialize", async () => {
         const data = await originator.serialize();
 
-        db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+        db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
 

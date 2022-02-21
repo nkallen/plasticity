@@ -14,6 +14,7 @@ import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, LineAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
+import { SolidCopier } from "../../src/editor/SolidCopier";
 import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -34,7 +35,7 @@ let snaps: SnapManager;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();

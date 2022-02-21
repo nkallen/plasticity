@@ -7,7 +7,8 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { DontCacheMeshCreator, ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { SolidCopier } from "../../src/editor/SolidCopier";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -19,7 +20,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
 })
 
 const bbox = new THREE.Box3();

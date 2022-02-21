@@ -155,6 +155,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
             index: edge.i
         };
 
+        if (position.length === 0) return;
         this.lines.push({ position, userData, material, occludedMaterial, model: edge.model });
     }
 

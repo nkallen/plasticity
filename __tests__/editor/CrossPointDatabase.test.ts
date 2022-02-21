@@ -1,14 +1,15 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import c3d from '../../build/Release/c3d.node';
-import '../matchers';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { SolidCopier } from "../../src/editor/SolidCopier";
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import '../matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -24,7 +25,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     curves = new CrossPointDatabase();
 });
 

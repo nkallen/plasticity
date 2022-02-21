@@ -29,11 +29,11 @@ import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
-import { ParallelMeshCreator } from "./MeshCreator";
+import { DoCacheMeshCreator, DontCacheMeshCreator, FaceCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import ModifierManager from "./ModifierManager";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
-
+import { SolidCopier } from "./SolidCopier";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -47,8 +47,9 @@ export class Editor {
     readonly registry = new CommandRegistry();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
-    readonly meshCreator = new ParallelMeshCreator();
-    readonly _db = new GeometryDatabase(this.meshCreator, this.materials, this.signals);
+    readonly copier = new SolidCopier();
+    readonly meshCreator = new DoCacheMeshCreator(new ParallelMeshCreator(), this.copier);
+    readonly _db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
 
     readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
     readonly regions = new RegionManager(this._db, this.curves);
@@ -60,6 +61,7 @@ export class Editor {
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
     readonly registrar = new SelectionCommandRegistrar(this);
+
 
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);

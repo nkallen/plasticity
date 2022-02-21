@@ -4,8 +4,8 @@ import { GeometryFactory, GeometryFactoryCache, NoOpError, PhantomInfo } from '.
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
-import { copyduplicate } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
+import { SolidCopierPool } from '../../editor/SolidCopier';
 import { composeMainName, deunit, truncunit, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
@@ -56,7 +56,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     params: c3d.SmoothValues;
 
-    protected _solid!: { view: visual.Solid, model: c3d.Solid };
+    protected _solid!: { view: visual.Solid, model: c3d.Solid, pool: SolidCopierPool };
     @derive(visual.Solid) get solid(): visual.Solid { throw '' }
     set solid(solid: visual.Solid | c3d.Solid) { }
 
@@ -86,10 +86,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this.curveEdges = curveEdges;
         this.functions = name2function;
         this._edges = edges;
-        this.pool = new c3d.SolidPool(this._solid.model);
-        this.pool.Alloc_async(poolSize);
     }
-    private pool!: c3d.SolidPool;
 
     get distance() { return deunit(this.params.distance1) }
     set distance(d: number) {
@@ -130,34 +127,24 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
-        const { _solid: { model: original }, params, indices, names, pool } = this;
+        const { _solid: { model: original, pool }, params, indices, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
-        if (pool.Count() < 2) pool.Alloc(poolSize);
-        const dup = pool.pop()!;
-        const { originalFaceIds, copyFaceIds } = dup.GetBuffers();
-        const copy = dup.GetCopy()!;
+        const copy = await pool.Pop();
         const copyShell = copy.GetShell()!;
-        const { functions, initCurves: edges } = await copyShell.FindEdgesByFacesIndex_async(indices.indexes, indices.functions, indices.slideways);
+        const { initCurves: edges } = await copyShell.FindEdgesByFacesIndex_async(indices.indexes, indices.functions, indices.slideways);
 
-        const history = new Map<bigint, bigint>();
-        for (let i = 0, n = originalFaceIds.length; i < n; i++) {
-            history.set(copyFaceIds[i], originalFaceIds[i]);
-        }
-
+        let result;
         if (this.mode === c3d.CreatorType.ChamferSolid) {
-            const result = await c3d.ActionSolid.ChamferSolid_async(copy, c3d.CopyMode.Same, edges, params, this.names);
-            this.db.register(result, history);
-            return result;
+            result = await c3d.ActionSolid.ChamferSolid_async(copy, c3d.CopyMode.Same, edges, params, this.names);
         } else {
             const edgeFunctions = [];
             for (const [i, edge] of edges.entries()) {
                 edgeFunctions.push(new c3d.EdgeFunction(edge, indices.functions[i]));
             }
-            const result = await c3d.ActionSolid.FilletSolid_async(copy, c3d.CopyMode.Same, edgeFunctions, [], params, names);
-            this.db.register(result, history);
-            return result;
+            result = await c3d.ActionSolid.FilletSolid_async(copy, c3d.CopyMode.Same, edgeFunctions, [], params, names);
         }
+        return result;
     }
 
     async calculatePhantoms(): Promise<PhantomInfo[]> {
@@ -190,7 +177,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 export class MaxFilletFactory extends GeometryFactory implements FilletParams {
     private searcher = new FilletFactory(this.db, this.materials, this.signals, this.cache);
     private updater = new FilletFactory(this.db, this.materials, this.signals, this.cache);
-    readonly factories = [this.updater];
+    readonly factories = [this.searcher, this.updater];
 
     private max = new Max<c3d.Item | c3d.Item[]>(this.searcher);
 
@@ -243,8 +230,6 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
 
     get originalItem() { return this.updater.originalItem }
 }
-
-const poolSize = 10;
 
 function dirty(target: MaxFilletFactory, propertyKey: keyof MaxFilletFactory) {
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey)!;

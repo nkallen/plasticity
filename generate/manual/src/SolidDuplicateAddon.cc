@@ -13,15 +13,23 @@ Napi::Value _SolidDuplicate::GetBuffers(const Napi::CallbackInfo &info)
 
     Napi::Env env = info.Env();
 
-    Napi::ArrayBuffer oBuf = Napi::ArrayBuffer::New(env, (void *)underlying->originalFaceIds, count * sizeof(uint64_t));
-    Napi::BigInt64Array oArray = Napi::BigInt64Array::New(env, count, oBuf, 0);
+    Napi::ArrayBuffer ofBuf = Napi::ArrayBuffer::New(env, (void *)underlying->originalFaceIds, count * sizeof(uint64_t));
+    Napi::BigInt64Array ofArray = Napi::BigInt64Array::New(env, count, ofBuf, 0);
 
-    Napi::ArrayBuffer cBuf = Napi::ArrayBuffer::New(env, (void *)underlying->copyFaceIds, count * sizeof(uint64_t));
-    Napi::BigInt64Array cArray = Napi::BigInt64Array::New(env, count, cBuf, 0);
+    Napi::ArrayBuffer cfBuf = Napi::ArrayBuffer::New(env, (void *)underlying->copyFaceIds, count * sizeof(uint64_t));
+    Napi::BigInt64Array cfArray = Napi::BigInt64Array::New(env, count, cfBuf, 0);
+
+    Napi::ArrayBuffer oeBuf = Napi::ArrayBuffer::New(env, (void *)underlying->copyEdgeIds, count * sizeof(uint64_t));
+    Napi::BigInt64Array oeArray = Napi::BigInt64Array::New(env, count, oeBuf, 0);
+
+    Napi::ArrayBuffer ceBuf = Napi::ArrayBuffer::New(env, (void *)underlying->copyEdgeIds, count * sizeof(uint64_t));
+    Napi::BigInt64Array ceArray = Napi::BigInt64Array::New(env, count, ceBuf, 0);
 
     Napi::Object result = Napi::Object::New(env);
-    result.Set(Napi::String::New(env, "originalFaceIds"), oArray);
-    result.Set(Napi::String::New(env, "copyFaceIds"), cArray);
+    result.Set(Napi::String::New(env, "originalFaceIds"), ofArray);
+    result.Set(Napi::String::New(env, "copyFaceIds"), cfArray);
+    result.Set(Napi::String::New(env, "originalEdgeIds"), oeArray);
+    result.Set(Napi::String::New(env, "copyEdgeIds"), ceArray);
 
     return result;
 }

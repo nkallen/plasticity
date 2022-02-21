@@ -6,6 +6,7 @@ const isErrorBool = { isErrorBool: true };
 const ignore = { ignore: true };
 const isRaw = { isRaw: true };
 const isOnHeap = { isOnStack: false };
+const isManual = true;
 
 export default {
     classes: {
@@ -242,7 +243,7 @@ export default {
                 "void SetOwnChangedThrough(MbeChangedType type)",
                 "void MakeRight()",
                 "bool IsRight()",
-                "MbeItemLocation SolidClassification(const MbSolid & solid, double epsilon = Math::metricRegion)"
+                "MbeItemLocation SolidClassification(const MbSolid & solid, double epsilon = Math::metricRegion)",
             ]
         },
         Assembly: {
@@ -1023,6 +1024,7 @@ export default {
                 { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
                 { signature: "void GetSurfaceParam(const double faceU, const double faceV, double & surfaceU, double & surfaceV)", surfaceU: isReturn, surfaceV: isReturn },
                 { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold = 50)", edges: isReturn },
+                { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold = 50)", edges: isReturn },
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 "bool IsSame(const MbTopologyItem & other, double accuracy)",
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
@@ -1800,7 +1802,7 @@ export default {
             initializers: ["MbSolid & original"],
             functions: [
                 "void Alloc(size_t n)",
-                "SolidDuplicate * pop()",
+                "SolidDuplicate * Pop()",
                 "size_t Count()",
             ]
         }

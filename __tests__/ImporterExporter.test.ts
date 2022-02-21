@@ -11,6 +11,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { ImporterExporter } from "../src/editor/ImporterExporter";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { SolidCopier } from '../src/editor/SolidCopier';
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -24,7 +25,7 @@ let signals: EditorSignals;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    _db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    _db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     editor = {
         _db
     } as unknown as Editor;

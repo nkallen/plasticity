@@ -59,6 +59,13 @@ declare module "*c3d.node" {
         model: c3d.CurveEdge
     }
 
+    declare interface SolidDuplicateBuffer {
+        originalFaceIds: BigInt64Array;
+        copyFaceIds: BigInt64Array;
+        originalEdgeIds: BigInt64Array;
+        copyEdgeIds: BigInt64Array;
+    }
+
     declare enum ESides {
         SideNone, SidePlus, SideMinus
     }

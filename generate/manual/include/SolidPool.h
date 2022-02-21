@@ -19,17 +19,35 @@ public:
         original.GetFaces(originalFaces);
         copy.GetFaces(copyFaces);
 
-        const size_t count = originalFaces.Count();
-        originalFaceIds = new uint64_t[count];
-        copyFaceIds = new uint64_t[count];
+        const size_t faceCount = originalFaces.Count();
+        originalFaceIds = new uint64_t[faceCount];
+        copyFaceIds = new uint64_t[faceCount];
 
-        for (size_t i = 0; i < count; i++)
+        for (size_t i = 0; i < faceCount; i++)
         {
             MbFace *originalFace = originalFaces[i];
             MbFace *copyFace = copyFaces[i];
 
             originalFaceIds[i] = (uint64_t)originalFace;
             copyFaceIds[i] = (uint64_t)copyFace;
+        }
+
+        RPArray<MbEdge> originalEdges;
+        RPArray<MbEdge> copyEdges;
+        original.GetEdges(originalEdges);
+        copy.GetEdges(copyEdges);
+
+        const size_t edgeCount = originalEdges.Count();
+        originalEdgeIds = new uint64_t[edgeCount];
+        copyEdgeIds = new uint64_t[edgeCount];
+
+        for (size_t i = 0; i < edgeCount; i++)
+        {
+            MbEdge *originalEdge = originalEdges[i];
+            MbEdge *copyEdge = copyEdges[i];
+
+            originalEdgeIds[i] = (uint64_t)originalEdge;
+            copyEdgeIds[i] = (uint64_t)copyEdge;
         }
     }
 
@@ -38,15 +56,19 @@ public:
         copy.Release();
         delete originalFaceIds;
         delete copyFaceIds;
+        delete originalEdgeIds;
+        delete copyEdgeIds;
     }
 
-
-    MbSolid * GetCopy() {
+    MbSolid *GetCopy()
+    {
         return &copy;
     }
 
     uint64_t *originalFaceIds;
     uint64_t *copyFaceIds;
+    uint64_t *originalEdgeIds;
+    uint64_t *copyEdgeIds;
 
 private:
     MbSolid &copy;
@@ -79,13 +101,12 @@ public:
         mutex.unlock();
     }
 
-    SolidDuplicate *pop()
+    SolidDuplicate *Pop()
     {
         mutex.lock();
         if (copies.size() == 0)
         {
             mutex.unlock();
-            std::cout << "Failures\n";
             return MakeOne();
         }
         else
@@ -97,7 +118,8 @@ public:
         }
     }
 
-    size_t Count() {
+    size_t Count()
+    {
         return copies.size();
     }
 

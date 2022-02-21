@@ -1,19 +1,20 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ContourFilletFactory } from "../src/commands/modify_contour/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../src/commands/line/LineFactory";
+import { ContourFilletFactory } from "../src/commands/modify_contour/ContourFilletFactory";
 import ContourManager from '../src/editor/curves/ContourManager';
 import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
 import { RegionManager } from "../src/editor/curves/RegionManager";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from "../src/editor/MeshCreator";
+import { SolidCopier } from "../src/editor/SolidCopier";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
-import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 
 let _db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -36,7 +37,7 @@ let makeFillet: ContourFilletFactory;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    _db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    _db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     curves = new PlanarCurveDatabase(_db, materials, signals);
     regions = new RegionManager(_db, curves);
     contours = new ContourManager(_db, curves, regions);

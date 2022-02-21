@@ -2,6 +2,7 @@ import { GeometryFactory } from './GeometryFactory';
 import * as visual from '../visual_model/VisualModel';
 import c3d from '../../build/Release/c3d.node';
 import { inst2curve } from '../util/Conversion';
+import { SolidCopierPool } from '../editor/SolidCopier';
 
 function _delegate(initial?: any) {
     return function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
@@ -76,12 +77,13 @@ export function derive<T extends Derivable>(type: T) {
         switch (type) {
             case visual.Solid:
                 descriptor.set = function (this: GeometryFactory, t: any) {
-                    const value: { view?: visual.Solid, model?: c3d.Solid } = {};
+                    const value: { view?: visual.Solid, model?: c3d.Solid, pool?: SolidCopierPool } = {};
                     if (t instanceof c3d.Solid) value.model = t;
                     else {
                         value.view = t;
                         value.model = this.db.lookup(t);
                     }
+                    value.pool = this.db.pool(value.model, 10);
                     // @ts-ignore
                     this['_' + propertyKey] = value;
                 }

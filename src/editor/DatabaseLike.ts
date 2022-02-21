@@ -4,6 +4,7 @@ import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
+import { SolidCopierPool } from './SolidCopier';
 import { TypeManager } from './TypeManager';
 
 export type Agent = 'user' | 'automatic';
@@ -88,7 +89,7 @@ export interface DatabaseLike {
     isSelectable(item: visual.Item): boolean;
     makeSelectable(item: visual.Item, value: boolean): void;
 
-    register(solid: c3d.Solid, history: Map<bigint, bigint>): void;
+    pool(solid: c3d.Solid, size: number): SolidCopierPool;
 
     deserialize(data: Buffer): Promise<void>;
     load(model: c3d.Model | c3d.Assembly): Promise<void>;

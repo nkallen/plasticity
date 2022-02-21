@@ -12,6 +12,7 @@ import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../src/editor/snaps/ConstructionPlaneSnap";
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
+import { SolidCopier } from "../src/editor/SolidCopier";
 import { point2point, vec2vec } from "../src/util/Conversion";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -29,7 +30,7 @@ let bbox: THREE.Box3;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);

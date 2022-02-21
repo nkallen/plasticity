@@ -11,6 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { MeshCreator } from './MeshCreator';
+import { SolidCopier, SolidCopierPool } from './SolidCopier';
 import { TypeManager } from './TypeManager';
 
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
@@ -37,6 +38,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     constructor(
         private readonly meshCreator: MeshCreator,
+        private readonly copier: SolidCopier,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals
     ) { }
@@ -112,8 +114,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             tempId,
             formNote,
             this.precisionAndDistanceFor(model, 'temporary'),
-            materials,
-            ancestor);
+            materials);
         const view = builder.build(tempId);
         into.add(view);
 
@@ -249,7 +250,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.visibleObjects.filter(i => !unselectable.has(i.simpleName));
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride, ancestor?: visual.Item): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -267,18 +268,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
         const promises = [];
         for (const [precision, distance] of precision_distance) {
-            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials, ancestor));
+            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials));
         }
         await Promise.all(promises);
 
         return builder;
     }
 
-    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride, ancestor?: visual.Item): Promise<void> {
+    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const stats = Measure.get("create-mesh");
         stats.begin();
-        const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid, ancestor && this.lookup(ancestor));
+        const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid);
         stats.end();
 
         switch (obj.IsA()) {
@@ -435,6 +436,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return views;
     }
 
+    pool(solid: c3d.Solid, size: number): SolidCopierPool {
+        return this.copier.pool(solid, size);
+    }
+
     saveToMemento(): GeometryMemento {
         return new GeometryMemento(
             new Map(this.geometryModel),
@@ -482,10 +487,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
         loadItems(model.GetItems());
         await Promise.all(promises);
-    }
-
-    register(solid: c3d.Solid, history: Map<bigint, bigint>) {
-        this.meshCreator.register(solid, history);
     }
 
     validate() {

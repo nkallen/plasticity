@@ -6,13 +6,14 @@ import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { Intersection } from '../../src/visual_model/Intersectable';
-import * as visual from '../../src/visual_model/VisualModel';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from '../../src/selection/ChangeSelectionExecutor';
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
+import { Intersection } from '../../src/visual_model/Intersectable';
+import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
-import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -23,7 +24,7 @@ let changeSelection: ChangeSelectionExecutor;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
 });

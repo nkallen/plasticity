@@ -9,6 +9,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
+import { SolidCopier } from "../src/editor/SolidCopier";
 import { TypeManager } from "../src/editor/TypeManager";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -27,7 +28,7 @@ let types: TypeManager;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     camera = new THREE.PerspectiveCamera();
     types = db.types;
     snaps = new SnapManager(db, new CrossPointDatabase(), signals);

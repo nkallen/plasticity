@@ -4,6 +4,7 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { SolidCopier } from '../src/editor/SolidCopier';
 import { point2point } from '../src/util/Conversion';
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -26,7 +27,7 @@ const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.Sid
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
 
     box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
@@ -284,7 +285,7 @@ test("serialize & deserialize", async () => {
     const data = await db.serialize();
     expect(view.simpleName).toBe(10);
 
-    db = new GeometryDatabase(new ParallelMeshCreator(), materials, signals);
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     expect(db.visibleObjects.length).toBe(0);
 
     await db.deserialize(data);
