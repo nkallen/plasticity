@@ -33,3 +33,8 @@ Napi::Value _SolidDuplicate::GetBuffers(const Napi::CallbackInfo &info)
 
     return result;
 }
+
+Napi::Value _SolidDuplicate::GetBuffers_async(const Napi::CallbackInfo &info)
+{
+    return this->GetBuffers(info);
+}
