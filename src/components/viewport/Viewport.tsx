@@ -93,8 +93,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         renderer.setPixelRatio(window.devicePixelRatio);
         const size = renderer.getSize(new THREE.Vector2());
+        const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
         // @ts-expect-error('three.js @types are out of date')
-        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, skipInvalidateFramebuffer: true });
+        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, skipInvalidateFramebuffer: true, depthTexture });
         renderTarget.samples = 4;
 
         EffectComposer: {
@@ -157,7 +158,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:navigate:back': () => this.navigate(Orientation.posY),
                 'viewport:navigate:left': () => this.navigate(Orientation.negX),
                 'viewport:navigate:bottom': () => this.navigate(Orientation.negZ),
-                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first?? this.editor.selection.selected.regions.first),
+                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
