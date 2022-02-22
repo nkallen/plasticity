@@ -58,14 +58,6 @@
                 {
                     "name": "@electron-forge/maker-flatpak",
                     "config": {}
-                },
-                {
-                    "name": "@electron-forge/maker-snap",
-                    "config": {
-                        "features": {
-                            "webgl": true
-                        }
-                    }
                 }
             ],
             "publishers": [
