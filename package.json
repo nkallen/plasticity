@@ -57,7 +57,7 @@
                 },
                 {
                     "name": "@electron-forge/maker-flatpak",
-                    "config": { }
+                    "config": {}
                 },
                 {
                     "name": "@electron-forge/maker-snap",
@@ -112,7 +112,9 @@
         "@babel/preset-env": "^7.15.0",
         "@electron-forge/cli": "^6.0.0-beta.61",
         "@electron-forge/maker-deb": "^6.0.0-beta.61",
+        "@electron-forge/maker-flatpak": "^6.0.0-beta.63",
         "@electron-forge/maker-rpm": "^6.0.0-beta.61",
+        "@electron-forge/maker-snap": "^6.0.0-beta.63",
         "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
         "@electron-forge/maker-zip": "^6.0.0-beta.61",
         "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.61",

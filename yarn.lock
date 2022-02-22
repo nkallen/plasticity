@@ -1569,6 +1569,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron-forge/maker-flatpak@npm:^6.0.0-beta.63":
+  version: 6.0.0-beta.63
+  resolution: "@electron-forge/maker-flatpak@npm:6.0.0-beta.63"
+  dependencies:
+    "@electron-forge/maker-base": 6.0.0-beta.63
+    "@electron-forge/shared-types": 6.0.0-beta.63
+    "@malept/electron-installer-flatpak": ^0.11.2
+    fs-extra: ^10.0.0
+  dependenciesMeta:
+    "@malept/electron-installer-flatpak":
+      optional: true
+  checksum: 0ae8ea4c25527a7daf4fa2bf583816fe6b9961109109f1fbdd14da39ff0409c9ed131e0f45c9432416780aa8382cab7b0181fa868e072412f2439dd2c9428c6a
+  languageName: node
+  linkType: hard
+
 "@electron-forge/maker-rpm@npm:^6.0.0-beta.61":
   version: 6.0.0-beta.63
   resolution: "@electron-forge/maker-rpm@npm:6.0.0-beta.63"
@@ -1580,6 +1595,20 @@ __metadata:
     electron-installer-redhat:
       optional: true
   checksum: 42164cc91ed62ea0a9f4a501aa2a464ba9fcc7d6c87e94d4de69270b5a3ce9dbf75cf95b8e8695b9c857a5c32676ff7432b3a26440d3e435ab7b0f7e181ebb73
+  languageName: node
+  linkType: hard
+
+"@electron-forge/maker-snap@npm:^6.0.0-beta.63":
+  version: 6.0.0-beta.63
+  resolution: "@electron-forge/maker-snap@npm:6.0.0-beta.63"
+  dependencies:
+    "@electron-forge/maker-base": 6.0.0-beta.63
+    "@electron-forge/shared-types": 6.0.0-beta.63
+    electron-installer-snap: ^5.1.0
+  dependenciesMeta:
+    electron-installer-snap:
+      optional: true
+  checksum: 0f2ac07c541eb91eb91c71b8f514f1120892e038a1f9905442bd30cbcaf0dc25e55ee80371d7c471ef121dd61cc7cd207efedc1b55d8657784d6e31b4f0ff85c
   languageName: node
   linkType: hard
 
@@ -2307,6 +2336,34 @@ __metadata:
   dependencies:
     cross-spawn: ^7.0.1
   checksum: 9016a6674842c161b6949d7876e655874ca2d7f6a4fd88a73147d2abde0dcb3981c5dd9714e721e40f92e953ba16e18d7ee3fc94e8b1aae9b5922c582cd320da
+  languageName: node
+  linkType: hard
+
+"@malept/electron-installer-flatpak@npm:^0.11.2":
+  version: 0.11.4
+  resolution: "@malept/electron-installer-flatpak@npm:0.11.4"
+  dependencies:
+    "@malept/flatpak-bundler": ^0.4.0
+    debug: ^4.1.1
+    electron-installer-common: ^0.10.0
+    lodash: ^4.17.15
+    semver: ^7.1.1
+    yargs: ^16.0.0
+  bin:
+    electron-installer-flatpak: bin/electron-installer-flatpak.js
+  conditions: (os=darwin | os=linux)
+  languageName: node
+  linkType: hard
+
+"@malept/flatpak-bundler@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@malept/flatpak-bundler@npm:0.4.0"
+  dependencies:
+    debug: ^4.1.1
+    fs-extra: ^9.0.0
+    lodash: ^4.17.15
+    tmp-promise: ^3.0.2
+  checksum: 12527e42c2865504eb2a91cc419e52dd7a68c1eda1138c0713a1520a5413ef9dabfa9d21b7908d211998b75c60035d1d5ae87c00fe8ff5be8fa8449525235dd5
   languageName: node
   linkType: hard
 
@@ -6230,7 +6287,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-installer-common@npm:^0.10.2":
+"electron-installer-common@npm:^0.10.0, electron-installer-common@npm:^0.10.1, electron-installer-common@npm:^0.10.2":
   version: 0.10.3
   resolution: "electron-installer-common@npm:0.10.3"
   dependencies:
@@ -6283,6 +6340,26 @@ __metadata:
   bin:
     electron-installer-redhat: src/cli.js
   conditions: (os=darwin | os=linux)
+  languageName: node
+  linkType: hard
+
+"electron-installer-snap@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "electron-installer-snap@npm:5.1.0"
+  dependencies:
+    "@malept/cross-spawn-promise": ^1.0.0
+    debug: ^4.1.1
+    electron-installer-common: ^0.10.1
+    fs-extra: ^9.0.0
+    js-yaml: ^3.10.0
+    lodash: ^4.17.15
+    semver: ^7.1.1
+    tmp-promise: ^2.0.1
+    which: ^2.0.1
+    yargs: ^15.0.1
+  bin:
+    electron-installer-snap: src/cli.js
+  checksum: d96a3e5138acbebac289b9bfad34a89988d6196a510ec35a3a92d5e65b55dec2241efe9fa8bb8585df7ef792a5acbc86f711868f324f395a58a76791aab1066a
   languageName: node
   linkType: hard
 
@@ -10338,7 +10415,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^3.13.1":
+"js-yaml@npm:^3.10.0, js-yaml@npm:^3.13.1":
   version: 3.14.1
   resolution: "js-yaml@npm:3.14.1"
   dependencies:
@@ -12645,7 +12722,9 @@ __metadata:
     "@babel/preset-env": ^7.15.0
     "@electron-forge/cli": ^6.0.0-beta.61
     "@electron-forge/maker-deb": ^6.0.0-beta.61
+    "@electron-forge/maker-flatpak": ^6.0.0-beta.63
     "@electron-forge/maker-rpm": ^6.0.0-beta.61
+    "@electron-forge/maker-snap": ^6.0.0-beta.63
     "@electron-forge/maker-squirrel": ^6.0.0-beta.61
     "@electron-forge/maker-zip": ^6.0.0-beta.61
     "@electron-forge/plugin-auto-unpack-natives": ^6.0.0-beta.61
@@ -15111,7 +15190,7 @@ __metadata:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
+  checksum: fc9f7282b59b61aaa71c15a8684c5e6c02062768eb9f01d9645b80a3ceec1a79834a2988b8184b7bee0a5984698f325adc3ef190d776c7616a240f3debf36173
   languageName: node
   linkType: hard
 
@@ -15181,6 +15260,15 @@ __metadata:
     bluebird: ^3.5.0
     tmp: 0.1.0
   checksum: 1f4a4559866e53e55cda1ea40aae4e4ebfd1a2fc8a587d3b877e60c7259510435366df3fa99d8d2ad605d7387f7f0a5850acf4c1ae5065edfc9eb17bb4506087
+  languageName: node
+  linkType: hard
+
+"tmp-promise@npm:^2.0.1":
+  version: 2.1.1
+  resolution: "tmp-promise@npm:2.1.1"
+  dependencies:
+    tmp: 0.1.0
+  checksum: a88a1dd4af85eb49cbd74249cebf75c1bc47ecf3390f936c8c1113366897ee9e03510590fd7950563c6e98db81f9eaaaf424ed0ba4d066a2644ce176e075476e
   languageName: node
   linkType: hard
 
@@ -16617,7 +16705,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^16.0.2, yargs@npm:^16.2.0":
+"yargs@npm:^16.0.0, yargs@npm:^16.0.2, yargs@npm:^16.2.0":
   version: 16.2.0
   resolution: "yargs@npm:16.2.0"
   dependencies:
