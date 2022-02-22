@@ -63,6 +63,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this.curveEdges = curveEdges;
         this.functions = name2function;
         this._edges = edges;
+        this._solid.pool = this.db.pool(this._solid.model, 10);
     }
 
     get distance() { return this.distance1 }
