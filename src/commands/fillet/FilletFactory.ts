@@ -63,6 +63,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this.curveEdges = curveEdges;
         this.functions = name2function;
         this._edges = edges;
+
+        // TODO: move this back into @derive but c3d.EnterParallelRegion for FindFacesIndexByEdges
         this._solid.pool = this.db.pool(this._solid.model, 10);
     }
 
