@@ -51,8 +51,8 @@ describe(ParallelMeshCreator, () => {
             makeSphere.radius = 1;
             const item = await makeSphere.calculate() as c3d.Solid;
 
-            const { edges: edgesParallel, faces: facesParallel } = await parallel.create(item, stepData, formNote, true);
-            const { faces: facesBasic } = await basic.create(item, stepData, formNote, true);
+            const { edges: edgesParallel, faces: facesParallel } = await parallel.create(item, stepData, formNote, true, true);
+            const { faces: facesBasic } = await basic.create(item, stepData, formNote, true, true);
 
             expect(edgesParallel.length).toBe(0);
             expect(facesParallel.length).toBe(1);
@@ -62,7 +62,7 @@ describe(ParallelMeshCreator, () => {
             expect(facesParallel[0].index).toEqual(facesBasic[0].index);
         })
 
-        test('box', async () => {
+        test.only('box', async () => {
             makeBox.p1 = new THREE.Vector3();
             makeBox.p2 = new THREE.Vector3(1, 0, 0);
             makeBox.p3 = new THREE.Vector3(1, 1, 0);
@@ -70,8 +70,8 @@ describe(ParallelMeshCreator, () => {
 
             const item = await makeBox.calculate() as c3d.Solid;
 
-            const { edges: edgesParallel, faces: facesParallel } = await parallel.create(item, stepData, formNote, true);
-            const { faces: facesBasic } = await basic.create(item, stepData, formNote, true);
+            const { edges: edgesParallel, faces: facesParallel } = await parallel.create(item, stepData, formNote, true, true);
+            const { faces: facesBasic } = await basic.create(item, stepData, formNote, true, true);
 
             expect(edgesParallel.length).toBe(12);
             expect(facesParallel.length).toBe(6);
@@ -111,11 +111,11 @@ describe(ObjectCacheMeshCreator, () => {
     })
 
     test('with cache, object hit', async () => {
-        const { edges: edges1, faces: faces1 } = await cache.create(item, stepData, formNote, true);
+        const { edges: edges1, faces: faces1 } = await cache.create(item, stepData, formNote, true, true);
         expect(calculateGrid).toBeCalledTimes(6);
         calculateGrid.mockClear();
 
-        const { edges: edges2, faces: faces2 } = await cache.create(item, stepData, formNote, true);
+        const { edges: edges2, faces: faces2 } = await cache.create(item, stepData, formNote, true, true);
         expect(calculateGrid).toBeCalledTimes(0);
 
         expect(faces1).toBe(faces2);
@@ -123,12 +123,12 @@ describe(ObjectCacheMeshCreator, () => {
     });
 
     test('with cache, object hit but different precisions', async () => {
-        const { edges: edges1, faces: faces1 } = await cache.create(item, stepData, formNote, true);
+        const { edges: edges1, faces: faces1 } = await cache.create(item, stepData, formNote, true, true);
         expect(calculateGrid).toBeCalledTimes(6);
         calculateGrid.mockClear();
 
         const stepData2 = new c3d.StepData(c3d.StepType.SpaceStep, 0.5);
-        const { edges: edges2, faces: faces2 } = await cache.create(item, stepData2, formNote, true);
+        const { edges: edges2, faces: faces2 } = await cache.create(item, stepData2, formNote, true, true);
         expect(calculateGrid).toBeCalledTimes(6);
 
         expect(faces1).not.toBe(faces2);
@@ -174,11 +174,11 @@ describe(FaceCacheMeshCreator, () => {
             makeFillet.distance = 0.15;
             item2 = await makeFillet.calculate();
 
-            await cache.create(item1, stepData, formNote, true);
+            await cache.create(item1, stepData, formNote, true, false);
             expect(calculateGrid).toBeCalledTimes(7);
             calculateGrid.mockClear();
 
-            await cache.create(item2, stepData, formNote, true);
+            await cache.create(item2, stepData, formNote, true, false);
             expect(calculateGrid).toBeCalledTimes(5);
         });
     });
@@ -194,21 +194,21 @@ describe(FaceCacheMeshCreator, () => {
         makeFillet.distance = 0.15;
         item2 = await makeFillet.calculate();
 
-        await cache.create(item1, stepData, formNote, true);
+        await cache.create(item1, stepData, formNote, true, false);
         expect(calculateGrid).toBeCalledTimes(7);
         calculateGrid.mockClear();
 
-        await cache.create(item2, stepData, formNote, true);
+        await cache.create(item2, stepData, formNote, true, false);
         expect(calculateGrid).toBeCalledTimes(7);
     });
 
-    test.only('indices are correct', async () => {
+    test('when includemetdata=true, indices are correct', async () => {
         makeFillet.solid = box;
         makeFillet.edges = [box.edges.get(0)];
         makeFillet.distance = 0.1;
         item1 = await makeFillet.calculate();
 
-        const result = await cache.create(item1, stepData, formNote, true);
+        const result = await cache.create(item1, stepData, formNote, true, true);
         expect(result.edges.length).toBe(15);
         for (let i = 0; i < result.edges.length; i++) {
             const edge = result.edges[i];
@@ -261,11 +261,11 @@ describe(DoCacheMeshCreator, () => {
         makeFillet.distance = 0.15;
         item2 = await makeFillet.calculate();
 
-        await cache.create(item1, stepData, formNote, true);
+        await cache.create(item1, stepData, formNote, true, false);
         expect(calculateGrid).toBeCalledTimes(7);
         calculateGrid.mockClear();
 
-        await cache.create(item2, stepData, formNote, true);
+        await cache.create(item2, stepData, formNote, true, false);
         expect(calculateGrid).toBeCalledTimes(7);
     });
 
@@ -282,11 +282,11 @@ describe(DoCacheMeshCreator, () => {
                 makeFillet.distance = 0.15;
                 item2 = await makeFillet.calculate();
 
-                await cache.create(item1, stepData, formNote, true);
+                await cache.create(item1, stepData, formNote, true, false);
                 expect(calculateGrid).toBeCalledTimes(7);
                 calculateGrid.mockClear();
 
-                await cache.create(item2, stepData, formNote, true);
+                await cache.create(item2, stepData, formNote, true, false);
                 expect(calculateGrid).toBeCalledTimes(5);
             });
         })

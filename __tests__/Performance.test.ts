@@ -5,7 +5,7 @@ import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { DoCacheMeshCreator, MeshCreator, ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { DoCacheMeshCreator, FaceCacheMeshCreator, MeshCreator, ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
 import { SolidCopier } from '../src/editor/SolidCopier';
 import { unit } from '../src/util/Conversion';
@@ -80,40 +80,40 @@ describe.skip("One item with many faces", () => {
     })
 
     // 140 140 141 142 142
-    test.only('create mesh no cache', async () => {
+    test('create mesh no cache', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
         const start = performance.now();
-        await meshCreator.create(wheel, stepData, formNote, true);
+        await meshCreator.create(wheel, stepData, formNote, true, true);
         const end = performance.now();
         console.log(end - start);
     })
 
     // 1: 212 208 209 210 208
     // 2: 171 161 163 163 164
-    test('create mesh empty cache', async () => {
+    test.only('create mesh empty cache', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
         const start = performance.now();
         await meshCreator.caching(async () => {
-            await meshCreator.create(wheel, stepData, formNote, true);
+            await meshCreator.create(wheel, stepData, formNote, true, false);
         });
         const end = performance.now();
         console.log(end - start);
     })
 
     // 5 6 5 5 6
-    test('create mesh empty cache', async () => {
+    test('create mesh when cache hit', async () => {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, unit(0.0005));
         const formNote = new c3d.FormNote(true, true, false, false, false);
         await copier.caching(async () => {
             await meshCreator.caching(async () => {
                 const pool = copier.pool(wheel, 2);
                 const copy1 = await pool.Pop();
-                await meshCreator.create(copy1, stepData, formNote, true);
+                await meshCreator.create(copy1, stepData, formNote, true, false);
                 const copy2 = await pool.Pop();
                 const start = performance.now();
-                await meshCreator.create(copy2, stepData, formNote, true);
+                await meshCreator.create(copy2, stepData, formNote, true, false);
                 const end = performance.now();
                 console.log(end - start);
             });

@@ -74,7 +74,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         if (name === undefined) name = this.positiveCounter++;
         else (this.positiveCounter = Math.max(this.positiveCounter, name + 1));
 
-        const builder = await this.meshes(model, name, formNote, this.precisionAndDistanceFor(model)); // TODO: it would be nice to move this out of the queue but tests fail
+        const builder = await this.meshes(model, name, this.precisionAndDistanceFor(model), true); // TODO: it would be nice to move this out of the queue but tests fail
         const view = builder.build(name, this.topologyModel, this.controlPointModel);
         view.userData.simpleName = name;
 
@@ -112,8 +112,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const builder = await this.meshes(
             model,
             tempId,
-            formNote,
             this.precisionAndDistanceFor(model, 'temporary'),
+            false,
             materials);
         const view = builder.build(tempId);
         into.add(view);
@@ -250,7 +250,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.visibleObjects.filter(i => !unselectable.has(i.simpleName));
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][], includeMetadata: boolean, materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -268,18 +268,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
         const promises = [];
         for (const [precision, distance] of precision_distance) {
-            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials));
+            promises.push(this.object2mesh(builder, obj, id, precision, distance, includeMetadata, materials));
         }
         await Promise.all(promises);
 
         return builder;
     }
 
-    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
+    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance: number, includeMetadata: boolean, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const stats = Measure.get("create-mesh");
         stats.begin();
-        const item = await this.meshCreator.create(obj, stepData, note, obj.IsA() === c3d.SpaceType.Solid);
+        const item = await this.meshCreator.create(obj, stepData, formNote, obj.IsA() === c3d.SpaceType.Solid, includeMetadata);
         stats.end();
 
         switch (obj.IsA()) {
