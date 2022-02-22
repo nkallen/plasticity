@@ -415,12 +415,12 @@ export class DistanceGizmo extends AbstractAxisGizmo {
         return original + dist
     }
 
-    scaleIndependentOfZoom(camera: THREE.Camera) {
+    protected override scaleIndependentOfZoom(camera: THREE.Camera) {
         const { relativeScale, tip, knob, shaft, _length } = this;
         tip.scale.copy(relativeScale);
         knob.scale.copy(relativeScale);
-        Helper.scaleIndependentOfZoom(tip, camera);
-        const factor = Helper.scaleIndependentOfZoom(knob, camera);
+        Helper.scaleIndependentOfZoom(tip, camera, this.worldPosition);
+        const factor = Helper.scaleIndependentOfZoom(knob, camera, this.worldPosition);
         const shaftLength = _length + this.minShaft * factor;
         shaft.scale.y = shaftLength;
         tip.position.set(0, shaftLength, 0);

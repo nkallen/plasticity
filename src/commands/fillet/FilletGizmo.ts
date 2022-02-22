@@ -162,7 +162,7 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     readonly state = new MagnitudeStateMachine(0);
     protected material = this.editor.gizmos.default;
     readonly helper = new AxisHelper(this.material.line);
-    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
+    readonly tip = new THREE.Mesh(sphereGeometry, this.material.mesh);
     protected readonly shaft = new THREE.Mesh();
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
     private readonly line = new Line2(lineGeometry, this.material.line2);
@@ -189,13 +189,13 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
         return original + dist
     }
 
-    scaleIndependentOfZoom(camera: THREE.Camera) {
+    protected override scaleIndependentOfZoom(camera: THREE.Camera) {
         // Rather than scaling the parent, we scale the children, so that the position (set in render)
         // is in world space
         this.tip.scale.copy(this.relativeScale);
         this.knob.scale.copy(this.relativeScale);
-        Helper.scaleIndependentOfZoom(this.tip, camera);
-        Helper.scaleIndependentOfZoom(this.knob, camera);
+        Helper.scaleIndependentOfZoom(this.tip, camera, this.worldPosition);
+        Helper.scaleIndependentOfZoom(this.knob, camera, this.worldPosition);
     }
 }
 

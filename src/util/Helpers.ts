@@ -35,19 +35,19 @@ export abstract class Helper extends THREE.Object3D {
     readonly relativeScale = new THREE.Vector3(1, 1, 1);
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
-    scaleIndependentOfZoom(camera: THREE.Camera) {
+    protected scaleIndependentOfZoom(camera: THREE.Camera) {
         this.scale.copy(this.relativeScale);
         if (!this.shouldRescaleOnZoom) return;
 
-        Helper.scaleIndependentOfZoom(this, camera);
+        Helper.scaleIndependentOfZoom(this, camera, this.worldPosition);
     }
 
-    static scaleIndependentOfZoom(object: THREE.Object3D, camera: THREE.Camera) {
+    static scaleIndependentOfZoom(object: THREE.Object3D, camera: THREE.Camera, worldPosition: THREE.Vector3) {
         let factor;
         if (ProxyCamera.isOrthographic(camera)) {
             factor = (camera.top - camera.bottom) / camera.zoom;
         } else if (ProxyCamera.isPerspective(camera)) {
-            factor = object.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.getEffectiveFOV() / 360), 7);
+            factor = worldPosition.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360), 7);
         } else throw new Error("invalid camera type");
         factor *= 1 / 11;
         object.scale.multiplyScalar(factor);
