@@ -118,7 +118,6 @@ jobs:
           sudo apt-get -qq install flatpak
           sudo apt-get -qq install elfutils
           sudo apt-get -qq install flatpak-builder
-          sudo apt-get -qq install eu-strip
           yarn publish
   # mac-test:
   #   runs-on: macos-latest
