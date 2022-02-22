@@ -44,7 +44,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         const quat = new THREE.Quaternion();
         for (const [i, segment] of params.segmentAngles.entries()) {
-            const gizmo = this.segments[i];
+            const gizmo = segments[i];
             gizmo.relativeScale.setScalar(0.5);
             quat.setFromUnitVectors(Y, segment.normal);
             gizmo.quaternion.copy(quat);
@@ -53,7 +53,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         const centroid = new THREE.Vector3();
         for (const [i, corner] of params.cornerAngles.entries()) {
-            const gizmo = this.corners[i];
+            const gizmo = corners[i];
             gizmo.relativeScale.setScalar(0.8);
             quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
             gizmo.quaternion.copy(quat);
@@ -223,13 +223,18 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
                     const first = hits[0];
                     intersections.push({ distance: first.distance, info });
                 }
-                if (intersections.length === 0) return;
-                intersections.sort((a, b) => a.distance - b.distance);
-                const newWinner = intersections[0].info;
-                if (newWinner !== winner) winner?.gizmo.stateMachine!.interrupt();
-                winner = newWinner;
-                winner.gizmo.stateMachine!.update(viewport, event);
-                winner.gizmo.stateMachine!.pointerHover();
+
+                if (intersections.length === 0) {
+                    winner?.gizmo.stateMachine!.interrupt();
+                    winner = undefined;
+                } else {
+                    intersections.sort((a, b) => a.distance - b.distance);
+                    const newWinner = intersections[0].info;
+                    if (newWinner !== winner) winner?.gizmo.stateMachine!.interrupt();
+                    winner = newWinner;
+                    winner.gizmo.stateMachine!.update(viewport, event);
+                    winner.gizmo.stateMachine!.pointerHover();
+                }
             }
 
             // NOTE: Gizmos take priority over viewport controls; capture:true it's received first here.
