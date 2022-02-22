@@ -108,16 +108,19 @@ jobs:
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
-      - name: Run tests
-        run: |
-          yarn ci
+      # - name: Run tests
+      #   run: |
+      #     yarn ci
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v1
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo apt-get -qq install flatpak
-          sudo apt-get -qq install elfutils
-          sudo apt-get -qq install flatpak-builder
+          sudo apt-get -qq install flatpak flatpack-builder elfutils snapcraft
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install flathub org.freedesktop.Platform//21.08 org.freedesktop.Sdk//21.08 -y
+          sudo flatpak install flathub org.freedesktop.Platform/x86_64/19.08 org.freedesktop.Sdk/x86_64/19.08 org.electronjs.Electron2.BaseApp/x86_64/stable -y
           yarn publish
   # mac-test:
   #   runs-on: macos-latest
