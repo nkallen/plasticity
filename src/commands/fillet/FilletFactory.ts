@@ -58,14 +58,17 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         }
         const { _solid: { model: solid } } = this;
         const shell = solid.GetShell()!;
-        this.indices = shell.FindFacesIndexByEdges(edgeFunctions);
+        // NOTE: FindFacesIndexByEdges requires EnterParallelRegion if we're also generating an object pool in the background
+        c3d.Mutex.EnterParallelRegion();
+        try {
+            this.indices = shell.FindFacesIndexByEdges(edgeFunctions);
+        } finally {
+            c3d.Mutex.ExitParallelRegion();
+        }
         this.edgeFunctions = edgeFunctions;
         this.curveEdges = curveEdges;
         this.functions = name2function;
         this._edges = edges;
-
-        // TODO: move this back into @derive but c3d.EnterParallelRegion for FindFacesIndexByEdges
-        this._solid.pool = this.db.pool(this._solid.model, 10);
     }
 
     get distance() { return this.distance1 }

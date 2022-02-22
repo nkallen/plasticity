@@ -83,6 +83,7 @@ export function derive<T extends Derivable>(type: T) {
                         value.view = t;
                         value.model = this.db.lookup(t);
                     }
+                    value.pool = this.db.pool(value.model, 10);
                     // @ts-ignore
                     this['_' + propertyKey] = value;
                 }
