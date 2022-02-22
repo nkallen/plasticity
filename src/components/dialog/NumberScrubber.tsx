@@ -165,7 +165,8 @@ export default (editor: Editor) => {
         }
 
         onFocus(e: FocusEvent) {
-            this.state = { tag: 'cancel' }
+            if (this.isDisabled) return;
+            this.state = { tag: 'cancel' };
             this.render();
         }
 
@@ -242,7 +243,7 @@ export default (editor: Editor) => {
                     </div>
                     break;
                 case 'cancel':
-                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} onKeyDown={e => e.stopPropagation()} class={classes} />
+                    input = <input type="text" value={displayValue} ref={i => { i?.focus(); i?.select() }} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} onKeyDown={e => e.stopPropagation()} class={classes} />
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
