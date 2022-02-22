@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { PointPicker, PointResult } from "../../src/command/point-picker/PointPicker";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from '../../src/editor/Editor';
+import { PointSnap } from "../../src/editor/snaps/Snap";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
@@ -41,13 +42,13 @@ test('basic move and click', async () => {
 });
 
 test('execute with no callback and result', async () => {
-    const preresult: PointResult = { point: new THREE.Vector3(), info: {} };
+    const preresult: PointResult = { point: new THREE.Vector3(), info: { orientation: new THREE.Quaternion(), snap: new PointSnap() } };
     const result = await pointPicker.execute({ result: preresult });
     expect(result).toBe(preresult);
 });
 
 test('execute with callback and result', async () => {
-    const preresult: PointResult = { point: new THREE.Vector3(), info: {} };
+    const preresult: PointResult = { point: new THREE.Vector3(), info: { orientation: new THREE.Quaternion(), snap: new PointSnap() } };
     const cb = jest.fn();
     const promise = pointPicker.execute(cb, { result: preresult });
     expect(cb).toBeCalledWith(preresult);

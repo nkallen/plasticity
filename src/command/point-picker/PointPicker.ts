@@ -9,11 +9,11 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import LayerManager from '../../editor/LayerManager';
 import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
+import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { PlaneSnap, PointAxisSnap, PointSnap, Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from "../../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams } from '../../editor/snaps/SnapPicker';
-import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { Finish } from '../../util/Cancellable';
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { Helpers } from '../../util/Helpers';
@@ -137,19 +137,9 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     constructor(private readonly editor: EditorLike) { }
 
     execute<T>(cb?: ((pt: PointResult) => T) | PointPickerOptions, options?: PointPickerOptions): CancellablePromise<PointResult> {
-        if (cb !== undefined) {
-            if (typeof cb !== 'function') {
-                if (options !== undefined) throw new Error("invalid arguments");
-    
-                options = cb as PointPickerOptions;
-                cb = undefined;
-                if (options.result !== undefined) return CancellablePromise.resolve(options.result);
-            } else if (options?.result !== undefined) {
-                cb(options.result)
-            }
-        }
-        const _options = { ...defaultOptions, ...options };
-        const _cb = cb;
+        const parsed = this.parseOptions(cb, options);
+        if (parsed.tag === 'return-early') return parsed.cancellable;
+        const { _options, _cb } = parsed;
 
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
@@ -163,7 +153,6 @@ export class PointPicker implements Executable<PointResult, PointResult> {
             const presenter = new SnapPresenter(editor);
             disposables.add(presenter.execute());
 
-            // FIXME: build elsewhere for higher performance
             const picker = new PointPickerSnapPicker(this.raycasterParams);
             disposables.add(picker.disposable);
 
@@ -277,6 +266,26 @@ export class PointPicker implements Executable<PointResult, PointResult> {
         }).rejectOnInterrupt();
     }
 
+    private parseOptions<T>(cb?: ((pt: PointResult) => T) | PointPickerOptions, options?: PointPickerOptions): ParseResult<T> {
+        if (cb !== undefined) {
+            if (typeof cb !== 'function') {
+                if (options !== undefined) throw new Error("invalid arguments");
+
+                options = cb as PointPickerOptions;
+                cb = undefined;
+                if (options.result !== undefined) {
+                    this.model.addPickedPoint(options.result);
+                    return { tag: 'return-early', cancellable: CancellablePromise.resolve(options.result) };
+                }
+            } else if (options?.result !== undefined) {
+                cb(options.result)
+            }
+        }
+        const _options = { ...defaultOptions, ...options };
+        const _cb = cb;
+        return { tag: 'continue', _options, _cb };
+    }
+
     private disablePickingDuringNavigation(navigationControls: OrbitControls, start: () => void, end: () => void): Disposable {
         const onStart = (e: THREE.Event) => {
             start();
@@ -302,3 +311,5 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
     undo() { this.model.undo() }
 }
+
+type ParseResult<T> = { tag: 'return-early', cancellable: CancellablePromise<PointResult> } | { tag: 'continue', _options: PointPickerOptions, _cb: ((pt: PointResult) => T) | undefined };
