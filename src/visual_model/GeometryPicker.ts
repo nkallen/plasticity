@@ -3,6 +3,11 @@ import { Viewport } from "../components/viewport/Viewport";
 import LayerManager from "../editor/LayerManager";
 import * as intersectable from "./Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from "./VisualModel";
+import * as visual from '../visual_model/VisualModel';
+
+type IntersectableWithTopologyItem = THREE.Intersection<intersectable.Raycastable> & {
+    topologyItem: visual.TopologyItem;
+};
 
 export class GeometryPicker {
     private readonly raycaster = new THREE.Raycaster();
@@ -18,9 +23,10 @@ export class GeometryPicker {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
-        let intersections = raycaster.intersectObjects(objects, false) as THREE.Intersection<intersectable.Raycastable>[];
+
+        let intersections = raycaster.intersectObjects(objects, false) as IntersectableWithTopologyItem[];
         if (!isXRay) {
-            intersections = findAllVeryCloseTogether(intersections);
+            intersections = findAllVeryCloseTogether(intersections) as IntersectableWithTopologyItem[];
         }
         const sorted = intersections.sort(sort);
         return raycastable2intersectable(sorted);
@@ -47,9 +53,11 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectabl
     return result;
 }
 
-function sort(i1: THREE.Intersection<intersectable.Raycastable>, i2: THREE.Intersection<intersectable.Raycastable>) {
+function sort(i1: IntersectableWithTopologyItem, i2: IntersectableWithTopologyItem) {
     const o1 = i1.object, o2 = i2.object;
-    const p1 = o1.priority, p2 = o2.priority;
+    let p1 = o1.priority, p2 = o2.priority;
+    if (o1 instanceof intersectable.RaycastableTopologyItem) p1 = i1.topologyItem.priority
+    if (o2 instanceof intersectable.RaycastableTopologyItem) p1 = i2.topologyItem.priority
     if (p1 === p2) {
         if (o1 instanceof CurveEdge && o2 instanceof CurveEdge) {
             // @ts-expect-error
