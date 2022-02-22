@@ -55,9 +55,8 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectabl
 
 function sort(i1: IntersectableWithTopologyItem, i2: IntersectableWithTopologyItem) {
     const o1 = i1.object, o2 = i2.object;
-    let p1 = o1.priority, p2 = o2.priority;
-    if (o1 instanceof intersectable.RaycastableTopologyItem) p1 = i1.topologyItem.priority
-    if (o2 instanceof intersectable.RaycastableTopologyItem) p1 = i2.topologyItem.priority
+    const p1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem.priority : o1.priority;
+    const p2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem.priority : o2.priority;
     if (p1 === p2) {
         if (o1 instanceof CurveEdge && o2 instanceof CurveEdge) {
             // @ts-expect-error
