@@ -62,7 +62,7 @@ describe(ParallelMeshCreator, () => {
             expect(facesParallel[0].index).toEqual(facesBasic[0].index);
         })
 
-        test.only('box', async () => {
+        test('box', async () => {
             makeBox.p1 = new THREE.Vector3();
             makeBox.p2 = new THREE.Vector3(1, 0, 0);
             makeBox.p3 = new THREE.Vector3(1, 1, 0);
