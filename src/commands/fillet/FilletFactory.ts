@@ -114,7 +114,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
-        const { _solid: { model: original, pool }, params, indices, names } = this;
+        const { _solid: { pool }, params, indices, names } = this;
         if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
         const copy = await pool.Pop();

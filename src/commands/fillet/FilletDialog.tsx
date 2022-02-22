@@ -86,13 +86,13 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                             <plasticity-tooltip><img src={corner1} /><img src={corner2} /><img src={corner3} /></plasticity-tooltip>
                         </label>
                         <div class="fields">
-                            <input type="radio" hidden name="corner" id="pointed" value={c3d.CornerForm.pointed} checked={smoothCorner === c3d.CornerForm.pointed} onClick={this.onChange}></input>
+                            <input type="radio" hidden name="smoothCorner" id="pointed" value={c3d.CornerForm.pointed} checked={smoothCorner === c3d.CornerForm.pointed} onClick={this.onChange}></input>
                             <label for="pointed">Pointed</label>
 
-                            <input type="radio" hidden name="corner" id="uniform" value={c3d.CornerForm.uniform} checked={smoothCorner === c3d.CornerForm.uniform} onClick={this.onChange}></input>
+                            <input type="radio" hidden name="smoothCorner" id="uniform" value={c3d.CornerForm.uniform} checked={smoothCorner === c3d.CornerForm.uniform} onClick={this.onChange}></input>
                             <label for="uniform">Uniform</label>
 
-                            <input type="radio" hidden name="corner" id="sharp" value={c3d.CornerForm.sharp} checked={smoothCorner === c3d.CornerForm.sharp} onClick={this.onChange}></input>
+                            <input type="radio" hidden name="smoothCorner" id="sharp" value={c3d.CornerForm.sharp} checked={smoothCorner === c3d.CornerForm.sharp} onClick={this.onChange}></input>
                             <label for="sharp">Sharp</label>
                         </div>
                     </li>
