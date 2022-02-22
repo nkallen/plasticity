@@ -1,72 +1,72 @@
 name: CI
 on: [push]
 jobs:
-  # test:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '17.5.0'
-  #         cache: 'yarn'
-  #     - name: Cache c3d libraries
-  #       uses: actions/cache@v2
-  #       env:
-  #         cache-name: cache-c3d-libraries
-  #       with:
-  #         path: Win64_Visual_Studio_2019_Unicode.zip
-  #         key: ${{ runner.os }}-build-${{ env.cache-name }}
-  #     - name: Download c3d libraries
-  #       run: |
-  #         choco install wget --no-progress 
-  #         wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
-  #         7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
-  #     - name: Setup license key
-  #       run: |
-  #         echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
-  #     - name: Yarn install
-  #       run: |
-  #         yarn install
-  #     - name: Cache C++ build
-  #       id: cache-cpp-build
-  #       uses: actions/cache@v2
-  #       env:
-  #         cache-name: cache-cpp-build
-  #       with:
-  #         path: build/Release
-  #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
-  #     - name: Codegen C++ and build
-  #       # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
-  #       run: |
-  #         choco install astyle --no-progress 
-  #         yarn generate
-  #         yarn run node-gyp configure
-  #         yarn electron-rebuild
-  #     - name: Run tests
-  #       run: |
-  #         yarn ci
-  #     - name: Increment version
-  #       run: |
-  #         yarn plugin import version
-  #         yarn version patch
-  #         git config user.email "mr@roboto.com"
-  #         git config user.name "GitHub Action"
-  #         git commit -am "Update version"
-  #         git push
-  #     - name: Publish canary release
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       run: |
-  #         yarn publish
-  #     - name: Post
-  #       run: |
-  #         choco install curl --no-progress
-  #         yarn echo-version
-  #         cmd /c @"
-  #         curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
-  #         "@
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '17.5.0'
+          cache: 'yarn'
+      - name: Cache c3d libraries
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-c3d-libraries
+        with:
+          path: Win64_Visual_Studio_2019_Unicode.zip
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+      - name: Download c3d libraries
+        run: |
+          choco install wget --no-progress 
+          wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+          7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
+      - name: Setup license key
+        run: |
+          echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
+      - name: Yarn install
+        run: |
+          yarn install
+      - name: Cache C++ build
+        id: cache-cpp-build
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cpp-build
+        with:
+          path: build/Release
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
+      - name: Codegen C++ and build
+        # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
+        run: |
+          choco install astyle --no-progress 
+          yarn generate
+          yarn run node-gyp configure
+          yarn electron-rebuild
+      - name: Run tests
+        run: |
+          yarn ci
+      - name: Increment version
+        run: |
+          yarn plugin import version
+          yarn version patch
+          git config user.email "mr@roboto.com"
+          git config user.name "GitHub Action"
+          git commit -am "Update version"
+          git push
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn publish
+      - name: Post
+        run: |
+          choco install curl --no-progress
+          yarn echo-version
+          cmd /c @"
+          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
+          "@
   linux-test:
     runs-on: ubuntu-latest
     steps:
@@ -108,68 +108,67 @@ jobs:
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
-      # - name: Run tests
-      #   run: |
-      #     yarn ci
+      - name: Run tests
+        run: |
+          yarn ci
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
+        with:
+          use_lxd: true
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sudo apt-get -qq install flatpak elfutils snapcraft
-          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install flathub org.freedesktop.Platform//21.08 org.freedesktop.Sdk//21.08 -y
-          sudo flatpak install flathub org.freedesktop.Platform/x86_64/19.08 org.freedesktop.Sdk/x86_64/19.08 org.electronjs.Electron2.BaseApp/x86_64/stable -y
           DEBUG=electron-forge:*,electron-installer-flatpak,flatpak-bundler,electron-installer-snap,snap-bundler yarn publish
-  # mac-test:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '17.5.0'
-  #         cache: 'yarn'
-  #     - name: Cache c3d libraries
-  #       uses: actions/cache@v2
-  #       env:
-  #         cache-name: cache-c3d-libraries
-  #       with:
-  #         path: MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip
-  #         key: ${{ runner.os }}-build-${{ env.cache-name }}
-  #     - name: Download c3d libraries
-  #       run: |
-  #         brew install wget
-  #         brew install p7zip
-  #         wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip
-  #         7z x MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip -ovendor/c3d/
-  #     - name: Setup license key
-  #       run: |
-  #         echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"
-  #     - name: Yarn install
-  #       run: |
-  #         yarn install
-  #     - name: Cache C++ build
-  #       id: cache-cpp-build
-  #       uses: actions/cache@v2
-  #       env:
-  #         cache-name: cache-cpp-build
-  #       with:
-  #         path: build/Release
-  #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip', 'generate/api.mjs') }}
-  #     - name: Codegen C++ and build
-  #       run: |
-  #         brew install astyle
-  #         yarn generate
-  #         yarn run node-gyp configure
-  #         yarn electron-rebuild
-  #     - name: Run tests
-  #       run: |
-  #         yarn ci
-  #     - name: Publish canary release
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       run: |
-  #         yarn publish
+  mac-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '17.5.0'
+          cache: 'yarn'
+      - name: Cache c3d libraries
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-c3d-libraries
+        with:
+          path: MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+      - name: Download c3d libraries
+        run: |
+          brew install wget
+          brew install p7zip
+          wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip
+          7z x MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip -ovendor/c3d/
+      - name: Setup license key
+        run: |
+          echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"
+      - name: Yarn install
+        run: |
+          yarn install
+      - name: Cache C++ build
+        id: cache-cpp-build
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cpp-build
+        with:
+          path: build/Release
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('MacOS_SDK_11_3_AMD64_APPLE_CLANG_12.0.5.zip', 'generate/api.mjs') }}
+      - name: Codegen C++ and build
+        run: |
+          brew install astyle
+          yarn generate
+          yarn run node-gyp configure
+          yarn electron-rebuild
+      - name: Run tests
+        run: |
+          yarn ci
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn publish
