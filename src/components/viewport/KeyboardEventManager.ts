@@ -106,6 +106,8 @@ export default class KeyboardEventManager {
     }
 
     private handleKeyboardEvent(event: KeyboardEvent) {
+        console.log(event);
+        console.log(this.keymaps.keystrokeForKeyboardEvent(event))
         this.keymaps.handleKeyboardEvent(event);
     }
 
