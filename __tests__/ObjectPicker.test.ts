@@ -2,17 +2,17 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import { ObjectPicker } from "../src/command/ObjectPicker";
+import { ThreePointBoxFactory } from "../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ObjectPicker, ObjectPickerViewportSelector } from "../src/command/ObjectPicker";
 import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { ChangeSelectionExecutor, SelectionMode } from "../src/selection/ChangeSelectionExecutor";
-import { SelectionDatabase, SelectionModeSet } from "../src/selection/SelectionDatabase";
+import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
-import { ThreePointBoxFactory } from "../src/commands/box/BoxFactory";
 
 let db: GeometryDatabase;
 let changeSelection: ChangeSelectionExecutor;

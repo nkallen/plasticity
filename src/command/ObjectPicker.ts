@@ -16,6 +16,7 @@ import { CancellablePromise } from "../util/CancellablePromise";
 import { Raycastable, Intersection, Intersectable } from '../visual_model/Intersectable';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import { Executable } from './Quasimode';
+import * as visual from '../visual_model/VisualModel';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -110,8 +111,8 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
 
             let count = 0;
             const selected = signals.selectionDelta.add(delta => {
-                count += delta.added.size;
-                count -= delta.removed.size;
+                count += this.tally(delta.added);
+                count -= this.tally(delta.removed);
                 count = Math.max(0, count);
                 if (count >= min && count >= max) finish();
             });
@@ -132,6 +133,26 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
         });
 
         return cancellable;
+    }
+
+    tally(selectable: Set<Selectable>): number {
+        let result = 0;
+        for (const s of selectable) {
+            if (s instanceof visual.Solid) {
+                if (this.mode.has(SelectionMode.Solid)) result++;
+            } else if (s instanceof visual.SpaceInstance) {
+                if (this.mode.has(SelectionMode.Curve)) result++;
+            } else if (s instanceof visual.PlaneInstance) {
+                if (this.mode.has(SelectionMode.Region)) result++;
+            } else if (s instanceof visual.Face) {
+                if (this.mode.has(SelectionMode.Face)) result++;
+            } else if (s instanceof visual.CurveEdge) {
+                if (this.mode.has(SelectionMode.CurveEdge)) result++;
+            } else {
+                if (this.mode.has(SelectionMode.ControlPoint)) result++;
+            }
+        }
+        return result;
     }
 
     prohibit(prohibitions: Iterable<Selectable>) {
