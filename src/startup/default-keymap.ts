@@ -13,7 +13,7 @@ export default {
         "v": "gizmo:polygon:mode",
     },
 
-    "[command='radial-array'] plasticity-viewport": {
+    "[command='radial-array'] plasticity-viewport, [command='rectangular-array'] plasticity-viewport": {
         "ctrl-wheel+up": "gizmo:array:add",
         "ctrl-wheel+down": "gizmo:array:subtract",
     },

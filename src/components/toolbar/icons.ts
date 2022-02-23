@@ -47,6 +47,7 @@ tooltips.set(cmd.PipeCommand, "Pipe");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
 tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve");
 tooltips.set(cmd.RadialArrayCommand, "Radial array");
+tooltips.set(cmd.RectangularArrayCommand, "Rectangular array");
 tooltips.set(cmd.ExtensionShellCommand, "Extend face");
 tooltips.set(cmd.DuplicateCommand, "Duplicate object");
 tooltips.set(cmd.SlotCommand, "Create a hole");

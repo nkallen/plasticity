@@ -1,12 +1,12 @@
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import { ArrayParams } from "./ArrayFactory";
+import { EditorSignals } from "../../editor/EditorSignals";
+import { RadialArrayParams } from "./ArrayFactory";
 
-export class RadialArrayDialog extends AbstractDialog<ArrayParams> {
+export class RadialArrayDialog extends AbstractDialog<RadialArrayParams> {
     name = "Radial array";
 
-    constructor(protected readonly params: ArrayParams, signals: EditorSignals) {
+    constructor(protected readonly params: RadialArrayParams, signals: EditorSignals) {
         super(signals);
     }
 

@@ -1,5 +1,5 @@
 import { ThreePointArcCommand } from "./arc/ThreePointArcCommand";
-import { RadialArrayCommand } from "./array/ArrayCommand";
+import { RadialArrayCommand } from "./array/RadialArrayCommand";
 import { BooleanCommand } from "./boolean/BooleanCommand";
 import { CutCommand } from "./boolean/CutCommand";
 import { CenterBoxCommand, CornerBoxCommand, ThreePointBoxCommand } from "./box/BoxCommand";
@@ -34,6 +34,7 @@ import { ShellCommand, ThinSolidCommand } from "./thin-solid/ShellCommand";
 import { FreestyleDraftSolidCommand, FreestyleItemScaleCommand, FreestyleMoveItemCommand, FreestyleRotateItemCommand } from "./translate/FreestyleTranslateCommand";
 import { DraftSolidCommand, MoveCommand, MoveItemCommand, RotateCommand, RotateItemCommand, ScaleCommand, ScaleItemCommand } from "./translate/TranslateCommand";
 import { PlaceCommand } from "./place/PlaceCommand";
+import { RectangularArrayCommand } from "./array/RectangularArrayCommand";
 
 export {
     MoveItemCommand,
@@ -104,6 +105,7 @@ export {
     RevolutionCommand,
     DuplicateCommand,
     RadialArrayCommand,
+    RectangularArrayCommand,
     SlotCommand,
     PlaceCommand
 };

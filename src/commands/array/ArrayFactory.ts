@@ -6,7 +6,6 @@ import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversi
 import * as visual from "../../visual_model/VisualModel";
 
 export interface ArrayParams {
-    isPolar: boolean;
     dir1: THREE.Vector3;
     step1: number;
     num1: number;
@@ -14,14 +13,19 @@ export interface ArrayParams {
     dir2: THREE.Vector3;
     step2: number;
     num2: number;
-    degrees: number;
 
     center: THREE.Vector3;
     isAlongAxis: boolean;
 }
 
-export class ArrayFactory extends GeometryFactory implements ArrayParams {
+export interface RadialArrayParams extends ArrayParams {
+    degrees: number;
+}
+
+abstract class AbstractArrayFactory extends GeometryFactory implements ArrayParams {
     protected _solid!: { view?: visual.Solid, model?: c3d.Solid };
+    protected readonly start: number = 0;
+
     @derive(visual.Solid) get solid(): visual.Solid { throw '' }
     set solid(solid: visual.Solid | c3d.Solid) { }
 
@@ -33,7 +37,6 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
         return this.solid ?? this.curve;
     }
 
-    isPolar = true;
     dir1!: THREE.Vector3;
     step1 = 0;
     private _num1 = 2;
@@ -45,39 +48,26 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
 
     dir2!: THREE.Vector3;
 
-    private _num2 = 0;
-    get num2() { return this._num2 }
-    set num2(num2: number) {
-        num2 = Math.max(1, num2);
-        const degrees = this.degrees;
-        this._num2 = Math.floor(num2);
-        this.degrees = degrees;
-    }
-
-    step2 = 2 * Math.PI;
-    get degrees() { return this.step2 * this.num2 / Math.PI * 180 }
-    set degrees(degrees: number) {
-        this.step2 = 2 * Math.PI * (degrees / 360) / this.num2;
-    }
+    abstract num2: number;
+    abstract step2: number;
+    protected abstract readonly isPolar: boolean;
 
     center = new THREE.Vector3();
     isAlongAxis = false;
 
-    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.DuplicationSolid, this.db.version), c3d.ESides.SideNone, 0);
-
-    private get params() {
+    protected get params() {
         const { isPolar, dir1, step1, num1, dir2, step2, num2, center, isAlongAxis } = this;
         return new c3d.DuplicationMeshValues(isPolar, vec2vec(dir1, 1), unit(step1), num1, vec2vec(dir2, 1), step2, num2, point2point(center), isAlongAxis);
     }
 
     async calculate() {
-        const { params, names, _solid: { model: solid }, _curve: { model: curve }, num1, num2 } = this;
+        const { params, _solid: { model: solid }, _curve: { model: curve }, num1, num2, start } = this;
 
         const item = solid ?? curve;
         if (item === undefined) throw new Error("invalid precondition");
         const result = [];
         let matrices = params.GenerateTransformMatrices();
-        matrices = matrices.slice(1, 100); // NOTE: a bit paranoid about users making a mistake
+        matrices = matrices.slice(start, 100); // NOTE: a bit paranoid about users making a mistake
         let normalize = matrices[0];
         normalize = normalize.Div(new c3d.Matrix3D());
         const normalized = item.Duplicate().Cast<c3d.Item>(item.IsA());
@@ -93,5 +83,37 @@ export class ArrayFactory extends GeometryFactory implements ArrayParams {
 
     get originalItem() {
         return this.object;
+    }
+}
+
+export class RadialArrayFactory extends AbstractArrayFactory {
+    protected readonly isPolar = true;
+    protected override readonly start = 1;
+
+    private _num2 = 0;
+    get num2() { return this._num2 }
+    set num2(num2: number) {
+        num2 = Math.max(1, num2);
+        const degrees = this.degrees;
+        this._num2 = Math.floor(num2);
+        this.degrees = degrees;
+    }
+
+    step2 = 2 * Math.PI;
+    get degrees() { return this.step2 * this.num2 / Math.PI * 180 }
+    set degrees(degrees: number) {
+        this.step2 = 2 * Math.PI * (degrees / 360) / this.num2;
+    }
+}
+
+export class RectangularArrayFactory extends AbstractArrayFactory {
+    protected readonly isPolar = false;
+
+    num2 = 0;
+    step2 = 1;
+
+    protected get params() {
+        const { isPolar, dir1, step1, num1, dir2, step2, num2, center, isAlongAxis } = this;
+        return new c3d.DuplicationMeshValues(isPolar, vec2vec(dir1, 1), unit(step1), num1, vec2vec(dir2, 1), unit(step2), Math.max(num2, 1), point2point(center), isAlongAxis);
     }
 }

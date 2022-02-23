@@ -2,14 +2,13 @@ import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { ArrayFactory } from "./ArrayFactory";
+import { RadialArrayFactory } from "./ArrayFactory";
 import { ArrayKeyboardGizmo } from "./ArrayKeyboardGizmo";
 import { RadialArrayDialog } from "./RadialArrayDialog";
 
 export class RadialArrayCommand extends Command {
     async execute(): Promise<void> {
-        const array = new ArrayFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        array.isPolar = true;
+        const array = new RadialArrayFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         array.num1 = 1;
         array.num2 = 8;
         array.isAlongAxis = true;

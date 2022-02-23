@@ -111,15 +111,12 @@ jobs:
       - name: Run tests
         run: |
           yarn ci
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
-        with:
-          use_lxd: true
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sudo apt-get -qq install flatpak elfutils
+          snap install snapcraft
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
         env:
           SNAPCRAFT_BUILD_ENVIRONMENT: host

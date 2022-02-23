@@ -56,6 +56,7 @@ export class Model {
         }
         if (selection.solids.size > 0 || selection.curves.size > 0) {
             copy.add(cmd.RadialArrayCommand);
+            copy.add(cmd.RectangularArrayCommand);
         }
         if (selection.solids.size > 1) {
             bool.add(cmd.BooleanCommand);
