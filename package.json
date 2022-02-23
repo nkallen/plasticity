@@ -58,9 +58,6 @@
                 {
                     "name": "@electron-forge/maker-snap",
                     "config": {
-                        "categories": [
-                            "Utility"
-                        ]
                     }
                 }
             ],
