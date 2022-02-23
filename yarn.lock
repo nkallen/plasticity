@@ -1378,6 +1378,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@davidwinter/electron-forge-maker-snap@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@davidwinter/electron-forge-maker-snap@npm:2.0.7"
+  dependencies:
+    "@electron-forge/maker-base": ^6.0.0-beta.60
+    debug: ^4.3.2
+    electron-packager: ^15.3.0
+    fs-extra: ^10.0.0
+    ini: ^2.0.0
+    js-yaml: ^4.1.0
+  checksum: 452d65e2a98a033aad0415a3300a3e3398a5c682d8fb58e61c695859e934802168c1cb9fdb8d8ee2317e790bd9af7db2da1466e110249e600e84a83a121d932e
+  languageName: node
+  linkType: hard
+
 "@discoveryjs/json-ext@npm:^0.5.0":
   version: 0.5.6
   resolution: "@discoveryjs/json-ext@npm:0.5.6"
@@ -1544,7 +1558,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@electron-forge/maker-base@npm:6.0.0-beta.63":
+"@electron-forge/maker-base@npm:6.0.0-beta.63, @electron-forge/maker-base@npm:^6.0.0-beta.60":
   version: 6.0.0-beta.63
   resolution: "@electron-forge/maker-base@npm:6.0.0-beta.63"
   dependencies:
@@ -3784,6 +3798,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"argparse@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "argparse@npm:2.0.1"
+  checksum: 83644b56493e89a254bae05702abf3a1101b4fa4d0ca31df1c9985275a5a5bd47b3c27b7fa0b71098d41114d8ca000e6ed90cad764b306f8a503665e4d517ced
+  languageName: node
+  linkType: hard
+
 "arr-diff@npm:^4.0.0":
   version: 4.0.0
   resolution: "arr-diff@npm:4.0.0"
@@ -5734,7 +5755,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4.0.1, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1":
+"debug@npm:4, debug@npm:^4.0.1, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2":
   version: 4.3.3
   resolution: "debug@npm:4.3.3"
   dependencies:
@@ -6390,7 +6411,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-packager@npm:^15.4.0":
+"electron-packager@npm:^15.3.0, electron-packager@npm:^15.4.0":
   version: 15.4.0
   resolution: "electron-packager@npm:15.4.0"
   dependencies:
@@ -8841,6 +8862,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ini@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "ini@npm:2.0.0"
+  checksum: e7aadc5fb2e4aefc666d74ee2160c073995a4061556b1b5b4241ecb19ad609243b9cceafe91bae49c219519394bbd31512516cb22a3b1ca6e66d869e0447e84e
+  languageName: node
+  linkType: hard
+
 "inquirer@npm:^8.0.0":
   version: 8.2.0
   resolution: "inquirer@npm:8.2.0"
@@ -10424,6 +10452,17 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: bef146085f472d44dee30ec34e5cf36bf89164f5d585435a3d3da89e52622dff0b188a580e4ad091c3341889e14cb88cac6e4deb16dc5b1e9623bb0601fc255c
+  languageName: node
+  linkType: hard
+
+"js-yaml@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "js-yaml@npm:4.1.0"
+  dependencies:
+    argparse: ^2.0.1
+  bin:
+    js-yaml: bin/js-yaml.js
+  checksum: c7830dfd456c3ef2c6e355cc5a92e6700ceafa1d14bba54497b34a99f0376cecbb3e9ac14d3e5849b426d5a5140709a66237a8c991c675431271c4ce5504151a
   languageName: node
   linkType: hard
 
@@ -12720,6 +12759,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.15.0
     "@babel/preset-env": ^7.15.0
+    "@davidwinter/electron-forge-maker-snap": ^2.0.7
     "@electron-forge/cli": ^6.0.0-beta.61
     "@electron-forge/maker-deb": ^6.0.0-beta.61
     "@electron-forge/maker-flatpak": ^6.0.0-beta.63
@@ -15190,7 +15230,7 @@ __metadata:
 "three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
   resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
-  checksum: 7cdf6362e794477ef22db8a48c8851c46af44ad21b0ed7f4bde1180a276805f4fcae769c5161b222f0db93e8e7dab44a762569aedeea0e926d8fc06dc69fd47c
+  checksum: fc9f7282b59b61aaa71c15a8684c5e6c02062768eb9f01d9645b80a3ceec1a79834a2988b8184b7bee0a5984698f325adc3ef190d776c7616a240f3debf36173
   languageName: node
   linkType: hard
 

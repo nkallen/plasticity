@@ -21,13 +21,13 @@ export class SelectionCommandRegistrar {
         return registry.add(document.body, {
             'selection:mode:set:control-point': () => selection.mode.set(SelectionMode.ControlPoint),
             'selection:mode:set:edge': () => selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve),
-            'selection:mode:set:face': () => selection.mode.set(SelectionMode.Face),
+            'selection:mode:set:face': () => selection.mode.set(SelectionMode.Face, SelectionMode.Region),
             'selection:mode:set:solid': () => selection.mode.set(SelectionMode.Solid),
             'selection:mode:set:all': () => selection.mode.set(...SelectionModeAll),
 
             'selection:mode:toggle:control-point': () => selection.mode.toggle(SelectionMode.ControlPoint),
             'selection:mode:toggle:edge': () => selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve),
-            'selection:mode:toggle:face': () => selection.mode.toggle(SelectionMode.Face),
+            'selection:mode:toggle:face': () => selection.mode.toggle(SelectionMode.Face, SelectionMode.Region),
             'selection:mode:toggle:solid': () => selection.mode.toggle(SelectionMode.Solid),
 
             'selection:convert:edge': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.CurveEdge)),

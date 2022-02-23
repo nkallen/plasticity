@@ -8,10 +8,10 @@ import { SelectionConversionStrategy } from './CommandRegistrar';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
-    CurveEdge, Face, Solid, Curve, ControlPoint
+    CurveEdge, Face, Region, Solid, Curve, ControlPoint
 }
 
-export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
+export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Region, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
 
 export enum ChangeSelectionModifier {
     Replace, Add, Remove

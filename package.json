@@ -56,9 +56,11 @@
                     "config": {}
                 },
                 {
-                    "name": "@electron-forge/maker-snap",
+                    "name": "@davidwinter/electron-forge-maker-snap",
                     "config": {
-                        "categories": ["Utility"]
+                        "categories": [
+                            "Utility"
+                        ]
                     }
                 }
             ],
@@ -104,6 +106,7 @@
     "devDependencies": {
         "@babel/core": "^7.15.0",
         "@babel/preset-env": "^7.15.0",
+        "@davidwinter/electron-forge-maker-snap": "^2.0.7",
         "@electron-forge/cli": "^6.0.0-beta.61",
         "@electron-forge/maker-deb": "^6.0.0-beta.61",
         "@electron-forge/maker-flatpak": "^6.0.0-beta.63",

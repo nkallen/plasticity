@@ -109,7 +109,7 @@ export class ClickStrategy {
     }
 
     region(object: Region, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
-        if (!this.mode.has(SelectionMode.Face) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
+        if (!this.mode.has(SelectionMode.Region) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
 
         return this.modify(modifier,
@@ -180,7 +180,7 @@ export class ClickStrategy {
                 changedPoints.add(object);
                 changedParents.add(parentItem);
             } else if (object instanceof Region) {
-                if (!this.mode.has(SelectionMode.Face)) continue;
+                if (!this.mode.has(SelectionMode.Region)) continue;
                 changedRegions.add(object.parentItem);
             }
         }

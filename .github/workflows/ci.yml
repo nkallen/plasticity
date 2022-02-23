@@ -28,7 +28,7 @@ jobs:
   #         echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
   #     - name: Yarn install
   #       run: |
-  #         yarn install
+  #         yarn install --frozen-lockfile
   #     - name: Cache C++ build
   #       id: cache-cpp-build
   #       uses: actions/cache@v2
@@ -91,9 +91,9 @@ jobs:
       - name: Setup license key
         run: |
           echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"
-      - name: Yarn install1   
+      - name: Yarn install
         run: |
-          yarn install
+          yarn install --frozen-lockfile
       - name: Cache C++ build
         id: cache-cpp-build
         uses: actions/cache@v2
@@ -108,16 +108,16 @@ jobs:
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
-      - name: Run tests
-        run: |
-          yarn ci
+      # - name: Run tests
+      #   run: |
+      #     yarn ci
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SNAPCRAFT_BUILD_ENVIRONMENT: host
         run: |
           sudo apt-get -qq install flatpak elfutils
-          sudo snap install snapcraft
+          sudo snap install snapcraft --classic
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
   # mac-test:
   #   runs-on: macos-latest
@@ -147,7 +147,7 @@ jobs:
   #         echo '${{ secrets.C3D_LICENSE_KEY_LINUX }}' > "license-key.json"
   #     - name: Yarn install
   #       run: |
-  #         yarn install
+  #         yarn install --frozen-lockfile
   #     - name: Cache C++ build
   #       id: cache-cpp-build
   #       uses: actions/cache@v2

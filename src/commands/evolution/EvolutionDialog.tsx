@@ -4,7 +4,7 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { EvolutionParams, Mode } from './EvolutionFactory';
 
 export class EvolutionDialog extends AbstractDialog<EvolutionParams> {
-    name = "Evolution";
+    readonly name = "Evolution";
 
     constructor(protected readonly params: EvolutionParams, signals: EditorSignals) {
         super(signals);
@@ -15,6 +15,11 @@ export class EvolutionDialog extends AbstractDialog<EvolutionParams> {
 
         render(
             <>
+                <ol>
+                <plasticity-prompt name="Select region" description="to sweep"></plasticity-prompt>
+                <plasticity-prompt name="Select curve" description="to sweep along"></plasticity-prompt>
+                </ol>
+
                 <ul>
                     <li>
                         <label for="thickness1">Thickness 1 </label>
