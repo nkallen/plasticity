@@ -64,6 +64,7 @@ export class Model {
         if (selection.faces.size > 0) {
             misc.add(cmd.OffsetCurveCommand);
             swept.add(cmd.ExtrudeCommand);
+            swept.add(cmd.EvolutionCommand);
             misc.add(cmd.ExtensionShellCommand);
         }
         if (selection.faces.size > 0 || selection.solids.size > 0) {
