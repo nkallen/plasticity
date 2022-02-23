@@ -45,6 +45,12 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         return super.execute(cb, finishFast);
     }
 
+    render(params: ExtrudeParams) {
+        this.distance1Gizmo.value = params.distance1;
+        this.race1Gizmo.value = params.race1;
+        this.thicknessGizmo.value = params.thickness;
+    }
+
     get shouldRescaleOnZoom() { return false }
 }
 

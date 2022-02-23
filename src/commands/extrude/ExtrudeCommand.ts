@@ -7,6 +7,7 @@ import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import * as visual from "../../visual_model/VisualModel";
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
+import { PhantomLineFactory } from "../line/LineFactory";
 import { ExtrudeDialog } from "./ExtrudeDialog";
 import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
@@ -31,7 +32,7 @@ export class ExtrudeCommand extends Command {
         const dialog = new ExtrudeDialog(extrude, this.editor.signals);
 
         booleanKeyboard.prepare(extrude).resource(this);
-        directionKeyboard.execute(onKeyPress(extrude, gizmo).bind(this)).resource(this);
+        directionKeyboard.execute(onKeyPress(extrude, gizmo, dialog).bind(this)).resource(this);
 
         gizmo.position.copy(this.point ?? extrude.center);
         gizmo.quaternion.setFromUnitVectors(Y, extrude.direction);
@@ -43,6 +44,7 @@ export class ExtrudeCommand extends Command {
         }).resource(this);
 
         dialog.execute(params => {
+            gizmo.render(params);
             extrude.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
@@ -100,7 +102,7 @@ function ExtrudeFactory(editor: EditorLike) {
     return extrude;
 }
 
-export function onKeyPress(factory: GeometryFactory & { direction: THREE.Vector3 }, gizmo: ExtrudeGizmo) {
+export function onKeyPress(factory: PossiblyBooleanExtrudeFactory, gizmo: ExtrudeGizmo, dialog: ExtrudeDialog) {
     return async function (this: Command, s: string) {
         switch (s) {
             case 'pivot': {
@@ -115,8 +117,30 @@ export function onKeyPress(factory: GeometryFactory & { direction: THREE.Vector3
                 gizmo.enable();
                 break;
             }
+            case 'free':
+                const editor = this.editor;
+                const line = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
+                const pointPicker = new PointPicker(editor);
+                const center = factory.center;
+                pointPicker.addAxesAt(center);
+                gizmo.disable();
+                line.p1 = center;
+                await pointPicker.execute(({ point: p2 }) => {
+                    line.p2 = p2;
+                    const delta = p2.clone().sub(center);
+                    factory.distance1 = delta.length();
+                    factory.direction = delta.normalize();
+                    line.update();
+                    factory.update();
+                    dialog.render();
+                    gizmo.quaternion.copy(new THREE.Quaternion().setFromUnitVectors(Y, factory.direction));
+                    gizmo.render(factory);
+                }).resource(this);
+                line.cancel();
+                gizmo.enable();
         }
     }
 }
+
 
 const Y2Z = new THREE.Quaternion().setFromUnitVectors(Y, Z);
