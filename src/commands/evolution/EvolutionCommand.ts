@@ -18,10 +18,10 @@ export class EvolutionCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const getRegion = dialog.prompt("Select region", () => {
-            return objectPicker.shift(SelectionMode.Region, 1, 1).resource(this);
+            return objectPicker.shift(SelectionMode.Face, 1, 1).resource(this);
         });
         const region = await getRegion();
-        evolution.regions = [...region];
+        evolution.face = region.first;
 
         const getSpine = dialog.prompt("Select curve", () => {
             return objectPicker.shift(SelectionMode.Curve, 1, 1).resource(this);

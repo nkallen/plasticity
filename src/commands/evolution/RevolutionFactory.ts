@@ -33,6 +33,10 @@ export abstract class SweepFactory extends GeometryFactory implements SweptParam
     protected surface!: c3d.Surface;
     protected contours2d: c3d.Contour[] = [];
     protected curves3d: c3d.Curve3D[] = [];
+    protected _center!: THREE.Vector3;
+
+    protected _placement!: c3d.Placement3D;
+    get placement() { return this._placement }
 
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
     get curves() { return this._curves }
@@ -44,6 +48,7 @@ export abstract class SweepFactory extends GeometryFactory implements SweptParam
         const curves3d: c3d.Curve3D[] = [];
         const placements = new Set<c3d.Placement3D>();
 
+        const bbox = new THREE.Box3();
         for (const curve of curves) {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
@@ -71,6 +76,7 @@ export abstract class SweepFactory extends GeometryFactory implements SweptParam
                 }
             }
         }
+        this._center = bbox.getCenter(new THREE.Vector3());
         this.contours2d = contours2d;
         this.curves3d = curves3d;
 
@@ -95,6 +101,11 @@ export abstract class SweepFactory extends GeometryFactory implements SweptParam
                 placement = new c3d.Placement3D();
             }
         }
+        this._placement = placement;
+    }
+
+    set region(region: visual.PlaneInstance<visual.Region>) {
+        this.regions = [region];
     }
 
     private _regions!: visual.PlaneInstance<visual.Region>[];
@@ -119,7 +130,24 @@ export abstract class SweepFactory extends GeometryFactory implements SweptParam
         if (placements.size > 1) throw new Error("All regions must be on same placement");
         this.contours2d = contours;
         this.surface = new c3d.Plane([...placements][0], 0);
+
+        const bbox = new THREE.Box3();
+        for (const region of regions) bbox.setFromObject(region);
+        this._center = bbox.getCenter(new THREE.Vector3());
     }
+
+    private _face!: visual.Face;
+    get face() { return this._face }
+    set face(face: visual.Face) {
+        this._face = face;
+        const model = this.db.lookupTopologyItem(face);
+
+        const { surface, contours } = model.GetSurfaceCurvesData();
+        this.contours2d = contours;
+        this.surface = surface;
+    }
+
+    get center(): THREE.Vector3 { return this._center }
 }
 
 export class RevolutionFactory extends SweepFactory implements RevolutionParams {

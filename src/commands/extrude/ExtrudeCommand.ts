@@ -70,7 +70,7 @@ function ExtrudeFactory(editor: EditorLike) {
     const targets = [...selected.solids];
     for (const region of selected.regions) {
         const phantom = new RegionExtrudeFactory(db, materials, signals);
-        phantom.region = region;
+        phantom.regions = [region];
         factories.push(phantom);
     }
     const faceParents = new Set<visual.Solid>();

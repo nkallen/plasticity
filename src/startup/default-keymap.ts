@@ -235,7 +235,7 @@ export default {
         "g": "command:move",
         "r": "command:rotate",
         "s": "command:scale",
-        "shift-P": "command:evolution",
+        "shift-p": "command:evolution",
         "p": "command:pipe",
         "b": "command:fillet-solid",
         "e": "command:extrude",

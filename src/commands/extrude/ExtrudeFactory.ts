@@ -7,35 +7,25 @@ import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversi
 import * as visual from '../../visual_model/VisualModel';
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
+import { SweepFactory, SweptParams } from "../evolution/RevolutionFactory";
 
-export interface ExtrudeParams {
+export interface ExtrudeParams extends SweptParams {
     distance1: number;
     distance2: number;
     race1: number;
     race2: number;
-    thickness1: number;
-    thickness2: number;
 }
 
-abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams {
+abstract class AbstractExtrudeFactory extends SweepFactory implements ExtrudeParams {
     distance1 = 0;
     distance2 = 0;
     race1 = 0;
     race2 = 0;
-    thickness1 = 0;
-    thickness2 = 0;
 
     isOverlapping = false;
     isSurface = false;
 
-    abstract direction: THREE.Vector3;
-    abstract center: THREE.Vector3;
-
     protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveExtrusionSolid, this.db.version), c3d.ESides.SideNone, 0);
-
-    protected abstract contours2d: c3d.Contour[];
-    protected abstract curves3d: c3d.Curve3D[];
-    protected abstract surface: c3d.Surface;
 
     protected _operationType?: c3d.OperationType;
     get operationType() { return this._operationType ?? this.defaultOperationType }
@@ -83,102 +73,27 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         }
     }
 
+    get direction(): THREE.Vector3 {
+        const placement = this.placement;
+        const z = placement.GetAxisZ();
+        return vec2vec(z, 1);
+    }
+
     get originalItem() {
         return this._target.view;
     }
 }
 
 export class CurveExtrudeFactory extends AbstractExtrudeFactory {
-    private _curves!: visual.SpaceInstance<visual.Curve3D>[];
-    protected contours2d!: c3d.Contour[];
-    protected curves3d!: c3d.Curve3D[];
-    protected surface!: c3d.Surface;
-
-    get curves() { return this._curves }
-    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
-        this._curves = curves;
-        this._center = new THREE.Vector3();
-        const contours2d: c3d.Contour[] = [];
-        const curves3d: c3d.Curve3D[] = [];
-        const bbox = new THREE.Box3();
-        for (const curve of curves) {
-            const inst = this.db.lookup(curve);
-            const item = inst.GetSpaceItem()!;
-
-            if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
-                const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
-                contours2d.push(model.GetContour());
-            } else if (item.IsA() === c3d.SpaceType.Contour3D) {
-                const model = item.Cast<c3d.Contour3D>(item.IsA());
-                if (model.IsPlanar()) {
-                    const { curve2d } = model.GetPlaneCurve(false);
-                    const cast = curve2d.Cast<c3d.Contour>(c3d.PlaneType.Contour);
-                    contours2d.push(cast);
-                } else {
-                    curves3d.push(model);
-                }
-            } else {
-                const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-                if (model.IsPlanar()) {
-                    const { curve2d } = model.GetPlaneCurve(false);
-                    contours2d.push(new c3d.Contour([curve2d], true));
-                } else {
-                    curves3d.push(model);
-                }
-            }
-            bbox.expandByObject(curve);
-        }
-        this._center = bbox.getCenter(new THREE.Vector3());
-        this.contours2d = contours2d;
-        this.curves3d = curves3d;
-
-        const inst = this.db.lookup(curves[0]);
-        const item = inst.GetSpaceItem()!;
-
-        let placement;
-        if (item.IsA() === c3d.SpaceType.ContourOnPlane) {
-            const model = item.Cast<c3d.ContourOnPlane>(item.IsA());
-            this.surface = model.GetSurface();
-            placement = model.GetPlacement();
-        } else if (item.IsA() === c3d.SpaceType.ContourOnSurface) {
-            const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
-            this.surface = model.GetSurface();
-            placement = new c3d.Placement3D();
-        } else {
-            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            if (curve.IsPlanar()) {
-                placement = curve.GetPlaneCurve(false).placement;
-                this.surface = new c3d.Plane(placement, 0);
-            } else {
-                placement = new c3d.Placement3D();
-            }
-        }
-        this._normal = vec2vec(placement.GetAxisZ(), 1)
-    }
-
-    private _normal!: THREE.Vector3;
-    get direction(): THREE.Vector3 { return this._normal }
-
-    private _center!: THREE.Vector3;
-    get center(): THREE.Vector3 { return this._center }
 }
 
 export class FaceExtrudeFactory extends AbstractExtrudeFactory {
-    private _face!: visual.Face;
-    protected contours2d!: c3d.Contour[];
-    protected curves3d: c3d.Contour3D[] = [];
-    protected surface!: c3d.Surface;
     private _normal!: THREE.Vector3;
-    private _center!: THREE.Vector3;
-    get face() { return this._face }
-    set face(face: visual.Face) {
-        this._face = face;
+    override get face() { return super.face }
+    override set face(face: visual.Face) {
+        super.face = face;
         const model = this.db.lookupTopologyItem(face);
-
-        const { surface, contours } = model.GetSurfaceCurvesData();
         const fsurface = model.GetSurface();
-        this.contours2d = contours;
-        this.surface = surface;
 
         const u = fsurface.GetUMid(), v = fsurface.GetVMid();
         const p = fsurface.PointOn(new c3d.CartPoint(u, v));
@@ -197,47 +112,20 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 }
 
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {
-    private _region!: visual.PlaneInstance<visual.Region>;
-    protected contours2d!: c3d.Contour[];
-    protected curves3d: c3d.Contour3D[] = [];
-    protected surface!: c3d.Surface;
-    private _placement!: c3d.Placement3D;
-    get region() { return this._region }
-    set region(region: visual.PlaneInstance<visual.Region>) {
-        this._region = region;
-        const inst = this.db.lookup(region);
-        const item = inst.GetPlaneItem();
-        if (item === null) throw new Error("invalid precondition");
-        const model = item.Cast<c3d.Region>(c3d.PlaneType.Region);
-        const contours = [];
-        for (let i = 0, l = model.GetContoursCount(); i < l; i++) {
-            const contour = model.GetContour(i);
-            if (contour === null) throw new Error("invalid precondition");
-            contours.push(contour);
-        }
-        this.contours2d = contours;
-
+    override get regions() { return super.regions }
+    override set regions(regions: visual.PlaneInstance<visual.Region>[]) {
+        super.regions = regions;
+        const first = regions[0]
+        const inst = this.db.lookup(first);
         this._placement = inst.GetPlacement();
-        this.surface = new c3d.Plane(this._placement, 0);
 
         const bbox = new THREE.Box3();
-        bbox.setFromObject(region);
+        bbox.setFromObject(first);
         bbox.getCenter(this._center);
     }
 
     get defaultOperationType() {
         return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference
-    }
-
-    get direction(): THREE.Vector3 {
-        const placement = this._placement;
-        const z = placement.GetAxisZ();
-        return vec2vec(z, 1);
-    }
-
-    private _center = new THREE.Vector3();
-    get center(): THREE.Vector3 {
-        return this._center;
     }
 }
 
@@ -246,6 +134,12 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Abstra
 
     constructor(readonly bool: MultiBooleanFactory, readonly fantom: AbstractExtrudeFactory | MultiExtrudeFactory) {
         super(bool['db'], bool['materials'], bool['signals']);
+    }
+
+    get thickness() { return this.thickness1 }
+    set thickness(d: number) {
+        this.thickness1 = d;
+        this.thickness2 = d;
     }
 
     @delegate.default(0) distance1!: number;
@@ -280,6 +174,12 @@ export class MultiBooleanExtrudeFactory extends MultiGeometryFactory<PossiblyBoo
         if (factories.length === 0) throw new Error('invalid precondition');
     }
 
+    get thickness() { return this.thickness1 }
+    set thickness(d: number) {
+        this.thickness1 = d;
+        this.thickness2 = d;
+    }
+
     @delegate targets!: visual.Solid[];
     @delegate.default(0) distance1!: number;
     @delegate.default(0) distance2!: number;
@@ -301,6 +201,12 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<AbstractExtrudeFac
     constructor(readonly factories: AbstractExtrudeFactory[]) {
         super(factories[0]['db'], factories[0]['materials'], factories[0]['signals']);
         if (factories.length === 0) throw new Error('invalid precondition');
+    }
+
+    get thickness() { return this.thickness1 }
+    set thickness(d: number) {
+        this.thickness1 = d;
+        this.thickness2 = d;
     }
 
     @delegate.default(0) distance1!: number;
