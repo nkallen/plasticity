@@ -108,9 +108,9 @@ jobs:
           yarn generate
           yarn run node-gyp configure
           yarn electron-rebuild
-      # - name: Run tests
-      #   run: |
-      #     yarn ci
+      - name: Run tests
+        run: |
+          yarn ci
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
