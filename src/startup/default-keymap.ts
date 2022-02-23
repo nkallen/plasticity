@@ -92,13 +92,15 @@ export default {
         "a": "gizmo:extrude:race1",
         "s": "gizmo:extrude:race2",
         "d": "gizmo:extrude:distance1",
-        "f": "gizmo:extrude:distance2",
         "t": "gizmo:extrude:thickness",
 
         "q": "keyboard:extrude:union",
         "w": "keyboard:extrude:difference",
         "e": "keyboard:extrude:intersect",
         "r": "keyboard:extrude:new-body",
+
+        "f": "keyboard:extrude:free",
+        "v": "keyboard:extrude:pivot"
     },
 
     "[command='offset-face'] plasticity-viewport": {
@@ -125,7 +127,7 @@ export default {
         "g": "gizmo:move:screen",
 
         "f": "keyboard:move:free",
-        "w": "keyboard:move:pivot"
+        "v": "keyboard:move:pivot"
     },
 
     "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
@@ -137,7 +139,7 @@ export default {
         "shift-y": "gizmo:scale:xz",
         "s": "gizmo:scale:xyz",
         "f": "keyboard:scale:free",
-        "w": "keyboard:scale:pivot"
+        "v": "keyboard:scale:pivot"
     },
 
     "[command='fillet-solid'] plasticity-viewport": {
@@ -158,7 +160,7 @@ export default {
         "z": "gizmo:rotate:z",
         "r": "gizmo:rotate:screen",
         "f": "keyboard:rotate:free",
-        "w": "keyboard:rotate:pivot"
+        "v": "keyboard:rotate:pivot"
     },
 
     "[command='curve'] plasticity-viewport": {
@@ -183,7 +185,7 @@ export default {
         "shift-y": "gizmo:mirror:-y",
         "shift-z": "gizmo:mirror:-z",
         "f": "gizmo:mirror:free",
-        "w": "gizmo:mirror:pivot",
+        "v": "gizmo:mirror:pivot",
     },
 
     "[command='thin-solid'] plasticity-viewport": {

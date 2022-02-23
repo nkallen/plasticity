@@ -121,6 +121,8 @@ keybindings.set("keyboard:extrude:union", "Union");
 keybindings.set("keyboard:extrude:difference", "Difference");
 keybindings.set("keyboard:extrude:intersect", "Intersect");
 keybindings.set("keyboard:extrude:new-body", "New body");
+keybindings.set("keyboard:extrude:free", "Freestyle");
+keybindings.set("keyboard:extrude:pivot", "Pivot");
 keybindings.set("keyboard:pipe:union", "Union");
 keybindings.set("keyboard:pipe:difference", "Difference");
 keybindings.set("keyboard:pipe:intersect", "Intersect");

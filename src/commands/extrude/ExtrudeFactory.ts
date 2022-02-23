@@ -109,6 +109,7 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
     get normal(): THREE.Vector3 { return this._normal }
     get center(): THREE.Vector3 { return this._center }
     get direction(): THREE.Vector3 { return this._normal }
+    set direction(direction: THREE.Vector3) { this._normal = direction }
 }
 
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {

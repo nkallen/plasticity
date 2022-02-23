@@ -15,7 +15,6 @@ import { ScaleDialog } from "./ScaleDialog";
 import { MoveItemCommand, RotateCommand, ScaleCommand, Y, Z } from "./TranslateCommand";
 import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './TranslateFactory';
 
-
 export abstract class AbstractFreestyleMoveCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;

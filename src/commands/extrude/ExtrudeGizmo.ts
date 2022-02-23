@@ -20,6 +20,8 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         distance1Gizmo.relativeScale.setScalar(0.8);
         thicknessGizmo.relativeScale.setScalar(0.8);
 
+        thicknessGizmo.quaternion.setFromUnitVectors(Z, Y);
+
         this.add(distance1Gizmo, thicknessGizmo);
 
         distance1Gizmo.tip.add(race1Gizmo);
@@ -27,8 +29,6 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
 
     execute(cb: (params: ExtrudeParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { race1Gizmo, distance1Gizmo, thicknessGizmo, params } = this;
-
-        thicknessGizmo.quaternion.setFromUnitVectors(Z, Y);
 
         this.addGizmo(distance1Gizmo, length => {
             params.distance1 = length;
