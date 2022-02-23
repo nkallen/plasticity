@@ -117,7 +117,7 @@ jobs:
           SNAPCRAFT_BUILD_ENVIRONMENT: host
         run: |
           sudo apt-get -qq install flatpak elfutils
-          snap install snapcraft
+          sudo snap install snapcraft
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
   # mac-test:
   #   runs-on: macos-latest
