@@ -177,14 +177,12 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             }
         }
 
-        console.log("h?")
         const picker = new ObjectPicker(this.editor);
         min -= collection.size;
         picker.mode.set(mode);
         picker.min = min;
         picker.max = min;
         picker.copy(this.selection);
-        console.log("/h?")
 
         return picker.execute().map(selected => {
             if (!shouldRemove) this.copy(picker.selection);
