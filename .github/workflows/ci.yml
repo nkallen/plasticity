@@ -114,12 +114,11 @@ jobs:
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPCRAFT_BUILD_ENVIRONMENT: host
         run: |
           sudo apt-get -qq install flatpak elfutils
           snap install snapcraft
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
-        env:
-          SNAPCRAFT_BUILD_ENVIRONMENT: host
   # mac-test:
   #   runs-on: macos-latest
   #   steps:
