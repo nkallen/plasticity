@@ -5,7 +5,10 @@
 
 ## CAD for artists
 
-Plasticity is Open Source but NOT free. It is free during the BETA only. It will cost $25 for version 1.0 (no subscription).
+
+#### NOTE
+
+Plasticity is Open Source. When Plasticity reaches 1.0, it will cost $25 to use (no subscription).
 
 #### About
 
