@@ -10,18 +10,23 @@ export class EvolutionCommand extends Command {
         const evolution = new EvolutionFactory(editor.db, editor.materials, editor.signals).resource(this);
 
         const dialog = new EvolutionDialog(evolution, editor.signals);
-        let objectPicker = new ObjectPicker(this.editor);
+        const objectPicker = new ObjectPicker(this.editor);
         objectPicker.copy(this.editor.selection);
 
         dialog.execute(async (params) => {
             await evolution.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const getRegion = dialog.prompt("Select region", () => {
-            return objectPicker.shift(SelectionMode.Face, 1, 1).resource(this);
+        const getRegion = dialog.prompt("Select region or face", () => {
+            const objectPicker = new ObjectPicker(this.editor);
+            objectPicker.mode.set(SelectionMode.Face, SelectionMode.Region);
+            objectPicker.copy(this.editor.selection);
+            const min = 1 - objectPicker.selection.selected.regions.size - objectPicker.selection.selected.faces.size;
+            return objectPicker.execute(() => { }, min, 1).resource(this)
         });
-        const region = await getRegion();
-        evolution.face = region.first;
+        const selection = await getRegion();
+        if (selection.faces.size > 0) evolution.face = selection.faces.first;
+        else if (selection.regions.size > 0) evolution.region = selection.regions.first;
 
         const getSpine = dialog.prompt("Select curve", () => {
             return objectPicker.shift(SelectionMode.Curve, 1, 1).resource(this);

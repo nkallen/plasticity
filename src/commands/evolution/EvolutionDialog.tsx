@@ -16,7 +16,7 @@ export class EvolutionDialog extends AbstractDialog<EvolutionParams> {
         render(
             <>
                 <ol>
-                <plasticity-prompt name="Select region" description="to sweep"></plasticity-prompt>
+                <plasticity-prompt name="Select region or face" description="to sweep"></plasticity-prompt>
                 <plasticity-prompt name="Select curve" description="to sweep along"></plasticity-prompt>
                 </ol>
 
