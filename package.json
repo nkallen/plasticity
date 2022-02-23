@@ -56,7 +56,7 @@
                     "config": {}
                 },
                 {
-                    "name": "@davidwinter/electron-forge-maker-snap",
+                    "name": "@electron-forge/maker-snap",
                     "config": {
                         "categories": [
                             "Utility"
