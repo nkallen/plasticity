@@ -5,14 +5,16 @@
 
 ## CAD for artists
 
+Plasticity is a 3d modelling software for concept artists. Modeling in Plasticity is quick and efficient due to the unique gizmos, shortcuts, and thoughtful workflow.
 
-#### NOTE
+The goal of plasticity is to make working with NURBS like working with clay.
 
-Plasticity is Open Source. When Plasticity reaches 1.0, it will cost $25 to use (no subscription).
+#### FAQ
+
+Plasticity is mostly Open Source. When Plasticity reaches 1.0, it will cost $25 to use (no subscription).
 
 #### About
 
-Plasticity is a 3d modelling software for concept artists. Modelling in Plasticity is fast and efficient due to the unique menu system, shortcuts and thoughtful workflow.
 
 #### Development
 
