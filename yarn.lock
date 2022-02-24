@@ -4056,9 +4056,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"atom-keymap-plasticity@npm:^10.0.3":
-  version: 10.0.3
-  resolution: "atom-keymap-plasticity@npm:10.0.3"
+"atom-keymap-plasticity@npm:^10.0.4":
+  version: 10.0.4
+  resolution: "atom-keymap-plasticity@npm:10.0.4"
   dependencies:
     clear-cut: ^2
     emissary: ^1.1.0
@@ -4066,7 +4066,7 @@ __metadata:
     fs-plus: ^3.0.0
     grim: ^1.2.1
     property-accessors: ^1
-  checksum: 20ff6c8c8d85e2281a1c73341684cf7f1d27e3b4ec7b25f0ae89ca11b817bc5b94e6686b774300717d2ed9127e3ee5290ff48a208abceba9dcac3b4482065147
+  checksum: 49fda830642371a5dde72728ac9a65afdd210480ecbe0f431de961b7c4b8c87c1b927374c6c90140e245db2f42946f066c10ee1767df67e71c84950442292e05
   languageName: node
   linkType: hard
 
@@ -12781,7 +12781,7 @@ __metadata:
     "@types/webpack-env": ^1.16.2
     "@typescript-eslint/eslint-plugin": ^4.22.0
     "@typescript-eslint/parser": ^4.22.0
-    atom-keymap-plasticity: ^10.0.3
+    atom-keymap-plasticity: ^10.0.4
     autoprefixer: ^10.4.2
     babel-loader: ^8.2.2
     canvas: ^2.9.0
