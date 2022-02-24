@@ -446,6 +446,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.camera.toggle();
         this.transitionFromOrthoMode();
         this.navigationControls.update();
+        this.changed.dispatch();
         this.setNeedsRender();
     }
 
