@@ -41,18 +41,6 @@ export default (editor: Editor) => {
             return element.model;
         }
 
-        get description() {
-            const { viewport } = this;
-            if (!viewport.isOrthoMode) return "";
-            const n = viewport.constructionPlane.n;
-            if (n.equals(X)) return "Right";
-            else if (n.equals(_Y)) return "Front";
-            else if (n.equals(Z)) return "Top";
-            else if (n.equals(_X)) return "Left";
-            else if (n.equals(Y)) return "Back";
-            else if (n.equals(_Z)) return "Bottom";
-        }
-
         render() {
             const { viewport, uid, viewport: { constructionPlane } } = this;
             const result = (
@@ -102,15 +90,37 @@ export default (editor: Editor) => {
 
                         <ol class="flex flex-row space-x-0.5">
                             <li class="group">
-                                <input type="checkbox" class="hidden absolute peer" id={`ortho_${uid}`} checked={viewport.camera.isPerspectiveCamera}
+                                <input type="checkbox" class="hidden absolute peer" id={`ortho_${uid}`} checked={viewport.camera.isPerspectiveCamera} />
+                                <label
+                                    for={`ortho_${uid}`}
                                     onClick={e => viewport.togglePerspective()}
-                                />
-                                <label for={`ortho_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                    class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600"
+                                >
                                     <plasticity-icon name='ortho'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Perspective/Orthographic</plasticity-tooltip>
+                                    <plasticity-menu placement="bottom">
+                                        <div class="w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
+                                            <ul>
+                                                <li>
+                                                    <label for="fov">FOV</label>
+                                                    <div class="fields">
+                                                        <plasticity-number-scrubber
+                                                            name="fov"
+                                                            precision={1}
+                                                            min={1}
+                                                            max={90}
+                                                            value={viewport.fov}
+                                                            onscrub={e => viewport.fov = e.value}
+                                                            onchange={e => viewport.fov = e.value}
+                                                            onfinish={() => { }}
+                                                        ></plasticity-number-scrubber>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </plasticity-menu>
                                 </label>
                             </li>
-
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`xray_${uid}`} checked={viewport.isXRay}
                                     onClick={e => viewport.toggleXRay()}

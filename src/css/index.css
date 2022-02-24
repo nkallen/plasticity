@@ -151,6 +151,30 @@
     plasticity-dialog plasticity-prompt.finished {
         @apply bg-neutral-800;
     }
+
+    .plasticity-menu {
+        @apply absolute z-50 p-10 -mt-4 opacity-95;
+    }
+
+    .plasticity-menu ul {
+        @apply flex flex-col mx-3 my-2 space-y-1;
+    }
+
+    .plasticity-menu ul>li {
+        @apply flex items-center p-1 space-x-1;
+    }
+
+    .plasticity-menu ul>li>label {
+        @apply block w-1/4 px-1 text-xs text-neutral-200;
+    }
+
+    .plasticity-menu ul>li>label+.fields {
+        @apply flex w-3/4 space-x-2;
+    }
+
+    .plasticity-menu ul>li>.fields>* {
+        @apply grow;
+    }
 }
 
 .drag {

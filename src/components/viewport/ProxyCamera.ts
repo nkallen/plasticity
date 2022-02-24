@@ -108,7 +108,16 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
     get top() { return this.orthographic.top }
     get bottom() { return this.orthographic.bottom }
 
-    get fov() { return this.perspective.fov }
+    get fov() {
+        return this.isPerspectiveCamera ? this.perspective.fov : 0;
+    }
+
+    set fov(fov: number) {
+        this.setMode('perspective');
+        this.perspective.fov = fov;
+        this.updateProjectionMatrix();
+    }
+
     get near() { return this.perspective.near }
     get far() { return this.perspective.far }
     get aspect() { return this.perspective.aspect }

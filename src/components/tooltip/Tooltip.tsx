@@ -8,6 +8,7 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
+            // Content is hidden until shown
             this.attachShadow({ mode: 'open' });
         }
 

@@ -28,6 +28,7 @@ import './css/index.css';
 import { Editor } from './editor/Editor';
 import { loadKeymap } from './startup/LoadKeymap';
 import { loadTheme } from './startup/LoadTheme';
+import Menu from './components/menu/Menu';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -74,3 +75,4 @@ Stats(editor);
 Snaps(editor);
 Planes(editor);
 Clipboard(editor);
+Menu(editor);

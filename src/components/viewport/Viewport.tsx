@@ -449,6 +449,15 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
+    get fov() { return this.camera.fov }
+    set fov(fov: number) {
+        this.camera.fov = fov;
+        this.transitionFromOrthoMode();
+        this.navigationControls.update();
+        this.changed.dispatch();
+        this.setNeedsRender();
+    }
+
     get isXRay() { return this.editor.layers.visible.test(xray) }
     set isXRay(isXRay: boolean) {
         this.editor.layers.setXRay(isXRay);

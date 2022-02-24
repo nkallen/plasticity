@@ -2,7 +2,7 @@
 
 const EventKit = require('event-kit');
 const tooltipComponentsByElement = new WeakMap();
-const listen = require('./delegated-listener');
+const listen = require('./delegated-listener').listen;
 
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
@@ -95,6 +95,9 @@ Tooltip.prototype.init = function (element, options) {
 
             if (trigger === 'hover') {
                 this.hideOnKeydownOutsideOfTooltip = () => this.hide();
+                this.hideOnClickOutsideOfTooltip = event => {
+                    this.hide();
+                };
                 if (this.options.selector) {
                     eventIn = 'mouseover';
                     eventOut = 'mouseout';
@@ -259,7 +262,7 @@ Tooltip.prototype.leave = function (event) {
 Tooltip.prototype.show = function () {
     if (this.hasContent() && this.enabled) {
         if (this.hideOnClickOutsideOfTooltip) {
-            window.addEventListener('click', this.hideOnClickOutsideOfTooltip, {
+            window.addEventListener('pointerdown', this.hideOnClickOutsideOfTooltip, {
                 capture: true
             });
         }
@@ -426,7 +429,7 @@ Tooltip.prototype.hide = function (callback) {
     this.inState = {};
 
     if (this.hideOnClickOutsideOfTooltip) {
-        window.removeEventListener('click', this.hideOnClickOutsideOfTooltip, true);
+        window.removeEventListener('pointerdown', this.hideOnClickOutsideOfTooltip, true);
     }
 
     if (this.hideOnKeydownOutsideOfTooltip) {
