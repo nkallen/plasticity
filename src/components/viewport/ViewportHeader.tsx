@@ -8,7 +8,6 @@ import metal_carpaint from '../../img/matcap/metal_carpaint.png';
 import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.png';
 import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.png';
 import { ViewportElement } from './Viewport';
-import { ceramicDark, metalCarpaint, reflectionCheckHorizontal, reflectionCheckVertical } from '../../editor/Matcaps';
 
 
 export default (editor: Editor) => {
@@ -152,14 +151,10 @@ export default (editor: Editor) => {
                                             <ul>
                                                 <li>
                                                     <div class="flex flex-row space-x-1">
-                                                        <input type="radio" hidden name="matcap" id="ceramic-dark" checked={true} onClick={e => viewport.matcap = ceramicDark}></input>
-                                                        <label for="ceramic-dark"><img src={ceramic_dark} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
-                                                        <input type="radio" hidden name="matcap" id="metal-carpaint" checked={true} onClick={e => viewport.matcap = metalCarpaint}></input>
-                                                        <label for="metal-carpaint"><img src={metal_carpaint} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
-                                                        <input type="radio" hidden name="matcap" id="reflection-check-horizontal" checked={true} onClick={e => viewport.matcap = reflectionCheckHorizontal}></input>
-                                                        <label for="reflection-check-horizontal"><img src={reflection_check_horizontal} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
-                                                        <input type="radio" hidden name="matcap" id="reflection-check-vertical" checked={true} onClick={e => viewport.matcap = reflectionCheckVertical}></input>
-                                                        <label for="reflection-check-vertical"><img src={reflection_check_vertical} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
+                                                        <img src={ceramic_dark} class="block w-16 rounded-l" onClick={e => viewport.matcap = 'ceramic-dark'} />
+                                                        <img src={metal_carpaint} class="block w-16" onClick={e => viewport.matcap = 'metal-carpaint'} />
+                                                        <img src={reflection_check_horizontal} class="block w-16" onClick={e => viewport.matcap = 'reflection-check-horizontal'} />
+                                                        <img src={reflection_check_vertical} class="block w-16 rounded-r" onClick={e => viewport.matcap = 'reflection-check-vertical'} />
                                                     </div>
                                                 </li>
 

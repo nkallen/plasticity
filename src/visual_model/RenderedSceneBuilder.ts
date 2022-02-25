@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { ceramicDark } from "../editor/Matcaps";
+import { MatcapName, matcaps } from "../editor/Matcaps";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/LoadTheme";
@@ -292,7 +292,8 @@ export class RenderedSceneBuilder {
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
 
-    set matcap(matcap: THREE.DataTexture) {
+    set matcap(name: MatcapName) {
+        const matcap = matcaps.get(name);
         face_unhighlighted.matcap = matcap;
         face_highlighted.matcap = matcap;
         face_hovered.matcap = matcap;
@@ -311,6 +312,8 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
+
+const ceramicDark = matcaps.ceramicDark;
 
 export const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;

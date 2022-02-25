@@ -8,6 +8,7 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
+import { MatcapName } from "../../editor/Matcaps";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { SolidSelection } from "../../selection/TypedSelection";
@@ -481,7 +482,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.layers.isShowingFaces = show;
     }
 
-    set matcap(matcap: THREE.DataTexture) {
+    set matcap(matcap: MatcapName) {
         this.editor.highlighter.matcap = matcap;
         this.setNeedsRender();
     }
