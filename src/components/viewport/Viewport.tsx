@@ -483,8 +483,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     set matcap(matcap: MatcapName) {
-        this.editor.highlighter.matcap = matcap;
-        this.setNeedsRender();
+        this.editor.highlighter.setMatcap(matcap).then(() => {
+            this.setNeedsRender();
+        });
     }
 
     private _isRenderMode = false;

@@ -292,11 +292,12 @@ export class RenderedSceneBuilder {
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
 
-    set matcap(name: MatcapName) {
-        const matcap = matcaps.get(name);
-        face_unhighlighted.matcap = matcap;
-        face_highlighted.matcap = matcap;
-        face_hovered.matcap = matcap;
+    setMatcap(name: MatcapName) {
+        const { texture, loaded } = matcaps.get(name);
+        face_unhighlighted.matcap = texture;
+        face_highlighted.matcap = texture;
+        face_hovered.matcap = texture;
+        return loaded;
     }
 }
 
@@ -313,7 +314,7 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
 
-const ceramicDark = matcaps.ceramicDark;
+const { texture: ceramicDark } = matcaps.ceramicDark;
 
 export const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;

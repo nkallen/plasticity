@@ -5,36 +5,49 @@ import ceramic_dark from '../img/matcap/ceramic_dark.exr';
 import metal_carpaint from '../img/matcap/metal_carpaint.exr';
 import reflection_check_horizontal from '../img/matcap/reflection_check_horizontal.exr';
 import reflection_check_vertical from '../img/matcap/reflection_check_vertical.exr';
+import { Delay } from '../util/SequentialExecutor';
 
 export type MatcapName = 'ceramic-dark' | 'metal-carpaint' | 'reflection-check-horizontal' | 'reflection-check-vertical';
 
 class MatcapDatabase {
     private _ceramicDark!: DataTexture;
     get ceramicDark() {
-        if (this._ceramicDark === undefined) this._ceramicDark = new EXRLoader().load(ceramic_dark, () => { });
-        return this._ceramicDark;
+        const loaded = new Delay<void>();
+        if (this._ceramicDark === undefined)
+            this._ceramicDark = new EXRLoader().load(ceramic_dark, d => loaded.resolve());
+        else loaded.resolve();
+        return { texture: this._ceramicDark, loaded: loaded.promise };
     }
 
     private _metalCarpaint!: DataTexture;
     get metalCarpaint() {
-        if (this._metalCarpaint === undefined) this._metalCarpaint = new EXRLoader().load(metal_carpaint, () => { });
-        return this._metalCarpaint;
+        const loaded = new Delay<void>();
+        if (this._metalCarpaint === undefined)
+            this._metalCarpaint = new EXRLoader().load(metal_carpaint, () => loaded.resolve());
+        else loaded.resolve();
+        return { texture: this._metalCarpaint, loaded: loaded.promise };
     }
 
     private _reflectionCheckHorizontal!: DataTexture;
     get reflectionCheckHorizontal() {
-        if (this._reflectionCheckHorizontal === undefined) this._reflectionCheckHorizontal = new EXRLoader().load(reflection_check_horizontal, () => { });
-        return this._reflectionCheckHorizontal;
+        const loaded = new Delay<void>();
+        if (this._reflectionCheckHorizontal === undefined)
+            this._reflectionCheckHorizontal = new EXRLoader().load(reflection_check_horizontal, () => loaded.resolve());
+        else loaded.resolve();
+        return { texture: this._reflectionCheckHorizontal, loaded: loaded.promise };
     }
 
 
     private _reflectionCheckVertical!: DataTexture;
     get reflectionCheckVertical() {
-        if (this._reflectionCheckVertical === undefined) this._reflectionCheckVertical = new EXRLoader().load(reflection_check_vertical, () => { });
-        return this._reflectionCheckVertical;
+        const loaded = new Delay<void>();
+        if (this._reflectionCheckVertical === undefined)
+            this._reflectionCheckVertical = new EXRLoader().load(reflection_check_vertical, () => loaded.resolve());
+        else loaded.resolve();
+        return { texture: this._reflectionCheckVertical, loaded: loaded.promise };
     }
 
-    get(name: MatcapName): DataTexture {
+    get(name: MatcapName) {
         switch (name) {
             case 'ceramic-dark': return this.ceramicDark;
             case 'metal-carpaint': return this.metalCarpaint;
