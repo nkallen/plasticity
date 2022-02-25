@@ -102,6 +102,7 @@ export class FaceGroupBuilder {
         const groups = merged.groups;
 
         const mesh = new THREE.Mesh(merged, materials[0]);
+        mesh.layers.set(Layers.Face);
 
         const faces = [];
         for (const [i, group] of groups.entries()) {
@@ -173,10 +174,11 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
         const { geometry, groups } = CurveBuilder.mergePositions(lines.map(l => l.position));
         const line = new LineSegments2(geometry, lines[0].material);
         line.scale.setScalar(deunit(1));
+        line.layers.set(Layers.CurveEdge);
 
         const occluded = new LineSegments2(geometry, lines[0].occludedMaterial);
         occluded.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
-        occluded.layers.set(Layers.XRay);
+        occluded.layers.set(Layers.CurveEdge_XRay);
         occluded.scale.setScalar(deunit(1));
         occluded.computeLineDistances();
 

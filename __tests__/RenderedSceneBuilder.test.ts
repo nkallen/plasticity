@@ -23,7 +23,6 @@ let signals: EditorSignals;
 let selection: SelectionDatabase;
 
 let solid: visual.Solid;
-let circle: visual.SpaceInstance<visual.Curve3D>;
 let highlighter: RenderedSceneBuilder;
 
 beforeEach(async () => {
@@ -43,7 +42,6 @@ beforeEach(async () => {
     const makeCircle = new CenterCircleFactory(db, materials, signals);
     makeCircle.center = new THREE.Vector3();
     makeCircle.radius = 1;
-    circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 });
 
 test('outlineSelection', () => {

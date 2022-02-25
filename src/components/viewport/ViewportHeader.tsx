@@ -1,17 +1,14 @@
 import { render } from 'preact';
-import * as THREE from "three";
 import { Editor } from '../../editor/Editor';
 import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlaneSnap } from '../../editor/snaps/ConstructionPlaneSnap';
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
+import ceramic_dark from '../../img/matcap/ceramic_dark.png';
+import metal_carpaint from '../../img/matcap/metal_carpaint.png';
+import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.png';
+import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.png';
 import { ViewportElement } from './Viewport';
 
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-const _X = new THREE.Vector3(-1, 0, 0);
-const _Y = new THREE.Vector3(0, -1, 0);
-const _Z = new THREE.Vector3(0, 0, -1);
 
 export default (editor: Editor) => {
 
@@ -149,6 +146,30 @@ export default (editor: Editor) => {
                                 <label for={`render-mode_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='render-mode'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-render-mode">Toggle render mode</plasticity-tooltip>
+                                    <plasticity-menu placement="bottom">
+                                        <div class="min-w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
+                                            <ul>
+                                                <li>
+                                                    <ol class="flex flex-row space-x-1">
+                                                        <li class="group"><img src={ceramic_dark} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
+                                                        <li class="group"><img src={metal_carpaint} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
+                                                        <li class="group"><img src={reflection_check_horizontal} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
+                                                        <li class="group"><img src={reflection_check_vertical} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
+                                                    </ol>
+                                                </li>
+
+                                                <li>
+                                                    <label for="form" class="hidden">Visibility</label>
+                                                    <div class="fields">
+                                                        <input type="checkbox" hidden name="form" id="show-edges" checked={viewport.isShowingEdges} onClick={e => viewport.isShowingEdges = !viewport.isShowingEdges}></input>
+                                                        <label for="show-edges">Show edges</label>
+                                                        <input type="checkbox" hidden name="form" id="show-faces" checked={viewport.isShowingFaces} onClick={e => viewport.isShowingFaces = !viewport.isShowingFaces}></input>
+                                                        <label for="show-faces">Show faces</label>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </plasticity-menu>
                                 </label>
                             </li>
 

@@ -6,9 +6,7 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
 import { matcapTexture } from "../editor/Matcaps";
 import MaterialDatabase from "../editor/MaterialDatabase";
-import ModifierManager from "../editor/ModifierManager";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
-import { ItemSelection } from "../selection/TypedSelection";
 import { Theme } from "../startup/LoadTheme";
 import * as visual from '../visual_model/VisualModel';
 
@@ -166,7 +164,7 @@ export class RenderedSceneBuilder {
         const { selected } = this.selection;
         const curve = item.underlying;
         const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
-        const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
+        const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.CurveEdge_XRay;
         const isSelected = selected.curveIds.has(item.simpleName);
         curve.line.material = isSelected ? line_selected : line_unselected;
         curve.line.layers.set(layer);
@@ -292,20 +290,6 @@ export class RenderedSceneBuilder {
         region_hovered.color.setStyle(theme.colors.blue[200]).convertSRGBToLinear();
         region_highlighted.color.setStyle(theme.colors.blue[300]).convertSRGBToLinear();
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
-    }
-}
-
-function mask(child: THREE.Object3D) {
-    if (child.userData.oldLayerMask == undefined) {
-        child.userData.oldLayerMask = child.layers.mask;
-        child.layers.set(visual.Layers.Unselectable);
-    }
-}
-
-function unmask(child: THREE.Object3D) {
-    if (child.userData.oldLayerMask !== undefined) {
-        child.layers.mask = child.userData.oldLayerMask;
-        delete child.userData.oldLayerMask;
     }
 }
 

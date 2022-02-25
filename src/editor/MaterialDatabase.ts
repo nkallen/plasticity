@@ -5,7 +5,6 @@ import controlPointIcon from '../components/viewport/img/control-point.svg';
 import { face_unhighlighted, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
-import { matcapTexture } from "./Matcaps";
 
 export default interface MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial;

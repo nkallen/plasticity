@@ -105,42 +105,54 @@
         @apply flex flex-col py-2 m-3 my-1 space-y-1.5 text-xs border-b border-neutral-900;
     }
 
-    plasticity-dialog ul {
+    plasticity-dialog ul,
+    .plasticity-menu ul {
         @apply flex flex-col mx-3 my-2 space-y-1;
     }
 
-    plasticity-dialog ul>li {
+    plasticity-dialog ul>li,
+    .plasticity-menu ul>li {
         @apply flex items-center p-1 space-x-1;
     }
 
-    plasticity-dialog ul>li>label {
+    plasticity-dialog ul>li>label,
+    .plasticity-menu ul>li>label {
         @apply block w-1/4 px-1 text-xs text-neutral-200;
     }
 
-    plasticity-dialog ul>li>label+.fields {
+    plasticity-dialog ul>li>label+.fields,
+    .plasticity-menu ul>li>label+.fields {
         @apply flex w-3/4 space-x-2;
     }
 
-    plasticity-dialog ul>li>.fields>* {
+    plasticity-dialog ul>li>.fields>*,
+    .plasticity-menu ul>li>.fields>* {
         @apply grow;
     }
 
-    plasticity-dialog ul>li>.fields>plasticity-number-scrubber {
+    plasticity-dialog ul>li>.fields>plasticity-number-scrubber,
+    .plasticity-menu ul>li>.fields>plasticity-number-scrubber {
         @apply flex items-center space-x-1 cursor-pointer min-w-[5em];
     }
 
     plasticity-dialog ul>li>.fields>input[type="radio"],
-    plasticity-dialog ul>li>.fields>input[type="checkbox"] {
+    plasticity-dialog ul>li>.fields>input[type="checkbox"],
+    .plasticity-menu ul>li>.fields>input[type="radio"],
+    .plasticity-menu ul>li>.fields>input[type="checkbox"] {
         @apply absolute hidden;
     }
 
     plasticity-dialog ul>li>.fields>input[type="radio"]+label,
-    plasticity-dialog ul>li>.fields>input[type="checkbox"]+label {
+    plasticity-dialog ul>li>.fields>input[type="checkbox"]+label,
+    .plasticity-menu ul>li>.fields>input[type="radio"]+label,
+    .plasticity-menu ul>li>.fields>input[type="checkbox"]+label {
         @apply block w-full px-3 py-1 text-xs text-center rounded cursor-pointer bg-neutral-500 text-neutral-100;
     }
 
     plasticity-dialog ul>li>.fields>input[type="radio"]:checked+label,
-    plasticity-dialog ul>li>.fields>input[type="checkbox"]:checked+label {
+    plasticity-dialog ul>li>.fields>input[type="checkbox"]:checked+label,
+    .plasticity-menu ul>li>.fields>input[type="radio"]:checked+label,
+    .plasticity-menu ul>li>.fields>input[type="checkbox"]:checked+label {
         @apply bg-accent-600 text-accent-100;
     }
 
@@ -154,26 +166,6 @@
 
     .plasticity-menu {
         @apply absolute z-50 p-10 -mt-4 opacity-95;
-    }
-
-    .plasticity-menu ul {
-        @apply flex flex-col mx-3 my-2 space-y-1;
-    }
-
-    .plasticity-menu ul>li {
-        @apply flex items-center p-1 space-x-1;
-    }
-
-    .plasticity-menu ul>li>label {
-        @apply block w-1/4 px-1 text-xs text-neutral-200;
-    }
-
-    .plasticity-menu ul>li>label+.fields {
-        @apply flex w-3/4 space-x-2;
-    }
-
-    .plasticity-menu ul>li>.fields>* {
-        @apply grow;
     }
 }
 

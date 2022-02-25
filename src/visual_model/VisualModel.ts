@@ -525,7 +525,7 @@ export enum Layers {
     ViewportGizmo,
     ObjectGizmo,
 
-    XRay,
+    CurveEdge_XRay,
 
     CurveFragment,
     CurveFragment_XRay,

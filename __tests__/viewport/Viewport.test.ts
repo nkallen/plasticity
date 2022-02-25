@@ -203,7 +203,7 @@ test("togglePerspective", () => {
 
 test("toggleXRay", () => {
     const xray = new THREE.Layers();
-    xray.set(visual.Layers.XRay);
+    xray.set(visual.Layers.CurveEdge_XRay);
     expect(editor.layers.visible.test(xray)).toBe(true);
     expect(editor.layers.intersectable.test(xray)).toBe(true);
     viewport.toggleXRay();

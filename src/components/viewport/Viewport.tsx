@@ -15,7 +15,6 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/LoadTheme";
 import { Helper, Helpers } from "../../util/Helpers";
-import { xray } from "../../visual_model/Intersectable";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
@@ -459,7 +458,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
-    get isXRay() { return this.editor.layers.visible.test(xray) }
+    get isXRay() { return this.editor.layers.isXRay }
     set isXRay(isXRay: boolean) {
         this.editor.layers.setXRay(isXRay);
         this.setNeedsRender();
@@ -470,6 +469,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.layers.toggleXRay();
         this.setNeedsRender();
         this.changed.dispatch();
+    }
+
+    get isShowingEdges() { return this.editor.layers.isShowingEdges }
+    set isShowingEdges(show: boolean) {
+        this.editor.layers.isShowingEdges = show;
+    }
+
+    get isShowingFaces() { return this.editor.layers.isShowingFaces }
+    set isShowingFaces(show: boolean) {
+        this.editor.layers.isShowingFaces = show;
     }
 
     private _isRenderMode = false;

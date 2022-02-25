@@ -26,8 +26,3 @@ export interface Intersection {
     object: Intersectable;
     point: THREE.Vector3;
 }
-
-export const xray = new THREE.Layers();
-xray.disableAll();
-xray.enable(Layers.XRay);
-xray.enable(Layers.CurveFragment_XRay);
