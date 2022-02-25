@@ -936,6 +936,7 @@ export default {
                 { signature: "const MbSurface & GetCurveOneSurface()", return: isOnHeap },
                 { signature: "const MbSurface & GetCurveTwoSurface()", return: isOnHeap },
                 { signature: "MbItem * Cast()", isManual: true },
+                // "const MbCurve3D & GetExactCurve(bool saveParams = true)",
             ]
         },
         CurveEdge: {

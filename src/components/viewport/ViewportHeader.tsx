@@ -8,6 +8,7 @@ import metal_carpaint from '../../img/matcap/metal_carpaint.png';
 import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.png';
 import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.png';
 import { ViewportElement } from './Viewport';
+import { ceramicDark, metalCarpaint, reflectionCheckHorizontal, reflectionCheckVertical } from '../../editor/Matcaps';
 
 
 export default (editor: Editor) => {
@@ -150,12 +151,16 @@ export default (editor: Editor) => {
                                         <div class="min-w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
                                             <ul>
                                                 <li>
-                                                    <ol class="flex flex-row space-x-1">
-                                                        <li class="group"><img src={ceramic_dark} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
-                                                        <li class="group"><img src={metal_carpaint} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
-                                                        <li class="group"><img src={reflection_check_horizontal} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
-                                                        <li class="group"><img src={reflection_check_vertical} class="block w-16 group-first:rounded-l group-last:rounded-r" /></li>
-                                                    </ol>
+                                                    <div class="flex flex-row space-x-1">
+                                                        <input type="radio" hidden name="matcap" id="ceramic-dark" checked={true} onClick={e => viewport.matcap = ceramicDark}></input>
+                                                        <label for="ceramic-dark"><img src={ceramic_dark} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
+                                                        <input type="radio" hidden name="matcap" id="metal-carpaint" checked={true} onClick={e => viewport.matcap = metalCarpaint}></input>
+                                                        <label for="metal-carpaint"><img src={metal_carpaint} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
+                                                        <input type="radio" hidden name="matcap" id="reflection-check-horizontal" checked={true} onClick={e => viewport.matcap = reflectionCheckHorizontal}></input>
+                                                        <label for="reflection-check-horizontal"><img src={reflection_check_horizontal} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
+                                                        <input type="radio" hidden name="matcap" id="reflection-check-vertical" checked={true} onClick={e => viewport.matcap = reflectionCheckVertical}></input>
+                                                        <label for="reflection-check-vertical"><img src={reflection_check_vertical} class="block w-16 group-first:rounded-l group-last:rounded-r" /></label>
+                                                    </div>
                                                 </li>
 
                                                 <li>

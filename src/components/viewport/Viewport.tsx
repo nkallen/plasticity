@@ -481,6 +481,11 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.layers.isShowingFaces = show;
     }
 
+    set matcap(matcap: THREE.DataTexture) {
+        this.editor.highlighter.matcap = matcap;
+        this.setNeedsRender();
+    }
+
     private _isRenderMode = false;
     get isRenderMode() { return this._isRenderMode }
     set isRenderMode(isRenderMode: boolean) {

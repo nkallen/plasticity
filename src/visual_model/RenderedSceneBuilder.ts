@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { matcapTexture } from "../editor/Matcaps";
+import { ceramicDark } from "../editor/Matcaps";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/LoadTheme";
@@ -291,6 +291,12 @@ export class RenderedSceneBuilder {
         region_highlighted.color.setStyle(theme.colors.blue[300]).convertSRGBToLinear();
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
+
+    set matcap(matcap: THREE.DataTexture) {
+        face_unhighlighted.matcap = matcap;
+        face_highlighted.matcap = matcap;
+        face_hovered.matcap = matcap;
+    }
 }
 
 const line_unselected = new LineMaterial({ linewidth: 1.5 });
@@ -308,14 +314,14 @@ line_hovered.depthFunc = THREE.AlwaysDepth;
 
 export const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;
-face_unhighlighted.matcap = matcapTexture;
+face_unhighlighted.matcap = ceramicDark;
 face_unhighlighted.polygonOffset = true;
 face_unhighlighted.polygonOffsetFactor = 1;
 face_unhighlighted.polygonOffsetUnits = 2;
 
 const face_highlighted = new THREE.MeshMatcapMaterial();
 face_highlighted.fog = false;
-face_highlighted.matcap = matcapTexture;
+face_highlighted.matcap = ceramicDark;
 face_highlighted.polygonOffset = true;
 face_highlighted.polygonOffsetFactor = 1;
 face_highlighted.polygonOffsetUnits = 1;
@@ -327,7 +333,7 @@ face_highlighted_phantom.opacity = 0.0;
 
 const face_hovered = new THREE.MeshMatcapMaterial();
 face_hovered.fog = false;
-face_hovered.matcap = matcapTexture;
+face_hovered.matcap = ceramicDark;
 face_hovered.polygonOffset = true;
 face_hovered.polygonOffsetFactor = 1;
 face_hovered.polygonOffsetUnits = 1;
