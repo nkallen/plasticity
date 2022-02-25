@@ -472,6 +472,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
+    private _isRenderMode = false;
+    get isRenderMode() { return this._isRenderMode }
+    set isRenderMode(isRenderMode: boolean) {
+        this._isRenderMode = true;
+        this.changed.dispatch();
+    }
+
     private _shouldShowOverlays = true;
     get showOverlays() { return this._shouldShowOverlays }
     toggleOverlays() {

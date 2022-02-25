@@ -121,15 +121,6 @@ export default (editor: Editor) => {
                                     </plasticity-menu>
                                 </label>
                             </li>
-                            <li class="group">
-                                <input type="checkbox" class="hidden absolute peer" id={`xray_${uid}`} checked={viewport.isXRay}
-                                    onClick={e => viewport.toggleXRay()}
-                                />
-                                <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
-                                    <plasticity-icon name='xray'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-Ray mode</plasticity-tooltip>
-                                </label>
-                            </li>
 
                             <li class="group">
                                 <label for={`overlays_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
@@ -140,6 +131,27 @@ export default (editor: Editor) => {
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</plasticity-tooltip>
                                 </label>
                             </li>
+
+                            <li class="group">
+                                <input type="checkbox" class="hidden absolute peer" id={`xray_${uid}`} checked={viewport.isXRay}
+                                    onClick={e => viewport.toggleXRay()}
+                                />
+                                <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                    <plasticity-icon name='xray'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-Ray mode</plasticity-tooltip>
+                                </label>
+                            </li>
+
+                            <li class="group">
+                                <input type="checkbox" class="hidden absolute peer" id={`render-mode_${uid}`} checked={viewport.isRenderMode}
+                                    onClick={e => viewport.isRenderMode = !viewport.isRenderMode}
+                                />
+                                <label for={`render-mode_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                    <plasticity-icon name='render-mode'></plasticity-icon>
+                                    <plasticity-tooltip placement="bottom" command="viewport:toggle-render-mode">Toggle render mode</plasticity-tooltip>
+                                </label>
+                            </li>
+
                         </ol>
                     </div>
                     {constructionPlane !== PlaneDatabase.XY &&
