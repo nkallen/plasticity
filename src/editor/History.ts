@@ -68,29 +68,8 @@ export class CameraMemento {
         readonly mode: ProxyCamera["mode"],
         readonly position: Readonly<THREE.Vector3>,
         readonly quaternion: Readonly<THREE.Quaternion>,
-        readonly zoom: number,
-        readonly offsetWidth: number,
-        readonly offsetHeight: number,
+        readonly zoom: number
     ) { }
-
-    toJSON() {
-        return JSON.stringify({
-            mode: this.mode,
-            position: this.position.toArray(),
-            quaternion: this.quaternion.toArray(),
-            zoom: this.zoom,
-            offsetWidth: this.offsetWidth,
-            offsetHeight: this.offsetHeight
-        });
-    }
-
-    static fromJSON(data: string): CameraMemento {
-        const p = JSON.parse(data);
-        const { mode, zoom, offsetWidth, offsetHeight } = p;
-        const position = new THREE.Vector3().fromArray(p.position);
-        const quaternion = new THREE.Quaternion().fromArray(p.quaternion);
-        return new CameraMemento(mode, position, quaternion, zoom, offsetWidth, offsetHeight);
-    }
 }
 
 export class ConstructionPlaneMemento {
@@ -98,20 +77,6 @@ export class ConstructionPlaneMemento {
         readonly n: Readonly<THREE.Vector3>,
         readonly o: Readonly<THREE.Vector3>
     ) { }
-
-    toJSON() {
-        return JSON.stringify({
-            n: this.n.toArray(),
-            o: this.o.toArray(),
-        });
-    }
-
-    static fromJSON(data: string): ConstructionPlaneMemento {
-        const p = JSON.parse(data);
-        const n = new THREE.Vector3().fromArray(p.n);
-        const o = new THREE.Vector3().fromArray(p.o);
-        return new ConstructionPlaneMemento(n, o);
-    }
 }
 
 export class ViewportMemento {
@@ -121,24 +86,6 @@ export class ViewportMemento {
         readonly isXRay: boolean,
         readonly constructionPlane: ConstructionPlaneMemento,
     ) { }
-
-    serialize(): Buffer {
-        const string = JSON.stringify({
-            camera: this.camera.toJSON(),
-            target: this.target.toArray(),
-            constructionPlane: this.constructionPlane.toJSON(),
-            isXRay: this.isXRay,
-        });
-        return Buffer.from(string);
-    }
-
-    static deserialize(data: Buffer): ViewportMemento {
-        const p = JSON.parse(data.toString());
-        const camera = CameraMemento.fromJSON(p.camera);
-        const target = new THREE.Vector3().fromArray(p.target);
-        const constructionPlane = ConstructionPlaneMemento.fromJSON(p.constructionPlane);
-        return new ViewportMemento(camera, target, p.isXRay, constructionPlane);
-    }
 }
 
 export class SnapMemento {
@@ -174,7 +121,7 @@ export class EditorOriginator {
     private version = 0;
 
     constructor(
-        readonly db: MementoOriginator<GeometryMemento>,
+        readonly db: MementoOriginator<GeometryMemento> & Serializble,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
         readonly crosses: MementoOriginator<CrossPointMemento>,
@@ -230,49 +177,6 @@ export class EditorOriginator {
         }
     }
 
-    async serialize(): Promise<Buffer> {
-        const db = await this.db.serialize();
-        const numViewports = this.viewports.length;
-        const viewports = await Promise.all(this.viewports.map(v => v.serialize()));
-        const viewportsLength = viewports.reduce((acc: number, x: Buffer) => acc + x.length, 0);
-        const result = Buffer.alloc(8 + db.length + 8 + numViewports + 8 + viewportsLength);
-        let pos = 0;
-        result.writeBigUInt64BE(BigInt(db.length));
-        pos += 8;
-        db.copy(result, pos);
-        pos += db.length;
-        result.writeBigUInt64BE(BigInt(viewports.length), pos);
-        pos += 8;
-        for (let i = 0; i < viewports.length; i++) {
-            const viewport = viewports[i];
-            result.writeBigUInt64BE(BigInt(viewport.length), pos);
-            pos += 8;
-            viewport.copy(result, pos);
-            pos += viewport.length;
-        }
-        return result;
-    }
-
-    async deserialize(data: Buffer): Promise<void> {
-        let pos = 0;
-        const dbSize = Number(data.readBigUInt64BE());
-        pos += 8;
-        const dbData = data.slice(pos, pos + dbSize);
-        pos += dbSize;
-        const numViewports = Number(data.readBigUInt64BE(pos));
-        pos += 8;
-        for (let i = 0; i < numViewports; i++) {
-            const viewportSize = Number(data.readBigUInt64BE(pos));
-            pos += 8;
-            const viewportData = data.slice(pos, pos + viewportSize);
-            await this.viewports[i].deserialize(viewportData);
-            pos += viewportSize;
-        }
-
-        await this.db.deserialize(dbData);
-        await this.contours.rebuild();
-    }
-
     validate() {
         this.snaps.validate();
         this.crosses.validate();
@@ -296,10 +200,13 @@ export class EditorOriginator {
 export interface MementoOriginator<T> {
     saveToMemento(): T;
     restoreFromMemento(m: T): void;
-    serialize(): Promise<Buffer>;
-    deserialize(data: Buffer): Promise<void>;
     validate(): void;
     debug(): void;
+}
+
+export interface Serializble {
+    serialize(): Promise<Buffer>;
+    deserialize(data: Buffer): Promise<void>;
 }
 
 type HistoryStackItem = {

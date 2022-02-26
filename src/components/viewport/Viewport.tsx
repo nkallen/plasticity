@@ -536,14 +536,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
-    async serialize(): Promise<Buffer> {
-        return this.saveToMemento().serialize();
-    }
-
-    async deserialize(data: Buffer): Promise<void> {
-        this.restoreFromMemento(ViewportMemento.deserialize(data));
-    }
-
     debug(): void { }
 
     // top left is 0,0, bottom right is width,height

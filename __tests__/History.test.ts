@@ -92,40 +92,4 @@ describe(EditorOriginator, () => {
         history.redo();
         expect(db.visibleObjects.length).toBe(2);
     })
-
-    test("serialize & deserialize", async () => {
-        const data = await originator.serialize();
-
-        db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, viewports);
-
-        await originator.deserialize(data);
-        expect(1).toBe(1);
-    })
-
-    describe(CameraMemento, () => {
-        test("toJSON & fromJSON", () => {
-            const memento = viewports[0].camera.saveToMemento();
-            const memento2 = CameraMemento.fromJSON(memento.toJSON());
-            expect(memento.position).toApproximatelyEqual(memento2.position);
-        })
-    });
-
-    describe(ConstructionPlaneMemento, () => {
-        test("toJSON & fromJSON", () => {
-            const memento = viewports[0].saveToMemento().constructionPlane;
-            const memento2 = ConstructionPlaneMemento.fromJSON(memento.toJSON());
-            expect(memento.n).toApproximatelyEqual(memento2.n);
-        })
-    });
-
-    describe(ViewportMemento, () => {
-        test("serialize & deserialize", () => {
-            const memento = viewports[0].saveToMemento();
-            const data = memento.serialize();
-            const memento2 = ViewportMemento.deserialize(data);
-            expect(memento.constructionPlane.n).toApproximatelyEqual(memento2.constructionPlane.n);
-            expect(memento.camera.position).toApproximatelyEqual(memento2.camera.position);
-        })
-    });
 })

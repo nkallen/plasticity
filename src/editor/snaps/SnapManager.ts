@@ -328,14 +328,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         (this.hidden as SnapManager['hidden']) = new Map(m.hidden);
     }
 
-    serialize(): Promise<Buffer> {
-        throw new Error("Method not implemented.");
-    }
-
-    deserialize(data: Buffer): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
     validate() {
     }
 

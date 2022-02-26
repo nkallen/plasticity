@@ -129,8 +129,7 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
             this.mode,
             this.position.clone(),
             this.quaternion.clone(),
-            this.zoom,
-            this.offsetWidth, this.offsetHeight);
+            this.zoom);
     }
 
     restoreFromMemento(m: CameraMemento): void {
@@ -144,8 +143,6 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
 
     readonly spherical = new THREE.Spherical();
 
-    serialize(): Promise<Buffer> { throw new Error("Method not implemented.") }
-    deserialize(data: Buffer): Promise<void> { throw new Error("Method not implemented.") }
     validate(): void { throw new Error("Method not implemented.") }
     debug(): void { throw new Error("Method not implemented.") }
 

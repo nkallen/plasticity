@@ -144,7 +144,5 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         (this._crosses as CrossPointDatabase['crosses']) = new Set(m.crosses);
     }
 
-    serialize(): Promise<Buffer> { throw new Error('Method not implemented.') }
-    deserialize(data: Buffer): Promise<void> { throw new Error('Method not implemented.') }
     debug(): void { }
 }

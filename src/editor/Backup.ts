@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { PlasticityDocument } from './Document';
 import { EditorSignals } from "./EditorSignals";
 import { EditorOriginator } from "./History";
 
@@ -16,33 +17,27 @@ export class Backup {
     private dir = path.join(os.tmpdir(), 'plasticity');
 
     async save() {
-        const data = await this.originator.serialize();
-        const tempFilePath = await this.tempFilePath();
-        await fs.promises.writeFile(tempFilePath, Buffer.from(data));
-
-        const c3dTempFilePath = await this.c3dTempFilePath();
-        await fs.promises.writeFile(c3dTempFilePath, Buffer.from(await this.originator.db.serialize()));
+        await this.makeTempDir();
+        const document = new PlasticityDocument(this.originator);
+        const tempFilePath = this.tempFilePath;
+        await document.save(tempFilePath);
     }
 
     async load() {
-        const tempFilePath = await this.tempFilePath();
-        console.time("load backup: " + tempFilePath);
-        const data = await fs.promises.readFile(tempFilePath);
-        await this.originator.deserialize(data);
-        this.originator.debug();
-        console.timeEnd("load backup: " + tempFilePath);
+        const tempFilePath = this.tempFilePath;
+        await PlasticityDocument.load(tempFilePath, this.originator);
     }
 
     async clear() {
-        const tempFilePath = await this.tempFilePath();
         try {
-            await fs.promises.rm(tempFilePath);
+            await fs.promises.rm(this.dir, { recursive: true, force: true });
+            await this.makeTempDir();
         } catch (e) {
             console.warn(e);
         }
     }
 
-    async makeTempDir() {
+    private async makeTempDir() {
         const dir = this.dir;
         try {
             await fs.promises.access(dir);
@@ -52,13 +47,7 @@ export class Backup {
         return dir;
     }
 
-    async tempFilePath() {
-        await this.makeTempDir();
+    get tempFilePath() {
         return path.join(this.dir, `backup.${process.env.NODE_ENV ?? 'env'}.plasticity`);
-    }
-
-    async c3dTempFilePath() {
-        await this.makeTempDir();
-        return path.join(this.dir, 'debug.c3d');
     }
 }

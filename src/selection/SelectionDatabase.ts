@@ -350,13 +350,6 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.selectionChanged.dispatch({ selection: this });
     }
 
-    serialize(): Promise<Buffer> {
-        throw new Error('Method not implemented.');
-    }
-    deserialize(data: Buffer): Promise<void> {
-        throw new Error('Method not implemented.');
-    }
-
     validate() {
         for (const id of this.solidIds) {
             console.assert(this.db.lookupItemById(id) !== undefined, "solid is in database", id);
