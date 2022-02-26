@@ -33,10 +33,10 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor._db;
+    db = editor.db;
     materials = editor.materials;
     signals = editor.signals;
-    selection = editor._selection;
+    selection = editor.selection;
     interaction = editor.changeSelection;
 });
 

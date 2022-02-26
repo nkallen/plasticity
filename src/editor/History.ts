@@ -1,15 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { ProxyCamera } from '../components/viewport/ProxyCamera';
 import { RefCounter } from '../util/Util';
 import * as visual from "../visual_model/VisualModel";
 import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
-import { ControlPointData, DatabaseLike, TopologyData } from "./DatabaseLike";
+import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
-import MaterialDatabase from './MaterialDatabase';
-import { ModifierStack } from './ModifierManager';
 import { PointSnap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";
 
@@ -21,13 +18,13 @@ export class Memento {
         readonly snaps: SnapMemento,
         readonly crosses: CrossPointMemento,
         readonly curves: CurveMemento,
-        readonly modifiers: ModifierMemento,
     ) { }
 }
 
 export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
+        readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
         readonly hidden: ReadonlySet<c3d.SimpleName>,
@@ -168,95 +165,6 @@ export class CurveMemento {
     ) { }
 }
 
-export class ModifierMemento {
-    constructor(
-        readonly name2stack: ReadonlyMap<c3d.SimpleName, ModifierStack>,
-        readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
-        readonly modified2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
-    ) { }
-
-    serialize(): Buffer {
-        const string = JSON.stringify({
-            version2name: this.version2name,
-            modified2name: this.modified2name,
-            name2stack: this.name2stack,
-        }, this.replacer);
-        return Buffer.from(string);
-    }
-
-    static deserialize(data: Buffer, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierMemento {
-        const p = JSON.parse(data.toString(), (key, value) => this.reviver(db, materials, signals)(key, value));
-        return new ModifierMemento(
-            p.name2stack,
-            p.version2name,
-            p.modified2name,
-        );
-    }
-
-    replacer(key: string, value: any) {
-        switch (key) {
-            case 'version2name':
-            case 'modified2name':
-                return {
-                    dataType: 'Map<c3d.SimpleName, c3d.SimpleName>',
-                    value: [...value],
-                };
-            case 'name2stack':
-                const cast = value as Map<c3d.SimpleName, ModifierStack>;
-                return {
-                    dataType: 'Map<c3d.SimpleName, ModifierStack>',
-                    value: [...cast.entries()].map(([key, value]) => [key, value.toJSON()]),
-                };
-            default: return value;
-        }
-    }
-
-    static reviver(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals) {
-        return (key: string, value: any) => {
-            switch (key) {
-                case 'version2name':
-                case 'modified2name':
-                    return new Map(value.value);
-                case 'name2stack':
-                    const cast = value.value as [c3d.SimpleName, any][];
-                    return new Map(cast.map(([name, json]) => {
-                        const stack = ModifierStack.fromJSON(json, db, materials, signals);
-                        return [name, stack]
-                    }));
-                default: return value;
-            }
-        }
-    }
-}
-
-export class ModifierStackMemento {
-    constructor(
-        readonly premodified: visual.Solid,
-        readonly modified: visual.Solid,
-        readonly modifiers: readonly SymmetryFactory[],
-    ) { }
-
-    toJSON() {
-        return {
-            premodified: this.premodified.simpleName,
-            modified: this.modified.simpleName,
-            modifiers: this.modifiers.map(m => m.toJSON())
-        }
-    }
-
-    static fromJSON(json: any, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierStackMemento {
-        const premodified = db.lookupItemById(json.premodified).view as visual.Solid;
-        const modified = db.lookupItemById(json.modified).view as visual.Solid;
-        const modifiers = [];
-        for (const modifier of json.modifiers) {
-            const factory = new SymmetryFactory(db, materials, signals);
-            factory.fromJSON(modifier.params);
-            modifiers.push(factory);
-        }
-        return new ModifierStackMemento(premodified, modified, modifiers);
-    }
-}
-
 export type StateChange = (f: () => void) => void;
 
 type OriginatorState = { tag: 'start' } | { tag: 'group', memento: Memento }
@@ -272,7 +180,6 @@ export class EditorOriginator {
         readonly crosses: MementoOriginator<CrossPointMemento>,
         readonly curves: MementoOriginator<CurveMemento>,
         readonly contours: ContourManager,
-        readonly modifiers: MementoOriginator<ModifierMemento>,
         readonly viewports: MementoOriginator<ViewportMemento>[],
     ) { }
 
@@ -283,8 +190,7 @@ export class EditorOriginator {
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
             this.crosses.saveToMemento(),
-            this.curves.saveToMemento(),
-            this.modifiers.saveToMemento());
+            this.curves.saveToMemento());
 
         this.state = { tag: 'group', memento: memento };
         try { fn() }
@@ -302,8 +208,7 @@ export class EditorOriginator {
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
                     this.crosses.saveToMemento(),
-                    this.curves.saveToMemento(),
-                    this.modifiers.saveToMemento());
+                    this.curves.saveToMemento());
             case 'group':
                 return this.state.memento;
         }
@@ -312,7 +217,6 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
-            this.modifiers.restoreFromMemento(m.modifiers);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
             this.snaps.restoreFromMemento(m.snaps);
@@ -328,20 +232,15 @@ export class EditorOriginator {
 
     async serialize(): Promise<Buffer> {
         const db = await this.db.serialize();
-        const modifiers = await this.modifiers.serialize();
         const numViewports = this.viewports.length;
         const viewports = await Promise.all(this.viewports.map(v => v.serialize()));
         const viewportsLength = viewports.reduce((acc: number, x: Buffer) => acc + x.length, 0);
-        const result = Buffer.alloc(8 + db.length + 8 + modifiers.length + 8 + 8 * numViewports + viewportsLength);
+        const result = Buffer.alloc(8 + db.length + 8 + numViewports + 8 + viewportsLength);
         let pos = 0;
         result.writeBigUInt64BE(BigInt(db.length));
         pos += 8;
         db.copy(result, pos);
         pos += db.length;
-        result.writeBigUInt64BE(BigInt(modifiers.length), pos);
-        pos += 8;
-        modifiers.copy(result, pos);
-        pos += modifiers.length;
         result.writeBigUInt64BE(BigInt(viewports.length), pos);
         pos += 8;
         for (let i = 0; i < viewports.length; i++) {
@@ -360,10 +259,6 @@ export class EditorOriginator {
         pos += 8;
         const dbData = data.slice(pos, pos + dbSize);
         pos += dbSize;
-        const modifiersSize = Number(data.readBigUInt64BE(pos));
-        pos += 8;
-        const modifiersData = data.slice(pos, pos + modifiersSize);
-        pos += modifiersSize;
         const numViewports = Number(data.readBigUInt64BE(pos));
         pos += 8;
         for (let i = 0; i < numViewports; i++) {
@@ -375,12 +270,10 @@ export class EditorOriginator {
         }
 
         await this.db.deserialize(dbData);
-        await this.modifiers.deserialize(modifiersData);
         await this.contours.rebuild();
     }
 
     validate() {
-        this.modifiers.validate();
         this.snaps.validate();
         this.crosses.validate();
         this.selection.validate();
@@ -391,7 +284,6 @@ export class EditorOriginator {
     debug() {
         console.groupCollapsed("Debug")
         console.info("Version: ", this.version);
-        this.modifiers.debug();
         this.snaps.debug();
         this.selection.debug();
         this.curves.debug();

@@ -75,15 +75,15 @@ describe(CurveGroup, () => {
         beforeEach(() => {
             edgebuffer1 = {
                 position: new Float32Array([0, 0, 0, 1, 0, 0]),
-                style: 0, simpleName: 0, name: undefined as any, i: 0
+                style: 0, simpleName: 0, model: undefined, i: 0
             }
             edgebuffer2 = {
                 position: new Float32Array([1, 0, 0, 1, 1, 0]),
-                style: 0, simpleName: 0, name: undefined as any, i: 0
+                style: 0, simpleName: 0, model: undefined, i: 0
             }
             edgebuffer3 = {
                 position: new Float32Array([1, 1, 0, 1, 1, 1]),
-                style: 0, simpleName: 0, name: undefined as any, i: 0
+                style: 0, simpleName: 0, model: undefined, i: 0
             }
             const builder = new CurveEdgeGroupBuilder();
             builder.add(edgebuffer1, 0, new LineMaterial(), new LineMaterial());
@@ -144,7 +144,7 @@ describe(Curve3D, () => {
     test('befragment zeros out points', () => {
         const buffer = {
             position: new Float32Array([0, 0, 0, 1, 0, 0]),
-            style: 0, simpleName: 0, name: undefined as any, i: 0
+            style: 0, simpleName: 0, model: undefined, i: 0
         } as c3d.EdgeBuffer;
         const builder = new CurveSegmentGroupBuilder();
         builder.add(buffer, 0, new LineMaterial(), new LineMaterial());

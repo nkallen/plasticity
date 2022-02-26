@@ -18,34 +18,32 @@ import './matchers';
 
 let importer: ImporterExporter;
 let editor: Editor;
-let _db: GeometryDatabase;
+let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    _db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    editor = {
-        _db
-    } as unknown as Editor;
+    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    editor = { db } as unknown as Editor;
     importer = new ImporterExporter(editor);
 });
 
 test("export & import c3d", async () => {
-    const makeSphere = new SphereFactory(_db, materials, signals);
+    const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     const item = await makeSphere.commit() as visual.Solid;
-    const model = _db.saveToMemento().model;
+    const model = db.saveToMemento().model;
 
-    await _db.removeItem(item);
-    expect(_db.visibleObjects.length).toBe(0);
+    await db.removeItem(item);
+    expect(db.visibleObjects.length).toBe(0);
 
     const dir = os.tmpdir();
     const filePath = path.join(dir, 'export.c3d');
     await importer.export(model, filePath);
 
     await importer.open([filePath]);
-    expect(_db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(1);
 })

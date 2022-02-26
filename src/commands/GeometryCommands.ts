@@ -35,6 +35,7 @@ import { FreestyleDraftSolidCommand, FreestyleItemScaleCommand, FreestyleMoveIte
 import { DraftSolidCommand, MoveCommand, MoveItemCommand, RotateCommand, RotateItemCommand, ScaleCommand, ScaleItemCommand } from "./translate/TranslateCommand";
 import { PlaceCommand } from "./place/PlaceCommand";
 import { RectangularArrayCommand } from "./array/RectangularArrayCommand";
+import { SetMaterialCommand } from "./CommandLike";
 
 export {
     MoveItemCommand,
@@ -107,5 +108,7 @@ export {
     RadialArrayCommand,
     RectangularArrayCommand,
     SlotCommand,
-    PlaceCommand
+    PlaceCommand,
+
+    SetMaterialCommand,
 };

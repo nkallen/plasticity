@@ -30,8 +30,8 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor._db;
-    selection = editor._selection;
+    db = editor.db;
+    selection = editor.selection;
     signals = editor.signals;
     helpers = editor.helpers;
 })

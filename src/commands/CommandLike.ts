@@ -116,4 +116,13 @@ export class ExportCommand extends cmd.CommandLike {
     shouldAddToHistory(_: boolean) { return false }
 }
 
+export class SetMaterialCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const { editor: { db, selection: { selected } } } = this;
+        const view = selected.solids.first;
+        const model = db.lookup(view);
+        model.SetStyle(1);
+    }
+}
+
 module.hot?.accept();

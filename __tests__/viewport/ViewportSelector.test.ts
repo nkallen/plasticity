@@ -31,10 +31,10 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor._db;
+    db = editor.db;
     camera = viewport.camera;
     selector = viewport.selector;
-    selection = editor._selection;
+    selection = editor.selection;
     signals = editor.signals;
     domElement = viewport.renderer.domElement;
     multiplex = viewport.multiplexer;

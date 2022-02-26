@@ -249,6 +249,8 @@ export default {
         "backspace": "command:delete",
         "l": "command:loft",
 
+        "m": "command:set-material",
+
         "alt-q": "command:rebuild",
         "shift-d": "command:duplicate",
         "ctrl-d": "command:place",

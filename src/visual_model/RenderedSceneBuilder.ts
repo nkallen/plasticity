@@ -11,18 +11,21 @@ import { Theme } from "../startup/LoadTheme";
 import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
+type Mode = 'normal' | 'rendered';
 
 export class RenderedSceneBuilder {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
     private state: State = { tag: 'none' };
+    private mode: Mode = 'rendered';
+
     constructor(
-        protected readonly db: DatabaseLike,
-        protected readonly materials: MaterialDatabase,
-        protected readonly editorSelection: HasSelectedAndHovered,
+        private readonly db: DatabaseLike,
+        private readonly materials: MaterialDatabase,
+        private readonly editorSelection: HasSelectedAndHovered,
         theme: Theme,
-        protected readonly signals: EditorSignals,
+        private readonly signals: EditorSignals,
     ) {
         this.highlight = this.highlight.bind(this);
 
@@ -222,7 +225,7 @@ export class RenderedSceneBuilder {
         }
     }
 
-    protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted, phantom: THREE.Material = face_hovered_phantom) {
+    protected highlightFaces(solid: visual.Solid) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
         const facegroup = solid.lod.high.faces;
@@ -246,11 +249,12 @@ export class RenderedSceneBuilder {
         selected.forEach(s => s.materialIndex = 1);
         unselected.forEach(s => s.materialIndex = 2);
         hovered_phantom.forEach(s => s.materialIndex = 3);
-        facegroup.mesh.material = [face_hovered, highlighted, unhighlighted, phantom];
+        facegroup.mesh.material = this.mode === 'normal'
+            ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
+            : [face_hovered, face_highlighted, this.materials.mesh(this.db.lookup(solid))];
+
         facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
-
-    protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) { }
 
     setResolution(size: THREE.Vector2) {
         for (const material of this.lines) {

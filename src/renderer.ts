@@ -3,11 +3,12 @@ import c3d from '../build/Release/c3d.node';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
+import Clipboard from './components/clipboard/Clipboard';
 import Creators from './components/creators/Creators';
 import Dialog from './components/dialog/Dialog';
-import Clipboard from './components/clipboard/Clipboard';
 import NumberScrubber from './components/dialog/NumberScrubber';
 import Prompt from './components/dialog/Prompt';
+import Menu from './components/menu/Menu';
 import Outliner from './components/outliner/Outliner';
 import './components/pane/Pane';
 import Planes from './components/planes/Planes';
@@ -28,7 +29,6 @@ import './css/index.css';
 import { Editor } from './editor/Editor';
 import { loadKeymap } from './startup/LoadKeymap';
 import { loadTheme } from './startup/LoadTheme';
-import Menu from './components/menu/Menu';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

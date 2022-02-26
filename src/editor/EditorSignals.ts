@@ -8,7 +8,7 @@ import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
 import { Selectable, SelectionModeSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
-import { Replacement } from './ModifierManager';
+import { Replacement } from "./GeometryDatabase";
 import { ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";

@@ -7,7 +7,6 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
-import ModifierManager from "../editor/ModifierManager";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
@@ -47,13 +46,12 @@ export interface EditorLike {
     snaps: SnapManager,
     helpers: Helpers,
     registry: CommandRegistry,
-    selection: HasSelectedAndHovered & ModifierManager,
+    selection: HasSelectedAndHovered,
     gizmos: GizmoMaterialDatabase,
     changeSelection: ChangeSelectionExecutor,
     layers: LayerManager,
     activeViewport?: Viewport,
     enqueue(command: Command, interrupt?: boolean): Promise<void>,
-    modifiers: ModifierManager,
     crosses: CrossPointDatabase,
     keymaps: AtomKeymap.KeymapManager,
     highlighter: RenderedSceneBuilder,

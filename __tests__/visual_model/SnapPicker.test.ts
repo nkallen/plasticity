@@ -40,7 +40,7 @@ let registry: CommandRegistry;
 beforeEach(() => {
     editor = new Editor();
     materials = editor.materials;
-    db = editor._db;
+    db = editor.db;
     signals = editor.signals;
     layers = editor.layers;
     viewport = MakeViewport(editor);

@@ -24,7 +24,7 @@ let viewport: Viewport;
 
 beforeEach(() => {
     editor = new Editor();
-    db = editor._db;
+    db = editor.db;
     signals = editor.signals;
     helpers = editor.helpers;
     gizmos = editor.gizmos;

@@ -29,6 +29,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     readonly phantomObjects = new THREE.Scene();
 
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
+    private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
@@ -54,7 +55,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async addItem(model: c3d.Item, agent?: Agent, name?: c3d.SimpleName): Promise<visual.Item>;
     async addItem(model: c3d.Item, agent: Agent = 'user', name?: c3d.SimpleName): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
-            return this.insertItem(model, agent, name);
+            const result = await this.insertItem(model, agent, name);
+            this.version2name.set(result.simpleName, result.simpleName);
+            return result;
         });
     }
 
@@ -66,7 +69,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.queue.enqueue(async () => {
             const to = await this.insertItem(model, 'user');
             this._removeItem(from, 'user');
+            const name = this.version2name.get(from.simpleName)!;
+            this.version2name.delete(from.simpleName);
+            this.version2name.set(to.simpleName, name);
             return to;
+        });
+    }
+
+    async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
+        return this.queue.enqueue(async () => {
+            const result = await this._removeItem(view, agent);
+            this.version2name.delete(view.simpleName);
+            return result;
         });
     }
 
@@ -141,12 +155,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     clearTemporaryObjects() {
         this.temporaryObjects.clear();
         this.phantomObjects.clear();
-    }
-
-    async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
-        return this.queue.enqueue(async () => {
-            return this._removeItem(view, agent);
-        });
     }
 
     private async _removeItem(view: visual.Item, agent: Agent = 'user') {
@@ -340,9 +348,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                     edges.add(edge, id, lineMaterial, lineDashed);
                 }
 
+                const material = materials?.mesh ?? this.materials.mesh(obj);
                 const faces = new build.FaceGroupBuilder();
                 for (const grid of item.faces) {
-                    const material = materials?.mesh ?? this.materials.mesh(grid);
                     faces.add(grid, id, material);
                 }
                 solid.add(edges, faces, distance);
@@ -443,6 +451,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     saveToMemento(): GeometryMemento {
         return new GeometryMemento(
             new Map(this.geometryModel),
+            new Map(this.version2name),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
             new Set(this.hidden),
@@ -452,6 +461,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
+        (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
         (this.hidden as GeometryDatabase['hidden']) = new Set(m.hidden);
@@ -508,3 +518,5 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         console.groupEnd();
     }
 }
+
+export type Replacement = { from: visual.Item, to: visual.Item }

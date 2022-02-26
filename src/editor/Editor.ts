@@ -30,7 +30,6 @@ import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
-import ModifierManager from "./ModifierManager";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
@@ -49,19 +48,15 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
     readonly copier = new SolidCopier();
     readonly meshCreator = new DoCacheMeshCreator(new ParallelMeshCreator(), this.copier);
-    readonly _db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
+    readonly db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
 
-    readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
-    readonly regions = new RegionManager(this._db, this.curves);
-    readonly contours = new ContourManager(this._db, this.curves, this.regions);
+    readonly curves = new PlanarCurveDatabase(this.db, this.materials, this.signals);
+    readonly regions = new RegionManager(this.db, this.curves);
+    readonly contours = new ContourManager(this.db, this.curves, this.regions);
 
-    readonly _selection = new SelectionDatabase(this._db, this.materials, this.signals);
+    readonly selection = new SelectionDatabase(this.db, this.materials, this.signals);
 
-    readonly modifiers = new ModifierManager(this.contours, this._selection, this.materials, this.signals);
-    readonly selection = this.modifiers;
-    readonly db = this.modifiers as DatabaseLike;
     readonly registrar = new SelectionCommandRegistrar(this);
-
 
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
@@ -69,9 +64,9 @@ export class Editor {
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
-    readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.db, this.signals);
+    readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.modifiers, this.viewports);
+    readonly originator = new EditorOriginator(this.db, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
@@ -163,7 +158,7 @@ export class Editor {
             ]
         });
         if (canceled) return;
-        const memento = this._db.saveToMemento().model;
+        const memento = this.db.saveToMemento().model;
         this.importer.export(memento, filePath!);
     }
 

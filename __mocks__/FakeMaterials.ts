@@ -31,14 +31,6 @@ export class FakeMaterials implements MaterialDatabase {
     highlight(o: number): THREE.Color;
     highlight(o: any): THREE.Material | THREE.Color { return highlight }
 
-    lookup(o: c3d.Edge): LineMaterial;
-    lookup(o: c3d.Curve3D): LineMaterial;
-    lookup(o: c3d.Face): THREE.Material;
-    lookup(o: c3d.SpaceInstance): LineMaterial;
-    lookup(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
-        return o instanceof c3d.Edge ? line : mesh;
-    }
-
     hover(o: c3d.Edge): LineMaterial;
     hover(o: c3d.Curve3D): LineMaterial;
     hover(o: c3d.SpaceInstance): LineMaterial;
@@ -50,6 +42,8 @@ export class FakeMaterials implements MaterialDatabase {
     hover(o: any): THREE.Material | THREE.Color {
         return hover
     }
+
+    add(m: THREE.Material): number { return 1 }
 
     setResolution(_size: THREE.Vector2) { }
 }

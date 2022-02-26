@@ -25,7 +25,7 @@ let camera: THREE.Camera;
 
 beforeEach(() => {
     editor = new Editor();
-    db = editor._db;
+    db = editor.db;
     materials = editor.materials;
     signals = editor.signals;
     viewport = MakeViewport(editor);
