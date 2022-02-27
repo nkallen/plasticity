@@ -34,9 +34,8 @@ export class RenderedSceneBuilder {
         theme: Theme,
         private readonly signals: EditorSignals,
     ) {
-        this.highlight = this.highlight.bind(this);
-
         const bindings: signals.SignalBinding[] = [];
+        bindings.push(signals.temporaryObjectAdded.add(this.highlightItem));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
         bindings.push(signals.sceneGraphChanged.add(this.highlight));
@@ -131,23 +130,28 @@ export class RenderedSceneBuilder {
 
     protected unhoverFace(item: visual.Face) { }
 
-    highlight() {
+    highlight = () => {
         performance.mark('begin-highlight');
         for (const item of this.db.visibleObjects) {
-            if (item instanceof visual.Solid) {
-                this.highlightSolid(item);
-            } else if (item instanceof visual.SpaceInstance) {
-                this.highlightSpaceInstance(item);
-            } else if (item instanceof visual.PlaneInstance) {
-                this.highlightRegion(item);
-            } else throw new Error("invalid type: " + item.constructor.name);
-            item.updateMatrixWorld();
+            this.highlightItem(item);
         }
         this.highlightControlPoints();
         performance.measure('highlight', 'begin-highlight');
     }
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
+
+    highlightItem = (item: visual.Item) => {
+        if (item instanceof visual.Solid) {
+            this.highlightSolid(item);
+        } else if (item instanceof visual.SpaceInstance) {
+            this.highlightSpaceInstance(item);
+        } else if (item instanceof visual.PlaneInstance) {
+            this.highlightRegion(item);
+        } else
+            throw new Error("invalid type: " + item.constructor.name);
+        item.updateMatrixWorld();
+    }
 
     private highlightSolid(solid: visual.Solid) {
         this.highlightFaces(solid);
