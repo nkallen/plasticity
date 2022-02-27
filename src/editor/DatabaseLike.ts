@@ -79,6 +79,8 @@ export interface DatabaseLike {
     get visibleObjects(): visual.Item[];
     get selectableObjects(): visual.Item[];
     
+    ///
+
     isHidden(item: visual.Item): boolean;
     makeHidden(item: visual.Item, value: boolean): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
@@ -88,6 +90,11 @@ export interface DatabaseLike {
 
     isSelectable(item: visual.Item): boolean;
     makeSelectable(item: visual.Item, value: boolean): void;
+
+    setMaterial(item: visual.Item, id: number): void;
+    getMaterial(item: visual.Item): THREE.Material;
+
+    ///
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool;
 

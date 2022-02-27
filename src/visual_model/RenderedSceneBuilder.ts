@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { MatcapName, matcaps } from "../editor/Matcaps";
-import MaterialDatabase from "../editor/MaterialDatabase";
+import { TextureLoader } from "../editor/TextureLoader";
+import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/LoadTheme";
 import * as visual from '../visual_model/VisualModel';
@@ -18,11 +18,18 @@ export class RenderedSceneBuilder {
     dispose() { this.disposable.dispose() }
 
     private state: State = { tag: 'none' };
-    private mode: Mode = 'rendered';
+
+    private _mode: Mode = 'normal';
+    get mode() { return this._mode }
+    set mode(mode: Mode) {
+        if (this._mode === mode) return;
+        this._mode = mode;
+        this.highlight();
+    }
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly materials: MaterialDatabase,
+        private readonly textures: TextureLoader,
         private readonly editorSelection: HasSelectedAndHovered,
         theme: Theme,
         private readonly signals: EditorSignals,
@@ -45,6 +52,7 @@ export class RenderedSceneBuilder {
         }));
 
         this.setTheme(theme);
+        this.setMatcap(ceramicDark);
     }
 
     private get selection() {
@@ -249,9 +257,9 @@ export class RenderedSceneBuilder {
         selected.forEach(s => s.materialIndex = 1);
         unselected.forEach(s => s.materialIndex = 2);
         hovered_phantom.forEach(s => s.materialIndex = 3);
-        facegroup.mesh.material = this.mode === 'normal'
+        facegroup.mesh.material = this._mode === 'normal'
             ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-            : [face_hovered, face_highlighted, this.materials.mesh(this.db.lookup(solid))];
+            : [face_hovered, face_highlighted, this.db.getMaterial(solid), face_hovered_phantom];
 
         facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
@@ -296,8 +304,8 @@ export class RenderedSceneBuilder {
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
 
-    setMatcap(name: MatcapName) {
-        const { texture, loaded } = matcaps.get(name);
+    setMatcap(name: string) {
+        const { texture, loaded } = this.textures.get(name);
         face_unhighlighted.matcap = texture;
         face_highlighted.matcap = texture;
         face_hovered.matcap = texture;
@@ -318,18 +326,14 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
 
-const { texture: ceramicDark } = matcaps.ceramicDark;
-
 export const face_unhighlighted = new THREE.MeshMatcapMaterial();
 face_unhighlighted.fog = false;
-face_unhighlighted.matcap = ceramicDark;
 face_unhighlighted.polygonOffset = true;
 face_unhighlighted.polygonOffsetFactor = 1;
 face_unhighlighted.polygonOffsetUnits = 2;
 
 const face_highlighted = new THREE.MeshMatcapMaterial();
 face_highlighted.fog = false;
-face_highlighted.matcap = ceramicDark;
 face_highlighted.polygonOffset = true;
 face_highlighted.polygonOffsetFactor = 1;
 face_highlighted.polygonOffsetUnits = 1;
@@ -341,7 +345,6 @@ face_highlighted_phantom.opacity = 0.0;
 
 const face_hovered = new THREE.MeshMatcapMaterial();
 face_hovered.fog = false;
-face_hovered.matcap = ceramicDark;
 face_hovered.polygonOffset = true;
 face_hovered.polygonOffsetFactor = 1;
 face_hovered.polygonOffsetUnits = 1;
@@ -407,3 +410,5 @@ const invisible_hovered = new THREE.MeshBasicMaterial({
     depthWrite: false,
     depthTest: false,
 });
+
+export type MatcapName = 'ceramic-dark' | 'metal-carpaint' | 'reflection-check-horizontal' | 'reflection-check-vertical';

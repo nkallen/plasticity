@@ -62,8 +62,8 @@ export class PlasticityDocument {
                         translation: viewport.constructionPlane.o.toArray()
                     },
                     isXRay: viewport.isXRay,
-                }
-            ) as ViewportJSON),
+                } as ViewportJSON
+            )),
             // nodes: [
             //     {
             //         name: "",
@@ -75,19 +75,27 @@ export class PlasticityDocument {
             //         children: [],
             //     }
             // ],
-            // items: [...db.geometryModel.values()].map(({ view }) => [
-            //     {
-            //         material: 1
-            //     }
-            // ]),
+            items: [...db.geometryModel.values()].map(({ view }) => [
+                {
+                    material: 1
+                }
+            ]),
             // groups: [
             //     {
+            //          name: "",
             //     }
             // ],
-            // materials: [
-            //     {
-            //     }
-            // ],
+            materials: [...memento.materials.materials.values()].map(mat => (
+                {
+                    name: mat.name,
+                    pbrMetallicRoughness: {
+                        baseColorFactor: [1, 1, 1, 1],
+                        metallicFactor: 1,
+                        roughnessFactor: 0.1,
+                    },
+                    emmissiveFactor: 0,
+                } as MaterialJSON
+            ))
         } as PlasticityJSON;
         const string = JSON.stringify(json);
         return fs.promises.writeFile(filename, string);
@@ -121,7 +129,26 @@ interface GeometryDatabaseJSON {
     uri: string;
 }
 
+interface MaterialJSON {
+    name: string,
+    pbrMetallicRoughness: {
+        baseColorFactor: [number, number, number, number];
+        metallicFactor: number;
+        roughnessFactor: number;
+    };
+    clearcoatFactor?: number;
+    clearcoatRoughnessFactor?: number;
+    ior?: number;
+    sheenColorFactor?: [number, number, number];
+    sheenRoughnessFactor?: number;
+    specularFactor?: number;
+    specularColorFactor?: [number, number, number];
+    transmissionFactor?: number;
+    emissiveFactor?: number;
+}
+
 interface PlasticityJSON {
     db: GeometryDatabaseJSON;
     viewports: ViewportJSON[];
+    materials: MaterialJSON[];
 }

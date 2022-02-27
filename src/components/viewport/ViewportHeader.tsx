@@ -2,12 +2,17 @@ import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlaneSnap } from '../../editor/snaps/ConstructionPlaneSnap';
+import ceramic_dark from '../../img/matcap/ceramic_dark.exr';
+import ceramic_dark_png from '../../img/matcap/ceramic_dark.png';
+import metal_carpaint from '../../img/matcap/metal_carpaint.exr';
+import metal_carpaint_png from '../../img/matcap/metal_carpaint.png';
+import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.exr';
+import reflection_check_horizontal_png from '../../img/matcap/reflection_check_horizontal.png';
+import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.exr';
+import reflection_check_vertical_png from '../../img/matcap/reflection_check_vertical.png';
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
-import ceramic_dark from '../../img/matcap/ceramic_dark.png';
-import metal_carpaint from '../../img/matcap/metal_carpaint.png';
-import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.png';
-import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.png';
 import { ViewportElement } from './Viewport';
+
 
 
 export default (editor: Editor) => {
@@ -151,10 +156,10 @@ export default (editor: Editor) => {
                                             <ul>
                                                 <li>
                                                     <div class="flex flex-row space-x-1">
-                                                        <img src={ceramic_dark} class="block w-16 rounded-l" onClick={e => viewport.matcap = 'ceramic-dark'} />
-                                                        <img src={metal_carpaint} class="block w-16" onClick={e => viewport.matcap = 'metal-carpaint'} />
-                                                        <img src={reflection_check_horizontal} class="block w-16" onClick={e => viewport.matcap = 'reflection-check-horizontal'} />
-                                                        <img src={reflection_check_vertical} class="block w-16 rounded-r" onClick={e => viewport.matcap = 'reflection-check-vertical'} />
+                                                        <img src={ceramic_dark_png} class="block w-16 rounded-l" onClick={e => viewport.matcap = ceramic_dark} />
+                                                        <img src={metal_carpaint_png} class="block w-16" onClick={e => viewport.matcap = metal_carpaint} />
+                                                        <img src={reflection_check_horizontal_png} class="block w-16" onClick={e => viewport.matcap = reflection_check_horizontal} />
+                                                        <img src={reflection_check_vertical_png} class="block w-16 rounded-r" onClick={e => viewport.matcap = reflection_check_vertical} />
                                                     </div>
                                                 </li>
 

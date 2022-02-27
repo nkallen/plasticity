@@ -11,7 +11,7 @@ import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
 import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, History, ViewportMemento } from '../src/editor/History';
+import { EditorOriginator, History } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
@@ -50,7 +50,7 @@ describe(EditorOriginator, () => {
         curves = editor.curves;
         contours = editor.contours;
         viewports = [MakeViewport(editor)];
-        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, viewports);
+        originator = new EditorOriginator(db, materials, selected, snaps, crosses, curves, contours, viewports);
     });
 
     let box1: visual.Solid;
@@ -76,7 +76,7 @@ describe(EditorOriginator, () => {
         const memento = originator.saveToMemento();
 
         db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, viewports);
+        originator = new EditorOriginator(db, materials, selected, snaps, crosses, curves, contours, viewports);
 
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);

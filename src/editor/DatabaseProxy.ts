@@ -2,6 +2,7 @@ import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from "../util/Util";
 import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./DatabaseLike";
 import * as visual from "../visual_model/VisualModel";
+import { Material } from 'three';
 
 export class DatabaseProxy implements DatabaseLike {
     constructor(protected readonly db: DatabaseLike) { }
@@ -115,6 +116,9 @@ export class DatabaseProxy implements DatabaseLike {
 
     isSelectable(item: visual.Item) { return this.db.isSelectable(item) }
     makeSelectable(item: visual.Item, value: boolean) { this.db.makeSelectable(item, value) }
+
+    setMaterial(item: visual.Item, id: number) { this.db.setMaterial(item, id) }
+    getMaterial(item: visual.Item): Material { return this.db.getMaterial(item) }
 
     pool(solid: c3d.Solid, size: number) {
         return this.db.pool(solid, size);

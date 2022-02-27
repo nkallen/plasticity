@@ -8,15 +8,16 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
-import { MatcapName } from "../../editor/Matcaps";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { TextureLoader } from "../../editor/TextureLoader";
+import studio_small_03_4k from '../../img/hdri/studio_small_03_4k.exr';
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/LoadTheme";
 import { Helper, Helpers } from "../../util/Helpers";
-import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
+import { MatcapName, RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
@@ -43,6 +44,7 @@ export interface EditorLike extends selector.EditorLike {
     keymaps: AtomKeymap.KeymapManager,
     styles: Theme,
     planes: PlaneDatabase,
+    textures: TextureLoader,
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
@@ -482,16 +484,25 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.layers.isShowingFaces = show;
     }
 
-    set matcap(matcap: MatcapName) {
+    set matcap(matcap: string) {
         this.editor.highlighter.setMatcap(matcap).then(() => {
             this.setNeedsRender();
         });
     }
 
-    private _isRenderMode = false;
-    get isRenderMode() { return this._isRenderMode }
+    get isRenderMode() { return this.editor.highlighter.mode === 'rendered' }
     set isRenderMode(isRenderMode: boolean) {
-        this._isRenderMode = true;
+        if (this.isRenderMode === isRenderMode) return;
+        this.editor.highlighter.mode = isRenderMode ? 'rendered' : 'normal';
+        if (isRenderMode) {
+            const { texture, loaded } = this.editor.textures.get(studio_small_03_4k);
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            this.scene.environment = texture;
+            loaded.then(() => this.setNeedsRender());
+        } else {
+            this.scene.environment = null;
+            this.setNeedsRender();
+        }
         this.changed.dispatch();
     }
 

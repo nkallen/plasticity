@@ -33,6 +33,7 @@ import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
+import { TextureLoader } from "./TextureLoader";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -40,11 +41,12 @@ export class Editor {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
+    readonly textures = new TextureLoader();
     readonly viewports: Viewport[] = [];
 
     readonly signals = new EditorSignals();
     readonly registry = new CommandRegistry();
-    readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
+    readonly materials = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
     readonly copier = new SolidCopier();
     readonly meshCreator = new DoCacheMeshCreator(new ParallelMeshCreator(), this.copier);
@@ -66,12 +68,12 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
+    readonly originator = new EditorOriginator(this.db, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
-    readonly highlighter = new RenderedSceneBuilder(this.db, this.materials, this.selection, this.styles, this.signals);
+    readonly highlighter = new RenderedSceneBuilder(this.db, this.textures, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);

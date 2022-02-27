@@ -30,6 +30,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
+    private readonly version2material = new Map<c3d.SimpleName, number>();
+
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
@@ -348,7 +350,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                     edges.add(edge, id, lineMaterial, lineDashed);
                 }
 
-                const material = materials?.mesh ?? this.materials.mesh(obj);
+                const material = materials?.mesh ?? this.materials.mesh();
                 const faces = new build.FaceGroupBuilder();
                 for (const grid of item.faces) {
                     faces.add(grid, id, material);
@@ -444,6 +446,17 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return views;
     }
 
+    setMaterial(item: visual.Item, id: number): void {
+        const { version2name, version2material } = this;
+        version2material.set(version2name.get(item.simpleName)!, id);
+    }
+
+    getMaterial(item: visual.Item): THREE.Material {
+        const { version2name, version2material } = this;
+        const materialId = version2material.get(version2name.get(item.simpleName)!);
+        return (materialId === undefined) ? defaultPhysicalMaterial : this.materials.get(materialId)!;
+    }
+
     pool(solid: c3d.Solid, size: number): SolidCopierPool {
         return this.copier.pool(solid, size);
     }
@@ -452,6 +465,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.version2name),
+            new Map(this.version2material),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
             new Set(this.hidden),
@@ -462,6 +476,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
         (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
+        (this.version2material as GeometryDatabase['version2material']) = new Map(m.version2material);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
         (this.hidden as GeometryDatabase['hidden']) = new Set(m.hidden);
@@ -520,3 +535,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 }
 
 export type Replacement = { from: visual.Item, to: visual.Item }
+
+const defaultPhysicalMaterial = new THREE.MeshPhysicalMaterial({
+    // transmission: 1,
+    metalness: 1,
+    roughness: 0,
+    ior: 1.5,
+    // @ts-ignore
+    // thickness: 0.01,
+    // specularIntensity: 1.0,
+    specularColor: new THREE.Color(0xffffff),
+    color: new THREE.Color(0xffffff),
+    envMapIntensity: 1,
+});

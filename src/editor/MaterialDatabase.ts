@@ -5,17 +5,19 @@ import controlPointIcon from '../components/viewport/img/control-point.svg';
 import { face_unhighlighted, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
+import { MaterialMemento, MementoOriginator } from "./History";
 
-export default interface MaterialDatabase {
+export default interface MaterialDatabase extends MementoOriginator<MaterialMemento> {
     line(o?: c3d.SpaceInstance): LineMaterial;
     lineDashed(): LineMaterial;
     point(o?: c3d.Item): THREE.Material;
     surface(o?: c3d.Item): THREE.Material;
     region(): THREE.Material;
     controlPoint(): BetterRaycastingPointsMaterial;
+    mesh(): THREE.Material;
 
-    mesh(o: c3d.Item): THREE.Material;
-    add(material: THREE.Material): number
+    add(name: string, material: THREE.Material): number;
+    get(id: number): THREE.Material;
 }
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
@@ -36,8 +38,8 @@ const region = region_unhighlighted;
 
 const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
 
-export class BasicMaterialDatabase implements MaterialDatabase {
-    private readonly materials = new Map<number, THREE.Material>();
+export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginator<MaterialMemento> {
+    private readonly materials = new Map<number, { name: string, material: THREE.Material }>();
     private readonly lines = [line, line_dashed, previewLine];
     private counter = 1; // start > 0 since GetStyle() returns 0 for undefined.
 
@@ -73,19 +75,35 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return surface;
     }
 
-    mesh(o: c3d.Item): THREE.Material {
-        const st = o.GetStyle();
-        return this.materials.get(st) ?? mesh;
+    mesh() {
+        return mesh;
     }
 
-    add(material: THREE.Material): number {
+    add(name: string, material: THREE.Material): number {
         const id = this.counter++;
-        this.materials.set(id, material);
+        this.materials.set(id, { name, material });
         return id;
+    }
+
+    get(id: number): THREE.Material {
+        return this.materials.get(id)!.material;
     }
 
     region(): THREE.Material { return region }
     controlPoint(): BetterRaycastingPointsMaterial { return controlPoint }
+
+    saveToMemento(): MaterialMemento {
+        // TODO: deep copy
+        return new MaterialMemento(new Map(this.materials));
+    }
+
+    restoreFromMemento(m: MaterialMemento): void {
+        (this.materials as BasicMaterialDatabase['materials']) = new Map(m.materials);
+    }
+
+    validate(): void { }
+    debug(): void { }
+
 }
 
 export class CurvePreviewMaterialDatabase extends BasicMaterialDatabase {

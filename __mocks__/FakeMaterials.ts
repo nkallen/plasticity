@@ -14,11 +14,10 @@ const controlPoint = new BetterRaycastingPointsMaterial();
 controlPoint.userData.resolution = new THREE.Vector2(1, 1);
 
 export class FakeMaterials implements MaterialDatabase {
-    get(_o: any) { return new THREE.Material() }
     line(_o?: any) { return line }
     lineDashed() { return new LineMaterial() }
     point(_o?: any) { return new THREE.Material() }
-    mesh(_o?: any) { return mesh }
+    mesh() { return mesh }
     surface(_o?: any) { return surface }
     controlPoint() { return controlPoint }
     region() { return region }
@@ -43,7 +42,8 @@ export class FakeMaterials implements MaterialDatabase {
         return hover
     }
 
-    add(m: THREE.Material): number { return 1 }
+    add(name: string, m: THREE.Material): number { return 1 }
+    get(id: number) { return mesh }
 
     setResolution(_size: THREE.Vector2) { }
 }

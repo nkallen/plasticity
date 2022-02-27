@@ -14,6 +14,7 @@ export class Memento {
     constructor(
         readonly version: number,
         readonly db: GeometryMemento,
+        readonly materials: MaterialMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
         readonly crosses: CrossPointMemento,
@@ -25,6 +26,7 @@ export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
+        readonly version2material: ReadonlyMap<c3d.SimpleName, number>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
         readonly hidden: ReadonlySet<c3d.SimpleName>,
@@ -47,6 +49,12 @@ export class GeometryMemento {
         }
         return everything;
     }
+}
+
+export class MaterialMemento {
+    constructor(
+        readonly materials: ReadonlyMap<number, { name: string, material: THREE.Material }>
+    ) { }
 }
 
 // FIXME: make ReadonlyRefCounter
@@ -122,6 +130,7 @@ export class EditorOriginator {
 
     constructor(
         readonly db: MementoOriginator<GeometryMemento> & Serializble,
+        readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
         readonly crosses: MementoOriginator<CrossPointMemento>,
@@ -134,6 +143,7 @@ export class EditorOriginator {
         const memento = new Memento(
             this.version++,
             this.db.saveToMemento(),
+            this.materials.saveToMemento(),
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
             this.crosses.saveToMemento(),
@@ -152,6 +162,7 @@ export class EditorOriginator {
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
+                    this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
                     this.crosses.saveToMemento(),
