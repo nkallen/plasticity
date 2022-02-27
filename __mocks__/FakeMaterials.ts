@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "../src/editor/MaterialDatabase";
+import { MaterialMemento } from "../src/editor/History";
 
 const line = new LineMaterial();
 const highlight = new LineMaterial();
@@ -46,4 +47,15 @@ export class FakeMaterials implements MaterialDatabase {
     get(id: number) { return mesh }
 
     setResolution(_size: THREE.Vector2) { }
+
+    saveToMemento(): MaterialMemento {
+        throw new Error("Method not implemented.");
+    }
+    restoreFromMemento(m: MaterialMemento): void {
+        throw new Error("Method not implemented.");
+    }
+    validate(): void {
+    }
+    debug(): void {
+    }
 }

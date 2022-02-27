@@ -92,7 +92,7 @@ export interface DatabaseLike {
     makeSelectable(item: visual.Item, value: boolean): void;
 
     setMaterial(item: visual.Item, id: number): void;
-    getMaterial(item: visual.Item): THREE.Material;
+    getMaterial(item: visual.Item): THREE.Material | undefined;
 
     ///
 

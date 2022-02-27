@@ -154,14 +154,16 @@ export default (editor: Editor) => {
                                     <plasticity-menu placement="bottom">
                                         <div class="min-w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
                                             <ul>
-                                                <li>
-                                                    <div class="flex flex-row space-x-1">
-                                                        <img src={ceramic_dark_png} class="block w-16 rounded-l" onClick={e => viewport.matcap = ceramic_dark} />
-                                                        <img src={metal_carpaint_png} class="block w-16" onClick={e => viewport.matcap = metal_carpaint} />
-                                                        <img src={reflection_check_horizontal_png} class="block w-16" onClick={e => viewport.matcap = reflection_check_horizontal} />
-                                                        <img src={reflection_check_vertical_png} class="block w-16 rounded-r" onClick={e => viewport.matcap = reflection_check_vertical} />
-                                                    </div>
-                                                </li>
+                                                {!viewport.isRenderMode &&
+                                                    <li>
+                                                        <div class="flex flex-row space-x-1">
+                                                            <img src={ceramic_dark_png} class="block w-16 rounded-l" onClick={e => viewport.matcap = ceramic_dark} />
+                                                            <img src={metal_carpaint_png} class="block w-16" onClick={e => viewport.matcap = metal_carpaint} />
+                                                            <img src={reflection_check_horizontal_png} class="block w-16" onClick={e => viewport.matcap = reflection_check_horizontal} />
+                                                            <img src={reflection_check_vertical_png} class="block w-16 rounded-r" onClick={e => viewport.matcap = reflection_check_vertical} />
+                                                        </div>
+                                                    </li>
+                                                }
 
                                                 <li>
                                                     <label for="form" class="hidden">Visibility</label>

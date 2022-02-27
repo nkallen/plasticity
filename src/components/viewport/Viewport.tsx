@@ -17,7 +17,7 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/LoadTheme";
 import { Helper, Helpers } from "../../util/Helpers";
-import { MatcapName, RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
+import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
@@ -29,8 +29,6 @@ import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
 
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 export interface EditorLike extends selector.EditorLike {

@@ -35,7 +35,7 @@ export class RenderedSceneBuilder {
         private readonly signals: EditorSignals,
     ) {
         const bindings: signals.SignalBinding[] = [];
-        bindings.push(signals.temporaryObjectAdded.add(this.highlightItem));
+        bindings.push(signals.temporaryObjectAdded.add(({ view, material }) => this.highlightItem(view, material)));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
         bindings.push(signals.sceneGraphChanged.add(this.highlight));
@@ -141,9 +141,9 @@ export class RenderedSceneBuilder {
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
-    highlightItem = (item: visual.Item) => {
+    highlightItem = (item: visual.Item, override?: THREE.Material) => {
         if (item instanceof visual.Solid) {
-            this.highlightSolid(item);
+            this.highlightSolid(item, override);
         } else if (item instanceof visual.SpaceInstance) {
             this.highlightSpaceInstance(item);
         } else if (item instanceof visual.PlaneInstance) {
@@ -153,8 +153,8 @@ export class RenderedSceneBuilder {
         item.updateMatrixWorld();
     }
 
-    private highlightSolid(solid: visual.Solid) {
-        this.highlightFaces(solid);
+    private highlightSolid(solid: visual.Solid, override?: THREE.Material) {
+        this.highlightFaces(solid, override);
         this.highlightEdges(solid);
         solid.layers.set(visual.Layers.Solid);
     }
@@ -237,7 +237,7 @@ export class RenderedSceneBuilder {
         }
     }
 
-    protected highlightFaces(solid: visual.Solid) {
+    protected highlightFaces(solid: visual.Solid, override?: THREE.Material) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
         const facegroup = solid.lod.high.faces;
@@ -262,7 +262,7 @@ export class RenderedSceneBuilder {
         hovered_phantom.forEach(s => s.materialIndex = 3);
         facegroup.mesh.material = this._mode === 'normal'
             ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-            : [face_hovered, face_highlighted, this.db.getMaterial(solid), face_hovered_phantom];
+            : [face_hovered, face_highlighted, override ?? this.db.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
 
         facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
@@ -416,4 +416,15 @@ const invisible_hovered = new THREE.MeshBasicMaterial({
     depthTest: false,
 });
 
-export type MatcapName = 'ceramic-dark' | 'metal-carpaint' | 'reflection-check-horizontal' | 'reflection-check-vertical';
+
+export const defaultPhysicalMaterial = new THREE.MeshPhysicalMaterial({
+    metalness: 1,
+    roughness: 0.1,
+    ior: 1.5,
+    specularColor: new THREE.Color(0xffffff),
+    color: new THREE.Color(0xffffff),
+    envMapIntensity: 1,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 2,
+});

@@ -26,7 +26,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    editor = { db } as unknown as Editor;
+    editor = { _db: db } as unknown as Editor;
     importer = new ImporterExporter(editor);
 });
 

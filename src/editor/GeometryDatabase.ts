@@ -134,7 +134,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const view = builder.build(tempId);
         into.add(view);
         // TODO: find a more elegant way to do this
-        if (into === this.temporaryObjects) this.signals.temporaryObjectAdded.dispatch(view);
+        if (into === this.temporaryObjects) {
+            const material = ancestor !== undefined ? this.getMaterial(ancestor) : undefined;
+            this.signals.temporaryObjectAdded.dispatch({ view, material });
+        }
 
         view.visible = false;
         return {
@@ -237,7 +240,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         if (item instanceof visual.Item) {
             const model = this.lookup(item);
             const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
-            return this.addItem(dup); // FIXME we shouldn't duplicate the geometry
+            return this.addItem(dup); // FIXME: we shouldn't duplicate the geometry
         } else if (item instanceof visual.TopologyItem) {
             const edge = this.lookupTopologyItem(item);
             const curve = edge.MakeCurve()!;
@@ -449,14 +452,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     setMaterial(item: visual.Item, id: number): void {
-        const { version2name, version2material } = this;
-        version2material.set(version2name.get(item.simpleName)!, id);
+        const { version2name, version2material: name2material } = this;
+        name2material.set(version2name.get(item.simpleName)!, id);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
-    getMaterial(item: visual.Item): THREE.Material {
+    getMaterial(item: visual.Item): THREE.Material | undefined {
         const { version2name, version2material } = this;
         const materialId = version2material.get(version2name.get(item.simpleName)!);
-        return (materialId === undefined) ? defaultPhysicalMaterial : this.materials.get(materialId)!;
+        if (materialId === undefined) return undefined;
+        else return this.materials.get(materialId)!;
     }
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool {
@@ -478,7 +483,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
         (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
-        (this.version2material as GeometryDatabase['version2material']) = new Map(m.version2material);
+        (this.version2material as GeometryDatabase['version2material']) = new Map(m.name2material);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
         (this.hidden as GeometryDatabase['hidden']) = new Set(m.hidden);
@@ -537,16 +542,3 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 }
 
 export type Replacement = { from: visual.Item, to: visual.Item }
-
-const defaultPhysicalMaterial = new THREE.MeshPhysicalMaterial({
-    // transmission: 1,
-    metalness: 1,
-    roughness: 0,
-    ior: 1.5,
-    // @ts-ignore
-    // thickness: 0.01,
-    // specularIntensity: 1.0,
-    specularColor: new THREE.Color(0xffffff),
-    color: new THREE.Color(0xffffff),
-    envMapIntensity: 1,
-});

@@ -28,7 +28,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
-import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
+import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { SnapManager } from './snaps/SnapManager';
@@ -50,13 +50,14 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals, this.styles);
     readonly copier = new SolidCopier();
     readonly meshCreator = new DoCacheMeshCreator(new ParallelMeshCreator(), this.copier);
-    readonly db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
+    readonly _db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
 
-    readonly curves = new PlanarCurveDatabase(this.db, this.materials, this.signals);
-    readonly regions = new RegionManager(this.db, this.curves);
-    readonly contours = new ContourManager(this.db, this.curves, this.regions);
+    readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
+    readonly regions = new RegionManager(this._db, this.curves);
+    readonly contours = new ContourManager(this._db, this.curves, this.regions);
+    readonly db = this.contours as DatabaseLike;
 
-    readonly selection = new SelectionDatabase(this.db, this.materials, this.signals);
+    readonly selection = new SelectionDatabase(this._db, this.materials, this.signals);
 
     readonly registrar = new SelectionCommandRegistrar(this);
 
@@ -68,7 +69,7 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
+    readonly originator = new EditorOriginator(this._db, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
@@ -160,7 +161,7 @@ export class Editor {
             ]
         });
         if (canceled) return;
-        const memento = this.db.saveToMemento().model;
+        const memento = this._db.saveToMemento().model;
         this.importer.export(memento, filePath!);
     }
 

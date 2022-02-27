@@ -3,6 +3,7 @@ import { Prompt } from "../components/dialog/Prompt";
 import { EditorSignals } from "../editor/EditorSignals";
 import { AlreadyFinishedError, CancellablePromise } from "../util/CancellablePromise";
 import { Executable } from "./Quasimode";
+import * as THREE from 'three';
 
 type PromptState = { tag: 'none' } | { tag: 'executing', finish: () => void } | { tag: 'end' }
 type DialogState<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void>, prompt: PromptState } | { tag: 'finished' }
@@ -34,6 +35,8 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                         value = e.target.value;
                     else if (e.target.type === 'radio')
                         value = Number(e.target.value);
+                    else if (e.target.type === 'color')
+                        value = new THREE.Color(e.target.value);
                 } else if (e.target instanceof HTMLSelectElement) {
                     value = e.target.value;
                 } else if (e.target instanceof HTMLElement && e.target.tagName == 'PLASTICITY-NUMBER-SCRUBBER') {
@@ -111,7 +114,7 @@ export abstract class AbstractDialog<T> extends HTMLElement implements Executabl
                                                         this.state.prompt.finish();
                                                 }
                                         }
-                                    }, () => {});
+                                    }, () => { });
                                     return executed;
                             }
                         default: throw new Error('invalid state');

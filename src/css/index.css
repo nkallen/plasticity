@@ -135,6 +135,10 @@
         @apply flex items-center space-x-1 cursor-pointer min-w-[5em];
     }
 
+    plasticity-dialog ul>li>.fields>input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
     plasticity-dialog ul>li>.fields>input[type="radio"],
     plasticity-dialog ul>li>.fields>input[type="checkbox"],
     .plasticity-menu ul>li>.fields>input[type="radio"],

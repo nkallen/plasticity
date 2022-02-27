@@ -26,7 +26,7 @@ export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
-        readonly version2material: ReadonlyMap<c3d.SimpleName, number>,
+        readonly name2material: ReadonlyMap<c3d.SimpleName, number>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
         readonly hidden: ReadonlySet<c3d.SimpleName>,
@@ -53,7 +53,7 @@ export class GeometryMemento {
 
 export class MaterialMemento {
     constructor(
-        readonly materials: ReadonlyMap<number, { name: string, material: THREE.Material }>
+        readonly materials: ReadonlyMap<number, { name: string, material: THREE.MeshPhysicalMaterial }>
     ) { }
 }
 

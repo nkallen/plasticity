@@ -118,7 +118,7 @@ export class DatabaseProxy implements DatabaseLike {
     makeSelectable(item: visual.Item, value: boolean) { this.db.makeSelectable(item, value) }
 
     setMaterial(item: visual.Item, id: number) { this.db.setMaterial(item, id) }
-    getMaterial(item: visual.Item): Material { return this.db.getMaterial(item) }
+    getMaterial(item: visual.Item) { return this.db.getMaterial(item) }
 
     pool(solid: c3d.Solid, size: number) {
         return this.db.pool(solid, size);

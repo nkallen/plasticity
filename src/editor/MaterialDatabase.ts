@@ -39,7 +39,7 @@ const region = region_unhighlighted;
 const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
 
 export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginator<MaterialMemento> {
-    private readonly materials = new Map<number, { name: string, material: THREE.Material }>();
+    private readonly materials = new Map<number, { name: string, material: THREE.MeshPhysicalMaterial }>();
     private readonly lines = [line, line_dashed, previewLine];
     private counter = 1; // start > 0 since GetStyle() returns 0 for undefined.
 
@@ -79,7 +79,7 @@ export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginato
         return mesh;
     }
 
-    add(name: string, material: THREE.Material): number {
+    add(name: string, material: THREE.MeshPhysicalMaterial): number {
         const id = this.counter++;
         this.materials.set(id, { name, material });
         return id;
