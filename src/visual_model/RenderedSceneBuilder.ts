@@ -249,9 +249,8 @@ export class RenderedSceneBuilder {
                 hovered.push(face.group);
             } else if (selection.faceIds.has(face.simpleName)) {
                 selected.push(face.group);
-            } else {
-                unselected.push(face.group);
             }
+            unselected.push(face.group);
         }
         hovered = visual.GeometryGroupUtils.compact(hovered);
         selected = visual.GeometryGroupUtils.compact(selected);
@@ -311,8 +310,6 @@ export class RenderedSceneBuilder {
     setMatcap(name: string) {
         const { texture, loaded } = this.textures.get(name);
         face_unhighlighted.matcap = texture;
-        face_highlighted.matcap = texture;
-        face_hovered.matcap = texture;
         return loaded;
     }
 }
@@ -336,8 +333,10 @@ face_unhighlighted.polygonOffset = true;
 face_unhighlighted.polygonOffsetFactor = 1;
 face_unhighlighted.polygonOffsetUnits = 2;
 
-const face_highlighted = new THREE.MeshMatcapMaterial();
+const face_highlighted = new THREE.MeshBasicMaterial();
 face_highlighted.fog = false;
+face_highlighted.opacity = 0.2;
+face_highlighted.transparent = true;
 face_highlighted.polygonOffset = true;
 face_highlighted.polygonOffsetFactor = 1;
 face_highlighted.polygonOffsetUnits = 1;
@@ -347,17 +346,19 @@ face_highlighted_phantom.depthFunc = THREE.AlwaysDepth;
 face_highlighted_phantom.transparent = true;
 face_highlighted_phantom.opacity = 0.0;
 
-const face_hovered = new THREE.MeshMatcapMaterial();
+const face_hovered = new THREE.MeshBasicMaterial();
 face_hovered.fog = false;
+face_hovered.transparent = true;
+face_hovered.opacity = 0.1;
 face_hovered.polygonOffset = true;
 face_hovered.polygonOffsetFactor = 1;
 face_hovered.polygonOffsetUnits = 1;
 
 const face_hovered_phantom = face_hovered.clone();
-face_hovered.depthFunc = THREE.AlwaysDepth;
-face_hovered.transparent = true;
-face_hovered.opacity = 0.35;
-face_hovered.side = THREE.DoubleSide;
+face_hovered_phantom.depthFunc = THREE.AlwaysDepth;
+face_hovered_phantom.transparent = true;
+face_hovered_phantom.opacity = 0.2;
+face_hovered_phantom.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;

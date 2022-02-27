@@ -133,6 +133,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             materials);
         const view = builder.build(tempId);
         into.add(view);
+        // TODO: find a more elegant way to do this
         if (into === this.temporaryObjects) this.signals.temporaryObjectAdded.dispatch(view);
 
         view.visible = false;
