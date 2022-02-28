@@ -94,7 +94,7 @@ function MakeMirrorFactory(editor: EditorLike, selected: ModifiesSelection) {
         return mirror;
     } else if (selected.curves.size > 0) {
         mirror = new MirrorFactory(editor.db, editor.materials, editor.signals);
-        mirror.item = selected.curves.first;
+        mirror.items = [...selected.curves];
         return mirror;
     } else {
         throw new Error("Invalid selection");

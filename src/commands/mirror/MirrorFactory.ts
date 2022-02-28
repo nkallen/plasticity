@@ -25,14 +25,19 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 // NOTE: This class works with more than just solids, whereas the others don't.
 export class MirrorFactory extends GeometryFactory implements MirrorParams {
-    item!: visual.Item;
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
     shouldCut = true;
     shouldUnion = false;
     move = 0;
 
-    get items() { return [this.item] }
+    private _items!: visual.Item[];
+    private _models!: c3d.Item[];
+    get items() { return this._items }
+    set items(items: visual.Item[]) {
+        this._items = items;
+        this._models = items.map(i => this.db.lookup(i));
+    }
 
     set quaternion(orientation: THREE.Quaternion) {
         this.normal = Z.clone().applyQuaternion(orientation);
@@ -48,17 +53,19 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
     }
 
     async calculate() {
-        const { origin, normal, move } = this;
+        const { origin, normal, move, _models: models } = this;
         if (origin === undefined || normal === undefined) throw new NoOpError();
 
-        const model = this.db.lookup(this.item);
-        const transformed = model.Duplicate().Cast<c3d.Item>(model.IsA());
-        const mat = new c3d.Matrix3D();
-        const offset = origin.clone().add(normal.clone().multiplyScalar(move))
-        mat.Symmetry(point2point(offset), vec2vec(normal, 1));
-        transformed.Transform(mat);
+        const result = models.map(model => {
+            const transformed = model.Duplicate().Cast<c3d.Item>(model.IsA());
+            const mat = new c3d.Matrix3D();
+            const offset = origin.clone().add(normal.clone().multiplyScalar(move))
+            mat.Symmetry(point2point(offset), vec2vec(normal, 1));
+            transformed.Transform(mat)!;
+            return transformed;
+        });
 
-        return transformed;
+        return result;
     }
 }
 

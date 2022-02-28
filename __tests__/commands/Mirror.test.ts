@@ -7,7 +7,7 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { DontCacheMeshCreator, ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { SolidCopier } from "../../src/editor/SolidCopier";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -40,11 +40,11 @@ describe(MirrorFactory, () => {
             makeLine.p2 = new THREE.Vector3(1, 1, 0);
             const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
             mirror.origin = new THREE.Vector3();
-            mirror.item = line;
+            mirror.items = [line];
             mirror.normal = new THREE.Vector3(0, 1, 0);
 
-            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-            const bbox = new THREE.Box3().setFromObject(item);
+            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            const bbox = new THREE.Box3().setFromObject(item[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0));
@@ -58,11 +58,11 @@ describe(MirrorFactory, () => {
             makeCircle.radius = 1;
             const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
             mirror.origin = new THREE.Vector3(10, 0, 0);
-            mirror.item = circle;
+            mirror.items = [circle];
             mirror.normal = new THREE.Vector3(1, 0, 0);
 
-            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-            const bbox = new THREE.Box3().setFromObject(item);
+            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            const bbox = new THREE.Box3().setFromObject(item[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(15, 1, 0));
@@ -76,12 +76,12 @@ describe(MirrorFactory, () => {
             makeCircle.radius = 1;
             const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
             mirror.origin = new THREE.Vector3(9, 0, 0);
-            mirror.item = circle;
+            mirror.items = [circle];
             mirror.normal = new THREE.Vector3(1, 0, 0);
             mirror.move = 1;
 
-            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-            const bbox = new THREE.Box3().setFromObject(item);
+            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            const bbox = new THREE.Box3().setFromObject(item[0]);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(15, 1, 0));
@@ -110,11 +110,11 @@ describe(MirrorFactory, () => {
 
         test('move=0', async () => {
             mirror.origin = new THREE.Vector3();
-            mirror.item = box;
+            mirror.items = [box];
             mirror.normal = new THREE.Vector3(0, 1, 0);
 
-            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-            bbox.setFromObject(item);
+            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            bbox.setFromObject(item[0]);
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
