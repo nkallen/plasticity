@@ -2,10 +2,12 @@ import * as fs from 'fs';
 import c3d from '../../build/Release/c3d.node';
 import Command, * as cmd from '../command/Command';
 import { ExportCommand } from "../commands/CommandLike";
+import ContourManager from './curves/ContourManager';
 import { GeometryDatabase } from "./GeometryDatabase";
 
 interface EditorLike extends cmd.EditorLike {
-    _db: GeometryDatabase,
+    _db: GeometryDatabase;
+    contours: ContourManager;
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
 }
 
@@ -13,11 +15,12 @@ export class ImporterExporter {
     constructor(private readonly editor: EditorLike) { }
 
     async open(filePaths: string[]) {
-        const { editor: { _db } } = this;
+        const { editor: { _db, contours } } = this;
         for (const filePath of filePaths) {
             if (/\.c3d$/.test(filePath)) {
                 const data = await fs.promises.readFile(filePath);
                 await _db.deserialize(data);
+                await contours.rebuild();
             } else {
                 const { result, model } = await c3d.Conversion.ImportFromFile_async(filePath);
                 if (result !== c3d.ConvResType.Success) {
