@@ -42,6 +42,7 @@ describe(CurveExtrudeFactory, () => {
         extrude.curves = [circle];
         extrude.distance1 = 1;
         extrude.distance2 = 1;
+        expect(extrude.direction).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         const result = await extrude.commit() as visual.SpaceItem;
 
         const bbox = new THREE.Box3().setFromObject(result);
@@ -50,6 +51,26 @@ describe(CurveExtrudeFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test('with direction', async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        extrude.curves = [circle];
+        extrude.distance1 = 1;
+        extrude.distance2 = 1;
+        extrude.direction = new THREE.Vector3(1, 1, 1).normalize();
+        const result = await extrude.commit() as visual.SpaceItem;
+
+        const bbox = new THREE.Box3().setFromObject(result);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.577, -1.577, -0.577));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.577, 1.577, 0.577));
     })
 })
 
@@ -73,6 +94,7 @@ describe(RegionExtrudeFactory, () => {
         extrude.region = region;
         extrude.distance1 = 1;
         extrude.distance2 = 1;
+        expect(extrude.direction).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         const result = await extrude.commit() as visual.SpaceItem;
 
         const bbox = new THREE.Box3().setFromObject(result);
@@ -81,6 +103,31 @@ describe(RegionExtrudeFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test('with direction', async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        const makeRegion = new RegionFactory(db, materials, signals);
+
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        makeRegion.contours = [circle];
+        const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
+        const region = items[0];
+
+        extrude.region = region;
+        extrude.distance1 = 1;
+        extrude.distance2 = 1;
+        extrude.direction = new THREE.Vector3(1, 1, 1).normalize();
+        const result = await extrude.commit() as visual.SpaceItem;
+
+        const bbox = new THREE.Box3().setFromObject(result);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.577, -1.577, -0.577));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.577, 1.577, 0.577));
     })
 })
 
@@ -244,7 +291,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
 
             expect(db.visibleObjects.length).toBe(3);
         })
-        
+
         describe('phantom', () => {
             test('basic difference', async () => {
                 extrude.targets = [sphere];
@@ -255,7 +302,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
                 const phantoms = await extrude.calculatePhantoms();
                 const { phantom } = phantoms[0];
                 const result = await db.addItem(phantom);
-    
+
                 const bbox = new THREE.Box3().setFromObject(result);
                 const center = new THREE.Vector3();
                 bbox.getCenter(center);

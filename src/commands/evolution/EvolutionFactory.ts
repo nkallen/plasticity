@@ -3,7 +3,8 @@ import { derive } from "../../command/FactoryBuilder";
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
 import { composeMainName, unit } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { SweepFactory, SweptParams } from "./RevolutionFactory";
+import { SweptParams } from "./RevolutionFactory";
+import { SweepFactory } from "./SweepFactory";
 
 export interface EvolutionParams extends SweptParams {
     mode: Mode;

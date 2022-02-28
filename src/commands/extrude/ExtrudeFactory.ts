@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { delegate, derive } from "../../command/FactoryBuilder";
-import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
-import { SweepFactory, SweptParams } from "../evolution/RevolutionFactory";
+import { SweptParams } from "../evolution/RevolutionFactory";
+import { SweepFactory } from "../evolution/SweepFactory";
 
 export interface ExtrudeParams extends SweptParams {
     distance1: number;
@@ -85,6 +86,16 @@ abstract class AbstractExtrudeFactory extends SweepFactory implements ExtrudePar
 }
 
 export class CurveExtrudeFactory extends AbstractExtrudeFactory {
+    get curves(): visual.SpaceInstance<visual.Curve3D>[] { return super.curves }
+    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        super.curves = curves;
+        const z = this._placement.GetAxisZ();
+        this._direction = vec2vec(z, 1);
+    }
+
+    private _direction!: THREE.Vector3;
+    get direction(): THREE.Vector3 { return this._direction }
+    set direction(direction: THREE.Vector3) { this._direction = direction }
 }
 
 export class FaceExtrudeFactory extends AbstractExtrudeFactory {
@@ -116,9 +127,12 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     override get regions() { return super.regions }
     override set regions(regions: visual.PlaneInstance<visual.Region>[]) {
         super.regions = regions;
-        const first = regions[0]
+        const first = regions[0];
         const inst = this.db.lookup(first);
         this._placement = inst.GetPlacement();
+
+        const z = this._placement.GetAxisZ();
+        this._direction = vec2vec(z, 1);
 
         const bbox = new THREE.Box3();
         bbox.setFromObject(first);
@@ -128,6 +142,10 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     get defaultOperationType() {
         return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference
     }
+
+    private _direction!: THREE.Vector3;
+    get direction(): THREE.Vector3 { return this._direction }
+    set direction(direction: THREE.Vector3) { this._direction = direction }
 }
 
 export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<AbstractExtrudeFactory | MultiExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
