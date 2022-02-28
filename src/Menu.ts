@@ -119,11 +119,11 @@ export function buildMenu() {
         role: 'help',
         submenu: [
             {
-                label: 'Learn More',
-                click: async () => {
-                    const { shell } = require('electron');
-                    await shell.openExternal('https://electronjs.org');
-                }
+                label: `Version: ${app.getVersion()}`,
+                // click: async () => {
+                //     const { shell } = require('electron');
+                //     await shell.openExternal('https://electronjs.org');
+                // }
             }
         ]
     });
