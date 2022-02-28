@@ -92,7 +92,7 @@ export class Nodes {
     }
 
     setMaterial(item: visual.Item, id: number): void {
-        const { name2material: name2material } = this;
+        const { name2material } = this;
         name2material.set(this.db.lookupName(item.simpleName)!, id);
         this.signals.sceneGraphChanged.dispatch();
     }
