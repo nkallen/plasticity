@@ -9,6 +9,8 @@ type IntersectableWithTopologyItem = THREE.Intersection<intersectable.Raycastabl
     topologyItem: visual.TopologyItem;
 };
 
+type Unprojected = { dist2d: number };
+
 export class GeometryPicker {
     private readonly raycaster = new THREE.Raycaster();
 
@@ -26,21 +28,41 @@ export class GeometryPicker {
 
         let intersections = raycaster.intersectObjects(objects, false) as IntersectableWithTopologyItem[];
         if (!isXRay) {
-            intersections = findAllVeryCloseTogether(intersections) as IntersectableWithTopologyItem[];
+            intersections = findAllVeryCloseTogether(intersections);
         }
-        const sorted = intersections.sort(sort);
+        const unprojected = this.unproject(intersections);
+        const sorted = unprojected.sort(sort) as THREE.Intersection<intersectable.Raycastable>[];
         return raycastable2intersectable(sorted);
     }
 
+    unproject(intersections: IntersectableWithTopologyItem[]): (IntersectableWithTopologyItem & Unprojected)[] {
+        const camera = this.raycaster.camera;
+        for (const intersection of intersections) {
+            let projected;
+            if ('pointOnLine' in intersection) {
+                const point = intersection['pointOnLine'] as THREE.Vector3;
+                projected = point.clone().project(camera);
+            } else {
+                const point = intersection.point;
+                projected = point.clone().project(camera);
+            }
+            const dist2d = this.normalizedScreenPoint.distanceTo(projected as unknown as THREE.Vector2);
+            (intersection as any).dist2d = dist2d;
+        }
+        return intersections as (IntersectableWithTopologyItem & Unprojected)[];
+    }
+
     private viewport!: Viewport;
+    private normalizedScreenPoint!: THREE.Vector2;
     setFromViewport(normalizedScreenPoint: THREE.Vector2, viewport: Viewport) {
         this.raycaster.setFromCamera(normalizedScreenPoint, viewport.camera);
+        this.normalizedScreenPoint = normalizedScreenPoint;
         this.viewport = viewport;
     }
 
 }
 
-function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectable.Raycastable>[]) {
+function findAllVeryCloseTogether<T extends THREE.Intersection>(intersections: T[]) {
     if (intersections.length === 0) return [];
 
     const nearest = intersections[0];
@@ -53,14 +75,14 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection<intersectabl
     return result;
 }
 
-function sort(i1: IntersectableWithTopologyItem, i2: IntersectableWithTopologyItem) {
+function sort(i1: IntersectableWithTopologyItem & Unprojected, i2: IntersectableWithTopologyItem & Unprojected) {
     const o1 = i1.object, o2 = i2.object;
-    const p1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem.priority : o1.priority;
-    const p2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem.priority : o2.priority;
+    const t1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem : o1;
+    const t2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem : o2;
+    const p1 = t1.priority, p2 = t2.priority;
     if (p1 === p2) {
-        if (o1 instanceof CurveEdge && o2 instanceof CurveEdge) {
-            // @ts-expect-error
-            return i1.point.distanceToSquared(i1.pointOnLine) - i2.point.distanceToSquared(i2.pointOnLine);
+        if (t1 instanceof CurveEdge && t2 instanceof CurveEdge) {
+            return i1.dist2d - i2.dist2d;
         } else return 0;
     } else return p1 - p2;
 }
