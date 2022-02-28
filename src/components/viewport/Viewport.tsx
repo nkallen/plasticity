@@ -161,6 +161,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
+                'viewport:toggle-edges': () => this.toggleEdges(),
+                'viewport:toggle-faces': () => this.toggleFaces(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
             })
@@ -477,9 +479,17 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.layers.isShowingEdges = show;
     }
 
+    toggleEdges() {
+        this.isShowingEdges = !this.isShowingEdges;
+    }
+
     get isShowingFaces() { return this.editor.layers.isShowingFaces }
     set isShowingFaces(show: boolean) {
         this.editor.layers.isShowingFaces = show;
+    }
+
+    toggleFaces() {
+        this.isShowingFaces = !this.isShowingFaces;
     }
 
     set matcap(matcap: string) {
