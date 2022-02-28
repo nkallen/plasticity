@@ -10,10 +10,7 @@ import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { ImporterExporter } from "../src/editor/ImporterExporter";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { ParallelMeshCreator } from '../src/editor/MeshCreator';
-import { SolidCopier } from '../src/editor/SolidCopier';
 import * as visual from '../src/visual_model/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let importer: ImporterExporter;
@@ -23,10 +20,10 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 
 beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    editor = { _db: db } as unknown as Editor;
+    editor = new Editor();
+    db = editor._db;
+    materials = editor.materials;
+    signals = editor.signals;
     importer = new ImporterExporter(editor);
 });
 

@@ -99,11 +99,17 @@ export class OffsetFaceFactory extends GeometryFactory {
     async calculate() {
         const { curve, model, direction, distance, names } = this;
 
-        const params = new c3d.SurfaceOffsetCurveParams(model, direction, unit(distance), names);
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetSurfaceCurve_async(curve, params);
-        const curves = wireframe.GetCurves();
-
-        return new c3d.SpaceInstance(curves[0]);
+        if (curve.IsPlanar()) {
+            // NOTE: this algorithm performs better in the planar case:
+            const result = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(curve, -unit(distance));
+            return new c3d.SpaceInstance(result);
+        } else {
+            const params = new c3d.SurfaceOffsetCurveParams(model, direction, unit(distance), names);
+            const wireframe = await c3d.ActionSurfaceCurve.OffsetSurfaceCurve_async(curve, params);
+            const curves = wireframe.GetCurves();
+    
+            return new c3d.SpaceInstance(curves[0]);
+        }
     }
 }
 
