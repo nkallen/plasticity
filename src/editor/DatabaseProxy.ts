@@ -104,6 +104,10 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.findAll(includeAutomatics);
     }
 
+    ///
+
+    get nodes() { return this.db.nodes }
+
     get visibleObjects(): visual.Item[] { return this.db.visibleObjects }
     get selectableObjects(): visual.Item[] { return this.db.selectableObjects }
 
@@ -120,10 +124,12 @@ export class DatabaseProxy implements DatabaseLike {
     setMaterial(item: visual.Item, id: number) { this.db.setMaterial(item, id) }
     getMaterial(item: visual.Item) { return this.db.getMaterial(item) }
 
+    ///
+
     pool(solid: c3d.Solid, size: number) {
         return this.db.pool(solid, size);
     }
 
-    async deserialize(data: Buffer): Promise<void> { return this.db.deserialize(data) }
-    async load(model: c3d.Model | c3d.Assembly): Promise<void> { return this.db.load(model) }
+    async deserialize(data: Buffer): Promise<visual.Item[]> { return this.db.deserialize(data) }
+    async load(model: c3d.Model | c3d.Assembly): Promise<visual.Item[]> { return this.db.load(model) }
 }

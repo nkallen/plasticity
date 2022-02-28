@@ -11,6 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { MeshCreator } from './MeshCreator';
+import { Nodes } from './Nodes';
 import { SolidCopier, SolidCopierPool } from './SolidCopier';
 import { TypeManager } from './TypeManager';
 
@@ -30,14 +31,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
-    private readonly version2material = new Map<c3d.SimpleName, number>();
-
+    private readonly automatics = new Set<c3d.SimpleName>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
-    private readonly hidden = new Set<c3d.SimpleName>();
-    private readonly invisible = new Set<c3d.SimpleName>();
-    private readonly automatics = new Set<c3d.SimpleName>();
-    private readonly unselectable = new Set<c3d.SimpleName>();
+
+    readonly nodes = new Nodes(this, this.materials, this.signals);
 
     constructor(
         private readonly meshCreator: MeshCreator,
@@ -135,7 +133,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         into.add(view);
         // TODO: find a more elegant way to do this
         if (into === this.temporaryObjects) {
-            const material = ancestor !== undefined ? this.getMaterial(ancestor) : undefined;
+            const material = ancestor !== undefined ? this.nodes.getMaterial(ancestor) : undefined;
             this.signals.temporaryObjectAdded.dispatch({ view, material });
         }
 
@@ -169,7 +167,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(view);
         this.removeControlPoints(view);
-        this.hidden.delete(simpleName);
+        this.nodes.delete(simpleName);
         this.automatics.delete(simpleName);
 
         this.signals.objectRemoved.dispatch([view, agent]);
@@ -249,11 +247,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get visibleObjects(): visual.Item[] {
-        const { geometryModel, hidden, invisible, types } = this;
+        const { geometryModel, nodes, types } = this;
         const difference = [];
         for (const { view } of geometryModel.values()) {
-            if (hidden.has(view.simpleName)) continue;
-            if (invisible.has(view.simpleName)) continue;
+            if (nodes.isHidden(view)) continue;
+            if (!nodes.isVisible(view)) continue;
             if (!types.isEnabled(view)) continue;
             difference.push(view);
         }
@@ -261,8 +259,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     get selectableObjects(): visual.Item[] {
-        const { unselectable } = this;
-        return this.visibleObjects.filter(i => !unselectable.has(i.simpleName));
+        const { nodes } = this;
+        return this.visibleObjects.filter(i => nodes.isSelectable(i));
     }
 
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][], includeMetadata: boolean, materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
@@ -389,79 +387,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
-    isSelectable(item: visual.Item): boolean {
-        return !this.unselectable.has(item.simpleName);
-    }
+    isHidden(item: visual.Item): boolean { return this.nodes.isHidden(item) }
+    makeHidden(item: visual.Item, value: boolean): Promise<void> { return this.nodes.makeHidden(item, value) }
+    unhideAll(): Promise<visual.Item[]> { return this.nodes.unhideAll() }
+    isVisible(item: visual.Item): boolean { return this.nodes.isVisible(item) }
+    makeVisible(item: visual.Item, value: boolean): Promise<void> { return this.nodes.makeVisible(item, value) }
+    isSelectable(item: visual.Item): boolean { return this.nodes.isSelectable(item) }
+    makeSelectable(item: visual.Item, value: boolean): void { return this.nodes.makeSelectable(item, value) }
+    setMaterial(item: visual.Item, id: number): void { return this.nodes.setMaterial(item, id) }
+    getMaterial(item: visual.Item): THREE.Material | undefined { return this.nodes.getMaterial(item) }
 
-    makeSelectable(item: visual.Item, newValue: boolean) {
-        const { unselectable } = this;
-        const oldValue = !unselectable.has(item.simpleName);
-        if (newValue) {
-            if (oldValue) return;
-            unselectable.delete(item.simpleName);
-            this.signals.objectSelectable.dispatch(item);
-        } else {
-            if (!oldValue) return;
-            unselectable.add(item.simpleName);
-            this.signals.objectUnselectable.dispatch(item);
-        }
-    }
-
-    isHidden(item: visual.Item): boolean {
-        return this.hidden.has(item.simpleName);
-    }
-
-    async makeHidden(item: visual.Item, newValue: boolean) {
-        const { hidden } = this;
-        const oldValue = hidden.has(item.simpleName);
-        if (newValue) {
-            if (oldValue) return;
-            hidden.add(item.simpleName);
-            this.signals.objectHidden.dispatch(item);
-        } else {
-            if (!oldValue) return;
-            hidden.delete(item.simpleName);
-            this.signals.objectUnhidden.dispatch(item);
-        }
-    }
-
-    async makeVisible(item: visual.Item, newValue: boolean) {
-        const { invisible } = this;
-        const oldValue = !invisible.has(item.simpleName);
-        if (newValue) {
-            if (oldValue) return;
-            invisible.delete(item.simpleName);
-            this.signals.objectUnhidden.dispatch(item);
-        } else {
-            if (!oldValue) return;
-            invisible.add(item.simpleName);
-            this.signals.objectHidden.dispatch(item);
-        }
-    }
-
-    isVisible(item: visual.Item): boolean {
-        return !this.invisible.has(item.simpleName);
-    }
-
-    async unhideAll(): Promise<visual.Item[]> {
-        const hidden = [...this.hidden].map(id => this.lookupItemById(id));
-        this.hidden.clear();
-        const views = hidden.map(h => h.view);
-        for (const view of views) this.signals.objectUnhidden.dispatch(view);
-        return views;
-    }
-
-    setMaterial(item: visual.Item, id: number): void {
-        const { version2name, version2material: name2material } = this;
-        name2material.set(version2name.get(item.simpleName)!, id);
-        this.signals.sceneGraphChanged.dispatch();
-    }
-
-    getMaterial(item: visual.Item): THREE.Material | undefined {
-        const { version2name, version2material } = this;
-        const materialId = version2material.get(version2name.get(item.simpleName)!);
-        if (materialId === undefined) return undefined;
-        else return this.materials.get(materialId)!;
+    lookupName(version: c3d.SimpleName) {
+        return this.version2name.get(version);
     }
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool {
@@ -472,22 +409,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.version2name),
-            new Map(this.version2material),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
-            new Set(this.hidden),
-            new Set(this.invisible),
             new Set(this.automatics));
     }
 
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
         (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
-        (this.version2material as GeometryDatabase['version2material']) = new Map(m.name2material);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
-        (this.hidden as GeometryDatabase['hidden']) = new Set(m.hidden);
-        (this.invisible as GeometryDatabase['invisible']) = new Set(m.invisible);
         (this.automatics as GeometryDatabase['automatics']) = new Set(m.automatics);
     }
 
@@ -495,16 +426,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.saveToMemento().serialize();
     }
 
-    async deserialize(data: Buffer): Promise<void> {
+    async deserialize(data: Buffer): Promise<visual.Item[]> {
         const everything = await c3d.Writer.ReadItems_async(data);
         return this.load(everything);
     }
 
-    async load(model: c3d.Model, preserveNames = true): Promise<void> {
-        const promises: Promise<any>[] = [];
+    async load(model: c3d.Model, preserveNames = false): Promise<visual.Item[]> {
+        const promises: Promise<visual.Item>[] = [];
         const loadItems = (stack: c3d.Item[]) => {
             while (stack.length > 0) {
-                const item = stack.pop()!;
+                const item = stack.shift()!;
                 const cast = item.Cast<c3d.Item>(item.IsA());
                 if (cast instanceof c3d.Assembly) {
                     stack.push(...cast.GetItems());
@@ -518,7 +449,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
 
         loadItems(model.GetItems());
-        await Promise.all(promises);
+        return Promise.all(promises);
     }
 
     validate() {

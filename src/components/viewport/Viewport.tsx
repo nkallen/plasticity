@@ -11,7 +11,7 @@ import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, Viewport
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { TextureLoader } from "../../editor/TextureLoader";
-import studio_small_03_4k from '../../img/hdri/studio_small_03_4k.exr';
+import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -493,7 +493,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (this.isRenderMode === isRenderMode) return;
         this.editor.highlighter.mode = isRenderMode ? 'rendered' : 'normal';
         if (isRenderMode) {
-            const { texture, loaded } = this.editor.textures.get(studio_small_03_4k);
+            const { texture, loaded } = this.editor.textures.get(studio_small_03);
             texture.mapping = THREE.EquirectangularReflectionMapping;
             this.scene.environment = texture;
             loaded.then(() => this.setNeedsRender());

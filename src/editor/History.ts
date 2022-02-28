@@ -7,6 +7,7 @@ import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
+import { Nodes } from "./Nodes";
 import { PointSnap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";
 
@@ -14,6 +15,7 @@ export class Memento {
     constructor(
         readonly version: number,
         readonly db: GeometryMemento,
+        readonly nodes: NodeMemento,
         readonly materials: MaterialMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
@@ -26,11 +28,8 @@ export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
-        readonly name2material: ReadonlyMap<c3d.SimpleName, number>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
-        readonly hidden: ReadonlySet<c3d.SimpleName>,
-        readonly invisible: ReadonlySet<c3d.SimpleName>,
         readonly automatics: ReadonlySet<c3d.SimpleName>,
     ) { }
 
@@ -49,6 +48,14 @@ export class GeometryMemento {
         }
         return everything;
     }
+}
+
+export class NodeMemento {
+    constructor(
+        readonly name2material: ReadonlyMap<c3d.SimpleName, number>,
+        readonly hidden: ReadonlySet<c3d.SimpleName>,
+        readonly invisible: ReadonlySet<c3d.SimpleName>,
+    ) { }
 }
 
 export class MaterialMemento {
@@ -129,7 +136,7 @@ export class EditorOriginator {
     private version = 0;
 
     constructor(
-        readonly db: MementoOriginator<GeometryMemento> & Serializble,
+        readonly db: MementoOriginator<GeometryMemento> & Serializble & { get nodes(): Nodes },
         readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
@@ -143,6 +150,7 @@ export class EditorOriginator {
         const memento = new Memento(
             this.version++,
             this.db.saveToMemento(),
+            this.db.nodes.saveToMemento(),
             this.materials.saveToMemento(),
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
@@ -162,6 +170,7 @@ export class EditorOriginator {
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
+                    this.db.nodes.saveToMemento(),
                     this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
@@ -175,6 +184,7 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
+            this.db.nodes.restoreFromMemento(m.nodes);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
             this.snaps.restoreFromMemento(m.snaps);
@@ -217,7 +227,7 @@ export interface MementoOriginator<T> {
 
 export interface Serializble {
     serialize(): Promise<Buffer>;
-    deserialize(data: Buffer): Promise<void>;
+    deserialize(data: Buffer): Promise<visual.Item[]>;
 }
 
 type HistoryStackItem = {

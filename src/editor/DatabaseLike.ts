@@ -4,6 +4,7 @@ import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
+import { Nodes } from './Nodes';
 import { SolidCopierPool } from './SolidCopier';
 import { TypeManager } from './TypeManager';
 
@@ -81,6 +82,8 @@ export interface DatabaseLike {
     
     ///
 
+    get nodes(): Nodes;
+
     isHidden(item: visual.Item): boolean;
     makeHidden(item: visual.Item, value: boolean): Promise<void>;
     unhideAll(): Promise<visual.Item[]>;
@@ -98,6 +101,6 @@ export interface DatabaseLike {
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool;
 
-    deserialize(data: Buffer): Promise<void>;
-    load(model: c3d.Model | c3d.Assembly): Promise<void>;
+    deserialize(data: Buffer): Promise<visual.Item[]>;
+    load(model: c3d.Model | c3d.Assembly): Promise<visual.Item[]>;
 }

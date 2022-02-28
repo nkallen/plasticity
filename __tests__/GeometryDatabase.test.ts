@@ -291,5 +291,5 @@ test("serialize & deserialize", async () => {
     await db.deserialize(data);
     expect(db.visibleObjects.length).toBe(1);
 
-    expect(db.visibleObjects[0].simpleName).toBe(10);
+    expect(db.visibleObjects[0].simpleName).toBe(1);
 })

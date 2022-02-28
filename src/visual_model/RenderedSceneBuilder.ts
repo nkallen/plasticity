@@ -263,7 +263,6 @@ export class RenderedSceneBuilder {
         facegroup.mesh.material = this._mode === 'normal'
             ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
             : [face_hovered, face_highlighted, override ?? this.db.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
-
         facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
 
