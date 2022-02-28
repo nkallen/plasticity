@@ -43,7 +43,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
     get num1() { return this._num1 }
     set num1(num1: number) {
         if (num1 < 1) throw new Error("invalid argument");
-        this._num1 = num1
+        this._num1 = Math.trunc(num1);
     }
 
     dir2!: THREE.Vector3;
@@ -109,7 +109,10 @@ export class RadialArrayFactory extends AbstractArrayFactory {
 export class RectangularArrayFactory extends AbstractArrayFactory {
     protected readonly isPolar = false;
 
-    num2 = 0;
+    private _num2 = 0;
+    get num2() { return this._num2 }
+    set num2(num2: number) { this._num2 = Math.floor(num2) }
+
     step2 = 1;
 
     protected get params() {
