@@ -25,7 +25,7 @@ export class Backup {
 
     async load() {
         const tempFilePath = this.tempFilePath;
-        await PlasticityDocument.load(tempFilePath, this.originator);
+        await PlasticityDocument.open(tempFilePath, this.originator);
     }
 
     async clear() {

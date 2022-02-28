@@ -6,9 +6,14 @@ import c3d from '../../build/Release/c3d.node';
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
 
-    static async load(filename: string, into: EditorOriginator): Promise<PlasticityDocument> {
+    static async open(filename: string, into: EditorOriginator) {
         const data = await fs.promises.readFile(filename);
         const json = JSON.parse(data.toString()) as PlasticityJSON;
+        const c3d = await fs.promises.readFile(json.db.uri);
+        return this.load(json, c3d, into);
+    }
+
+    static async load(json: PlasticityJSON, c3d: Buffer, into: EditorOriginator): Promise<PlasticityDocument> {
         for (const [i, viewport] of json.viewports.entries()) {
             into.viewports[i].restoreFromMemento(new ViewportMemento(
                 new CameraMemento(
@@ -46,8 +51,6 @@ export class PlasticityDocument {
             materials.set(i, { name, material });
         }
         into.materials.restoreFromMemento(new MaterialMemento(materials));
-        const c3d = await fs.promises.readFile(json.db.uri);
-        console.info(filename);
         console.time("load backup");
         const items = await into.db.deserialize(c3d);
         console.timeEnd("load backup");
@@ -63,12 +66,11 @@ export class PlasticityDocument {
         return new PlasticityDocument(into);
     }
 
-    async save(filename: string) {
+    async serialize(filename: string) {
         const memento = this.originator.saveToMemento();
         const { db, nodes } = memento;
         const c3d = await db.serialize();
         const c3dFilename = `${filename}.c3d`
-        await fs.promises.writeFile(c3dFilename, c3d);
 
         const viewports = this.originator.viewports.map(v => v.saveToMemento());
 
@@ -146,7 +148,16 @@ export class PlasticityDocument {
             }),
         } as PlasticityJSON;
         const string = JSON.stringify(json);
-        return fs.promises.writeFile(filename, string);
+        const write = async () => {
+            await fs.promises.writeFile(c3dFilename, c3d);
+            return fs.promises.writeFile(filename, string);
+        }
+        return { json, c3d, write };
+    }
+
+    async save(filename: string) {
+        const { write } = await this.serialize(filename);
+        await write();
     }
 }
 
