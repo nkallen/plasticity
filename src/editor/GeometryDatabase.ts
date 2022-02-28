@@ -31,6 +31,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
+    private readonly name2version = new Map<c3d.SimpleName, c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
@@ -57,6 +58,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.queue.enqueue(async () => {
             const result = await this.insertItem(model, agent, name);
             this.version2name.set(result.simpleName, result.simpleName);
+            this.name2version.set(result.simpleName, result.simpleName);
             return result;
         });
     }
@@ -72,6 +74,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             const name = this.version2name.get(from.simpleName)!;
             this.version2name.delete(from.simpleName);
             this.version2name.set(to.simpleName, name);
+            this.name2version.set(name, to.simpleName);
             return to;
         });
     }
@@ -79,7 +82,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
         return this.queue.enqueue(async () => {
             const result = await this._removeItem(view, agent);
+            this.nodes.delete(view.simpleName);
+            const old = this.version2name.get(view.simpleName)!;
             this.version2name.delete(view.simpleName);
+            this.name2version.delete(old);
             return result;
         });
     }
@@ -167,7 +173,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(view);
         this.removeControlPoints(view);
-        this.nodes.delete(simpleName);
         this.automatics.delete(simpleName);
 
         this.signals.objectRemoved.dispatch([view, agent]);
@@ -399,6 +404,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     lookupName(version: c3d.SimpleName) {
         return this.version2name.get(version);
+    }
+
+    lookupByName(name: c3d.SimpleName) {
+        return this.lookupItemById(this.name2version.get(name)!);
     }
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool {

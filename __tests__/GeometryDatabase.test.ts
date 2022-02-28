@@ -64,7 +64,6 @@ test("addItem with explicit name", async () => {
     expect(db.visibleObjects.length).toBe(2);
 });
 
-
 test("addItem & replaceItem", async () => {
     expect(db.visibleObjects.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);
@@ -94,8 +93,40 @@ test("addItem & replaceItem", async () => {
     expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.5, 0.5));
 
     expect(() => db.lookupItemById(view1.simpleName)).toThrow();
-
 })
+
+test('lookupName & lookupByName', async () => {
+    expect(db.visibleObjects.length).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+
+    const view1 = await db.addItem(box) as visual.Solid;
+    const { model: model1 } = db.lookupItemById(view1.simpleName);
+    expect(model1).toBe(box);
+
+    const name1 = db.lookupName(view1.simpleName)!;
+    expect(db.lookupByName(name1).view).toBe(view1);
+
+    const points = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(-1, -1, 0),
+        new THREE.Vector3(-1, -1, -1),
+    ]
+    const box2 = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
+    const view2 = await db.replaceItem(view1, box2);
+    expect(view2.simpleName).not.toBe(view1.simpleName);
+
+    const name2 = db.lookupName(view2.simpleName)!;
+
+    expect(name1).toBe(name2);
+    expect(db.lookupByName(name1).view).toBe(view2);
+
+    db.removeItem(view2);
+    const name3 = db.lookupName(view1.simpleName);
+    expect(name3).toBe(undefined);
+
+    expect(() => db.lookupByName(name1).view).toThrow();
+});
 
 test("saveToMemento & restoreFromMemento", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);

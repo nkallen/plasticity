@@ -15,7 +15,8 @@ export class Nodes {
 
     constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) { }
 
-    delete(name: c3d.SimpleName) {
+    delete(version: c3d.SimpleName) {
+        const name = this.db.lookupName(version)!;
         this.hidden.delete(name);
         this.invisible.delete(name);
         this.invisible.delete(name);
@@ -23,83 +24,90 @@ export class Nodes {
     }
 
     isSelectable(item: visual.Item): boolean {
-        return !this.unselectable.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        return !this.unselectable.has(name);
     }
 
     makeSelectable(item: visual.Item, newValue: boolean) {
         const { unselectable } = this;
-        const oldValue = !unselectable.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        const oldValue = !unselectable.has(name);
         if (newValue) {
             if (oldValue)
                 return;
-            unselectable.delete(item.simpleName);
+            unselectable.delete(name);
             this.signals.objectSelectable.dispatch(item);
         } else {
             if (!oldValue)
                 return;
-            unselectable.add(item.simpleName);
+            unselectable.add(name);
             this.signals.objectUnselectable.dispatch(item);
         }
     }
 
     isHidden(item: visual.Item): boolean {
-        return this.hidden.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        return this.hidden.has(name);
     }
 
     async makeHidden(item: visual.Item, newValue: boolean) {
         const { hidden } = this;
-        const oldValue = hidden.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        const oldValue = hidden.has(name);
         if (newValue) {
             if (oldValue)
                 return;
-            hidden.add(item.simpleName);
+            hidden.add(name);
             this.signals.objectHidden.dispatch(item);
         } else {
             if (!oldValue)
                 return;
-            hidden.delete(item.simpleName);
+            hidden.delete(name);
             this.signals.objectUnhidden.dispatch(item);
         }
     }
 
     async makeVisible(item: visual.Item, newValue: boolean) {
         const { invisible } = this;
-        const oldValue = !invisible.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        const oldValue = !invisible.has(name);
         if (newValue) {
             if (oldValue)
                 return;
-            invisible.delete(item.simpleName);
+            invisible.delete(name);
             this.signals.objectUnhidden.dispatch(item);
         } else {
             if (!oldValue)
                 return;
-            invisible.add(item.simpleName);
+            invisible.add(name);
             this.signals.objectHidden.dispatch(item);
         }
     }
 
     isVisible(item: visual.Item): boolean {
-        return !this.invisible.has(item.simpleName);
+        const name = this.db.lookupName(item.simpleName)!;
+        return !this.invisible.has(name);
     }
 
     async unhideAll(): Promise<visual.Item[]> {
-        const hidden = [...this.hidden].map(id => this.db.lookupItemById(id));
+        const hidden = [...this.hidden].map(name => this.db.lookupByName(name));
         this.hidden.clear();
         const views = hidden.map(h => h.view);
-        for (const view of views)
-            this.signals.objectUnhidden.dispatch(view);
+        for (const view of views) this.signals.objectUnhidden.dispatch(view);
         return views;
     }
 
     setMaterial(item: visual.Item, id: number): void {
         const { name2material } = this;
-        name2material.set(this.db.lookupName(item.simpleName)!, id);
+        const name = this.db.lookupName(item.simpleName)!;
+        name2material.set(name, id);
         this.signals.sceneGraphChanged.dispatch();
     }
 
     getMaterial(item: visual.Item): THREE.Material | undefined {
         const { name2material: version2material } = this;
-        const materialId = version2material.get(this.db.lookupName(item.simpleName)!);
+        const name = this.db.lookupName(item.simpleName)!;
+        const materialId = version2material.get(name);
         if (materialId === undefined)
             return undefined;
         else

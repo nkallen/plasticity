@@ -113,7 +113,8 @@ export class PlasticityDocument {
             //         children: [],
             //     }
             // ],
-            items: [...db.geometryModel.values()].map(({ view }) => {
+            items: [...db.geometryModel.values()].flatMap(({ view }) => {
+                if (db.automatics.has(view.simpleName)) return [];
                 const materialId = nodes.name2material.get(db.version2name.get(view.simpleName)!);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
                 return { material } as ItemJSON
