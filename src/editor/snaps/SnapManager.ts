@@ -9,6 +9,7 @@ import { MementoOriginator, SnapMemento } from "../History";
 import { DisablableType } from "../TypeManager";
 import { AxisSnap, CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, PointSnap, Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
+import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -44,6 +45,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     readonly identityMap = new SnapIdentityMap(this.db);
 
+    readonly cache = new SnapManagerGeometryCache(this, this.db);
+
     constructor(
         private readonly db: DatabaseLike,
         private readonly crosses: CrossPointDatabase,
@@ -65,6 +68,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         });
         signals.objectUnhidden.add(item => this.unhide(item));
         signals.objectHidden.add(item => this.hide(item));
+        signals.commandEnded.add(() => this.cache.update());
+        signals.sceneGraphChanged.add(() => this.cache.update());
+        signals.historyChanged.add(() => this.cache.update());
     }
 
     get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {

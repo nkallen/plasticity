@@ -72,7 +72,7 @@ describe(SnapPresenter, () => {
         beforeEach(() => {
             presenter.execute();
             picker.setFromViewport(new MouseEvent('down'), viewport);
-            presentation = SnapPresentation.makeForGizmo(picker, viewport, editor.db, new SnapManagerGeometryCache(editor.snaps), editor.gizmos).presentation;
+            presentation = SnapPresentation.makeForGizmo(picker, viewport, editor.db, editor.snaps.cache, editor.gizmos).presentation;
         })
 
         test('when presentation.info is undefined', () => {

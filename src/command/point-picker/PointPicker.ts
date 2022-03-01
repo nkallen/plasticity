@@ -132,7 +132,6 @@ export class PointPicker implements Executable<PointResult, PointResult> {
         Line2: { threshold: 30 },
         Points: { threshold: 25 }
     };
-    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps, this.editor.db);
 
     constructor(private readonly editor: EditorLike) { }
 
@@ -143,7 +142,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
         return new CancellablePromise<PointResult>((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { editor, editor: { signals }, model, keyboard, snapCache } = this;
+            const { editor, editor: { signals, snaps: { cache: snapCache } }, model, keyboard } = this;
 
             disposables.add(keyboard.start());
 

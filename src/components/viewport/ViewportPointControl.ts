@@ -1,10 +1,12 @@
-import { Disposable } from "event-kit";
+import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
 import * as gizmo from "../../command/AbstractGizmo";
 import { GizmoLike } from "../../command/AbstractGizmo";
 import Command, * as cmd from "../../command/Command";
 import { DashedLineMagnitudeHelper } from "../../command/MiniGizmos";
+import { SnapPresentation, SnapPresenter } from "../../command/SnapPresenter";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
+import { GizmoSnapPicker } from "../../editor/snaps/GizmoSnapPicker";
 import { SelectionKeypressStrategy } from "../../selection/SelectionKeypressStrategy";
 import { ClickChangeSelectionCommand } from "../../selection/ViewportSelector";
 import { CancellablePromise } from "../../util/CancellablePromise";
@@ -22,7 +24,7 @@ export interface EditorLike extends cmd.EditorLike {
     keymaps: AtomKeymap.KeymapManager;
 }
 
-type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint, disposable: Disposable } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void>, disposable: Disposable }
+type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint, disposable: CompositeDisposable } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void>, disposable: CompositeDisposable }
 
 export class ViewportPointControl extends ViewportControl implements GizmoLike<THREE.Vector3, void> {
     private readonly keypress = new SelectionKeypressStrategy(this.editor.keymaps);
@@ -35,6 +37,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
     private readonly center3d = new THREE.Vector3();
     readonly _raycaster = new THREE.Raycaster();
 
+    private readonly snapPicker = new GizmoSnapPicker();
+    private readonly presenter = new SnapPresenter(this.editor);
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
 
     constructor(viewport: Viewport, private readonly editor: EditorLike) {
@@ -60,7 +64,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
 
                 this.pointStart3d.copy(first.position);
                 this.cameraPlane.position.copy(this.pointStart3d);
-                this.mode = { tag: 'start', controlPoint, disposable: new Disposable() };
+                this.mode = { tag: 'start', controlPoint, disposable: new CompositeDisposable() };
 
                 break;
             default: throw new Error("invalid state");
@@ -98,25 +102,42 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
         }
     }
 
+    private readonly unprojected = new THREE.Vector3();
     continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2) {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start': break;
             case 'executing':
                 const { pointEnd3d, _raycaster: raycaster, delta, helper, viewport: { camera, constructionPlane }, pointStart3d } = this;
+                this.presenter.clear();
 
-                helper.onMove(normalizedMousePosition);
+                if (moveEvent.ctrlKey) {
+                    const { unprojected, snapPicker } = this;
+                    snapPicker.setFromViewport(moveEvent, this.viewport);
+                    const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.db, this.editor.snaps.cache, this.editor.gizmos);
+                    this.presenter.onPointerMove(this.viewport, presentation);
+                    const point: THREE.Vector3 | undefined = intersections[0]?.position.clone();
+                    if (point === undefined) return;
+                    unprojected.copy(point).project(camera);
 
-                raycaster.setFromCamera(normalizedMousePosition, camera);
-                const moved = constructionPlane.move(pointStart3d);
-                const intersection = raycaster.intersectObject(moved.snapper);
-                if (intersection.length === 0) throw new Error("corrupt intersection query");
-                pointEnd3d.copy(intersection[0].point);
+                    helper.onMove(unprojected as any);
 
-                const { position } = moved.project(pointEnd3d);
-                delta.copy(position).sub(pointStart3d);
+                    delta.copy(point).sub(pointStart3d);
+                    this.mode.cb(delta.clone());
+                } else {
+                    helper.onMove(normalizedMousePosition);
 
-                this.mode.cb(this.delta.clone());
+                    raycaster.setFromCamera(normalizedMousePosition, camera);
+                    const moved = constructionPlane.move(pointStart3d);
+                    const intersection = raycaster.intersectObject(moved.snapper);
+                    if (intersection.length === 0) throw new Error("corrupt intersection query");
+                    pointEnd3d.copy(intersection[0].point);
+
+                    const { position } = moved.project(pointEnd3d);
+                    delta.copy(position).sub(pointStart3d);
+
+                    this.mode.cb(this.delta.clone());
+                }
         }
     }
 
@@ -144,6 +165,10 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
                     const dispose = () => { }
                     return { dispose, finish: resolve };
                 });
+
+                const clearPresenter = this.presenter.execute();
+                this.mode.disposable.add(clearPresenter);
+
                 this.mode = { tag: 'executing', cancellable: result, cb, disposable: this.mode.disposable };
                 return result;
             default: throw new Error('invalid state');
