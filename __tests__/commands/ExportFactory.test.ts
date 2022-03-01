@@ -38,6 +38,6 @@ beforeEach(() => {
 })
 
 test('invokes the appropriate c3d commands', async () => {
-    exp.solid = box;
+    exp.solids = [box];
     await exp.update();
 });

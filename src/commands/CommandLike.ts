@@ -99,9 +99,8 @@ export class ExportCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         const { editor: { db, selection: { selected } } } = this;
-        const solid = selected.solids.first;
         const factory = new ExportFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.solid = solid;
+        factory.solids = [...selected.solids];
         factory.filePath = this.filePath;
 
         const dialog = new ExportDialog(factory, this.editor.signals);

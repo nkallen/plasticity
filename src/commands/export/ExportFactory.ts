@@ -19,14 +19,12 @@ export interface ExportParams {
 export class ExportFactory extends GeometryFactory {
     filePath!: string;
 
-    private model!: c3d.Solid;
-    private _solid!: visual.Solid;
-    get solid(): visual.Solid {
-        return this._solid;
-    }
-    set solid(solid: visual.Solid) {
-        this._solid = solid;
-        this.model = this.db.lookup(solid);
+    private models!: c3d.Solid[];
+    private _solids!: visual.Solid[];
+    get solids() { return this._solids }
+    set solids(solids: visual.Solid[]) {
+        this._solids = solids;
+        this.models = solids.map(solid => this.db.lookup(solid));
     }
 
     sag = 0.5;
@@ -38,22 +36,22 @@ export class ExportFactory extends GeometryFactory {
     private readonly formNote = new c3d.FormNote(false, true, false, false, true);
 
     async doUpdate(): Promise<TemporaryObject[]> {
-        const { db, solid } = this;
+        const { db, solids } = this;
 
         const objects = await this.calc();
 
-        const temps: TemporaryObject[] = objects.map(object => {
+        const temps: TemporaryObject[] = objects.map((object, i) => {
             db.temporaryObjects.add(object);
             object.visible = false;
             return {
                 underlying: object,
                 show() {
                     object.visible = true;
-                    solid.visible = false;
+                    solids[i].visible = false;
                 },
                 hide() {
                     object.visible = false;
-                    solid.visible = true;
+                    solids[i].visible = true;
                 },
                 cancel() {
                     for (const child of object.children) {
@@ -62,7 +60,7 @@ export class ExportFactory extends GeometryFactory {
                         line.userData.geometry.dispose();
                     }
                     db.temporaryObjects.remove(object);
-                    solid.visible = true;
+                    solids[i].visible = true;
                 }
             }
         });
@@ -73,7 +71,7 @@ export class ExportFactory extends GeometryFactory {
     }
 
     private async calc(): Promise<THREE.Object3D[]> {
-        const { db, model, formNote, stepType, sag, angle, length, maxCount } = this;
+        const { db, models, formNote, stepType, sag, angle, length, maxCount } = this;
 
         const stepData = new c3d.StepData();
         stepData.Init(stepType, sag, angle, length, maxCount);
@@ -81,22 +79,26 @@ export class ExportFactory extends GeometryFactory {
         stepData.SetStepType(c3d.StepType.MetricStep, true);
         stepData.SetStepType(c3d.StepType.DeviationStep, true);
 
-        const mesh = await model.CalculateMesh_async(stepData, formNote);
-        const buffers = mesh.GetBuffers();
-        const object = new THREE.Group();
-        object.scale.setScalar(deunit(1));
-        for (const buffer of buffers) {
-            const geometry = new THREE.BufferGeometry();
-            geometry.setIndex(new THREE.BufferAttribute(buffer.index, 1));
-            geometry.setAttribute('position', new THREE.BufferAttribute(buffer.position, 3));
-            geometry.setAttribute('normal', new THREE.BufferAttribute(buffer.normal, 3));
-            const wireframe = new THREE.WireframeGeometry(geometry);
-            const line = new THREE.LineSegments(wireframe);
-            line.userData.geometry = geometry;
-            object.add(line);
-        };
+        const objects = [];
+        for (const model of models) {
+            const mesh = await model.CalculateMesh_async(stepData, formNote);
+            const buffers = mesh.GetBuffers();
+            const object = new THREE.Group();
+            object.scale.setScalar(deunit(1));
+            for (const buffer of buffers) {
+                const geometry = new THREE.BufferGeometry();
+                geometry.setIndex(new THREE.BufferAttribute(buffer.index, 1));
+                geometry.setAttribute('position', new THREE.BufferAttribute(buffer.position, 3));
+                geometry.setAttribute('normal', new THREE.BufferAttribute(buffer.normal, 3));
+                const wireframe = new THREE.WireframeGeometry(geometry);
+                const line = new THREE.LineSegments(wireframe);
+                line.userData.geometry = geometry;
+                object.add(line);
+            };
+            objects.push(object)
+        }
 
-        return [object];
+        return objects;
     }
 
     async doCommit() {
