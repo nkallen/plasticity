@@ -5,7 +5,7 @@
 
 {
     // Probably the keybindings you want to change the most are case 1., when no command or gizmo is active.
-    "body:not([gizmo]) plasticity-workspace": {
+    "body:not([gizmo])": {
         // "1": "selection:mode:set:control-point",
         // "2": "selection:mode:set:edge",
         // "4": "selection:mode:set:face",
@@ -67,12 +67,14 @@
         // "escape": "command:deselect-all",
     },
 
-    // Uncomment to get maya-style orbit/pan.
     "orbit-controls": {
-        // "mouse1": "orbit:pan",
-        // "shift-mouse1": "orbit:rotate",
+        // Uncomment to get maya-style orbit/pan.
         // "alt-mouse0": "orbit:rotate",
         // "alt-mouse1": "orbit:pan",
         // "alt-mouse2": "orbit:dolly"
+
+        // Uncomment to get blender-style orbit/pan.
+        // "mouse1": "orbit:rotate",
+        // "shift-mouse1": "orbit:pan",
     }
 }
