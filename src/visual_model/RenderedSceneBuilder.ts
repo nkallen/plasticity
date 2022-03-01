@@ -215,55 +215,59 @@ export class RenderedSceneBuilder {
     protected highlightEdges(solid: visual.Solid) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const edgegroup = solid.lod.high.edges;
-        let hovered: visual.CurveEdge[] = [];
-        let selected: visual.CurveEdge[] = [];
+        for (const lod of [solid.lod.high, solid.lod.low]) {
+            const edgegroup = lod.edges;
+            let hovered: visual.CurveEdge[] = [];
+            let selected: visual.CurveEdge[] = [];
 
-        for (const edge of edgegroup) {
-            if (hovering.edgeIds.has(edge.simpleName)) {
-                hovered.push(edge);
-            } else if (selection.edgeIds.has(edge.simpleName)) {
-                selected.push(edge);
+            for (const edge of edgegroup) {
+                if (hovering.edgeIds.has(edge.simpleName)) {
+                    hovered.push(edge);
+                } else if (selection.edgeIds.has(edge.simpleName)) {
+                    selected.push(edge);
+                }
             }
-        }
 
-        const pairs: [visual.CurveEdge[], LineMaterial][] = [[selected, line_selected], [hovered, line_hovered]];
-        edgegroup.temp.clear();
-        for (const [edges, mat] of pairs) {
-            if (edges.length === 0) continue;
-            const sliced = edgegroup.slice(edges);
-            sliced.material = mat;
-            edgegroup.temp.add(sliced);
+            const pairs: [visual.CurveEdge[], LineMaterial][] = [[selected, line_selected], [hovered, line_hovered]];
+            edgegroup.temp.clear();
+            for (const [edges, mat] of pairs) {
+                if (edges.length === 0) continue;
+                const sliced = edgegroup.slice(edges);
+                sliced.material = mat;
+                edgegroup.temp.add(sliced);
+            }
         }
     }
 
     protected highlightFaces(solid: visual.Solid, override?: THREE.Material) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const facegroup = solid.lod.high.faces;
-        let hovered: visual.GeometryGroup[] = [];
-        let selected: visual.GeometryGroup[] = [];
-        let unselected: visual.GeometryGroup[] = [];
-        for (const face of facegroup) {
-            if (hovering.faceIds.has(face.simpleName)) {
-                hovered.push(face.group);
-            } else if (selection.faceIds.has(face.simpleName)) {
-                selected.push(face.group);
+        for (const lod of [solid.lod.high, solid.lod.low]) {
+            const facegroup = lod.faces;
+            let hovered: visual.GeometryGroup[] = [];
+            let selected: visual.GeometryGroup[] = [];
+            let unselected: visual.GeometryGroup[] = [];
+            for (const face of facegroup) {
+                if (hovering.faceIds.has(face.simpleName)) {
+                    hovered.push(face.group);
+                } else if (selection.faceIds.has(face.simpleName)) {
+                    selected.push(face.group);
+                }
+                unselected.push(face.group);
             }
-            unselected.push(face.group);
+            hovered = visual.GeometryGroupUtils.compact(hovered);
+            selected = visual.GeometryGroupUtils.compact(selected);
+            unselected = visual.GeometryGroupUtils.compact(unselected);
+            const hovered_phantom = hovered.map(u => ({ ...u }));
+            hovered.forEach(s => s.materialIndex = 0);
+            selected.forEach(s => s.materialIndex = 1);
+            unselected.forEach(s => s.materialIndex = 2);
+            hovered_phantom.forEach(s => s.materialIndex = 3);
+            facegroup.mesh.material = this._mode === 'normal'
+                ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
+                : [face_hovered, face_highlighted, override ?? this.db.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
+            facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
         }
-        hovered = visual.GeometryGroupUtils.compact(hovered);
-        selected = visual.GeometryGroupUtils.compact(selected);
-        unselected = visual.GeometryGroupUtils.compact(unselected);
-        const hovered_phantom = hovered.map(u => ({ ...u }));
-        hovered.forEach(s => s.materialIndex = 0);
-        selected.forEach(s => s.materialIndex = 1);
-        unselected.forEach(s => s.materialIndex = 2);
-        hovered_phantom.forEach(s => s.materialIndex = 3);
-        facegroup.mesh.material = this._mode === 'normal'
-            ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-            : [face_hovered, face_highlighted, override ?? this.db.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
-        facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
 
     setResolution(size: THREE.Vector2) {

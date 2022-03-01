@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { Viewport } from "../components/viewport/Viewport";
 import LayerManager from "../editor/LayerManager";
+import * as visual from '../visual_model/VisualModel';
 import * as intersectable from "./Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from "./VisualModel";
-import * as visual from '../visual_model/VisualModel';
 
 type IntersectableWithTopologyItem = THREE.Intersection<intersectable.Raycastable> & {
     topologyItem: visual.TopologyItem;
