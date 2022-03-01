@@ -113,7 +113,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
                 if (intersection.length === 0) throw new Error("corrupt intersection query");
                 pointEnd3d.copy(intersection[0].point);
 
-                const { position } = constructionPlane.project(pointEnd3d);
+                const { position } = moved.project(pointEnd3d);
                 delta.copy(position).sub(pointStart3d);
 
                 this.mode.cb(this.delta.clone());

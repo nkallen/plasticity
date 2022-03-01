@@ -108,7 +108,7 @@ const Y = new c3d.Axis3D(new c3d.Vector3D(0, 1, 0));
 // Without a hint, if a line is already associated with a plane, it's preferable to use that
 // IsStraight(false) and IsStraight(true) behave differently. A hermit curve that happens to be straight will return true for one and not the other
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint?: c3d.Placement3D, strict = false): ContourAndPlacement | undefined {
-    if (hint === undefined && curve3d.IsPlanar() && curve3d.IsStraight()) {
+    if (hint === undefined && curve3d.IsA() === c3d.SpaceType.PlaneCurve) {
         const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
         const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
         return { curve: dup, placement };

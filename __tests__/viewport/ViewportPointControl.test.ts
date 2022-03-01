@@ -87,7 +87,7 @@ describe(ViewportPointControl, () => {
             makeCircle.radius = 1;
             item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.1))
+            viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 10))
         });
 
         test('dragging on a free construction plane', async () => {
