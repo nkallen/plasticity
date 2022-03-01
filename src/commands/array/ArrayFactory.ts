@@ -61,7 +61,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
     }
 
     async calculate() {
-        const { params, _solid: { model: solid }, _curve: { model: curve }, num1, num2, start } = this;
+        const { params, _solid: { model: solid }, _curve: { model: curve }, start } = this;
 
         const item = solid ?? curve;
         if (item === undefined) throw new Error("invalid precondition");

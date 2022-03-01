@@ -4,14 +4,14 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { RadialArrayParams } from "./ArrayFactory";
 
 export class RadialArrayDialog extends AbstractDialog<RadialArrayParams> {
-    name = "Radial array";
+    readonly name = "Radial array";
 
     constructor(protected readonly params: RadialArrayParams, signals: EditorSignals) {
         super(signals);
     }
 
     render() {
-        const { step1, num1, degrees, num2, isAlongAxis } = this.params;
+        const { step1, num1, degrees, num2 } = this.params;
 
         render(
             <>
@@ -42,15 +42,15 @@ export class RadialArrayDialog extends AbstractDialog<RadialArrayParams> {
                         </div>
                     </li>
                     <li>
-                        <label for="step1">Distance</label>
-                        <div class="fields">
-                            <plasticity-number-scrubber name="step1" value={step1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
-                        </div>
-                    </li>
-                    <li>
                         <label for="num1">Repeat</label>
                         <div class="fields">
                             <plasticity-number-scrubber precision={1} name="num1" value={num1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
+                    </li>
+                    <li>
+                        <label for="step1">Repeat distance</label>
+                        <div class="fields">
+                            <plasticity-number-scrubber name="step1" value={step1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                 </ul></>, this);

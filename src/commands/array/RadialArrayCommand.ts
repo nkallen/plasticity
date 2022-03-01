@@ -56,8 +56,8 @@ export class RadialArrayCommand extends Command {
         array.dir1 = step1.normalize();
         array.dir2 = constructionPlane.n.clone().normalize();
         array.center = p1;
-        dialog.render();
 
+        dialog.render();
         await array.update();
 
         await this.finished;
