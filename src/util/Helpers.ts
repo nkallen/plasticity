@@ -88,4 +88,8 @@ export class Helpers {
     remove(...objects: THREE.Object3D[]) {
         this.scene.remove(...objects);
     }
+
+    clear() {
+        this.scene.clear();
+    }
 }

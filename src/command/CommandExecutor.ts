@@ -11,6 +11,7 @@ import { SolidCopier } from "../editor/SolidCopier";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { AlreadyFinishedError } from "../util/CancellablePromise";
+import { Helpers } from "../util/Helpers";
 import { GConstructor } from "../util/Util";
 import Command from "./Command";
 import { NoOpError, ValidationError } from "./GeometryFactory";
@@ -29,6 +30,7 @@ export interface EditorLike {
     meshCreator: CachingMeshCreator;
     snaps: SnapManager;
     copier: SolidCopier;
+    helpers: Helpers;
 }
 
 export class CommandExecutor {
@@ -79,7 +81,7 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        const { snaps, signals, registry, originator, history, selection, contours, db, meshCreator, copier } = this.editor;
+        const { snaps, signals, registry, originator, history, selection, contours, db, meshCreator, copier, helpers } = this.editor;
         signals.commandStarted.dispatch(command);
         const disposable = registry.add('plasticity-viewport', {
             'command:finish': () => command.finish(),
@@ -112,22 +114,31 @@ export class CommandExecutor {
             originator.discardSideEffects(state);
             throw e;
         } finally {
-            document.body.removeAttribute("command");
-            for (const viewport of this.editor.viewports) {
-                viewport.enableControls();
+            PostCommandInvariants: {
+                document.body.removeAttribute("command");
+                for (const viewport of this.editor.viewports) {
+                    viewport.enableControls();
+                }
+                disposable.dispose();
+                db.clearTemporaryObjects();
+                snaps.xor = false;
+                PlaneDatabase.ScreenSpace.reset();
+                // TODO: remove when more data is gathered
+                if (helpers.scene.children.length > 0) console.error("Helpers scene is not empty");
+                helpers.clear();
             }
-            disposable.dispose();
-            db.clearTemporaryObjects();
-            snaps.xor = false;
-            PlaneDatabase.ScreenSpace.reset();
+
             signals.commandEnded.dispatch(command);
-            originator.validate();
-            console.groupCollapsed(command.title);
-            originator.debug();
-            for (const viewport of this.editor.viewports) {
-                viewport.validate();
+
+            DebugValidate: {
+                originator.validate();
+                console.groupCollapsed(command.title);
+                originator.debug();
+                for (const viewport of this.editor.viewports) {
+                    viewport.validate();
+                }
+                console.groupEnd();
             }
-            console.groupEnd();
         }
     }
 
