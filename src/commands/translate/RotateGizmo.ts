@@ -119,7 +119,7 @@ export class AxisAngleGizmo extends AngleGizmo {
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = this.sign * info.angle + this.state.original;
-        this.state.current = angle;
+        this.state.current = this.truncate(angle, info.event);
         cb(this.state.current);
     }
 

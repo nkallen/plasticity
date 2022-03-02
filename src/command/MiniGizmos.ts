@@ -4,6 +4,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { CancellableRegistor } from "../util/CancellableRegistor";
+import { deg2rad, rad2deg } from "../util/Conversion";
 import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
@@ -136,9 +137,15 @@ export class AngleGizmo extends CircularGizmo<number> {
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = info.angle + this.state.original;
-        this.state.current = angle;
+        this.state.current = this.truncate(angle, info.event);
         this._camera = info.viewport.camera;
         cb(this.state.current);
+    }
+
+    protected truncate(angle: number, event: MouseEvent): number {
+        if (event.ctrlKey) {
+            return deg2rad(Math.trunc(rad2deg(angle) / 5) * 5)
+        } else return angle
     }
 
     onKeyPress(cb: (angle: number) => void, text: string) {

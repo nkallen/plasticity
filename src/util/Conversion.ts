@@ -400,3 +400,11 @@ export function toArray<T>(x: T | T[] | undefined): T[] {
     if (Array.isArray(x)) return x;
     else return [x];
 }
+
+export function deg2rad(degrees: number) {
+    return 2 * Math.PI * (degrees / 360);
+}
+
+export function rad2deg(radians: number) {
+    return (radians * 360) / (2 * Math.PI);
+}

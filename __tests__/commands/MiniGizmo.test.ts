@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import { degToRad } from "three/src/math/MathUtils";
 import { Intersector, MovementInfo } from "../../src/command/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/command/MiniGizmos";
@@ -24,7 +25,7 @@ let viewport: Viewport;
 
 beforeEach(() => {
     editor = new Editor();
-    db = editor.db;
+    db = editor._db;
     signals = editor.signals;
     helpers = editor.helpers;
     gizmos = editor.gizmos;
@@ -42,23 +43,38 @@ describe(AngleGizmo, () => {
     test("it changes the angle, and respects interrupts", () => {
         const intersector = { raycast: jest.fn(), snap: jest.fn() } as Intersector;
         const cb = jest.fn();
-        const info = { viewport } as MovementInfo;
+        const event = new MouseEvent('move', { ctrlKey: false });
+        const info = { viewport, event } as MovementInfo;
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector, info);
-        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport, event } as MovementInfo);
         expect(gizmo.value).toBe(Math.PI / 2);
         gizmo.onPointerUp(cb, intersector, info);
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector, info);
-        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport, event } as MovementInfo);
         expect(gizmo.value).toBe(Math.PI);
 
         gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(Math.PI / 2);
         gizmo.onPointerUp(cb, intersector, info)
+        gizmo.onPointerLeave(intersector);
+    })
+
+    test("it truncates when ctrl is held", () => {
+        const intersector = { raycast: jest.fn(), snap: jest.fn() } as Intersector;
+        const cb = jest.fn();
+        const event = new MouseEvent('move', { ctrlKey: true });
+        const info = { viewport, event } as MovementInfo;
+
+        gizmo.onPointerEnter(intersector);
+        gizmo.onPointerDown(cb, intersector, info);
+        gizmo.onPointerMove(cb, intersector, { angle: degToRad(47), viewport, event } as MovementInfo);
+        expect(gizmo.value).toBe(degToRad(45));
+        gizmo.onPointerUp(cb, intersector, info);
         gizmo.onPointerLeave(intersector);
     })
 
