@@ -20,14 +20,14 @@ export abstract class Helper extends THREE.Object3D {
     get shouldRescaleOnZoom() { return this.parent?.type === 'Scene' }
 
     update(camera: THREE.Camera) {
-        this.scaleIndependentOfZoom(camera);
-
         const { worldPosition, worldQuaternion } = this;
         this.getWorldPosition(worldPosition);
         this.getWorldQuaternion(worldQuaternion);
         this.worldQuaternionInv.copy(worldQuaternion).invert();
 
         this.eye.copy(camera.position).sub(worldPosition).normalize();
+
+        this.scaleIndependentOfZoom(camera, worldPosition);
     }
 
     // Since gizmos tend to scale as the camera moves in and out, set the
@@ -35,11 +35,11 @@ export abstract class Helper extends THREE.Object3D {
     readonly relativeScale = new THREE.Vector3(1, 1, 1);
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
-    protected scaleIndependentOfZoom(camera: THREE.Camera) {
+    protected scaleIndependentOfZoom(camera: THREE.Camera, worldPosition: THREE.Vector3) {
         this.scale.copy(this.relativeScale);
         if (!this.shouldRescaleOnZoom) return;
 
-        Helper.scaleIndependentOfZoom(this, camera, this.worldPosition);
+        Helper.scaleIndependentOfZoom(this, camera, worldPosition);
     }
 
     static scaleIndependentOfZoom(object: THREE.Object3D, camera: THREE.Camera, worldPosition: THREE.Vector3) {

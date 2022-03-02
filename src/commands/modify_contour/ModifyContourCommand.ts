@@ -15,6 +15,7 @@ import { ScaleGizmo } from "../translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "../translate/ScaleKeyboardGizmo";
 import { AbstractFreestyleMoveCommand, AbstractFreestyleRotateCommand, AbstractFreestyleScaleCommand } from "../translate/FreestyleTranslateCommand";
 import { MoveFactoryLike, RotateFactoryLike } from '../translate/TranslateFactory';
+import { onKeyPress } from "../translate/TranslateCommand";
 
 
 export class ModifyContourCommand extends Command {
@@ -45,40 +46,35 @@ export class MoveControlPointCommand extends Command {
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
-        const factory = new MoveContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
-        factory.controlPoints = points;
-        factory.originalItem = curve;
-        factory.contour = await factory.prepare(curve);
+        const move = new MoveContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.controlPoints = points;
+        move.originalItem = curve;
+        move.contour = await move.prepare(curve);
 
         const centroid = new THREE.Vector3();
         for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
-        const dialog = new MoveDialog(factory, editor.signals);
-        const gizmo = new MoveGizmo(factory, editor);
+        const dialog = new MoveDialog(move, editor.signals);
+        const gizmo = new MoveGizmo(move, editor);
         const keyboard = new MoveKeyboardGizmo(editor);
 
         dialog.execute(async (params) => {
-            await factory.update();
+            await move.update();
             gizmo.render(params);
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
         gizmo.execute(params => {
-            factory.update();
+            move.update();
+            dialog.render();
         }).resource(this);
 
-        keyboard.execute(async (s) => {
-            switch (s) {
-                case 'free':
-                    this.finish();
-                    this.editor.enqueue(new FreestyleMoveControlPointCommand(this.editor), false);
-            }
-        }).resource(this);
+        keyboard.execute(onKeyPress(move, gizmo, FreestyleMoveControlPointCommand).bind(this)).resource(this);
 
         await this.finished;
 
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await move.commit() as visual.SpaceInstance<visual.Curve3D>;
         selected.addCurve(result);
     }
 }

@@ -276,12 +276,12 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
         plane.position.copy(worldPosition);
         plane.updateMatrixWorld();
 
-        this.cameraFactor = AbstractAxisGizmo.cameraFactor(camera, this.position)
+        this.cameraFactorForPointerVelocity = AbstractAxisGizmo.cameraFactorForPointerVelocity(camera, this.position)
     }
-    protected cameraFactor = 1;
+    protected cameraFactorForPointerVelocity = 1;
 
     private static readonly o = new THREE.Vector3();
-    static cameraFactor(camera: ProxyCamera, target: THREE.Vector3): number {
+    static cameraFactorForPointerVelocity(camera: ProxyCamera, target: THREE.Vector3): number {
         const { o } = this;
         if (camera.isPerspectiveCamera) {
             o.copy(camera.position).sub(target);
@@ -422,12 +422,12 @@ export class DistanceGizmo extends AbstractAxisGizmo {
         return original + dist
     }
 
-    protected override scaleIndependentOfZoom(camera: THREE.Camera) {
+    protected override scaleIndependentOfZoom(camera: THREE.Camera, worldPosition: THREE.Vector3) {
         const { relativeScale, tip, knob, shaft, _length } = this;
         tip.scale.copy(relativeScale);
         knob.scale.copy(relativeScale);
-        Helper.scaleIndependentOfZoom(tip, camera, this.worldPosition);
-        const factor = Helper.scaleIndependentOfZoom(knob, camera, this.worldPosition);
+        Helper.scaleIndependentOfZoom(tip, camera, worldPosition);
+        const factor = Helper.scaleIndependentOfZoom(knob, camera, worldPosition);
         const shaftLength = _length + this.minShaft * factor;
         shaft.scale.y = shaftLength;
         tip.position.set(0, shaftLength, 0);
@@ -471,7 +471,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         start2center.copy(pointStart2d).sub(center2d);
         const sign = Math.sign(end2center.dot(start2center));
 
-        const magnitude = this.accumulate(this.state.original, end2center.length() * this.cameraFactor, this.denominator * this.cameraFactor, sign);
+        const magnitude = this.accumulate(this.state.original, end2center.length() * this.cameraFactorForPointerVelocity, this.denominator * this.cameraFactorForPointerVelocity, sign);
         this.state.current = magnitude;
         this.render(this.state.current);
         cb(this.state.current);
