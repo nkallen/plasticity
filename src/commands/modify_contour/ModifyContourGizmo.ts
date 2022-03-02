@@ -182,11 +182,9 @@ interface GizmoInfo<I> {
     addEventHandlers: (event: PointerEvent) => Disposable;
 }
 
-export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
+export class AdvancedGizmoTriggerStrategy<I, O> extends GizmoTriggerStrategy<I, O> {
     private readonly allGizmos: GizmoInfo<I>[] = [];
     private readonly raycaster = new THREE.Raycaster();
-
-    constructor(private readonly editor: EditorLike) { }
 
     execute(): Disposable {
         const disposable = new CompositeDisposable();
@@ -251,6 +249,6 @@ export class AdvancedGizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<
 
     register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable {
         this.allGizmos.push({ gizmo, addEventHandlers });
-        return new Disposable();
+        return this.registerCommands(gizmo, viewport, addEventHandlers);
     }
 }

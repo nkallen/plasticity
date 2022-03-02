@@ -17,7 +17,7 @@ export class ScaleDialog extends AbstractDialog<ScaleParams> {
             <>
                 <ul>
                     <li>
-                        <label for="scale">X</label>
+                        <label for="scale">XYZ</label>
                         <div class="fields">
                             <plasticity-number-scrubber name="scale.x" value={scale.x} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                             <plasticity-number-scrubber name="scale.y" value={scale.y} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
