@@ -12,7 +12,7 @@ import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { PlaneSnap, PointAxisSnap, PointSnap, Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
-import { PointSnapCache, SnapManagerGeometryCache } from "../../editor/snaps/SnapManagerGeometryCache";
+import { PointSnapCache } from "../../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams } from '../../editor/snaps/SnapPicker';
 import { Finish } from '../../util/Cancellable';
 import { CancellablePromise } from "../../util/CancellablePromise";

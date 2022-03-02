@@ -34,18 +34,15 @@ export class BridgeCurvesCommand extends Command {
         line.push(p1);
         const { info: { snap: snap2 } } = await pointPicker.execute(({ point: p2, info: { snap: snap2 } }) => {
             line.last = p2;
-            if (line.hasEnoughPoints)
-                line.update();
+            if (line.hasEnoughPoints) line.update();
 
-            if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap))
-                return;
+            if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) return;
             factory.curve2 = snap2.view;
             factory.t2 = snap2.t(p2);
             factory.update();
             dialog.render();
         }).resource(this);
-        if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap))
-            throw new ValidationError();
+        if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) throw new ValidationError();
         line.cancel();
 
         await this.finished;
