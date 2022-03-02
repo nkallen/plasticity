@@ -5,7 +5,7 @@ import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { DoCacheMeshCreator, FaceCacheMeshCreator, MeshCreator, ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { DoCacheMeshCreator, ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
 import { SolidCopier } from '../src/editor/SolidCopier';
 import { unit } from '../src/util/Conversion';
