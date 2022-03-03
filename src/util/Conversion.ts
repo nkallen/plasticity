@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { PlaneInstance } from "../visual_model/VisualModel";
 
 export function point2point(from: THREE.Vector3, factor?: number): c3d.CartPoint3D;
 export function point2point(from: THREE.Vector2, factor?: number): c3d.CartPoint;
@@ -391,7 +392,9 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
     } else if (cast instanceof c3d.CubicSpline) {
         return c3d.CubicSpline3D.Create(cast, placement)!;
     } else {
-        throw new Error("Unsupported curve: " + cast.constructor.name);
+        const copy = c3d.ActionCurve.NurbsCopy(curve);
+        const nurbs = copy.Cast<c3d.Nurbs>(copy.IsA());
+        return c3d.Nurbs3D.Create(nurbs, placement)!;
     }
 }
 

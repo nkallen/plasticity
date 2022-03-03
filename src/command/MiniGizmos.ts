@@ -148,7 +148,7 @@ export class AngleGizmo extends CircularGizmo<number> {
         } else return angle
     }
 
-    onKeyPress(cb: (angle: number) => void, text: string) {
+    override onKeyPress(cb: (angle: number) => void, text: string) {
         const angle = THREE.MathUtils.degToRad(Number(text));
         this.state.current = angle;
         cb(angle);
@@ -240,6 +240,12 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
             this.render(this.state.current);
             cb(this.state.current);
         }
+    }
+
+    override onKeyPress(cb: (distance: number) => void, text: string) {
+        const distance = Number(text);
+        this.state.current = distance;
+        cb(distance);
     }
 
     protected abstract accumulate(original: number, sign: number, dist: number): number;

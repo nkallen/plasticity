@@ -405,10 +405,20 @@ export default {
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
         },
+        TrimmedCurve: {
+            rawHeader: "cur_trimmed_curve.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
+        },
         ReparamCurve3D: {
             rawHeader: "cur_reparam_curve3d.h",
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
+        },
+        ReparamCurve: {
+            rawHeader: "cur_reparam_curve.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
         },
         BridgeCurve3D: {
             rawHeader: "cur_bridge3d.h",
@@ -419,6 +429,11 @@ export default {
             rawHeader: "cur_offset_curve3d.h",
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
+        },
+        OffsetCurve: {
+            rawHeader: "cur_offset_curve.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
         },
         SurfaceCurve: {
             rawHeader: "cur_surface_curve.h",
@@ -1220,6 +1235,11 @@ export default {
             extends: "PolyCurve3D",
             dependencies: ["PolyCurve3D.h"],
         },
+        Bezier: {
+            rawHeader: "cur_bezier.h",
+            extends: "PolyCurve",
+            dependencies: ["PolyCurve.h"],
+        },
         CubicSpline3D: {
             rawHeader: "cur_cubic_spline3d.h",
             extends: "PolyCurve3D",
@@ -1986,6 +2006,7 @@ export default {
                 "MbResultType Line(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
                 "MbResultType Segment(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
                 "MbResultType RegularPolygon(const MbCartPoint & centre, const MbCartPoint & point, size_t vertexCount, bool describe, MbCurve *& result)",
+                "MbResultType NurbsCopy(const MbCurve & curve, MbCurve *& result )",
             ]
 
         },
@@ -2005,6 +2026,7 @@ export default {
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
                 "MbResultType PlaneCurve(const MbPlacement3D &place, const MbCurve &curve, MbCurve3D *& result)",
                 "MbCurve3D * DuplicateCurve(const MbCurve3D & curve, VERSION version = Math::DefaultMathVersion())",
+                "MbResultType NurbsCopy(const MbCurve3D & curve, MbCurve3D *& result)",
             ]
         },
         ActionRegion: {
