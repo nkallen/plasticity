@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { PlaneInstance } from "../visual_model/VisualModel";
 
 export function point2point(from: THREE.Vector3, factor?: number): c3d.CartPoint3D;
 export function point2point(from: THREE.Vector2, factor?: number): c3d.CartPoint;
@@ -350,7 +349,11 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
         } else if (cast instanceof c3d.PlaneCurve) {
             const { placement, curve2d } = cast.GetPlaneCurve(false);
             const curve3d = curve2d2curve3d(curve2d, placement);
-            process.unshift(curve3d);
+            if (curve3d !== undefined) {
+                process.unshift(curve3d);
+            } else {
+                result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
+            }
         } else if (cast instanceof c3d.SurfaceIntersectionCurve) {
             process.unshift(cast.GetSpaceCurve()!);
         } else if (cast instanceof c3d.ContourOnPlane) {
@@ -367,7 +370,7 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
     return result;
 }
 
-export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c3d.Curve3D {
+export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c3d.Curve3D | undefined {
     const cast = curve.Cast<c3d.Curve>(curve.IsA());
     if (cast instanceof c3d.LineSegment) {
         const p1_2d = cast.GetPoint1();
@@ -379,7 +382,7 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         const result = new c3d.Contour3D();
         for (let i = 0, l = cast.GetSegmentsCount(); i < l; i++) {
             const segment2d = cast.GetSegment(i)!;
-            const segment3d = curve2d2curve3d(segment2d, placement);
+            const segment3d = curve2d2curve3d(segment2d, placement) ?? c3d.ActionCurve3D.PlaneCurve(placement, segment2d);
             result.AddCurveWithRuledCheck(segment3d, 10e-4, true);
         }
         return result;
@@ -391,10 +394,6 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         return new c3d.Polyline3D(cast, placement)!;
     } else if (cast instanceof c3d.CubicSpline) {
         return c3d.CubicSpline3D.Create(cast, placement)!;
-    } else {
-        const copy = c3d.ActionCurve.NurbsCopy(curve);
-        const nurbs = copy.Cast<c3d.Nurbs>(copy.IsA());
-        return c3d.Nurbs3D.Create(nurbs, placement)!;
     }
 }
 
