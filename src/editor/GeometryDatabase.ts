@@ -418,6 +418,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.version2name),
+            new Map(this.name2version),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
             new Set(this.automatics));
@@ -426,6 +427,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
         (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
+        (this.name2version as GeometryDatabase['name2version']) = new Map(m.name2version);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
         (this.automatics as GeometryDatabase['automatics']) = new Set(m.automatics);
@@ -462,12 +464,13 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     validate() {
+        console.assert(this.name2version.size === this.version2name.size, "maps should have same size", this.name2version, this.version2name);
     }
 
     debug() {
         console.group("GeometryDatabase");
         console.info("Version: ", this.version);
-        const { geometryModel, topologyModel, controlPointModel } = this;
+        const { geometryModel, topologyModel, controlPointModel, name2version, version2name } = this;
         console.group("geometryModel");
         console.table([...geometryModel].map(([name]) => { return { name } }));
         console.groupEnd();
@@ -476,6 +479,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         console.groupEnd();
         console.group("controlPointModel");
         console.table([...controlPointModel].map(([name, stack]) => { return { name } }));
+        console.groupEnd();
+        console.group("name2version");
+        console.table([...name2version].map(([name, version]) => { return { name, version } }));
+        console.groupEnd();
+        console.group("version2name");
+        console.table([...version2name].map(([version, name]) => { return { version, name } }));
         console.groupEnd();
         console.groupEnd();
     }

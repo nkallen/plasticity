@@ -12,8 +12,8 @@ export class CrossPoint {
 }
 
 export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> {
-    private readonly curve2touched = new Map<c3d.SimpleName, Set<c3d.SimpleName>>();
-    private readonly id2cross = new Map<c3d.SimpleName, Set<CrossPoint>>();
+    private readonly curve2touched = new Map<c3d.SimpleName, ReadonlySet<c3d.SimpleName>>();
+    private readonly id2cross = new Map<c3d.SimpleName, ReadonlySet<CrossPoint>>();
     private readonly id2curve = new Map<c3d.SimpleName, c3d.Curve3D>();
     private readonly _crosses: Set<CrossPoint> = new Set();
     get crosses(): ReadonlySet<CrossPoint> { return this._crosses }
@@ -32,16 +32,22 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         id2cross.set(id, new Set());
         curve2touched.set(id, touched);
         for (const touchee of touched) {
-            let other = curve2touched.get(touchee)!;
-            other = new Set(other);
+            const orig = curve2touched.get(touchee)!;
+            const other = new Set(orig);
             other.add(id);
             // updating the touched curves is copy-on-write to allow for nesting CrossPointDatabases
             curve2touched.set(touchee, other);
         }
 
         for (const cross of newCrosses) {
-            id2cross.get(cross.on1.id)!.add(cross);
-            id2cross.get(cross.on2.id)!.add(cross);
+            const orig1 = new Set(id2cross.get(cross.on1.id));
+            orig1.add(cross);
+            id2cross.set(cross.on1.id, orig1);
+
+            const orig2 = new Set(id2cross.get(cross.on2.id));
+            orig2.add(cross);
+            id2cross.set(cross.on2.id, orig2);
+            
             allCrosses.add(cross);
         }
         return newCrosses;

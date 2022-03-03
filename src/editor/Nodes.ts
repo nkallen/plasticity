@@ -19,8 +19,8 @@ export class Nodes {
         const name = this.db.lookupName(version)!;
         this.hidden.delete(name);
         this.invisible.delete(name);
-        this.invisible.delete(name);
         this.name2material.delete(name);
+        this.unselectable.delete(name)
     }
 
     isSelectable(item: visual.Item): boolean {
@@ -33,13 +33,11 @@ export class Nodes {
         const name = this.db.lookupName(item.simpleName)!;
         const oldValue = !unselectable.has(name);
         if (newValue) {
-            if (oldValue)
-                return;
+            if (oldValue) return;
             unselectable.delete(name);
             this.signals.objectSelectable.dispatch(item);
         } else {
-            if (!oldValue)
-                return;
+            if (!oldValue) return;
             unselectable.add(name);
             this.signals.objectUnselectable.dispatch(item);
         }
@@ -72,13 +70,11 @@ export class Nodes {
         const name = this.db.lookupName(item.simpleName)!;
         const oldValue = !invisible.has(name);
         if (newValue) {
-            if (oldValue)
-                return;
+            if (oldValue) return;
             invisible.delete(name);
             this.signals.objectUnhidden.dispatch(item);
         } else {
-            if (!oldValue)
-                return;
+            if (!oldValue) return;
             invisible.add(name);
             this.signals.objectHidden.dispatch(item);
         }
@@ -118,12 +114,48 @@ export class Nodes {
         return new NodeMemento(
             new Map(this.name2material),
             new Set(this.hidden),
-            new Set(this.invisible));
+            new Set(this.invisible),
+            new Set(this.unselectable),
+            );
     }
 
     restoreFromMemento(m: NodeMemento) {
         (this.name2material as Nodes['name2material']) = new Map(m.name2material);
         (this.hidden as Nodes['hidden']) = new Set(m.hidden);
         (this.invisible as Nodes['invisible']) = new Set(m.invisible);
+        (this.unselectable as Nodes['unselectable']) = new Set(m.unselectable);
+    }
+
+    validate() {
+        for (const name of this.name2material.keys()) {
+            console.assert(this.db.lookupByName(name) !== undefined, "item in database", name);
+        }
+        for (const name of this.hidden) {
+            console.assert(this.db.lookupByName(name) !== undefined, "item in database", name);
+        }
+        for (const name of this.invisible) {
+            console.assert(this.db.lookupByName(name) !== undefined, "item in database", name);
+        }
+        for (const name of this.unselectable) {
+            console.assert(this.db.lookupByName(name) !== undefined, "item in database", name);
+        }
+    }
+
+    debug() {
+        console.group("Nodes");
+        const { name2material, hidden, invisible, unselectable } = this;
+        console.group("name2material");
+        console.table([...name2material].map(([name, mat]) => { return { name, mat } }));
+        console.groupEnd();
+        console.group("hidden");
+        console.table([...hidden].map((name) => { return { name } }));
+        console.groupEnd();
+        console.group("invisible");
+        console.table([...invisible].map((name) => { return { name } }));
+        console.groupEnd();
+        console.group("unselectable");
+        console.table([...unselectable].map((name) => { return { name } }));
+        console.groupEnd();
+        console.groupEnd();
     }
 }

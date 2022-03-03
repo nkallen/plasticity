@@ -28,6 +28,7 @@ export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
+        readonly name2version: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
         readonly automatics: ReadonlySet<c3d.SimpleName>,
@@ -55,6 +56,7 @@ export class NodeMemento {
         readonly name2material: ReadonlyMap<c3d.SimpleName, number>,
         readonly hidden: ReadonlySet<c3d.SimpleName>,
         readonly invisible: ReadonlySet<c3d.SimpleName>,
+        readonly unselectable: ReadonlySet<c3d.SimpleName>,
     ) { }
 }
 
@@ -105,15 +107,15 @@ export class ViewportMemento {
 
 export class SnapMemento {
     constructor(
-        readonly id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.SimpleName, Set<PointSnap>>>,
-        readonly hidden: ReadonlyMap<c3d.SimpleName, Set<PointSnap>>
+        readonly id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.SimpleName, ReadonlySet<PointSnap>>>,
+        readonly hidden: ReadonlyMap<c3d.SimpleName, ReadonlySet<PointSnap>>
     ) { }
 }
 
 export class CrossPointMemento {
     constructor(
-        readonly curve2touched: ReadonlyMap<c3d.SimpleName, Set<c3d.SimpleName>>,
-        readonly id2cross: ReadonlyMap<c3d.SimpleName, Set<CrossPoint>>,
+        readonly curve2touched: ReadonlyMap<c3d.SimpleName, ReadonlySet<c3d.SimpleName>>,
+        readonly id2cross: ReadonlyMap<c3d.SimpleName, ReadonlySet<CrossPoint>>,
         readonly id2curve: ReadonlyMap<c3d.SimpleName, c3d.Curve3D>,
         readonly crosses: ReadonlySet<CrossPoint>,
     ) { }
@@ -204,6 +206,7 @@ export class EditorOriginator {
         this.selection.validate();
         this.curves.validate();
         this.db.validate();
+        this.db.nodes.validate();
     }
 
     debug() {
@@ -214,6 +217,7 @@ export class EditorOriginator {
         this.curves.debug();
         this.crosses.debug();
         this.db.debug();
+        this.db.nodes.debug();
         console.groupEnd();
     }
 }

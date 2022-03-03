@@ -167,12 +167,14 @@ export class Editor {
 
     private async undo() {
         this.executor.cancelActiveCommand();
+        console.info("Undo");
         this.history.undo();
         this.executor.enqueueDefaultCommand();
     }
 
     private redo() {
         this.executor.cancelActiveCommand();
+        console.info("Redo");
         this.history.redo();
         this.executor.enqueueDefaultCommand();
     }

@@ -54,7 +54,7 @@ export class PointSnapCache {
     private _points: Set<BetterRaycastingPoints> = new Set();
     get points() { return this._points; }
 
-    add(points: Set<PointSnap>) {
+    add(points: ReadonlySet<PointSnap>) {
         const pointInfo = new Float32Array(points.size * 3);
         let j = 0;
         const array = [...points];
