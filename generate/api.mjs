@@ -405,6 +405,16 @@ export default {
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
         },
+        ReparamCurve3D: {
+            rawHeader: "cur_reparam_curve3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
+        BridgeCurve3D: {
+            rawHeader: "cur_bridge3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
         OffsetCurve3D: {
             rawHeader: "cur_offset_curve3d.h",
             extends: "Curve3D",
@@ -1994,6 +2004,7 @@ export default {
                 { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
                 "MbResultType PlaneCurve(const MbPlacement3D &place, const MbCurve &curve, MbCurve3D *& result)",
+                "MbCurve3D * DuplicateCurve(const MbCurve3D & curve, VERSION version = Math::DefaultMathVersion())",
             ]
         },
         ActionRegion: {

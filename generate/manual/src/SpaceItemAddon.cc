@@ -26,6 +26,8 @@
 #include "../include/Plane.h"
 #include "../include/SurfaceIntersectionCurve.h"
 #include "../include/OffsetCurve3D.h"
+#include "../include/ReparamCurve3D.h"
+#include "../include/BridgeCurve3D.h"
 #include "../include/Assembly.h"
 #include "../include/PlaneCurve.h"
 #include "../include/SurfaceCurve.h"
@@ -110,6 +112,10 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return SurfaceCurve::NewInstance(env, (MbSurfaceCurve *)(_underlying));
     case st_OffsetCurve3D:
         return OffsetCurve3D::NewInstance(env, (MbOffsetCurve3D *)(_underlying));
+    case st_ReparamCurve3D:
+        return ReparamCurve3D::NewInstance(env, (MbReparamCurve3D *)(_underlying));
+    case st_BridgeCurve3D:
+        return BridgeCurve3D::NewInstance(env, (MbBridgeCurve3D *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));

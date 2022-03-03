@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { CornerAngle, inst2curve, normalizeCurve } from '../../util/Conversion';
 import { GeometryFactory } from "../../command/GeometryFactory";
+import { CornerAngle, inst2curve, normalizeCurve } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
 import { ContourFilletFactory, SegmentAngle } from "./ContourFilletFactory";
 import { ModifyContourPointParams, MoveContourPointFactory } from "./ModifyContourPointFactory";
 import { ModifyContourSegmentFactory, ModifyContourSegmentParams } from "./ModifyContourSegmentFactory";
