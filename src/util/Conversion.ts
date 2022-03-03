@@ -379,7 +379,7 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         for (let i = 0, l = cast.GetSegmentsCount(); i < l; i++) {
             const segment2d = cast.GetSegment(i)!;
             const segment3d = curve2d2curve3d(segment2d, placement);
-            result.AddCurveWithRuledCheck(segment3d);
+            result.AddCurveWithRuledCheck(segment3d, 10e-4, true);
         }
         return result;
     } else if (cast instanceof c3d.Arc) {
