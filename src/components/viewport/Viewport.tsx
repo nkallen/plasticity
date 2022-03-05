@@ -67,7 +67,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly selector = new ViewportSelector(this, this.editor);
     readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.signals);
 
-    lastPointerEvent?: PointerEvent;
+    lastPointerEvent?: MouseEvent;
 
     private readonly scene = new THREE.Scene();
     private readonly phantomsScene = new THREE.Scene(); // Objects visualizing a geometry computation, like a transparent red boolean difference object.
@@ -558,7 +558,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     debug(): void { }
 
     // top left is 0,0, bottom right is width,height
-    getMousePosition(event: MouseEvent, to = new THREE.Vector2()): THREE.Vector2 {
+    private getMousePosition(event: MouseEvent, to = new THREE.Vector2()): THREE.Vector2 {
         const [x, y] = [event.clientX, event.clientY];
         const rect = this.domElement.getBoundingClientRect();
         to.set((x - rect.left), rect.height - (y - rect.top));
@@ -567,7 +567,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     // input: top left is 0,0, bottom right is width,height
     // output: bottom left -1,-1, top right 1,1
-    normalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
+    private normalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
         const rect = this.domElement.getBoundingClientRect();
         position.set(position.x / rect.width, position.y / rect.height);
         position.set((position.x * 2) - 1, (position.y * 2) - 1);
@@ -577,7 +577,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     // input: bottom left -1,-1, top right 1,1
     // output: top left is 0,0, botton right is width,height
     denormalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
-        position.set((position.x + 1) / 2, (position.y + 1) / 2);
+        position.set((1 + position.x) / 2, (1 - position.y) / 2);
         const rect = this.domElement.getBoundingClientRect();
         position.set(position.x * rect.width, position.y * rect.height);
         return position;

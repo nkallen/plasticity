@@ -163,6 +163,7 @@ describe(LengthGizmo, () => {
         const intersector = { raycast: jest.fn(), snap: jest.fn() };
         const cb = jest.fn();
         let info = {} as MovementInfo;
+        const moveEvent = new MouseEvent('move', { ctrlKey: false });
 
         gizmo.onPointerEnter(intersector);
         intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
@@ -183,6 +184,29 @@ describe(LengthGizmo, () => {
         gizmo.onInterrupt(() => { });
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
+        gizmo.onPointerLeave(intersector);
+    })
+
+    test("ctrl key uses snaps", () => {
+        const snap = jest.fn();
+        const intersector = { raycast: jest.fn(), snap };
+        const cb = jest.fn();
+        let info = {} as MovementInfo;
+        const moveEvent = new MouseEvent('move', { ctrlKey: true });
+
+        snap.mockImplementation(() => [{ position: new THREE.Vector3(1, 1, 1) }]);
+        gizmo.update(viewport.camera);
+
+        gizmo.onPointerEnter(intersector);
+
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
+        gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
+
+        gizmo.onPointerMove(cb, intersector, { viewport, event: moveEvent } as MovementInfo);
+        expect(gizmo.value).toBe(1);
+
+        gizmo.onPointerUp(cb, intersector, info)
+
         gizmo.onPointerLeave(intersector);
     })
 })

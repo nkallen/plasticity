@@ -57,6 +57,11 @@ describe(ViewportPointControl, () => {
         expect(enqueue).toBeCalledTimes(1);
     })
 
+    // NOTE: the next couple methods use complicated mocking to test. With profound regret!
+    // Starting a click enqueues a command. The command then registers a callback that is invoked
+    // on further mouse events. Here, we just avoid enqueing the command; so we register a custom
+    // callback for the purpose of testing, and assert on that.
+
     test('startClick & startDrag enqueues move command', async () => {
         expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
         let command: any;
@@ -92,14 +97,24 @@ describe(ViewportPointControl, () => {
 
         test('dragging on a free construction plane', async () => {
             expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
+            const enqueue = jest.spyOn(editor, 'enqueue').mockImplementation((c, _) => {
+                return Promise.resolve();
+            })
             points.startDrag(new MouseEvent('move'), new THREE.Vector2());
+            expect(enqueue).toBeCalledTimes(1);
+
             let result;
             const cb = jest.fn().mockImplementation(value => result = value);
             const promise = points.execute(cb);
+
+            expect(cb).toBeCalledTimes(0);
             points.continueDrag(new MouseEvent('move'), new THREE.Vector2(1, 1));
-            expect(cb).toHaveBeenCalledTimes(1);
+            expect(cb).toBeCalledTimes(1);
+
             expect(result).toApproximatelyEqual(new THREE.Vector3(-4, 3, 0));
-            promise.finish();
+
+            points.endDrag(new THREE.Vector2());
+
             await promise;
         })
     })

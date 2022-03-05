@@ -247,7 +247,7 @@ export class AdvancedGizmoTriggerStrategy<I, O> extends GizmoTriggerStrategy<I, 
         return disposable;
     }
 
-    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: MouseEvent) => Disposable): Disposable {
         this.allGizmos.push({ gizmo, addEventHandlers });
         return this.registerCommands(gizmo, viewport, addEventHandlers);
     }

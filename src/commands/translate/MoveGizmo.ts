@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { ProxyCamera } from "../../components/viewport/ProxyCamera";
-import { CancellablePromise } from "../../util/CancellablePromise";
-import { EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
+import { MovementInfo, EditorLike, Intersector, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
-import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../../command/MiniGizmos";
+import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, CompositeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, PlanarGizmo, VectorStateMachine } from "../../command/MiniGizmos";
+import { ProxyCamera } from "../../components/viewport/ProxyCamera";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { MoveParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -87,16 +87,16 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
     readonly state = new VectorStateMachine(new THREE.Vector3());
 
-    onPointerMove(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
+    onPointerMove(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
         const { plane, startMousePosition, state } = this;
 
         const planeIntersect = intersect.raycast(plane);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         const delta = planeIntersect.point.clone().sub(startMousePosition).add(state.original);
-
         this.state.current = delta;
         cb(delta);
+        return delta;
     }
 }
 
@@ -109,10 +109,11 @@ export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
         this.setup();
     }
 
-    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
+    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
         this.delta.copy(info.pointEnd3d).sub(info.pointStart3d).add(this.state.original);
         this.state.current = this.delta.clone();
         cb(this.state.current);
+        return this.state.current;
     }
 }
 
@@ -121,7 +122,7 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
     readonly tip = new THREE.Mesh(arrowGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
-    readonly helper = new AxisHelper(this.material.line);
+    readonly helper = new CompositeHelper([new AxisHelper(this.material.line), new NumberHelper()]);
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
         super(name, editor);

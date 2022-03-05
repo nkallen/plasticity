@@ -1,5 +1,3 @@
-const nothing = async () => { };
-
 // There are some "jobs"/tasks that are composed as sequences of promises, and we must not interleave jobs.
 // Thus, the SequentialExecutor class prevents that. Cf, CommandExecutor for a more idiosyncratic version of this pattern.
 type Queue = Array<[() => Promise<any>, Delay<any>]>;

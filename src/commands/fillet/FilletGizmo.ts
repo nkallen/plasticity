@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, CompositeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, sphereGeometry } from "../../command/MiniGizmos";
 import { groupBy } from "../../command/MultiFactory";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
@@ -161,7 +161,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
 export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     readonly state = new MagnitudeStateMachine(0);
     protected material = this.editor.gizmos.default;
-    readonly helper = new AxisHelper(this.material.line);
+    readonly helper = new CompositeHelper([new AxisHelper(this.material.line), new NumberHelper()]);
     readonly tip = new THREE.Mesh(sphereGeometry, this.material.mesh);
     protected readonly shaft = new THREE.Mesh();
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
@@ -194,8 +194,10 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
         // is in world space
         this.tip.scale.copy(this.relativeScale);
         this.knob.scale.copy(this.relativeScale);
+        this.helper.scale.copy(this.relativeScale);
         Helper.scaleIndependentOfZoom(this.tip, camera, this.worldPosition);
         Helper.scaleIndependentOfZoom(this.knob, camera, this.worldPosition);
+        Helper.scaleIndependentOfZoom(this.helper, camera, this.worldPosition);
     }
 }
 
@@ -226,10 +228,18 @@ class FilletStretchGizmo extends AbstractAxialScaleGizmo {
         if (original === 0) return Math.max(0, dist - denom);
         else return (original + ((dist - denom) * original) / denom);
     }
+
+    override get shouldRescaleOnZoom(): boolean {
+        return true;
+    }
 }
 
 class ChamferStretchGizmo extends FilletStretchGizmo {
     protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
         return -Math.abs(super.accumulate(original, dist, denom, sign));
+    }
+
+    override get shouldRescaleOnZoom(): boolean {
+        return true;
     }
 }

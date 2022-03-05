@@ -123,8 +123,10 @@ export class CommandExecutor {
                 db.clearTemporaryObjects();
                 snaps.xor = false;
                 PlaneDatabase.ScreenSpace.reset();
-                // TODO: remove when more data is gathered
-                if (helpers.scene.children.length > 0) console.error("Helpers scene is not empty");
+                if (helpers.scene.children.length > 0) {
+                    console.error("Helpers scene is not empty");
+                    console.error([...helpers.scene.children]);
+                }
                 helpers.clear();
             }
 

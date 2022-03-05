@@ -2,42 +2,29 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import LineFactory from "../../src/commands/line/LineFactory";
-import { RegionFactory } from "../../src/commands/region/RegionFactory";
-import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { SolidCopier } from "../../src/editor/SolidCopier";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
-import theme from '../../src/startup/default-theme';
-import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, GeometryGroupUtils, SpaceInstance } from '../../src/visual_model/VisualModel';
 import { CurveEdgeGroupBuilder, CurveSegmentGroupBuilder, mergeBufferAttributes, mergeBufferGeometries } from '../../src/visual_model/VisualModelBuilder';
 import { BetterRaycastingPoints } from "../../src/visual_model/VisualModelRaycasting";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 
 let materials: MaterialDatabase;
-let makeSphere: SphereFactory;
-let makeLine: LineFactory;
 let makeCircle: CenterCircleFactory;
 let db: GeometryDatabase;
 let signals: EditorSignals;
-let makeRegion: RegionFactory;
-let highlighter: RenderedSceneBuilder;
 let selection: SelectionDatabase;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    makeSphere = new SphereFactory(db, materials, signals);
-    makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
-    makeRegion = new RegionFactory(db, materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
-    highlighter = new RenderedSceneBuilder(db, materials, selection, theme, signals);
 });
 
 
@@ -171,7 +158,7 @@ describe(mergeBufferAttributes, () => {
 describe(mergeBufferGeometries, () => {
     test('it works', () => {
         const grids: c3d.MeshBuffer[] = [
-            { index: new Uint32Array([1, 2]), position: new Float32Array([1, 2, 3]), normal: new Float32Array([10, 11, 12]) },
+            { index: new Uint32Array([1, 2]), position: new Float32Array([1, 2, 3]), normal: new Float32Array([10, 11, 12]) } as any,
             { index: new Uint32Array([3, 4]), position: new Float32Array([4, 5, 6]), normal: new Float32Array([13, 14, 15]) },
         ]
         const result = mergeBufferGeometries(grids);

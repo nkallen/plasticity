@@ -144,7 +144,6 @@ export default {
 
     "[command='fillet-solid'] plasticity-viewport": {
         "v": "gizmo:fillet-solid:add",
-        "f": "gizmo:fillet-solid:distance",
         "d": "gizmo:fillet-solid:fillet",
         "c": "gizmo:fillet-solid:chamfer",
         "a": "gizmo:fillet-solid:angle",
