@@ -120,10 +120,12 @@ export class AxisAngleGizmo extends AngleGizmo {
     }
 
     override onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
+        if (this.mode !== 'pointer') return this.state.current;
+
         const angle = this.sign * info.angle + this.state.original;
         this.state.current = this.truncate(angle, info.event);
         cb(this.state.current);
-        return this.state.current;
+        return info.angle;
     }
 
     get shouldLookAtCamera() { return false }

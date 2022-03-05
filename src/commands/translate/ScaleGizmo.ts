@@ -4,7 +4,7 @@ import { CancellablePromise } from "../../util/CancellablePromise";
 import { EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
-import { AbstractAxialScaleGizmo, AxisHelper, boxGeometry, CircularGizmo, CompositeHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AxisHelper, boxGeometry, CircularGizmo, CompositeHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, PlanarGizmo } from "../../command/MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -118,7 +118,7 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
-    readonly helper = new CompositeHelper<number>([new DashedLineMagnitudeHelper(), new AxisHelper(this.material.line)]);
+    readonly helper = new CompositeHelper<number>([new DashedLineMagnitudeHelper(), new AxisHelper(this.material.line), new NumberHelper()]);
     protected readonly handleLength = 0;
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
@@ -129,13 +129,6 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
 
     protected accumulate(original: number, dist: number, denom: number): number {
         return original * dist / denom;
-    }
-
-    onKeyPress(cb: (value: number) => void, text: string) {
-        const value = Number(text);
-        this.state.current = value;
-        cb(value);
-        return value;
     }
 }
 

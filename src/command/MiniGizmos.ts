@@ -125,24 +125,37 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<T> {
     }
 }
 
+type InputMode = 'keyboard' | 'pointer';
+
 export class AngleGizmo extends CircularGizmo<number> {
+    protected mode: InputMode = 'pointer';
+    override readonly helper = new CompositeHelper([new DashedLineMagnitudeHelper(), new NumberHelper(rad2deg)]);
+
     private _camera!: THREE.Camera;
     get camera() { return this._camera }
 
     constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         super(name, editor, material ?? editor.gizmos.white, new MagnitudeStateMachine(0));
         this.setup();
+        this.add(this.helper);
     }
 
     override onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
     }
 
-    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): number {
+    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): number | undefined {
+        if (this.mode !== 'pointer') return this.state.current;
+
         const angle = info.angle + this.state.original;
         this.state.current = this.truncate(angle, info.event);
         this._camera = info.viewport.camera;
         cb(this.state.current);
         return this.state.current;
+    }
+
+    override onPointerUp(cb: (n: number) => void, intersect: Intersector, info: MovementInfo): void {
+        super.onPointerUp(cb, intersect, info);
+        this.mode = 'pointer';
     }
 
     protected truncate(angle: number, event: MouseEvent): number {
@@ -152,14 +165,22 @@ export class AngleGizmo extends CircularGizmo<number> {
     }
 
     override onKeyPress(cb: (angle: number) => void, text: string) {
+        if (text === "") {
+            this.mode = 'pointer';
+            return;
+        }
+
         const angle = THREE.MathUtils.degToRad(Number(text));
         this.state.current = angle;
         cb(angle);
+        this.mode = 'keyboard';
         return angle;
     }
 }
 
 export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
+    protected mode: InputMode = 'pointer';
+
     abstract readonly tip: THREE.Mesh;
     protected abstract readonly knob: THREE.Mesh;
     protected abstract readonly shaft: THREE.Mesh;
@@ -209,6 +230,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
         this.state.push();
         this.shaft.material = this.material.line2;
         this.tip.material = this.material.mesh;
+        this.mode = 'pointer';
     }
 
     onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): THREE.Vector3 | void {
@@ -224,6 +246,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
     }
 
     onPointerMove(cb: (delta: number) => void, intersect: Intersector, info: MovementInfo): number | undefined {
+        if (this.mode !== 'pointer') return this.state.current;
+
         let point, length, localY;
         if (info.event.ctrlKey) {
             point = intersect.snap()[0]?.position.clone();
@@ -248,9 +272,16 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
     }
 
     override onKeyPress(cb: (distance: number) => void, text: string) {
+        if (text === "") {
+            this.mode = 'pointer';
+            return;
+        }
+
         const distance = Number(text);
         this.state.current = distance;
+        this.render(this.state.current);
         cb(distance);
+        this.mode = 'keyboard';
         return distance;
     }
 
@@ -466,6 +497,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
 
     onPointerUp(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
+        this.mode = 'pointer';
     }
 
     override onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
@@ -477,6 +509,8 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     private readonly end2center = new THREE.Vector2();
     private readonly start2center = new THREE.Vector2();
     override onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): number {
+        if (this.mode !== 'pointer') return this.state.current;
+
         const { pointEnd2d, center2d, pointStart2d } = info;
         const { end2center, start2center } = this;
 
@@ -490,7 +524,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         cb(this.state.current);
         return this.state.current;
     }
-
+    
     render(length: number) {
         this.shaft.scale.y = length + this.handleLength;
         this.tip.position.set(0, length + this.handleLength, 0);
@@ -601,8 +635,8 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> 
 
     onStart(viewport: Viewport, position: THREE.Vector2) {
         this.viewport = viewport;
-        this.onKeyPress(0);
         viewport.domElement.appendChild(this.element);
+        this.element.hidden = true;
     }
 
     onMove(position: THREE.Vector2, value: number) {
@@ -611,6 +645,7 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> 
 
     private readonly worldPosition = new THREE.Vector3();
     onKeyPress(value: number): void {
+        this.element.hidden = false;
         this.element.innerHTML = this.map(value).toFixed(2);
         const projected = this.getWorldPosition(this.worldPosition).project(this.viewport!.camera);
         this.viewport!.denormalizeScreenPosition(projected as any);

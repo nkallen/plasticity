@@ -105,13 +105,13 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                 }
 
                 // Add handlers when triggered, for example, on pointerdown
-                const addEventHandlers = (event: PointerEvent) => {
+                const addEventHandlers = (event: MouseEvent) => {
                     const reenableControls = viewport.disableControls();
                     document.addEventListener('pointermove', onPointerMove);
                     document.addEventListener('pointerup', onPointerUp);
                     domElement.ownerDocument.addEventListener('keydown', onKeyPress);
                     const disp = this.editor.registry.addOne(domElement, "gizmo:finish", () => {
-                        const lastEvent = new PointerEvent("pointerup");
+                        const lastEvent = new MouseEvent("pointerup");
                         onPointerUp(lastEvent);
                     });
                     return new Disposable(() => {
@@ -123,12 +123,12 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                     });
                 }
 
-                const onPointerMove = (event: PointerEvent) => {
+                const onPointerMove = (event: MouseEvent) => {
                     stateMachine.update(viewport, event);
                     stateMachine.pointerMove();
                 }
 
-                const onPointerUp = (event: PointerEvent) => {
+                const onPointerUp = (event: MouseEvent) => {
                     stateMachine.update(viewport, event);
                     stateMachine.pointerUp(() => {
                         if ((mode & Mode.Persistent) !== Mode.Persistent) {
@@ -175,10 +175,10 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
     }
 }
 
-export abstract class GizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy<I, O> {
+export abstract class GizmoTriggerStrategy<I, O> {
     constructor(protected readonly editor: EditorLike) { }
 
-    protected registerCommands(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable) {
+    protected registerCommands(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: MouseEvent) => Disposable) {
         const stateMachine = gizmo.stateMachine!;
         const { renderer: { domElement } } = viewport;
         const { commands, commandNames } = gizmo.commands;
@@ -205,15 +205,15 @@ export abstract class GizmoTriggerStrategy<I, O> implements GizmoTriggerStrategy
         return disposables;
     }
 
-    abstract register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable;
+    abstract register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: MouseEvent) => Disposable): Disposable;
 }
 
 export class BasicGizmoTriggerStrategy<I, O> extends GizmoTriggerStrategy<I, O> {
-    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: PointerEvent) => Disposable): Disposable {
+    register(gizmo: AbstractGizmo<I>, viewport: Viewport, addEventHandlers: (event: MouseEvent) => Disposable): Disposable {
         const stateMachine = gizmo.stateMachine!;
         const { renderer: { domElement } } = viewport;
 
-        const onPointerDown = (event: PointerEvent) => {
+        const onPointerDown = (event: MouseEvent) => {
             stateMachine.update(viewport, event);
             stateMachine.pointerDown(() => {
                 event.preventDefault();
@@ -225,7 +225,7 @@ export class BasicGizmoTriggerStrategy<I, O> extends GizmoTriggerStrategy<I, O> 
             });
         }
 
-        const onPointerHover = (event: PointerEvent) => {
+        const onPointerHover = (event: MouseEvent) => {
             stateMachine.update(viewport, event);
             stateMachine.pointerHover();
         }
@@ -312,6 +312,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
 
     private camera!: THREE.Camera;
     update(viewport: Viewport, event: MouseEvent) {
+        viewport.lastPointerEvent = event;
         viewport.getNormalizedMousePosition(event, this.currentMousePosition);
         const camera = viewport.camera;
         this._viewport = viewport;

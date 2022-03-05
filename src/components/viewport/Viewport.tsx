@@ -67,7 +67,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly selector = new ViewportSelector(this, this.editor);
     readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.signals);
 
-    lastPointerEvent?: PointerEvent;
+    lastPointerEvent?: MouseEvent;
 
     private readonly scene = new THREE.Scene();
     private readonly phantomsScene = new THREE.Scene(); // Objects visualizing a geometry computation, like a transparent red boolean difference object.
