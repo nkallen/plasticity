@@ -98,13 +98,13 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
         this.state.start();
     }
 
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const { pointEnd2d, center2d } = info;
-
         const magnitude = this.state.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
         this.state.current = magnitude;
         this.render(this.state.current);
         cb(this.state.current);
+        return magnitude;
     }
 
     render(magnitude: number) {
@@ -118,7 +118,7 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
-    readonly helper = new CompositeHelper([new DashedLineMagnitudeHelper(), new AxisHelper(this.material.line)]);
+    readonly helper = new CompositeHelper<number>([new DashedLineMagnitudeHelper(), new AxisHelper(this.material.line)]);
     protected readonly handleLength = 0;
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
@@ -135,6 +135,7 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
         const value = Number(text);
         this.state.current = value;
         cb(value);
+        return value;
     }
 }
 
@@ -142,19 +143,20 @@ export class PlanarScaleGizmo extends PlanarGizmo<number> {
     readonly state = new MagnitudeStateMachine(1);
     readonly helper = new DashedLineMagnitudeHelper();
 
-    onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo): void {
+    onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo) {
         const { plane, denominator, state } = this;
 
         const planeIntersect = intersect.raycast(plane);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        let magnitude = planeIntersect.point.sub(this.worldPosition).length();
+        let magnitude = planeIntersect.point.clone().sub(this.worldPosition).length();
         magnitude *= state.original;
         magnitude /= denominator;
 
         this.state.current = magnitude;
         this.render(magnitude);
         cb(magnitude);
+        return magnitude;
     }
 
     render(magnitude: number) {

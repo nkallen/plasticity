@@ -1,10 +1,11 @@
 import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
-import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
+import { AbstractGizmo, MovementInfo, EditorLike, Intersector, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
-import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
+import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, NumberHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
+import { rad2deg } from "../../util/Conversion";
 import { AdvancedGizmoTriggerStrategy } from "../modify_contour/ModifyContourGizmo";
 import { RotateParams } from "./TranslateFactory";
 
@@ -104,12 +105,13 @@ const localZ = new THREE.Vector3();
 export class AxisAngleGizmo extends AngleGizmo {
     private sign: number;
     private readonly lineHelper = new AxisHelper(this.material.line);
-    readonly helper = new CompositeHelper([new DashedLineMagnitudeHelper(), this.lineHelper]);
+    private readonly numberHelper = new NumberHelper(rad2deg);
+    readonly helper = new CompositeHelper<number>([new DashedLineMagnitudeHelper(), this.lineHelper, this.numberHelper]);
 
     constructor(name: string, editor: EditorLike, material: GizmoMaterial) {
         super(name, editor, material);
         this.sign = 1;
-        this.add(this.lineHelper);
+        this.add(this.helper);
         this.lineHelper.quaternion.setFromUnitVectors(Y, Z);
     }
 
@@ -117,10 +119,11 @@ export class AxisAngleGizmo extends AngleGizmo {
         this.sign = Math.sign(this.eye.dot(localZ.set(0, 0, 1).applyQuaternion(this.worldQuaternion)));
     }
 
-    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
+    override onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
         const angle = this.sign * info.angle + this.state.original;
         this.state.current = this.truncate(angle, info.event);
         cb(this.state.current);
+        return this.state.current;
     }
 
     get shouldLookAtCamera() { return false }
@@ -137,7 +140,9 @@ export class OccluderGizmo extends AbstractGizmo<void> {
         this.picker.add(this.occludeBackHalfPicker);
     }
 
-    onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
+    onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo) {
+        return undefined;
+    }
     onPointerDown(cb: () => void, intersect: Intersector, info: MovementInfo): void { }
     onPointerUp(cb: () => void, intersect: Intersector, info: MovementInfo): void { }
     onInterrupt(cb: () => void): void { }

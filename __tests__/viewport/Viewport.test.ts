@@ -33,7 +33,7 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor.db;
+    db = editor._db;
     materials = editor.materials;
     signals = editor.signals;
     selection = editor.selection;
@@ -95,6 +95,12 @@ test("navigation start & end restores selector state correctly", () => {
     viewport.navigationControls.dispatchEvent({ type: 'end', target: null });
     expect(viewport.multiplexer.enabled).toBe(false);
 });
+
+test("denormalizeScreenPosition", () => {
+    expect(viewport.denormalizeScreenPosition(new THREE.Vector2(-1, -1))).toEqual(new THREE.Vector2(0, 100));
+    expect(viewport.denormalizeScreenPosition(new THREE.Vector2(0, 0))).toEqual(new THREE.Vector2(50, 50));
+    expect(viewport.denormalizeScreenPosition(new THREE.Vector2(1, 1))).toEqual(new THREE.Vector2(100, 0));
+})
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);

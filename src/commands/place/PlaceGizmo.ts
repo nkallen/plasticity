@@ -38,13 +38,13 @@ export class PlaceGizmo extends CompositeGizmo<PlaceParams> {
     }
 
     execute(cb: (params: PlaceParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
-        const { z, angle: rotate, params } = this;
+        const { z, angle, params } = this;
 
         this.addGizmo(z, scale => {
             params.scale = scale;
         });
 
-        this.addGizmo(rotate, angle => {
+        this.addGizmo(angle, angle => {
             params.angle = angle;
         });
 

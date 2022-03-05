@@ -146,7 +146,9 @@ class MirrorAxisGizmo extends AbstractGizmo<boolean>  {
     }
 
     onInterrupt(cb: (b: boolean) => void) { }
-    onPointerMove(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo): void { }
+    onPointerMove(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo) {
+        return undefined;
+    }
 
     onPointerDown(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo) {
         cb(true);

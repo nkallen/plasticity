@@ -11,14 +11,13 @@ import { BetterRaycastingPoints } from "./VisualModelRaycasting";
  * This allows view objects to have type safety and polymorphism/encapsulation where appropriate.
  * 
  * We want a class hierarchy like CurveEdge <: Edge <: TopologyItem, and Face <: TopologyItem
- * but we also want CurveEdge <: Line2 and Face <: Mesh. But this requires multiple inheritance/mixins.
- * And that's principally what's going on in this file.
+ * CurveEdge has a Line2 and Face has a Mesh.
  * 
  * At the time of writing, the OBJECT graph hierarchy (not the class hierarchy) is like:
  *
- * * Solid -> LOD -> RecursiveGroup -> FaceGroup -> Face
- * * Solid -> LOD -> RecursiveGroup -> CurveEdgeGroup -> CurveEdge
- * * SpaceInstance -> LOD -> Curve3D -> CurveSegment
+ * * Solid -> LOD -> FaceGroup -> Face
+ * * Solid -> LOD ->  CurveEdgeGroup -> CurveEdge
+ * * SpaceInstance -> Curve3D -> CurveSegment
  */
 
 export abstract class SpaceItem extends THREE.Object3D {

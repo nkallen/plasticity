@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { CancellablePromise } from "../../util/CancellablePromise";
-import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
+import { AbstractGizmo, MovementInfo, EditorLike, Intersector, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { arrowGeometry, AxisHelper, lineGeometry } from "../../command/MiniGizmos";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { CutParams } from "./CutFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -78,7 +78,9 @@ class MirrorAxisGizmo extends AbstractGizmo<boolean>  {
     }
 
     onInterrupt(cb: (b: boolean) => void) { }
-    onPointerMove(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo): void { }
+    onPointerMove(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo) {
+        return undefined;
+    }
     onPointerUp(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo) { }
 
     onPointerDown(cb: (b: boolean) => void, intersect: Intersector, info: MovementInfo) {

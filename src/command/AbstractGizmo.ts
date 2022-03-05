@@ -12,6 +12,7 @@ import { SnapResult } from "../editor/snaps/SnapPicker";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
+import { KeyboardInterpreter } from "./KeyboardInterpreter";
 import { Executable } from "./Quasimode";
 import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
@@ -30,10 +31,10 @@ import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
  * when a user types "x" with the move gizmo active, it starts moving along the x axis.
  */
 
-export interface GizmoView {
+export interface GizmoView<I> {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
-    helper?: GizmoHelper;
+    helper?: GizmoHelper<I>;
 }
 
 export interface EditorLike {
@@ -65,7 +66,7 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
 
     protected handle = new THREE.Group();
     readonly picker = new THREE.Group();
-    readonly helper?: GizmoHelper;
+    readonly helper?: GizmoHelper<I>;
 
     constructor(readonly title: string, protected readonly editor: EditorLike) {
         super();
@@ -76,8 +77,8 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
-    onKeyPress(cb: (i: I) => void, text: string) { }
-    abstract onPointerMove(cb: (i: I) => void, intersector: Intersector, info: MovementInfo): void;
+    onKeyPress(cb: (i: I) => void, text: string): I | undefined { return }
+    abstract onPointerMove(cb: (i: I) => void, intersector: Intersector, info: MovementInfo): I | undefined;
     abstract onPointerDown(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: (i: I) => void): void;
@@ -108,7 +109,7 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                     const reenableControls = viewport.disableControls();
                     document.addEventListener('pointermove', onPointerMove);
                     document.addEventListener('pointerup', onPointerUp);
-                    domElement.ownerDocument.addEventListener('keypress', onKeyPress);
+                    domElement.ownerDocument.addEventListener('keydown', onKeyPress);
                     const disp = this.editor.registry.addOne(domElement, "gizmo:finish", () => {
                         const lastEvent = new PointerEvent("pointerup");
                         onPointerUp(lastEvent);
@@ -117,7 +118,7 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                         reenableControls.dispose();
                         document.removeEventListener('pointerup', onPointerUp);
                         document.removeEventListener('pointermove', onPointerMove);
-                        domElement.ownerDocument.removeEventListener('keypress', onKeyPress);
+                        domElement.ownerDocument.removeEventListener('keydown', onKeyPress);
                         disp.dispose();
                     });
                 }
@@ -139,7 +140,7 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
                 }
 
                 const onKeyPress = (event: KeyboardEvent) => {
-                   stateMachine.keyPress(event);
+                    stateMachine.keyPress(event);
                 }
 
                 const trigger = this.trigger.register(this, viewport, addEventHandlers);
@@ -270,7 +271,10 @@ export interface MovementInfo {
 // This class handles computing some useful data (like click start and click end) of the
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
-type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable, clearPresenter: Disposable } | { tag: 'command', clearEventHandlers: Disposable, clearPresenter: Disposable, text: string }
+type State = { tag: 'none' }
+    | { tag: 'hover' }
+    | { tag: 'dragging', clearEventHandlers: Disposable, clearPresenter: Disposable, text: KeyboardInterpreter }
+    | { tag: 'command', clearEventHandlers: Disposable, clearPresenter: Disposable, text: KeyboardInterpreter }
 
 export class GizmoStateMachine<I, O> implements MovementInfo {
     // NOTE: isActive and isEnabled differ only slightly. When !isEnabled, the gizmo is COMPLETELY disabled.
@@ -341,12 +345,13 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
             case 'none':
             case 'hover':
                 const { worldPosition } = this;
-                const center3d = this.gizmo.getWorldPosition(worldPosition).project(this.camera);
+                this.gizmo.getWorldPosition(worldPosition)
+                const center3d = worldPosition.clone().project(this.camera);
                 this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.copy(this.currentMousePosition);
                 this.gizmo.onPointerDown(this.cb, this.intersector, this);
-                this.gizmo.helper?.onStart(this.viewport.domElement, this.center2d);
+                this.gizmo.helper?.onStart(this.viewport, this.center2d);
                 break;
             case 'command':
                 this.pointerMove();
@@ -367,7 +372,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
                     this.gizmo.update(this.camera);
                     this.begin();
                     const clearPresenter = this.presenter.execute();
-                    this.state = { tag: 'command', clearEventHandlers, clearPresenter, text: "" };
+                    this.state = { tag: 'command', clearEventHandlers, clearPresenter, text: new KeyboardInterpreter() };
                     this.gizmo.dispatchEvent({ type: 'start' });
                 } else {
                     clearEventHandlers.dispose();
@@ -387,7 +392,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
                 this.begin();
                 const clearEventHandlers = start();
                 const clearPresenter = this.presenter.execute();
-                this.state = { tag: 'dragging', clearEventHandlers, clearPresenter };
+                this.state = { tag: 'dragging', clearEventHandlers, clearPresenter, text: new KeyboardInterpreter() };
                 this.gizmo.dispatchEvent({ type: 'start' });
                 break;
             default: break;
@@ -411,8 +416,10 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
                 this.angle = Math.atan2(this.endRadius.y, this.endRadius.x) - Math.atan2(startRadius.y, startRadius.x);
 
                 this.presenter.clear();
-                this.gizmo.helper?.onMove(this.pointEnd2d);
-                this.gizmo.onPointerMove(this.cb, this.intersector, this);
+                const value = this.gizmo.onPointerMove(this.cb, this.intersector, this);
+                if (value !== undefined) {
+                    this.gizmo.helper?.onMove(this.pointEnd2d, value);
+                }
 
                 this.editor.signals.gizmoChanged.dispatch();
                 break;
@@ -472,14 +479,16 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
         }
     }
 
-    keyPress(event: KeyboardEvent): void {
+    keyPress(event: KeyboardEvent) {
         if (!this.isActive) return;
         if (!this.isEnabled) return;
 
         switch (this.state.tag) {
+            case 'dragging':
             case 'command':
-                this.state.text += event.key;
-                this.gizmo.onKeyPress(this.cb, this.state.text);
+                this.state.text.interpret(event);
+                const value = this.gizmo.onKeyPress(this.cb, this.state.text.state);
+                if (value !== undefined) this.gizmo.helper?.onKeyPress(value);
                 this.editor.signals.gizmoChanged.dispatch();
                 break;
             default: break;
@@ -494,7 +503,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
                 this.state.clearPresenter.dispose();
                 this.gizmo.dispatchEvent({ type: 'interrupt' });
                 this.gizmo.onInterrupt(this.cb);
-                this.gizmo.helper?.onEnd();
+                this.gizmo.helper?.onInterrupt();
             case 'hover':
                 this.gizmo.onPointerLeave(this.intersector);
                 this.state = { tag: 'none' };
@@ -519,8 +528,11 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
     }
 }
 
-export interface GizmoHelper {
-    onStart(parentElement: HTMLElement, position: THREE.Vector2): void;
-    onMove(position: THREE.Vector2): void;
+export interface GizmoHelper<I> {
+    onStart(viewport: Viewport, positionSS: THREE.Vector2): void;
+    onMove(positionSS: THREE.Vector2, info: I): void;
+    onMove(positionSS: THREE.Vector2, info: I): void;
+    onKeyPress(info: I): void;
     onEnd(): void;
+    onInterrupt(): void;
 }
