@@ -5,7 +5,7 @@
 
 ## CAD for artists
 
-Plasticity is a 3d modelling software for concept artists. Modeling in Plasticity is quick and efficient due to the unique gizmos, shortcuts, and thoughtful workflow.
+Plasticity is a 3D modelling software for concept artists. Modeling in Plasticity is quick and efficient due to the unique gizmos, shortcuts, and thoughtful workflow.
 
 The goal of plasticity is to make working with NURBS like working with clay.
 
