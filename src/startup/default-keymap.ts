@@ -207,9 +207,10 @@ export default {
         "shift-numpad7": "viewport:navigate:bottom",
 
         "numpad5": "viewport:toggle-orthographic",
-
+    },
+    
+    "plasticity-viewport": {
         "space": "viewport:navigate:face",
-
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
     },
