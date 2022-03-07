@@ -8,12 +8,14 @@ export interface LoftParams {
     thickness1: number;
     thickness2: number;
     thickness: number;
+    closed: boolean;
 }
 
 export default class LoftFactory extends GeometryFactory implements LoftParams {
     private models!: { contour: c3d.Contour, placement: c3d.Placement3D }[];
     thickness1 = 0;
     thickness2 = 0;
+    closed = false;
 
     protected _spine!: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D };
     @derive(visual.Curve3D) get spine(): visual.SpaceInstance<visual.Curve3D> { throw '' }
@@ -51,7 +53,7 @@ export default class LoftFactory extends GeometryFactory implements LoftParams {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveLoftedSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { thickness1, thickness2, models, names, _spine: { model: spine } } = this;
+        const { thickness1, thickness2, models, names, _spine: { model: spine }, closed } = this;
 
         const ns = [];
         for (const { contour } of models) {
@@ -62,6 +64,7 @@ export default class LoftFactory extends GeometryFactory implements LoftParams {
         params.thickness1 = unit(thickness1);
         params.thickness2 = unit(thickness2);
         params.shellClosed = true;
+        params.closed = closed;
         const placements = models.map(m => m.placement);
         const contours = models.map(m => m.contour);
         const solid = c3d.ActionSolid.LoftedSolid(placements, contours, spine ?? null, params, [], names, ns);

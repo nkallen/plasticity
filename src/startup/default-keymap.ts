@@ -34,6 +34,10 @@ export default {
         "t": "gizmo:revolution:thickness",
     },
 
+    "[command='loft'] plasticity-viewport": {
+        "t": "gizmo:loft:thickness",
+    },
+
     "[command='evolution'] plasticity-viewport": {
         "a": "gizmo:revolution:angle",
         "t": "gizmo:revolution:thickness",
