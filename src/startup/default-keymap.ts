@@ -197,7 +197,7 @@ export default {
         "s": "gizmo:place:scale",
     },
 
-    "plasticity-viewport": {
+    "body:not([gizmo]) plasticity-viewport, body[gizmo='point-picker'] plasticity-viewport": {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",
         "numpad7": "viewport:navigate:top",
