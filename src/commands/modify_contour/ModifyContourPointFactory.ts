@@ -90,16 +90,16 @@ abstract class ModifyContourPointFactory extends ContourPointFactory implements 
             const to = this.computeDestination(info);
             const active = segments[info.segmentIndex];
             let before = segments[info.segmentIndex - 1];
-            if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
+            if (before === undefined && contour.IsClosed() && segments.length > 1) before = segments[segments.length - 1];
             switch (info.limit) {
-                case -1:
+                case 'other':
                     this.changePoint(active, info, to);
                     break;
-                case 1:
+                case 'first':
                     this.moveLimitPoint(1, active, info, to);
                     if (before !== undefined) this.moveLimitPoint(2, before, info, to);
                     break;
-                case 2:
+                case 'last':
                     this.moveLimitPoint(2, active, info, to);
                     break;
             }
@@ -215,13 +215,13 @@ export class RemoveContourPointFactory extends ContourPointFactory {
             let after = segments[info.segmentIndex + 1];
             if (after === undefined && contour.IsClosed()) after = segments[0];
             switch (info.limit) {
-                case -1:
+                case 'other':
                     this.removePoint(active, info);
                     break;
-                case 1:
+                case 'first':
                     this.removeLimitPoint(1, active, info, before, after);
                     break;
-                case 2:
+                case 'last':
                     this.removeLimitPoint(2, active, info, before, after);
                     break;
             }

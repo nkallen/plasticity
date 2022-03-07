@@ -91,13 +91,13 @@ describe(MoveContourPointFactory, () => {
             expect(info.length).toBe(3);
             expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[0].segmentIndex).toBe(0);
-            expect(info[0].limit).toBe(1);
+            expect(info[0].limit).toBe('first');
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(info[1].segmentIndex).toBe(1);
-            expect(info[1].limit).toBe(1);
+            expect(info[1].limit).toBe('first');
             expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(info[2].segmentIndex).toBe(1);
-            expect(info[2].limit).toBe(2);
+            expect(info[2].limit).toBe('last');
         })
 
         test('moving last point', async () => {
@@ -257,7 +257,7 @@ describe(MoveContourPointFactory, () => {
         })
     });
 
-    describe('PolyCurve', () => {
+    describe('Open polyCurve', () => {
         beforeEach(async () => {
             const makeCurve = new CurveFactory(db, materials, signals);
             makeCurve.type = c3d.SpaceType.Hermit3D;
@@ -302,13 +302,52 @@ describe(MoveContourPointFactory, () => {
             expect(info.length).toBe(3);
             expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[0].segmentIndex).toBe(0)
-            expect(info[0].limit).toBe(1)
+            expect(info[0].limit).toBe('first')
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(info[1].segmentIndex).toBe(0)
-            expect(info[1].limit).toBe(-1)
+            expect(info[1].limit).toBe('other')
             expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(info[2].segmentIndex).toBe(0)
-            expect(info[2].limit).toBe(-1)
+            expect(info[2].limit).toBe('other')
+        })
+    });
+
+    describe('Closed polyCurve', () => {
+        beforeEach(async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.type = c3d.SpaceType.Hermit3D;
+
+            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(1, 0, 0));
+            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+            makeCurve.closed = true;
+            curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(curve)) as c3d.Polyline3D;
+            expect(model.IsClosed()).toBe(true);
+
+            expect(curve.underlying.points.length).toBe(3);
+            bbox.setFromObject(curve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1.19, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.05, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2.44, 0));
+        });
+
+        test('moving a start/end point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
+            const contour = await changePoint.prepare(curve);
+            changePoint.contour = contour;
+            changePoint.originalItem = curve;
+            changePoint.move = new THREE.Vector3(-2, -2, 0);
+            const result = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(-0.99, 0.932, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, -0.28, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2.15, 0));
+            expect(db.visibleObjects.length).toBe(1);
         })
     });
 
@@ -371,16 +410,16 @@ describe(MoveContourPointFactory, () => {
             expect(info.length).toBe(4);
             expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[0].segmentIndex).toBe(0);
-            expect(info[0].limit).toBe(1);
+            expect(info[0].limit).toBe('first');
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(info[1].segmentIndex).toBe(0);
-            expect(info[1].limit).toBe(-1);
+            expect(info[1].limit).toBe('other');
             expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(info[2].segmentIndex).toBe(1);
-            expect(info[2].limit).toBe(1);
+            expect(info[2].limit).toBe('first');
             expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(info[3].segmentIndex).toBe(1);
-            expect(info[3].limit).toBe(2);
+            expect(info[3].limit).toBe('last');
         })
     })
 
@@ -443,16 +482,16 @@ describe(MoveContourPointFactory, () => {
             expect(info.length).toBe(4);
             expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(info[0].segmentIndex).toBe(0);
-            expect(info[0].limit).toBe(1);
+            expect(info[0].limit).toBe('first');
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(info[1].segmentIndex).toBe(1);
-            expect(info[1].limit).toBe(1);
+            expect(info[1].limit).toBe('first');
             expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(info[2].segmentIndex).toBe(1);
-            expect(info[2].limit).toBe(-1);
+            expect(info[2].limit).toBe('other');
             expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[3].segmentIndex).toBe(1);
-            expect(info[3].limit).toBe(-1);
+            expect(info[3].limit).toBe('other');
         })
     })
 });
