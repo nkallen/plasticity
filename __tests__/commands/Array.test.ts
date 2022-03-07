@@ -105,7 +105,8 @@ describe(RectangularArrayFactory, () => {
             box = await makeBox.commit() as visual.Solid;
         })
 
-        test('isPolar = true', async () => {
+        test.only('isPolar = false', async () => {
+            array.mode = 'spacing';
             array.solid = box;
             array.step1 = 10;
             array.dir1 = new THREE.Vector3(0, 1, 0);
@@ -125,6 +126,39 @@ describe(RectangularArrayFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 10, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 11, 1));
+
+            bbox.setFromObject(items[items.length - 1]);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 11.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 10, 11));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 11, 12));
+        });
+
+        test.only('distance1 / distance2', async () => {
+            array.mode = 'extent';
+            array.solid = box;
+            array.dir1 = new THREE.Vector3(1, 0, 0);
+            array.dir2 = new THREE.Vector3(0, 1, 0);
+            array.num1 = 10;
+            array.distance1 = 10;
+            array.center = new THREE.Vector3();
+            const items = await array.commit() as visual.Solid[];
+            expect(items.length).toBe(10);
+            const item = items[0];
+
+            const bbox = new THREE.Box3();
+            const center = new THREE.Vector3();
+            bbox.setFromObject(item);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 10.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 10, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 11, 1));
+
+            bbox.setFromObject(items[items.length - 1]);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(10.5, 10.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(10, 10, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(11, 11, 1));
         });
     })
 
