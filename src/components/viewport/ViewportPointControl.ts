@@ -1,4 +1,4 @@
-import { CompositeDisposable } from "event-kit";
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import * as gizmo from "../../command/AbstractGizmo";
 import { GizmoLike } from "../../command/AbstractGizmo";
@@ -24,7 +24,7 @@ export interface EditorLike extends cmd.EditorLike {
     keymaps: AtomKeymap.KeymapManager;
 }
 
-type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint, disposable: CompositeDisposable } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void>, disposable: CompositeDisposable }
+type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void> }
 
 export class ViewportPointControl extends ViewportControl implements GizmoLike<THREE.Vector3, void> {
     private readonly keypress = new SelectionKeypressStrategy(this.editor.keymaps);
@@ -64,7 +64,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
 
                 this.pointStart3d.copy(first.position);
                 this.cameraPlane.position.copy(this.pointStart3d);
-                this.mode = { tag: 'start', controlPoint, disposable: new CompositeDisposable() };
+                this.mode = { tag: 'start', controlPoint };
 
                 break;
             default: throw new Error("invalid state");
@@ -78,7 +78,6 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
             case 'start':
                 const command = new ClickChangeSelectionCommand(this.editor, intersections, this.keypress.event2modifier(upEvent), this.keypress.event2option(upEvent));
                 this.editor.enqueue(command, true);
-                this.mode.disposable.dispose();
                 this.mode = { tag: 'none' };
                 break;
             default: throw new Error("invalid state: " + this.mode.tag);
@@ -150,9 +149,14 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
 
                 helper.onEnd();
                 this.mode.cancellable.finish();
-                this.mode.disposable.dispose();
-                this.mode = { tag: 'none' };
+                const newState = this.mode.tag as any;
+                if (newState !== 'none') throw new Error("invalid postcondition");
         }
+    }
+
+    private onEnd() {
+        this.helper.onEnd();
+        this.mode = { tag: 'none' };
     }
 
     dblClick(intersections: Intersection[], dblClickEvent: MouseEvent) {
@@ -161,15 +165,19 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
     execute(cb: (delta: THREE.Vector3) => void, finishFast?: gizmo.Mode): CancellablePromise<void> {
         switch (this.mode.tag) {
             case 'start':
+                const clearPresenter = this.presenter.execute();
                 const result = new CancellablePromise<void>((resolve, reject) => {
-                    const dispose = () => { }
+                    const dispose = () => {
+                        switch (this.mode.tag) {
+                            case 'executing':
+                                clearPresenter.dispose();
+                                this.onEnd();
+                            }
+                    }
                     return { dispose, finish: resolve };
                 });
 
-                const clearPresenter = this.presenter.execute();
-                this.mode.disposable.add(clearPresenter);
-
-                this.mode = { tag: 'executing', cancellable: result, cb, disposable: this.mode.disposable };
+                this.mode = { tag: 'executing', cancellable: result, cb };
                 return result;
             default: throw new Error('invalid state');
         }
@@ -184,7 +192,7 @@ export class MoveControlPointCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         const { controlPoint, gizmo } = this;
-        const modify = new MoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const modify = new MoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         modify.controlPoints = [controlPoint];
         const curve = controlPoint.parentItem;
         const contour = await modify.prepare(curve);
