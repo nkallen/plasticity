@@ -185,7 +185,6 @@ export class MoveControlPointCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { controlPoint, gizmo } = this;
         const modify = new MoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        console.log(controlPoint);
         modify.controlPoints = [controlPoint];
         const curve = controlPoint.parentItem;
         const contour = await modify.prepare(curve);
