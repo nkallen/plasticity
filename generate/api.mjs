@@ -1315,6 +1315,10 @@ export default {
                 "double thickness1",
                 "double thickness2",
                 "bool shellClosed",
+            ],
+            functions: [
+                "bool CheckSelfInt()",
+                "void SetCheckSelfInt(bool c)",
             ]
         },
         LoftedValues: {
