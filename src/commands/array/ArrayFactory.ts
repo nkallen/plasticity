@@ -75,7 +75,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
         if (item === undefined) throw new Error("invalid precondition");
         const result = [];
         let matrices = params.GenerateTransformMatrices();
-        matrices = matrices.slice(start, 100); // NOTE: a bit paranoid about users making a mistake
+        matrices = matrices.slice(start, 200); // NOTE: a bit paranoid about users making a mistake
         let normalize = matrices[0];
         normalize = normalize.Div(new c3d.Matrix3D());
         const normalized = item.Duplicate().Cast<c3d.Item>(item.IsA());
@@ -120,7 +120,9 @@ export class RectangularArrayFactory extends AbstractArrayFactory {
 
     private _num2 = 1;
     get num2() { return this._num2 }
-    set num2(num2: number) { this._num2 = Math.floor(num2) }
+    set num2(num2: number) {
+        this._num2 = Math.max(1, Math.trunc(num2))
+    }
 
     get num1() { return super.num1 }
     set num1(num1: number) {
@@ -131,14 +133,14 @@ export class RectangularArrayFactory extends AbstractArrayFactory {
 
     step2 = 1;
 
-    get distance2() { return this.step2 * (this.num2 - 1) }
+    get distance2() { return this.num2 === 1 ? this.step2 : this.step2 * (this.num2 - 1) }
     set distance2(distance2: number) {
-        this.step2 = distance2 / (this.num2 - 1);
+        this.step2 = this.num2 === 1 ? distance2 : distance2 / (this.num2 - 1);
     }
 
-    get distance1() { return this.step1 * (this.num1 - 1) }
+    get distance1() { return this.num1 === 1 ? this.step1 : this.step1 * (this.num1 - 1) }
     set distance1(distance1: number) {
-        this.step1 = distance1 / (this.num1 - 1);
+        this.step1 = this.num1 === 1 ? distance1 : distance1 / (this.num1 - 1);
     }
 
     protected get params() {
