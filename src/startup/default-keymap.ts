@@ -34,6 +34,10 @@ export default {
         "t": "gizmo:revolution:thickness",
     },
 
+    "[command='loft'] plasticity-viewport": {
+        "t": "gizmo:loft:thickness",
+    },
+
     "[command='evolution'] plasticity-viewport": {
         "a": "gizmo:revolution:angle",
         "t": "gizmo:revolution:thickness",
@@ -197,7 +201,7 @@ export default {
         "s": "gizmo:place:scale",
     },
 
-    "plasticity-viewport": {
+    "body:not([gizmo]) plasticity-viewport, body[gizmo='point-picker'] plasticity-viewport": {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",
         "numpad7": "viewport:navigate:top",
@@ -207,9 +211,10 @@ export default {
         "shift-numpad7": "viewport:navigate:bottom",
 
         "numpad5": "viewport:toggle-orthographic",
-
+    },
+    
+    "plasticity-viewport": {
         "space": "viewport:navigate:face",
-
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
     },

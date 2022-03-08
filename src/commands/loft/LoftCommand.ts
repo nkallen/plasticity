@@ -39,6 +39,7 @@ export class LoftCommand extends Command {
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Z);
         await gizmo.execute(async thickness => {
             loft.thickness = thickness;
+            dialog.render();
             loft.update();
         }, Mode.Persistent).resource(this);
 

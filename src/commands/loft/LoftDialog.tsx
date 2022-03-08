@@ -12,7 +12,7 @@ export class LoftDialog extends AbstractDialog<LoftParams> {
     }
 
     render() {
-        const { thickness1, thickness2 } = this.params;
+        const { thickness1, thickness2, closed } = this.params;
         
         render(
             <>
@@ -26,6 +26,14 @@ export class LoftDialog extends AbstractDialog<LoftParams> {
                         <div class="fields">
                             <plasticity-number-scrubber name="thickness1" value={thickness1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                             <plasticity-number-scrubber name="thickness2" value={thickness2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                        </div>
+                    </li>
+
+                    <li>
+                        <label for="closed">Closed</label>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="closed" name="closed" checked={closed} onClick={this.onChange}></input>
+                            <label for="closed">Closed</label>
                         </div>
                     </li>
                 </ul>

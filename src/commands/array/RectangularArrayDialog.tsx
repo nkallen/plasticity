@@ -1,17 +1,17 @@
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import { ArrayParams } from "./ArrayFactory";
+import { EditorSignals } from "../../editor/EditorSignals";
+import { RectangularArrayParams } from './ArrayFactory';
 
-export class RectangularArrayDialog extends AbstractDialog<ArrayParams> {
+export class RectangularArrayDialog extends AbstractDialog<RectangularArrayParams> {
     readonly name = "Rectangular array";
 
-    constructor(protected readonly params: ArrayParams, signals: EditorSignals) {
+    constructor(protected readonly params: RectangularArrayParams, signals: EditorSignals) {
         super(signals);
     }
 
     render() {
-        const { step1, num1, num2, step2 } = this.params;
+        const { distance1, distance2, num1, num2, step1, step2 } = this.params;
 
         render(
             <>
@@ -23,9 +23,9 @@ export class RectangularArrayDialog extends AbstractDialog<ArrayParams> {
 
                 <ul>
                     <li>
-                        <label for="step1">Step 1</label>
+                        <label for="distance1">Distance 1</label>
                         <div class="fields">
-                            <plasticity-number-scrubber name="step1" value={step1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                     <li>
@@ -35,9 +35,9 @@ export class RectangularArrayDialog extends AbstractDialog<ArrayParams> {
                         </div>
                     </li>
                     <li>
-                        <label for="step2">Step 2</label>
+                        <label for="distance2">Distance 2</label>
                         <div class="fields">
-                            <plasticity-number-scrubber name="step2" value={step2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
                     <li>

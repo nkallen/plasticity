@@ -205,7 +205,7 @@ export interface ControlPointInfo {
     index: number;
     origin: THREE.Vector3;
     segmentIndex: number;
-    limit: -1 | 1 | 2;
+    limit: 'other' | 'first' | 'last';
 }
 
 export function computeControlPointInfo(contour: c3d.Contour3D): ControlPointInfo[] {
@@ -216,18 +216,18 @@ export function computeControlPointInfo(contour: c3d.Contour3D): ControlPointInf
             const polycurve = segment.Cast<c3d.PolyCurve3D>(segment.IsA());
             const points = polycurve.GetPoints();
             for (const [i, point] of points.entries()) {
-                const limit = i === 0 ? 1 : -1;
+                const limit: ControlPointInfo['limit'] = i === 0 ? 'first' : 'other';
                 const info: ControlPointInfo = { origin: point2point(point), segmentIndex, limit, index: i }
                 if (i === points.length - 1 && segmentIndex < segments.length - 1) break;
                 allControlPoints.push(info);
             }
         } else {
-            const info: ControlPointInfo = { origin: point2point(segment.GetLimitPoint(1)), segmentIndex, limit: 1, index: -1 }
+            const info: ControlPointInfo = { origin: point2point(segment.GetLimitPoint(1)), segmentIndex, limit: 'first', index: -1 }
             allControlPoints.push(info);
         }
     }
     const lastSegmentIndex = segments.length - 1;
-    const info: ControlPointInfo = { origin: point2point(contour.GetLimitPoint(2)), segmentIndex: lastSegmentIndex, limit: 2, index: -1 }
+    const info: ControlPointInfo = { origin: point2point(contour.GetLimitPoint(2)), segmentIndex: lastSegmentIndex, limit: 'last', index: -1 }
     const lastSegment = segments[lastSegmentIndex];
     const lastSegmentIsPolyCurve = lastSegment.Type() === c3d.SpaceType.PolyCurve3D && lastSegment.IsA() !== c3d.SpaceType.Polyline3D;
     if (!contour.IsClosed() && !lastSegmentIsPolyCurve) allControlPoints.push(info);

@@ -10,6 +10,7 @@ import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
+import { KeyboardInterpreter, TextCalculator } from "./KeyboardInterpreter";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -164,13 +165,14 @@ export class AngleGizmo extends CircularGizmo<number> {
         } else return angle
     }
 
-    override onKeyPress(cb: (angle: number) => void, text: string) {
-        if (text === "") {
+    override onKeyPress(cb: (angle: number) => void, text: KeyboardInterpreter) {
+        const number = TextCalculator.calculate(text.state);
+        if (number === undefined) {
             this.mode = 'pointer';
-            return;
+            return this.state.current;
         }
 
-        const angle = THREE.MathUtils.degToRad(Number(text));
+        const angle = THREE.MathUtils.degToRad(number);
         this.state.current = angle;
         cb(angle);
         this.mode = 'keyboard';
@@ -271,13 +273,13 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
         return this.state.current;
     }
 
-    override onKeyPress(cb: (distance: number) => void, text: string) {
-        if (text === "") {
+    override onKeyPress(cb: (distance: number) => void, text: KeyboardInterpreter) {
+        const distance = TextCalculator.calculate(text.state);
+        if (distance === undefined) {
             this.mode = 'pointer';
-            return;
+            return this.state.current;
         }
 
-        const distance = Number(text);
         this.state.current = distance;
         this.render(this.state.current);
         cb(distance);
@@ -524,7 +526,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         cb(this.state.current);
         return this.state.current;
     }
-    
+
     render(length: number) {
         this.shaft.scale.y = length + this.handleLength;
         this.tip.position.set(0, length + this.handleLength, 0);
@@ -640,17 +642,23 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> 
     }
 
     onMove(position: THREE.Vector2, value: number) {
-        this.onKeyPress(value);
+        this.element.hidden = false;
+        this.element.innerHTML = this.map(value).toFixed(2);
+        this.project();
     }
 
     private readonly worldPosition = new THREE.Vector3();
-    onKeyPress(value: number): void {
-        this.element.hidden = false;
-        this.element.innerHTML = this.map(value).toFixed(2);
+    private project() {
         const projected = this.getWorldPosition(this.worldPosition).project(this.viewport!.camera);
         this.viewport!.denormalizeScreenPosition(projected as any);
         this.element.style.top = projected.y + 'px';
         this.element.style.left = projected.x + 'px';
+    }
+
+    onKeyPress(value: number, text: KeyboardInterpreter): void {
+        this.element.hidden = false;
+        this.element.innerHTML = text.state;
+        this.project();
     }
 
     onEnd() {
@@ -703,9 +711,9 @@ export class CompositeHelper<I> extends THREE.Object3D implements GizmoHelper<I>
         }
     }
 
-    onKeyPress(info: I): void {
+    onKeyPress(info: I, text: KeyboardInterpreter): void {
         for (const helper of this.helpers) {
-            helper.onKeyPress(info);
+            helper.onKeyPress(info, text);
         }
     }
 

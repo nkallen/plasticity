@@ -32,7 +32,7 @@ export class RadialArrayCommand extends Command {
         bbox.setFromObject(array.object);
         const centroid = bbox.getCenter(new THREE.Vector3());
 
-        const { point: p1, info: { constructionPlane } } = await dialog.prompt("Select center point", () => {
+        const { point: p1, info: { constructionPlane, orientation, isOrthoMode } } = await dialog.prompt("Select center point", () => {
             const pointPicker = new PointPicker(this.editor);
             return pointPicker.execute().resource(this);
         })();
@@ -54,7 +54,9 @@ export class RadialArrayCommand extends Command {
         const step1 = centroid.sub(p1);
         array.step1 = step1.length();
         array.dir1 = step1.normalize();
-        array.dir2 = constructionPlane.n.clone().normalize();
+        array.dir2 = isOrthoMode
+            ? constructionPlane.n.clone().normalize()
+            : normal.set(0, 0, 1).applyQuaternion(orientation);
         array.center = p1;
 
         dialog.render();
@@ -67,4 +69,5 @@ export class RadialArrayCommand extends Command {
     }
 }
 
+const normal = new THREE.Vector3(0, 0, 1);
 const bbox = new THREE.Box3();

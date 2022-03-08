@@ -22,6 +22,14 @@ export interface RadialArrayParams extends ArrayParams {
     degrees: number;
 }
 
+type RectangularArrayMode = 'extent' | 'spacing';
+
+export interface RectangularArrayParams extends ArrayParams {
+    mode: RectangularArrayMode;
+    distance1: number;
+    distance2: number;
+}
+
 abstract class AbstractArrayFactory extends GeometryFactory implements ArrayParams {
     protected _solid!: { view?: visual.Solid, model?: c3d.Solid };
     protected readonly start: number = 0;
@@ -39,7 +47,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
 
     dir1!: THREE.Vector3;
     step1 = 0;
-    private _num1 = 2;
+    protected _num1 = 2;
     get num1() { return this._num1 }
     set num1(num1: number) {
         if (num1 < 1) throw new Error("invalid argument");
@@ -67,7 +75,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
         if (item === undefined) throw new Error("invalid precondition");
         const result = [];
         let matrices = params.GenerateTransformMatrices();
-        matrices = matrices.slice(start, 100); // NOTE: a bit paranoid about users making a mistake
+        matrices = matrices.slice(start, 200); // NOTE: a bit paranoid about users making a mistake
         let normalize = matrices[0];
         normalize = normalize.Div(new c3d.Matrix3D());
         const normalized = item.Duplicate().Cast<c3d.Item>(item.IsA());
@@ -107,13 +115,33 @@ export class RadialArrayFactory extends AbstractArrayFactory {
 }
 
 export class RectangularArrayFactory extends AbstractArrayFactory {
+    mode: RectangularArrayMode = 'extent';
     protected readonly isPolar = false;
 
-    private _num2 = 0;
+    private _num2 = 1;
     get num2() { return this._num2 }
-    set num2(num2: number) { this._num2 = Math.floor(num2) }
+    set num2(num2: number) {
+        this._num2 = Math.max(1, Math.trunc(num2))
+    }
+
+    get num1() { return super.num1 }
+    set num1(num1: number) {
+        const distance1 = this.distance1;
+        super.num1 = num1;
+        if (this.mode === 'extent') this.distance1 = distance1;
+    }
 
     step2 = 1;
+
+    get distance2() { return this.num2 === 1 ? this.step2 : this.step2 * (this.num2 - 1) }
+    set distance2(distance2: number) {
+        this.step2 = this.num2 === 1 ? distance2 : distance2 / (this.num2 - 1);
+    }
+
+    get distance1() { return this.num1 === 1 ? this.step1 : this.step1 * (this.num1 - 1) }
+    set distance1(distance1: number) {
+        this.step1 = this.num1 === 1 ? distance1 : distance1 / (this.num1 - 1);
+    }
 
     protected get params() {
         const { isPolar, dir1, step1, num1, dir2, step2, num2, center, isAlongAxis } = this;

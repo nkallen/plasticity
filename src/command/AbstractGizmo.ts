@@ -77,7 +77,7 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
-    onKeyPress(cb: (i: I) => void, text: string): I | undefined { return }
+    onKeyPress(cb: (i: I) => void, text: KeyboardInterpreter): I | undefined { return }
     abstract onPointerMove(cb: (i: I) => void, intersector: Intersector, info: MovementInfo): I | undefined;
     abstract onPointerDown(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: (i: I) => void, intersect: Intersector, info: MovementInfo): void;
@@ -488,8 +488,8 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
             case 'dragging':
             case 'command':
                 this.state.text.interpret(event);
-                const value = this.gizmo.onKeyPress(this.cb, this.state.text.state);
-                if (value !== undefined) this.gizmo.helper?.onKeyPress(value);
+                const value = this.gizmo.onKeyPress(this.cb, this.state.text);
+                if (value !== undefined) this.gizmo.helper?.onKeyPress(value, this.state.text);
                 this.editor.signals.gizmoChanged.dispatch();
                 break;
             default: break;
@@ -532,8 +532,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
 export interface GizmoHelper<I> {
     onStart(viewport: Viewport, positionSS: THREE.Vector2): void;
     onMove(positionSS: THREE.Vector2, info: I): void;
-    onMove(positionSS: THREE.Vector2, info: I): void;
-    onKeyPress(info: I): void;
+    onKeyPress(info: I, text: KeyboardInterpreter): void;
     onEnd(): void;
     onInterrupt(): void;
 }
