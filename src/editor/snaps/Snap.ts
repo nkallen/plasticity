@@ -149,19 +149,6 @@ export class AxisAxisCrossPointSnap extends PointSnap {
     }
 }
 
-export class AxisCurveCrossPointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
-
-    constructor(readonly cross: CrossPoint, axis: AxisSnap, readonly curve: CurveSnap) {
-        super("Intersection", cross.position);
-        this.helper.add(axis.helper.clone());
-    }
-
-    additionalSnapsFor(point: THREE.Vector3) {
-        return this.curve.additionalSnapsFor(point);
-    }
-}
-
 export class CurvePointSnap extends PointSnap {
     constructor(readonly name: string | undefined, position: THREE.Vector3, readonly curveSnap: CurveSnap, protected readonly _t: number) {
         super(name, position);
@@ -174,6 +161,20 @@ export class CurvePointSnap extends PointSnap {
 
     additionalSnapsFor(point: THREE.Vector3): Snap[] {
         return this.curveSnap.additionalSnapsFor(point);
+    }
+}
+
+
+export class AxisCurveCrossPointSnap extends CurvePointSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(readonly cross: CrossPoint, axis: AxisSnap, readonly curve: CurveSnap) {
+        super("Intersection", cross.position, curve, cross.on2.t);
+        this.helper.add(axis.helper.clone());
+    }
+
+    additionalSnapsFor(point: THREE.Vector3) {
+        return this.curve.additionalSnapsFor(point);
     }
 }
 
