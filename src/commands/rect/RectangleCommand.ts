@@ -5,17 +5,18 @@ import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import LineFactory from '../line/LineFactory';
 import { RectangleDialog } from "./RectangleDialog";
-import { CenterRectangleFactory, CornerRectangleFactory, EditCornerRectangleFactory, ThreePointRectangleFactory } from './RectangleFactory';
+import { CenterRectangleFactory, CornerRectangleFactory, EditCenterRectangleFactory, EditCornerRectangleFactory, EditThreePointRectangleFactory, ThreePointRectangleFactory } from './RectangleFactory';
 import { RectangleModeKeyboardGizmo } from "./RectangleModeKeyboardGizmo";
 
 export class ThreePointRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
+        let pr1, pr2, pr3;
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1 } = pr1 = await pointPicker.execute().resource(this);
         line.p1 = p1;
-        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+        const { point: p2 } = pr2 = await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -25,13 +26,20 @@ export class ThreePointRectangleCommand extends Command {
         rect.constructionPlane = this.editor.activeViewport?.constructionPlane;
         rect.p1 = p1;
         rect.p2 = p2;
-        await pointPicker.execute(({ point: p3 }) => {
+        pr3 = await pointPicker.execute(({ point: p3 }) => {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
 
         const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
+
+        const next = new EditThreePointRectangleCommand(this.editor);
+        next.pr1 = pr1;
+        next.pr2 = pr2;
+        next.pr3 = pr3;
+        next.rectangle = result;
+        this.editor.enqueue(next, false);
     }
 }
 
@@ -85,31 +93,6 @@ export class CornerRectangleCommand extends Command {
     }
 }
 
-export class EditCornerRectangleCommand extends Command {
-    readonly remember = false;
-    pr1!: PointResult;
-    pr2!: PointResult;
-    rectangle!: visual.SpaceInstance<visual.Curve3D>;
-
-    async execute(): Promise<void> {
-        const { pr1, pr2, rectangle } = this;
-        const edit = new EditCornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        edit.p1 = pr1.point;
-        edit.p2 = pr2.point;
-        edit.orientation = pr2.info.orientation;
-        edit.rectangle = rectangle;
-
-        const dialog = new RectangleDialog(edit, this.editor.signals);
-        await dialog.execute(params => {
-            edit.update();
-            dialog.render();
-        }).rejectOnInterrupt().resource(this);
-
-        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
-        this.editor.selection.selected.addCurve(result);
-    }
-}
-
 export class CenterRectangleCommand extends Command {
     pr1?: PointResult;
     pr2?: PointResult;
@@ -142,7 +125,7 @@ export class CenterRectangleCommand extends Command {
             }
         }).resource(this);
 
-        await pointPicker.execute(result => {
+        pr2 = await pointPicker.execute(result => {
             const { point: p2, info: { orientation } } = pr2 = result;
             rect.p2 = p2;
             rect.orientation = orientation;
@@ -150,6 +133,88 @@ export class CenterRectangleCommand extends Command {
         }, { result: pr2 }).resource(this);
 
         const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
+
+        const next = new EditCenterRectangleCommand(this.editor);
+        next.pr1 = pr1;
+        next.pr2 = pr2;
+        next.rectangle = result;
+        this.editor.enqueue(next, false);
+    }
+}
+
+export class EditCenterRectangleCommand extends Command {
+    readonly remember = false;
+    pr1!: PointResult;
+    pr2!: PointResult;
+    rectangle!: visual.SpaceInstance<visual.Curve3D>;
+
+    async execute(): Promise<void> {
+        const { pr1, pr2, rectangle } = this;
+        const edit = new EditCenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        edit.p1 = pr1.point;
+        edit.p2 = pr2.point;
+        edit.orientation = pr2.info.orientation;
+        edit.rectangle = rectangle;
+
+        const dialog = new RectangleDialog(edit, this.editor.signals);
+        await dialog.execute(params => {
+            edit.update();
+            dialog.render();
+        }).rejectOnInterrupt().resource(this);
+
+        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
+    }
+}
+
+export class EditCornerRectangleCommand extends Command {
+    readonly remember = false;
+    pr1!: PointResult;
+    pr2!: PointResult;
+    rectangle!: visual.SpaceInstance<visual.Curve3D>;
+
+    async execute(): Promise<void> {
+        const { pr1, pr2, rectangle } = this;
+        const edit = new EditCornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        edit.p1 = pr1.point;
+        edit.p2 = pr2.point;
+        edit.orientation = pr2.info.orientation;
+        edit.rectangle = rectangle;
+
+        const dialog = new RectangleDialog(edit, this.editor.signals);
+        await dialog.execute(params => {
+            edit.update();
+            dialog.render();
+        }).rejectOnInterrupt().resource(this);
+
+        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
+    }
+}
+
+export class EditThreePointRectangleCommand extends Command {
+    readonly remember = false;
+    pr1!: PointResult;
+    pr2!: PointResult;
+    pr3!: PointResult;
+    rectangle!: visual.SpaceInstance<visual.Curve3D>;
+
+    async execute(): Promise<void> {
+        const { pr1, pr2, pr3, rectangle } = this;
+        const edit = new EditThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        edit.p1 = pr1.point;
+        edit.p2 = pr2.point;
+        edit.p3 = pr3.point;
+        edit.rectangle = rectangle;
+
+        const dialog = new RectangleDialog(edit, this.editor.signals);
+        await dialog.execute(params => {
+            edit.update();
+            dialog.render();
+        }).rejectOnInterrupt().resource(this);
+
+        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
     }
 }
