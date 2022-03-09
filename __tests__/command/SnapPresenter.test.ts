@@ -36,7 +36,7 @@ describe(SnapPresentation, () => {
             { snap: endPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation },
             { snap: startPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation }
         ];
-        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), new THREE.Camera(), false, indicator, []);
+        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), viewport, indicator, []);
 
         expect(presentation.names).toEqual(["endpoint", "startpoint"]);
         expect(presentation.info!.position).toBe(hitPosition);

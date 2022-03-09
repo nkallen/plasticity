@@ -83,6 +83,12 @@ export class ThreePointCircleFactory extends GeometryFactory {
 
         return new c3d.SpaceInstance(circle);
     }
+
+    get center() {
+        const { p1, p2, p3 } = this;
+        const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, true);
+        return point2point(circle.GetCentre());
+    }   
 }
 
 export interface EditCircleParams {

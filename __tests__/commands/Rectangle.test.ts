@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CenterRectangleFactory, CornerRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
+import { CenterRectangleFactory, CornerRectangleFactory, DiagonalRectangleFactory, EditCornerRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -62,7 +62,6 @@ describe(CornerRectangleFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
         })
     })
-
 });
 
 describe(CenterRectangleFactory, () => {
@@ -211,6 +210,40 @@ describe(DiagonalRectangleFactory, () => {
             expect(p2).toApproximatelyEqual(new THREE.Vector3(1, 0, -1));
             expect(p4).toApproximatelyEqual(new THREE.Vector3(0, 1, -1));
         })
-
     })
 })
+
+describe(EditCornerRectangleFactory, () => {
+    const p1 = new THREE.Vector3();
+    const p2 = new THREE.Vector3(1, 1, 0);
+    let rectangle: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(async () => {
+        const makeRectangle = new CornerRectangleFactory(db, materials, signals);
+        makeRectangle.p1 = p1;
+        makeRectangle.p2 = p2;
+        rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    })
+
+    let editRectangle: EditCornerRectangleFactory;
+
+    beforeEach(() => {
+        editRectangle = new EditCornerRectangleFactory(db, materials, signals);
+    })
+
+    test('invokes the appropriate c3d commands', async () => {
+        editRectangle.rectangle = rectangle;
+        editRectangle.width = 10;
+        editRectangle.height = 20;
+        editRectangle.p1 = p1;
+        editRectangle.p2 = p2;
+        const result = await editRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(result);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(5, 10, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(10, 20, 0));
+    })
+});

@@ -4,6 +4,7 @@ import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';
+import { CenterCircleHelper } from "./CenterCircleHelper";
 import { CircleDialog } from "./CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './CircleFactory';
 import { CircleKeyboardGizmo } from "./CircleKeyboardGizmo";
@@ -15,8 +16,8 @@ export class CenterCircleCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        const { point, info: { snap } } = await pointPicker.execute().resource(this);
-        circle.center = point;
+        const { point: p1, info: { snap, viewport } } = await pointPicker.execute().resource(this);
+        circle.center = p1;
 
         const keyboard = new CircleKeyboardGizmo(this.editor);
         keyboard.execute(e => {
@@ -27,12 +28,17 @@ export class CenterCircleCommand extends Command {
             }
         }).resource(this);
 
-        pointPicker.restrictToPlaneThroughPoint(point, snap);
-        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
+        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        helper.p1 = p1;
+        pointPicker.restrictToPlaneThroughPoint(p1, snap);
+        await pointPicker.execute(({ point: p2, info: { orientation, viewport } }) => {
             circle.point = p2;
             circle.orientation = orientation;
             circle.update();
+            helper.p2 = p2;
+            helper.update(viewport);
         }).resource(this);
+        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -78,18 +84,27 @@ export class TwoPointCircleCommand extends Command {
 
         const pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        const { point, info: { snap } } = await pointPicker.execute().resource(this);
-        circle.p1 = point;
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
+        circle.p1 = p1;
 
-        pointPicker.restrictToPlaneThroughPoint(point, snap);
-        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
+        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        helper.p1 = p1;
+        pointPicker.restrictToPlaneThroughPoint(p1, snap);
+        await pointPicker.execute(({ point: p2, info: { orientation, viewport } }) => {
             circle.p2 = p2;
             circle.orientation = orientation;
             circle.update();
+            helper.p2 = p2;
+            helper.update(viewport);
         }).resource(this);
+        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
+
+        const next = new EditCircleCommand(this.editor);
+        next.circle = result;
+        this.editor.enqueue(next, false);
     }
 }
 
@@ -104,13 +119,22 @@ export class ThreePointCircleCommand extends Command {
         const { point: p2 } = await pointPicker.execute().resource(this);
         circle.p2 = p2;
 
-        await pointPicker.execute(({ point: p3 }) => {
+        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        await pointPicker.execute(({ point: p3, info: { viewport } }) => {
             circle.p3 = p3;
             circle.update();
+            helper.p1 = circle.center;
+            helper.p2 = p3;
+            helper.update(viewport);
         }).resource(this);
+        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
+
+        const next = new EditCircleCommand(this.editor);
+        next.circle = result;
+        this.editor.enqueue(next, false);
     }
 }
 

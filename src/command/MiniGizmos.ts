@@ -623,7 +623,7 @@ points.push(new THREE.Vector3(0, -10_000, 0));
 points.push(new THREE.Vector3(0, 10_000, 0));
 axisGeometry.setFromPoints(points);
 
-export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> {
+export class NumberHelper extends THREE.Object3D implements GizmoHelper<number>, CancellableRegisterable {
     private readonly element: HTMLElement;
     private viewport?: Viewport;
 
@@ -641,7 +641,17 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> 
         this.element.hidden = true;
     }
 
-    onMove(position: THREE.Vector2, value: number) {
+    onMove(position: THREE.Vector2 | THREE.Vector3, value: number) {
+        this.element.hidden = false;
+        this.element.innerHTML = this.map(value).toFixed(2);
+        this.project();
+    }
+
+    onPointPickerMove(viewport: Viewport, value: number) {
+        if (this.viewport !== viewport) {
+            this.viewport = viewport;
+            viewport.domElement.appendChild(this.element);
+        }
         this.element.hidden = false;
         this.element.innerHTML = this.map(value).toFixed(2);
         this.project();
@@ -662,10 +672,19 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number> 
     }
 
     onEnd() {
-        this.viewport!.domElement.removeChild(this.element);
+        this.element.parentNode?.removeChild(this.element);
     }
 
     onInterrupt() { this.onEnd() }
+
+    resource(reg: CancellableRegistor): this {
+        reg.resource(this);
+        return this;
+    }
+
+    cancel() { this.onEnd() }
+    finish() { this.onEnd() }
+    interrupt() { this.onEnd() }
 }
 
 export class AxisHelper extends THREE.Line implements GizmoHelper<any>, CancellableRegisterable {

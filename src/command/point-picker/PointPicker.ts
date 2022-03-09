@@ -37,7 +37,7 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase;
 }
 
-export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orientation: THREE.Quaternion, cameraPosition: THREE.Vector3, cameraOrientation: THREE.Quaternion, isOrthoMode: boolean }
+export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orientation: THREE.Quaternion, cameraPosition: THREE.Vector3, cameraOrientation: THREE.Quaternion, isOrthoMode: boolean, viewport: Viewport }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 export class SnapCollection {

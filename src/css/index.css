@@ -40,7 +40,7 @@
     }
 
     .axis-helper {
-        @apply text-xs absolute z-50 max-w-xs px-2 py-1 text-center border-[0.5px] rounded text-neutral-50 bg-neutral-500 border-neutral-400 shadow-black/20 shadow-md;
+        @apply pointer-events-none text-xs absolute z-50 max-w-xs px-2 py-1 text-center border-[0.5px] rounded text-neutral-50 bg-neutral-500 border-neutral-400 shadow-black/20 shadow-md;
     }
 
     .tooltip {
