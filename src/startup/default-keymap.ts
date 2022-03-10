@@ -3,7 +3,7 @@ export default {
         "v": "gizmo:circle:mode",
     },
 
-    "[command='corner-rectangle'] plasticity-viewport, [command='center-rectangle'] plasticity-viewport": {
+    "[command='corner-rectangle'] plasticity-viewport, [command='center-rectangle'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='center-box'] plasticity-viewport": {
         "^alt": "keyboard:rectangle:mode",
     },
 
@@ -333,6 +333,7 @@ export default {
         "s": "snaps:set-square",
 
         "mouse2": "point-picker:finish",
+        "enter": "point-picker:finish",
 
         "ctrl": "snaps:temporarily-disable",
         "^ctrl": "snaps:temporarily-enable",
@@ -354,7 +355,7 @@ export default {
         "^tab": "command:quasimode:stop",
     },
 
-    "body[command][gizmo] plasticity-viewport": {
-        "enter": "gizmo:finish",
+    "body[command][gizmo]:not([gizmo='point-picker']) plasticity-viewport": {
+        "enter": "gizmo:finish", // for `sz0<enter>`, etc
     }
 }
