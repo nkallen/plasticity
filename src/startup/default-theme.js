@@ -1,7 +1,8 @@
 module.exports = {
     colors: {
         viewport: '#2e2e30',
-        grid: '#484848',
+        grid1: '#484848',
+        grid2: '#595959',
         dialog: '#111111',
         matcap: '#fafafa',
         white: '#ffffff',

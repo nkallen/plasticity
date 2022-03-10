@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { CameraMemento, MementoOriginator } from "../../editor/History";
 
-export const near = 10e-3;
-export const far = 10e4;
-export const frustumSize = 6;
-export const fov = 50;
-export const aspect = 1;
+const near = 10e-3;
+const far = 10e4;
+const frustumSize = 6;
+const fov = 50;
+const aspect = 1;
 
 export type CameraMode = 'orthographic' | 'perspective';
 

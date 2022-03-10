@@ -72,9 +72,11 @@ export class Helpers {
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
         axes.renderOrder = -1;
-        axes.position.set(0, 0, 0.005);
+        axes.position.set(0, 0, 0.01);
         const material = axes.material as THREE.Material;
+        material.depthFunc = THREE.AlwaysDepth;
         material.fog = false;
+
         axes.setColors(
             new THREE.Color(styles.colors.red[600]).convertSRGBToLinear(),
             new THREE.Color(styles.colors.green[600]).convertSRGBToLinear(),

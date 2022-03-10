@@ -52,7 +52,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
 
-    readonly gridColor = new THREE.Color(this.editor.styles.colors.grid).convertSRGBToLinear();
+    readonly gridColor1 = new THREE.Color(this.editor.styles.colors.grid1).convertSRGBToLinear();
+    readonly gridColor2 = new THREE.Color(this.editor.styles.colors.grid2).convertSRGBToLinear();
     readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
     readonly selectionOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[400]).convertSRGBToLinear();
     readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
@@ -75,7 +76,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
     private navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
-    private grid = new GridHelper(300, 300, this.gridColor, this.gridColor);
+    private grid = new GridHelper(150, 300, this.gridColor1, this.gridColor2);
 
     constructor(
         private readonly editor: EditorLike,
@@ -309,10 +310,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             grid.quaternion.copy(camera.quaternion);
         }
 
-        const fog = camera.isOrthographicCamera
-            ? new THREE.Fog(this.backgroundColor, 100, 1000)
-            : new THREE.Fog(this.backgroundColor, 1, 100)
-        scene.fog = fog;
+        scene.fog = new THREE.Fog(this.backgroundColor, 50, 300)
 
         grid.update(camera);
         helpers.axes.updateMatrixWorld();
