@@ -109,6 +109,5 @@ export {
     RectangularArrayCommand,
     SlotCommand,
     PlaceCommand,
-
     SetMaterialCommand,
 };

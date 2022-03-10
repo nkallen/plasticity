@@ -248,10 +248,11 @@ export default {
         "t": "command:trim",
         "o": "command:offset-curve",
         "alt-x": "command:mirror",
+        "l": "command:loft",
+
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
-        "l": "command:loft",
 
         "m": "command:set-material",
 

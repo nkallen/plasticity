@@ -1,5 +1,8 @@
+import { CompositeDisposable } from 'event-kit';
 import { render } from 'preact';
 import * as cmd from "../../command/Command";
+import { ExportCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
+import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { DisablableType } from '../../editor/TypeManager';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
@@ -9,15 +12,26 @@ import * as visual from '../../visual_model/VisualModel';
 export default (editor: Editor) => {
     class Outliner extends HTMLElement {
         private readonly keypress = new SelectionKeypressStrategy(editor.keymaps);
+        private readonly disposable = new CompositeDisposable();
 
         connectedCallback() {
             this.render();
+            const { disposable } = this;
+
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.selectionChanged.add(this.render);
             editor.signals.objectHidden.add(this.render);
             editor.signals.objectUnhidden.add(this.render);
             editor.signals.objectSelectable.add(this.render);
             editor.signals.objectUnselectable.add(this.render);
+
+            for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand]) {
+                disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
+                    const command = new Command(editor);
+                    command.agent = 'user';
+                    editor.enqueue(command)
+                }));
+            }
         }
 
         disconnectedCallback() {
@@ -27,6 +41,7 @@ export default (editor: Editor) => {
             editor.signals.objectUnhidden.remove(this.render);
             editor.signals.objectSelectable.remove(this.render);
             editor.signals.objectUnselectable.remove(this.render);
+            this.disposable.dispose();
         }
 
         render = () => {
