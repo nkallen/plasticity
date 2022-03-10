@@ -268,7 +268,7 @@ export default {
         "shift-v": "command:center-box",
 
         "shift-q": "command:corner-rectangle",
-        "shift-w": "command:center-rectangle",
+        "shift-w": "command:center-circle",
 
         "q": "command:boolean",
 

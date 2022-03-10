@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
-import { PointPicker } from "../../command/point-picker/PointPicker";
+import { PointPicker, PointResult } from "../../command/point-picker/PointPicker";
 import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
@@ -11,6 +11,7 @@ import { EditBoxGizmo } from "./BoxGizmo";
 import { BoxDialog } from "./BoxDialog";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { RectangleModeKeyboardGizmo } from "../rect/RectangleModeKeyboardGizmo";
 
 const Z = new THREE.Vector3(0, 0, 1);
 
@@ -57,10 +58,14 @@ export class ThreePointBoxCommand extends Command {
 }
 
 export class CornerBoxCommand extends Command {
+    pr1?: PointResult;
+    pr2?: PointResult;
+
     async execute(): Promise<void> {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         box.targets = [...selection.solids];
+        let { pr1, pr2 } = this;
 
         const dialog = new BoxDialog(box, this.editor.signals);
         const gizmo = new EditBoxGizmo(box, this.editor);
@@ -73,17 +78,30 @@ export class CornerBoxCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
 
-        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = pr1 = await pointPicker.execute({ result: pr1 }).resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
+
+        const mode = new RectangleModeKeyboardGizmo(this.editor);
+        const m = mode.execute(e => {
+            switch (e) {
+                case 'mode':
+                    const command = new CenterBoxCommand(this.editor);
+                    command.pr1 = pr1;
+                    command.pr2 = pr2;
+                    this.editor.enqueue(command, true);
+            }
+        }).resource(this);
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2, info: { orientation } } = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
+        const { point: p2, info: { orientation } } = pr2 = await pointPicker.execute(result => {
+            const { point: p2, info: { orientation } } = pr2 = result;
             rect.p2 = p2;
             rect.orientation = orientation;
             rect.update();
-        }).resource(this);
+        }, { result: pr2 }).resource(this);
         rect.cancel();
+        m.finish();
 
         box.p1 = p1;
         box.p2 = p2;
@@ -135,10 +153,14 @@ export class CornerBoxCommand extends Command {
 }
 
 export class CenterBoxCommand extends Command {
+    pr1?: PointResult;
+    pr2?: PointResult;
+
     async execute(): Promise<void> {
         const box = new PossiblyBooleanCenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         box.targets = [...selection.solids];
+        let { pr1, pr2 } = this;
 
         let pointPicker = new PointPicker(this.editor);
         pointPicker.facePreferenceMode = 'strong';
@@ -147,17 +169,29 @@ export class CenterBoxCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
-        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = pr1 = await pointPicker.execute({ result: pr1 }).resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
+
+        const mode = new RectangleModeKeyboardGizmo(this.editor);
+        const m = mode.execute(e => {
+            switch (e) {
+                case 'mode':
+                    const command = new CornerBoxCommand(this.editor);
+                    command.pr1 = pr1;
+                    command.pr2 = pr2;
+                    this.editor.enqueue(command, true);
+            }
+        }).resource(this);
 
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2, info: { orientation } } = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
+        const { point: p2, info: { orientation } } = pr2 = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
             rect.orientation = orientation;
             rect.update();
-        }).resource(this);
+        }, { result: pr2 }).resource(this);
         rect.cancel();
+        m.finish();
 
         box.p1 = p1;
         box.p2 = p2;
