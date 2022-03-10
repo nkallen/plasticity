@@ -1,7 +1,7 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "0.5.19",
+    "version": "0.5.20",
     "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
