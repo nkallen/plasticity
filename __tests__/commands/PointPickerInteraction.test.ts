@@ -19,6 +19,7 @@ beforeEach(() => {
     viewport = MakeViewport(editor);
     pointPicker = new PointPicker(editor);
     editor.viewports.push(viewport);
+    document.body.appendChild(viewport.domElement);
 });
 
 afterEach(() => {
@@ -41,13 +42,13 @@ test('basic move and click', async () => {
     expect(point).toApproximatelyEqual(new THREE.Vector3());
 });
 
-test('execute with no callback and result', async () => {
+test('execute with no callback and preresult', async () => {
     const preresult: PointResult = { point: new THREE.Vector3(), info: { orientation: new THREE.Quaternion(), snap: new PointSnap() } };
     const result = await pointPicker.execute({ result: preresult });
     expect(result).toBe(preresult);
 });
 
-test('execute with callback and result', async () => {
+test('execute with callback and preresult', async () => {
     const preresult: PointResult = { point: new THREE.Vector3(), info: { orientation: new THREE.Quaternion(), snap: new PointSnap() } };
     const cb = jest.fn();
     const promise = pointPicker.execute(cb, { result: preresult });
@@ -59,3 +60,13 @@ test('execute with callback and result', async () => {
 
     promise.finish();
 });
+
+test('defaults', async () => {
+    const position = new THREE.Vector3(1, 2, 3);
+    const orientation = new THREE.Quaternion();
+    const promise = pointPicker.execute({ default: { position, orientation } });
+    editor.onViewportActivated(viewport);
+    domElement.dispatchEvent(new CustomEvent('point-picker:finish', { bubbles: true }));
+    const { point } = await promise;
+    expect(point).toApproximatelyEqual(position);
+})

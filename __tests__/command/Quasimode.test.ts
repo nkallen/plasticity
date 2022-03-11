@@ -24,7 +24,7 @@ beforeEach(() => {
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
 
-    db = editor.db;
+    db = editor._db;
 })
 
 let fillet: FilletFactory;
