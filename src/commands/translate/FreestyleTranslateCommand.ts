@@ -28,17 +28,22 @@ export abstract class AbstractFreestyleMoveCommand extends Command {
             await move.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
+        bbox.makeEmpty();
+        for (const item of move.items) bbox.expandByObject(item);
+        bbox.getCenter(defaultPosition);
+
         const line = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         const pointPicker = new PointPicker(editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1 } = await pointPicker.execute({ default: { position: defaultPosition, orientation: defaultOrientation } }).resource(this);
         line.p1 = p1;
-        await pointPicker.execute(({ point: p2 }) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             move.move = p2.clone().sub(p1);
             move.update();
             line.update();
             dialog.render();
-        }).resource(this);
+        }, { default: { position: origin, orientation: defaultOrientation } }).resource(this);
+        move.move = p2.clone().sub(p1);
         line.cancel();
         dialog.finish();
 
@@ -235,3 +240,8 @@ export class FreestyleDraftSolidCommand extends AbstractFreestyleRotateCommand {
         return draftSolid;
     }
 }
+
+const defaultPosition = new THREE.Vector3();
+const origin = new THREE.Vector3();
+const bbox = new THREE.Box3();
+const defaultOrientation = new THREE.Quaternion();

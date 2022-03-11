@@ -137,6 +137,7 @@ export interface MoveParams {
 
 export interface MoveFactoryLike extends GeometryFactory, MoveParams {
     showPhantoms(): Promise<void>;
+    get items(): THREE.Object3D[];
 }
 
 export class MoveFactory extends TranslateFactory implements MoveFactoryLike {

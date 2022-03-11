@@ -35,6 +35,7 @@ export interface EditorLike {
     registry: CommandRegistry,
     layers: LayerManager,
     gizmos: GizmoMaterialDatabase;
+    activeViewport?: Viewport;
 }
 
 export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orientation: THREE.Quaternion, cameraPosition: THREE.Vector3, cameraOrientation: THREE.Quaternion, isOrthoMode: boolean, viewport: Viewport }
@@ -120,6 +121,7 @@ class PointPickerKeyboardManager {
 export interface PointPickerOptions {
     rejectOnFinish?: boolean;
     result?: PointResult;
+    default?: { position: THREE.Vector3, orientation: THREE.Quaternion };
 }
 const defaultOptions: PointPickerOptions = { rejectOnFinish: false }
 
@@ -229,7 +231,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                         return;
                     }
                     dispose();
-                    finish();
+                    finish('use-default');
                 });
                 disposables.add(d, f);
 
@@ -248,7 +250,8 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 editor.signals.pointPickerChanged.dispatch();
             }
 
-            const finish = () => {
+            const finish = (mode: 'use-default' | 'normal' = 'normal') => {
+                if (mode === 'use-default') info = useDefault(info);
                 if (info === undefined) {
                     reject(new Error("invalid state. If the user did not move their mouse at all, this is ok"));
                     return;
@@ -258,6 +261,22 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 model.addPickedPoint(pointResult);
                 PlaneDatabase.ScreenSpace.set(pointResult);
                 resolve(pointResult);
+            }
+
+            const useDefault = (info?: SnapInfo) => {
+                if (_options.default === undefined) return info;
+                const { position, orientation } = _options.default;
+                const snap = new PointSnap(undefined, position);
+                if (info !== undefined) {
+                    const { constructionPlane, isOrthoMode, viewport, viewport: { camera } } = info;
+                    return { snap, position, orientation, cursorPosition: position, cursorOrientation: orientation, constructionPlane, isOrthoMode, cameraOrientation: camera.quaternion.clone(), cameraPosition: camera.position.clone(), viewport };
+                } else {
+                    // The user never moved their mouse
+                    const viewport = editor.activeViewport;
+                    if (viewport === undefined) return;
+                    const { constructionPlane, isOrthoMode, camera } = viewport;
+                    return { snap, position, orientation, cursorPosition: position, cursorOrientation: orientation, constructionPlane, isOrthoMode, cameraOrientation: camera.quaternion.clone(), cameraPosition: camera.position.clone(), viewport };
+                }
             }
 
             return { dispose, finish };

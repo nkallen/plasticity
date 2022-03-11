@@ -137,6 +137,8 @@ export class MoveContourPointFactory extends ModifyContourPointFactory implement
     }
 
     async showPhantoms() { }
+
+    get items() { return [] }
 }
 
 const identity = new THREE.Vector3(1, 1, 1);
