@@ -95,6 +95,7 @@ keybindings.set("gizmo:fillet-solid:fillet", "Fillet distance");
 keybindings.set("gizmo:fillet-solid:chamfer", "Chamfer distance");
 keybindings.set("gizmo:fillet-solid:angle", "Chamfer angle");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
+keybindings.set("gizmo:circle:radius", "Radius");
 keybindings.set("keyboard:rectangle:mode", "Toggle center/corner");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");
 keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");

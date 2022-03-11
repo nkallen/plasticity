@@ -3,6 +3,10 @@ export default {
         "v": "gizmo:circle:mode",
     },
 
+    "[command='edit-circle'] plasticity-viewport": {
+        "d": "gizmo:circle:radius",
+    },
+
     "[command='corner-rectangle'] plasticity-viewport, [command='center-rectangle'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='center-box'] plasticity-viewport": {
         "^alt": "keyboard:rectangle:mode",
     },

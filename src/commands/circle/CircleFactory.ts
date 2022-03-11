@@ -88,7 +88,7 @@ export class ThreePointCircleFactory extends GeometryFactory {
         const { p1, p2, p3 } = this;
         const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, true);
         return point2point(circle.GetCentre());
-    }   
+    }
 }
 
 export interface EditCircleParams {
@@ -107,6 +107,12 @@ export class EditCircleFactory extends GeometryFactory implements EditCirclePara
         this._radius = radius;
     }
 
+    private _axis!: THREE.Vector3;
+    get axis() { return this._axis }
+
+    private _center!: THREE.Vector3;
+    get center() { return this._center }
+
     private _circle!: visual.SpaceInstance<visual.Curve3D>
     set circle(circle: visual.SpaceInstance<visual.Curve3D>) {
         this._circle = circle;
@@ -115,6 +121,11 @@ export class EditCircleFactory extends GeometryFactory implements EditCirclePara
         const item = model.GetSpaceItem()!;
         const arc = item.Cast<c3d.Arc3D>(item.IsA());
         this.arc = arc;
+
+        const { axis, success } = arc.GetCircleAxis();
+        if (!success) throw new Error("invalid precondition");
+        this._center = point2point(axis.GetOrigin());
+        this._axis = vec2vec(axis.GetAxisZ(), 1);
     }
 
     async calculate() {

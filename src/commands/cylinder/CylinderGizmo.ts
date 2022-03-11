@@ -54,7 +54,7 @@ class ExtrudeDistanceGizmo extends DistanceGizmo {
 
 }
 
-class RadiusDistanceGizmo extends ExtrudeDistanceGizmo {
+export class RadiusDistanceGizmo extends ExtrudeDistanceGizmo {
     render(length: number) {
         super.render(length);
     }

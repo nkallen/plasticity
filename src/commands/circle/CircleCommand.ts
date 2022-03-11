@@ -4,10 +4,11 @@ import { AxisSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../visual_model/VisualModel";
 import { CenterPointArcFactory } from "../arc/ArcFactory";
 import LineFactory from '../line/LineFactory';
-import { CenterCircleHelper } from "./CenterCircleHelper";
 import { CircleDialog } from "./CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './CircleFactory';
+import { CircleGizmo } from "./CircleGizmo";
 import { CircleKeyboardGizmo } from "./CircleKeyboardGizmo";
+import * as THREE from "three";
 
 export class CenterCircleCommand extends Command {
     async execute(): Promise<void> {
@@ -28,17 +29,12 @@ export class CenterCircleCommand extends Command {
             }
         }).resource(this);
 
-        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        helper.p1 = p1;
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
         await pointPicker.execute(({ point: p2, info: { orientation, viewport } }) => {
             circle.point = p2;
             circle.orientation = orientation;
             circle.update();
-            helper.p2 = p2;
-            helper.update(viewport);
         }).resource(this);
-        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -58,10 +54,21 @@ export class EditCircleCommand extends Command {
         edit.circle = this.circle;
 
         const dialog = new CircleDialog(edit, this.editor.signals);
-        await dialog.execute(params => {
+        const gizmo = new CircleGizmo(edit, this.editor);
+        
+        dialog.execute(params => {
             edit.update();
             dialog.render();
         }).rejectOnInterrupt().resource(this);
+
+        gizmo.position.copy(edit.center);
+        gizmo.quaternion.setFromUnitVectors(Z, edit.axis);
+        gizmo.execute(async (params) => {
+            dialog.render();
+            await edit.update();
+        }).resource(this);
+
+        await this.finished;
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -87,17 +94,12 @@ export class TwoPointCircleCommand extends Command {
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         circle.p1 = p1;
 
-        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        helper.p1 = p1;
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
         await pointPicker.execute(({ point: p2, info: { orientation, viewport } }) => {
             circle.p2 = p2;
             circle.orientation = orientation;
             circle.update();
-            helper.p2 = p2;
-            helper.update(viewport);
         }).resource(this);
-        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -119,15 +121,10 @@ export class ThreePointCircleCommand extends Command {
         const { point: p2 } = await pointPicker.execute().resource(this);
         circle.p2 = p2;
 
-        const helper = new CenterCircleHelper(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         await pointPicker.execute(({ point: p3, info: { viewport } }) => {
             circle.p3 = p3;
             circle.update();
-            helper.p1 = circle.center;
-            helper.p2 = p3;
-            helper.update(viewport);
         }).resource(this);
-        helper.cancel();
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -168,3 +165,5 @@ export class CenterPointArcCommand extends Command {
         this.editor.selection.selected.addCurve(result);
     }
 }
+
+const Z = new THREE.Vector3(0, 0, 1);
