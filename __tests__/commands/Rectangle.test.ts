@@ -234,7 +234,7 @@ describe(EditCornerRectangleFactory, () => {
     test('invokes the appropriate c3d commands', async () => {
         editRectangle.rectangle = rectangle;
         editRectangle.width = 10;
-        editRectangle.height = 20;
+        editRectangle.length = 20;
         editRectangle.p1 = p1;
         editRectangle.p2 = p2;
         const result = await editRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -249,8 +249,8 @@ describe(EditCornerRectangleFactory, () => {
 });
 
 describe(EditCenterRectangleFactory, () => {
-    const p1 = new THREE.Vector3();
-    const p2 = new THREE.Vector3(1, 1, 0);
+    const p1 = new THREE.Vector3(0, 1);
+    const p2 = new THREE.Vector3(1, 2, 0);
     let rectangle: visual.SpaceInstance<visual.Curve3D>;
 
     beforeEach(async () => {
@@ -266,10 +266,10 @@ describe(EditCenterRectangleFactory, () => {
         editRectangle = new EditCenterRectangleFactory(db, materials, signals);
     })
 
-    test.only('invokes the appropriate c3d commands', async () => {
+    test('invokes the appropriate c3d commands', async () => {
         editRectangle.rectangle = rectangle;
         editRectangle.width = 10;
-        editRectangle.height = 20;
+        editRectangle.length = 20;
         editRectangle.p1 = p1;
         editRectangle.p2 = p2;
         const result = await editRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -277,9 +277,25 @@ describe(EditCenterRectangleFactory, () => {
         const bbox = new THREE.Box3().setFromObject(result);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-5, -10, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(5, 10, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-5, -9, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(5, 11, 0));
+    })
+
+    test('orthogonal', async () => {
+        editRectangle.rectangle = rectangle;
+        editRectangle.width = 10;
+        editRectangle.length = 20;
+        editRectangle.p1 = p1;
+        editRectangle.p2 = p2;
+        // @ts-expect-error
+        const { p1: p1_, p2: p2_, p3, p4 } = editRectangle.orthogonal();
+
+        expect(p1_).toApproximatelyEqual(new THREE.Vector3(-5, -9));
+        expect(p2_).toApproximatelyEqual(new THREE.Vector3(5, -9));
+        expect(p3).toApproximatelyEqual(new THREE.Vector3(5, 11));
+        expect(p4).toApproximatelyEqual(new THREE.Vector3(-5, 11));
+
     })
 });
 

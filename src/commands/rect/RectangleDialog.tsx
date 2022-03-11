@@ -11,7 +11,7 @@ export class RectangleDialog extends AbstractDialog<EditRectangleParams> {
     }
 
     render() {
-        const { width, height } = this.params;
+        const { width, length } = this.params;
 
         render(
             <>
@@ -24,9 +24,9 @@ export class RectangleDialog extends AbstractDialog<EditRectangleParams> {
                     </li>
 
                     <li>
-                        <label for="height">Height</label>
+                        <label for="length">Length</label>
                         <div class="fields">
-                            <plasticity-number-scrubber name="height" value={height} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                            <plasticity-number-scrubber name="length" value={length} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
                         </div>
                     </li>
 

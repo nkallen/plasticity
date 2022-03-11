@@ -59,11 +59,12 @@ export class EditCircleCommand extends Command {
         dialog.execute(params => {
             edit.update();
             dialog.render();
+            gizmo.render(edit);
         }).rejectOnInterrupt().resource(this);
 
         gizmo.position.copy(edit.center);
         gizmo.quaternion.setFromUnitVectors(Z, edit.axis);
-        gizmo.execute(async (params) => {
+        gizmo.execute(async params => {
             dialog.render();
             await edit.update();
         }).resource(this);

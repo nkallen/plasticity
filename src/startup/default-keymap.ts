@@ -7,6 +7,11 @@ export default {
         "d": "gizmo:circle:radius",
     },
 
+    "[command='edit-center-rectangle'] plasticity-viewport, [command='edit-corner-rectangle'] plasticity-viewport, [command='edit-three-point-rectangle'] plasticity-viewport": {
+        "d": "gizmo:rectangle:width",
+        "f": "gizmo:rectangle:length",
+    },
+
     "[command='corner-rectangle'] plasticity-viewport, [command='center-rectangle'] plasticity-viewport, [command='corner-box'] plasticity-viewport, [command='center-box'] plasticity-viewport": {
         "^alt": "keyboard:rectangle:mode",
     },
@@ -220,7 +225,7 @@ export default {
 
         "numpad5": "viewport:toggle-orthographic",
     },
-    
+
     "plasticity-viewport": {
         "space": "viewport:navigate:face",
         "alt-z": "viewport:toggle-x-ray",

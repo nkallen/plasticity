@@ -81,9 +81,9 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
         let p4 = new THREE.Vector3(c2.x, c1.y, c1.z);
 
         return {
-            p1: corner1,
+            p1: corner1.clone(),
             p2: p2.applyMatrix4(mat),
-            p3: corner2,
+            p3: corner2.clone(),
             p4: p4.applyMatrix4(mat),
         };
     }
@@ -100,6 +100,15 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     }
 
     abstract get corner1(): THREE.Vector3;
+
+    private readonly _basis = new THREE.Matrix4();
+    private readonly cross = new THREE.Vector3();
+    get basis() {
+        const { p1, p2, p3, p4 } = this.orthogonal();
+        const AC = p3.sub(p2).normalize();
+        const AB = p2.sub(p1).normalize();
+        return this._basis.makeBasis(AB, AC, this.cross.crossVectors(AB, AC).normalize());
+    }
 }
 
 const Z = new THREE.Vector3(0, 0, 1);
@@ -130,7 +139,7 @@ export class CenterRectangleFactory extends DiagonalRectangleFactory {
 
 export interface EditRectangleParams {
     width: number;
-    height: number;
+    length: number;
 }
 
 export class EditCornerRectangleFactory extends CornerRectangleFactory implements EditRectangleParams {
@@ -142,13 +151,13 @@ export class EditCornerRectangleFactory extends CornerRectangleFactory implement
     }
     set width(width: number) { this._width = width }
 
-    private _height!: number;
-    get height() {
-        if (this._height !== undefined) return this._height;
+    private _length!: number;
+    get length() {
+        if (this._length !== undefined) return this._length;
         const { p1, p4 } = super.orthogonal();
         return p4.distanceTo(p1);
     }
-    set height(height: number) { this._height = height }
+    set length(height: number) { this._length = height }
 
     private _rectangle!: visual.SpaceInstance<visual.Curve3D>
     set rectangle(rectangle: visual.SpaceInstance<visual.Curve3D>) {
@@ -156,7 +165,7 @@ export class EditCornerRectangleFactory extends CornerRectangleFactory implement
     }
 
     protected orthogonal(): FourCorners {
-        const { width, height } = this;
+        const { width, length: height } = this;
         const { p1, p2, p3, p4 } = super.orthogonal();
         p2.sub(p1).normalize().multiplyScalar(width);
         p4.sub(p1).normalize().multiplyScalar(height);
@@ -184,12 +193,12 @@ export class EditCenterRectangleFactory extends CenterRectangleFactory implement
     set width(width: number) { this._width = width }
 
     private _height!: number;
-    get height() {
+    get length() {
         if (this._height !== undefined) return this._height;
         const { p1, p4 } = super.orthogonal();
         return p4.distanceTo(p1);
     }
-    set height(height: number) { this._height = height }
+    set length(height: number) { this._height = height }
 
     private _rectangle!: visual.SpaceInstance<visual.Curve3D>
     set rectangle(rectangle: visual.SpaceInstance<visual.Curve3D>) {
@@ -197,12 +206,12 @@ export class EditCenterRectangleFactory extends CenterRectangleFactory implement
     }
 
     protected orthogonal(): FourCorners {
-        const { width, height, p1: center } = this;
+        const { width, length, p1: center } = this;
         const { p1, p2, p3, p4 } = super.orthogonal();
 
         p2.sub(p1).normalize().multiplyScalar(width / 2);
-        p4.sub(p1).normalize().multiplyScalar(height / 2);
-        p3.copy(p2).add(p4);
+        p4.sub(p1).normalize().multiplyScalar(length / 2);
+        p3.copy(center).add(p2).add(p4);
 
         p1.copy(center).sub(p2).sub(p4);
         p2.multiplyScalar(2).add(p1);
@@ -226,12 +235,12 @@ export class EditThreePointRectangleFactory extends ThreePointRectangleFactory i
     set width(width: number) { this._width = width }
 
     private _height!: number;
-    get height() {
+    get length() {
         if (this._height !== undefined) return this._height;
         const { p1, p4 } = super.orthogonal();
         return p4.distanceTo(p1);
     }
-    set height(height: number) { this._height = height }
+    set length(height: number) { this._height = height }
 
     private _rectangle!: visual.SpaceInstance<visual.Curve3D>
     set rectangle(rectangle: visual.SpaceInstance<visual.Curve3D>) {
@@ -239,7 +248,7 @@ export class EditThreePointRectangleFactory extends ThreePointRectangleFactory i
     }
 
     protected orthogonal(): FourCorners {
-        const { width, height } = this;
+        const { width, length: height } = this;
         const { p1, p2, p3, p4 } = super.orthogonal();
         p2.sub(p1).normalize().multiplyScalar(width);
         p4.sub(p1).normalize().multiplyScalar(height);

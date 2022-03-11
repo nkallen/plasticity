@@ -105,7 +105,7 @@ describe(RectangularArrayFactory, () => {
             box = await makeBox.commit() as visual.Solid;
         })
 
-        test.only('isPolar = false', async () => {
+        test('isPolar = false', async () => {
             array.mode = 'spacing';
             array.solid = box;
             array.step1 = 10;
@@ -134,7 +134,7 @@ describe(RectangularArrayFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 11, 12));
         });
 
-        test.only('distance1 / distance2', async () => {
+        test('distance1 / distance2', async () => {
             array.mode = 'extent';
             array.solid = box;
             array.dir1 = new THREE.Vector3(1, 0, 0);

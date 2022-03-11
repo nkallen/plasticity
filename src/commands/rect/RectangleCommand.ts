@@ -6,6 +6,7 @@ import * as visual from "../../visual_model/VisualModel";
 import LineFactory from '../line/LineFactory';
 import { RectangleDialog } from "./RectangleDialog";
 import { CenterRectangleFactory, CornerRectangleFactory, EditCenterRectangleFactory, EditCornerRectangleFactory, EditThreePointRectangleFactory, ThreePointRectangleFactory } from './RectangleFactory';
+import { EditRectangleGizmo } from "./RectangleGizmo";
 import { RectangleModeKeyboardGizmo } from "./RectangleModeKeyboardGizmo";
 
 export class ThreePointRectangleCommand extends Command {
@@ -158,10 +159,22 @@ export class EditCenterRectangleCommand extends Command {
         edit.rectangle = rectangle;
 
         const dialog = new RectangleDialog(edit, this.editor.signals);
-        await dialog.execute(params => {
+        const gizmo = new EditRectangleGizmo(edit, this.editor);
+
+        dialog.execute(params => {
             edit.update();
             dialog.render();
+            gizmo.render(edit);
         }).rejectOnInterrupt().resource(this);
+
+        gizmo.position.copy(pr1.point);
+        gizmo.basis = edit.basis;
+        gizmo.execute(async params => {
+            dialog.render();
+            await edit.update();
+        }).resource(this);
+
+        await this.finished;
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -183,10 +196,22 @@ export class EditCornerRectangleCommand extends Command {
         edit.rectangle = rectangle;
 
         const dialog = new RectangleDialog(edit, this.editor.signals);
-        await dialog.execute(params => {
+        const gizmo = new EditRectangleGizmo(edit, this.editor);
+
+        dialog.execute(params => {
             edit.update();
             dialog.render();
+            gizmo.render(edit);
         }).rejectOnInterrupt().resource(this);
+
+        gizmo.position.copy(pr1.point);
+        gizmo.basis = edit.basis;
+        gizmo.execute(async params => {
+            dialog.render();
+            await edit.update();
+        }).resource(this);
+
+        await this.finished;
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -209,10 +234,19 @@ export class EditThreePointRectangleCommand extends Command {
         edit.rectangle = rectangle;
 
         const dialog = new RectangleDialog(edit, this.editor.signals);
-        await dialog.execute(params => {
+        const gizmo = new EditRectangleGizmo(edit, this.editor);
+
+        dialog.execute(params => {
             edit.update();
             dialog.render();
         }).rejectOnInterrupt().resource(this);
+
+        gizmo.execute(async params => {
+            dialog.render();
+            await edit.update();
+        }).resource(this);
+
+        await this.finished;
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
