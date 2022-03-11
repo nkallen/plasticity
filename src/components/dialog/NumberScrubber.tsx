@@ -14,7 +14,7 @@ export class ChangeEvent extends Event {
 }
 
 export default (editor: Editor) => {
-    type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: CompositeDisposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: CompositeDisposable }
+    type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: CompositeDisposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, currentEvent: PointerEvent, startValue: number, currentValue: number, disposable: CompositeDisposable }
 
     class Scrubber extends HTMLElement {
         static get observedAttributes() { return ['value']; }
@@ -112,10 +112,10 @@ export default (editor: Editor) => {
                     if (e.timeStamp - dragStartTime >= consummationTimeThreshold ||
                         currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                     ) {
+                        this.state = { tag: 'dragging', downEvent, disposable, startValue, startEvent: e, currentEvent: e, currentValue: startValue }
                         document.addEventListener('pointerlockchange', this.onPointerLockChange)
                         disposable.add(new Disposable(() => document.removeEventListener('pointerlockchange', this.onPointerLockChange)));
                         this.requestPointerLock();
-                        this.state = { tag: 'dragging', downEvent, disposable, startValue, startEvent: e, currentValue: startValue }
                     }
                     break;
                 }
@@ -124,8 +124,12 @@ export default (editor: Editor) => {
                     const { downEvent } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
-                    const delta = e.movementX / 3;
-
+                    // NOTE: in windows only, the first event sometimes has a large jump (>100px)
+                    // this is a temporary(?) workaround.
+                    const delta = this.state.startEvent === this.state.currentEvent
+                        ? 0
+                        : e.movementX / 3;
+                    
                     // Speed up (10x) when Shift is held. Slow down (0.1x) when alt is held.
                     const precisionSpeedMod = e.shiftKey ? -1 : e.altKey ? 1 : 0;
                     const precisionAndSpeed = precision + precisionSpeedMod;
@@ -134,7 +138,7 @@ export default (editor: Editor) => {
                     const value = this.state.currentValue;
                     try { this.scrub(value) }
                     catch (e) { console.error(e) }
-                    finally { this.state.startEvent = e }
+                    finally { this.state.currentEvent = e }
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
