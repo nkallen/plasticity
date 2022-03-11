@@ -16,7 +16,7 @@ export class CenterCircleCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         pointPicker.facePreferenceMode = 'strong';
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        const { point: p1, info: { snap, viewport } } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         const keyboard = new CircleKeyboardGizmo(this.editor);

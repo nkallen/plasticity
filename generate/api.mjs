@@ -1,12 +1,10 @@
-import { isRegExp } from "underscore";
-
 const isReturn = { isReturn: true };
 const isNullable = { isNullable: true };
 const isErrorBool = { isErrorBool: true };
 const ignore = { ignore: true };
 const isRaw = { isRaw: true };
 const isOnHeap = { isOnStack: false };
-const isManual = true;
+const isManual = { isManual: true };
 
 export default {
     classes: {
@@ -50,12 +48,12 @@ export default {
                 "MbeSpaceType IsA()",
                 "MbeSpaceType Type()",
                 "MbeSpaceType Family()",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
                 "void Transform(const MbMatrix3D & mat, MbRegTransform * iReg = NULL)",
                 "void Move(const MbVector3D & v, MbRegTransform * iReg = NULL)",
                 "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
                 "void Refresh()",
-                // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
+                // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual },
                 { signature: "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)", return: isOnHeap },
                 "void AddYourGabaritTo(MbCube & cube)",
             ]
@@ -79,7 +77,7 @@ export default {
             functions: [
                 "MbeCreatorType IsA()",
                 "MbeCreatorType Type()",
-                { signature: "MbCreator * Cast()", isManual: true },
+                { signature: "MbCreator * Cast()", isManual },
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 { signature: "void GetBasisItems(RPArray<MbSpaceItem> & items)", items: isReturn },
@@ -138,7 +136,7 @@ export default {
                 },
                 "SimpleName GetItemName()",
                 "void SetItemName(SimpleName name)",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
                 { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: isRaw },
                 "const MbItem * GetItemByPath(const MbPath & path, size_t ind, MbMatrix3D & from, size_t currInd = 0)"
             ],
@@ -197,7 +195,7 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h", "Rect2D.h"],
             functions: [
-                { signature: "MbSurface * Cast()", isManual: true },
+                { signature: "MbSurface * Cast()", isManual },
                 { signature: "const MbSurface & GetSurface()", return: isOnHeap },
                 "double GetUEpsilon()",
                 "double GetVEpsilon()",
@@ -265,7 +263,7 @@ export default {
                 "MbePlaneType IsA()",
                 "MbePlaneType Type()",
                 "MbePlaneType Family()",
-                { signature: "MbPlaneItem * Cast()", isManual: true },
+                { signature: "MbPlaneItem * Cast()", isManual },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
                 { signature: "MbPlaneItem & Duplicate(MbRegDuplicate * dup = NULL)", return: isOnHeap },
@@ -277,7 +275,7 @@ export default {
             extends: "PlaneItem",
             dependencies: ["PlaneItem.h"],
             functions: [
-                { signature: "MbCurve3D * Cast()", isManual: true },
+                { signature: "MbCurve3D * Cast()", isManual },
                 "void Inverse(MbRegTransform * iReg = NULL)",
                 "MbCurve * Trimmed(double t1, double t2, int sense)",
                 "bool IsStraight(bool ignoreParams = false)",
@@ -363,7 +361,7 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h", "ControlData3D.h"],
             functions: [
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, PlanarCheckParams params = PlanarCheckParams())",
                     placement: isReturn,
@@ -464,7 +462,7 @@ export default {
             ],
             functions: [
                 "const MbPlacement3D & GetPlacement()",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
             ]
         },
         Contour3D: {
@@ -479,7 +477,7 @@ export default {
                 { signature: "void FindCorner(size_t index, MbCartPoint3D &t)", t: isReturn },
                 { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
                 "bool Init(const SArray<MbCartPoint3D> & points)",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
                 "void DeleteSegment(size_t index)",
             ]
         },
@@ -784,9 +782,9 @@ export default {
             dependencies: ["Item.h", "Grid.h", "FloatAxis3D.h", "FloatPoint3D.h", "Axis3D.h", "Matrix3D.h", "Path.h"],
             initializers: ["bool doExact"],
             functions: [
-                { signature: "void GetBuffers(RPArray<MeshBuffer> & result)", isManual: true, result: isReturn },
-                { signature: "Float32Array GetApexes()", isManual: true },
-                { signature: "void GetEdges(bool outlinesOnly = false, RPArray<EdgeBuffer> &result)", isManual: true, result: isReturn },
+                { signature: "void GetBuffers(RPArray<MeshBuffer> & result)", isManual, result: isReturn },
+                { signature: "Float32Array GetApexes()", isManual },
+                { signature: "void GetEdges(bool outlinesOnly = false, RPArray<EdgeBuffer> &result)", isManual, result: isReturn },
                 "MbeSpaceType GetMeshType()",
                 "void ConvertAllToTriangles()",
                 "bool IsClosed()",
@@ -920,7 +918,7 @@ export default {
                 "SimpleName GetFirstName()",
                 "SimpleName GetNameHash()",
                 "void AddYourGabaritTo(MbCube & cube)",
-                { signature: "MbTopologyItem * Cast()", isManual: true },
+                { signature: "MbTopologyItem * Cast()", isManual },
                 { signature: "void CalculateMesh(const MbStepData & stepData, const MbFormNote & note, MbMesh & mesh)", mesh: isReturn },
                 "bool GetOwnChanged()",
             ]
@@ -960,7 +958,7 @@ export default {
                 // "const MbCurve3D & GetCurveTwo()",
                 { signature: "const MbSurface & GetCurveOneSurface()", return: isOnHeap },
                 { signature: "const MbSurface & GetCurveTwoSurface()", return: isOnHeap },
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
                 // "const MbCurve3D & GetExactCurve(bool saveParams = true)",
             ]
         },
@@ -985,6 +983,8 @@ export default {
                 "bool IsPole()",
                 { signature: "bool FaceNormal(double t, MbVector3D & n, bool plus)", n: isReturn, return: isErrorBool },
                 { signature: "bool VertexNormal(bool begin, MbVector3D & normal)", normal: isReturn, return: isErrorBool },
+                { signature: "bool GetProlongEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
+                // { signature: "void GetConnectedEdges(bool begin, RPArray<MbCurveEdge> & edges, SArray<bool> & orients)", edges: isReturn },
             ]
         },
         ContourOnSurface: {
@@ -1013,7 +1013,7 @@ export default {
             ],
             functions: [
                 "const MbPlacement3D & GetPlacement()",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
             ]
         },
         OrientedEdge: {
@@ -1215,7 +1215,7 @@ export default {
                 "void RemovePoint(ptrdiff_t index)",
                 "void Rebuild()",
                 "size_t GetCount()",
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
             ]
         },
         Polyline3D: {
@@ -1227,7 +1227,7 @@ export default {
                 "const MbPolyline & polyline, const MbPlacement3D &placement",
             ],
             functions: [
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
             ]
         },
         Bezier3D: {
@@ -1272,7 +1272,7 @@ export default {
             dependencies: ["Curve3D.h", "CartPoint3D.h"],
             initializers: ["MbCartPoint3D p1, MbCartPoint3D p2"],
             functions: [
-                { signature: "MbItem * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual },
             ]
         },
         PointFrame: {
@@ -1634,7 +1634,7 @@ export default {
                 "const MbCube & GetCube()",
                 "const void * CreateGridTopology(bool keepExisting)",
                 "bool IsGridTopologyReady()",
-                { signature: "void GetBuffers(MeshBuffer & result)", isManual: true, result: isReturn },
+                { signature: "void GetBuffers(MeshBuffer & result)", isManual, result: isReturn },
             ]
         },
         Polygon3D: {
@@ -1824,7 +1824,7 @@ export default {
             jsClassName: "SolidDuplicate",
             dependencies: ["SolidPool.h", "Solid.h"],
             functions: [
-                { signature: "void GetBuffers(SolidDuplicateBuffer & result)", isManual: true, result: isReturn },
+                { signature: "void GetBuffers(SolidDuplicateBuffer & result)", isManual, result: isReturn },
                 "MbSolid * GetCopy()"
             ]
         },

@@ -73,6 +73,10 @@ export default {
         "w": "keyboard:box:difference",
         "e": "keyboard:box:intersect",
         "r": "keyboard:box:new-body",
+
+        "d": "gizmo:box:width",
+        "f": "gizmo:box:length",
+        "h": "gizmo:box:height",
     },
 
     "[command='cylinder'] plasticity-viewport": {
