@@ -239,8 +239,11 @@ export class EditThreePointRectangleCommand extends Command {
         dialog.execute(params => {
             edit.update();
             dialog.render();
+            gizmo.render(edit);
         }).rejectOnInterrupt().resource(this);
 
+        gizmo.position.copy(pr1.point);
+        gizmo.basis = edit.basis;
         gizmo.execute(async params => {
             dialog.render();
             await edit.update();
