@@ -94,7 +94,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     onPointerDown(downEvent: MouseEvent) {
         if (!this.enabled) return;
         if (downEvent.button !== 0) return;
-        if (downEvent.altKey) return;
 
         switch (this.state.tag) {
             case 'hover':
@@ -156,9 +155,12 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                     currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                 ) {
                     this.normalizedMousePosition.copy(this.onDownPosition);
-                    this.startDrag(downEvent, this.normalizedMousePosition);
-
-                    this.state = { tag: 'dragging', downEvent, disposable, startEvent: moveEvent }
+                    if (this.startDrag(downEvent, this.normalizedMousePosition)) {
+                        this.state = { tag: 'dragging', downEvent, disposable, startEvent: moveEvent };
+                    } else {
+                        this.state.disposable.dispose();
+                        this.state = { tag: 'none' };
+                    }
                 }
                 break;
             }
@@ -252,7 +254,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     abstract endHover(): void;
     abstract startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent): boolean;
     abstract endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;
-    abstract startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
+    abstract startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): boolean;
     abstract continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
     abstract endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent): void;
     abstract dblClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;

@@ -41,8 +41,10 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     endHover() { this.processHover([]) }
 
     startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2) {
+        if (downEvent.altKey) return false;
         this.selectionBox.startPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionHelper.onSelectStart(downEvent);
+        return true;
     }
 
     continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2) {
@@ -55,7 +57,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     }
 
     startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
-        return true;
+        return !(intersections.length === 0 && downEvent.altKey) 
     }
 
     endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent) {

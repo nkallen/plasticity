@@ -74,7 +74,11 @@ export class ViewportControlMultiplexer extends ViewportControl {
 
     startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2) {
         if (this.winner === undefined) throw new Error("invalid state");
-        this.winner.startDrag(downEvent, normalizedMousePosition);
+        const result = this.winner.startDrag(downEvent, normalizedMousePosition);
+        if (!result) {
+            this.viewport.navigationControls.onPointerDown(downEvent as PointerEvent);
+        }
+        return result;
     }
 
     continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2) {

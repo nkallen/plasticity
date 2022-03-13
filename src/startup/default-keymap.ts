@@ -328,7 +328,7 @@ export default {
         "ctrl-mouse0": "selection:remove",
 
         "cmd": "selection:option:ignore-mode",
-        // "alt": "selection:option:extend",
+        "alt": "selection:option:extend",
     },
 
     "viewport-selector[quasimode]": {

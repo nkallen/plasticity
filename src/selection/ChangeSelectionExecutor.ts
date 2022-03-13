@@ -24,18 +24,16 @@ export enum ChangeSelectionOption {
 }
 
 export class ChangeSelectionExecutor {
-    private readonly conversionStrategy: SelectionConversionStrategy;
+    private readonly conversionStrategy = new SelectionConversionStrategy(this.selection, this.db);
 
     constructor(
-        selection: HasSelectedAndHovered,
-        db: DatabaseLike,
+        private readonly selection: HasSelectedAndHovered,
+        private readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
         private readonly prohibitions: ReadonlySet<Selectable> = new Set(),
-        private readonly clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected),
-        private readonly hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered)
+        private readonly clickStrategy = new ClickStrategy(db, selection.mode, selection.selected, selection.hovered, selection.selected),
+        private readonly hoverStrategy = new HoverStrategy(db, selection.mode, selection.selected, selection.hovered, selection.hovered)
     ) {
-        this.conversionStrategy = new SelectionConversionStrategy(selection, db);
-
         this.onClick = this.wrapFunction(this.onClick);
         this.onHover = this.wrapFunction(this.onHover);
         this.onBoxHover = this.wrapFunction(this.onBoxHover);
@@ -52,6 +50,7 @@ export class ChangeSelectionExecutor {
             return;
         }
 
+        const objects = new Set(intersections.map(i => i.object));
         for (const intersection of intersections) {
             const object = intersection.object;
             if (prohibitions.has(object.parentItem)) continue;
@@ -60,7 +59,7 @@ export class ChangeSelectionExecutor {
                 if (prohibitions.has(object)) continue;
 
                 if (strategy.solid(object, modifier, option)) return intersection;
-                if (strategy.topologicalItem(object, modifier, option)) return intersection;
+                if (strategy.topologicalItem(object, objects, modifier, option)) return intersection;
             } else if (object instanceof Curve3D) {
                 if (strategy.curve3D(object, modifier, option)) return intersection;
             } else if (object instanceof Region) {

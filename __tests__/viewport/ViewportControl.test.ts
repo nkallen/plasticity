@@ -25,7 +25,7 @@ let camera: THREE.Camera;
 
 beforeEach(() => {
     editor = new Editor();
-    db = editor.db;
+    db = editor._db;
     materials = editor.materials;
     signals = editor.signals;
     viewport = MakeViewport(editor);
@@ -72,7 +72,7 @@ class MyViewportControl extends ViewportControl {
     endClick(intersections: Intersection[], upEvent: MouseEvent): void {
         throw new Error("Method not implemented.");
     }
-    startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
+    startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): boolean {
         throw new Error("Method not implemented.");
     }
     continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
@@ -185,4 +185,50 @@ test('selectModeChanged', () => {
     expect(control.raycasterParams.Line2.threshold).toBe(50);
     editor.selection.mode.set(...SelectionModeAll);
     expect(control.raycasterParams.Line2.threshold).toBe(15);
+});
+
+test('drag not meeting threshold', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown', { clientX: 0, clientY: 0 }));
+    expect(startClick).toBeCalledTimes(1);
+
+    const startDrag = jest.spyOn(control, 'startDrag').mockImplementation(() => { return true });
+    control.onPointerMove(new MouseEvent('pointermove', { clientX: 0, clientY: 0 }));
+    expect(startDrag).toBeCalledTimes(0);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup'));
+    expect(endClick).toBeCalledTimes(1);
+})
+
+test('drag meeting threshold', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown', { clientX: 0, clientY: 0 }));
+    expect(startClick).toBeCalledTimes(1);
+
+    const startDrag = jest.spyOn(control, 'startDrag').mockImplementation(() => { return true });
+    control.onPointerMove(new MouseEvent('pointermove', { clientX: 100, clientY: 100 }));
+    expect(startDrag).toBeCalledTimes(1);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    const endDrag = jest.spyOn(control, 'endDrag').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup'));
+    expect(endClick).toBeCalledTimes(0);
+    expect(endDrag).toBeCalledTimes(1);
+})
+
+test('drag meeting threshold, but startdrag returns false', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown', { clientX: 0, clientY: 0 }));
+    expect(startClick).toBeCalledTimes(1);
+
+    const startDrag = jest.spyOn(control, 'startDrag').mockImplementation(() => { return false });
+    control.onPointerMove(new MouseEvent('pointermove', { clientX: 100, clientY: 100 }));
+    expect(startDrag).toBeCalledTimes(1);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    const endDrag = jest.spyOn(control, 'endDrag').mockImplementation(() => { });
+    expect(() => control.onPointerUp(new MouseEvent('pointerup'))).toThrow();
+    expect(endClick).toBeCalledTimes(0);
+    expect(endDrag).toBeCalledTimes(0);
 })

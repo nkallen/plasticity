@@ -1,10 +1,15 @@
+import { DatabaseLike } from "../editor/DatabaseLike";
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from "./ChangeSelectionExecutor";
 import { ModifiesSelection, SelectionModeSet } from "./SelectionDatabase";
+import { SelectionExtensionStrategy } from "./SelectionExtensionStrategy";
 
 export class ClickStrategy {
+    private readonly extend = new SelectionExtensionStrategy(this.db);
+
     constructor(
+        protected readonly db: DatabaseLike,
         protected readonly mode: SelectionModeSet,
         protected readonly selected: ModifiesSelection,
         protected readonly hovered: ModifiesSelection,
@@ -75,7 +80,7 @@ export class ClickStrategy {
         return false;
     }
 
-    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+    topologicalItem(object: TopologyItem, intersections: ReadonlySet<Intersectable>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
         if (object instanceof Face && (this.mode.has(SelectionMode.Face) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
                 () => {
@@ -87,7 +92,12 @@ export class ClickStrategy {
         } else if (object instanceof CurveEdge && (this.mode.has(SelectionMode.CurveEdge) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
                 () => {
-                    this.writeable.addEdge(object);
+                    if (ChangeSelectionOption.Extend & option) {
+                        const loop = this.extend.extendEdge(object, intersections);
+                        this.writeable.add(loop);
+                    } else {
+                        this.writeable.addEdge(object);
+                    }
                     this.writeable.removeSolid(object.parentItem);
                 },
                 () => this.writeable.removeEdge(object));

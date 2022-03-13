@@ -1,5 +1,7 @@
 <%_ if (arg.rawType == "double") { _%>
     <%- arg.const %> double <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().DoubleValue();
+<%_ } else if (arg.isSize) { _%>
+    <%- arg.const %> size_t <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.isNumber) { _%>
     <%- arg.const %> int <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.isNumberPair) { _%>

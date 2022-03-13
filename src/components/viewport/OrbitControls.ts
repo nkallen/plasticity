@@ -274,7 +274,7 @@ export class OrbitControls extends THREE.EventDispatcher {
 
     private readonly pointers: PointerEvent[] = [];
     private readonly pointerPositions = new Map<number, any>();
-    private onPointerDown(event: PointerEvent) {
+    onPointerDown(event: PointerEvent) {
         const { enabled, domElement, pointers } = this;
         if (enabled === false) return;
 

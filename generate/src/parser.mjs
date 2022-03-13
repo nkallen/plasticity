@@ -288,6 +288,10 @@ class TypeDeclaration {
         return /\*/.test(this.ref);
     }
 
+    get isSize() {
+        return this.rawType === "size_t";
+    }
+
     get isNumber() {
         return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName" || this.rawType == "ptrdiff_t" || this.rawType === "uint8" || this.rawType === "uint32"
     }

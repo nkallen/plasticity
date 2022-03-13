@@ -29,7 +29,7 @@ beforeEach(() => {
     modes = new SelectionModeSet(SelectionModeAll, signals);
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
-    click = new ClickStrategy(modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
+    click = new ClickStrategy(db, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
 })
 
 let solid1: visual.Solid;
@@ -105,27 +105,27 @@ describe(visual.Solid, () => {
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(false);
-        expect(click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(true);
+        expect(click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
 
     test('when the face is already selected, returns false and does not modify the selection', () => {
         modes.set(SelectionMode.Solid, SelectionMode.Face);
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
 
-        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(false);
+        expect(click.solid(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(false);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
 
     test('when face is already selected, and mode is ONLY solid, returns true and DOES modify the selection', () => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
-        
+
         modes.set(SelectionMode.Solid);
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(1);
@@ -140,12 +140,12 @@ describe(visual.Face, () => {
 
     test('when face mode off, has no effect', () => {
         modes.clear();
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(0);
     })
 
     test('when face mode on, selects', () => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
     });
 });
@@ -157,12 +157,12 @@ describe(visual.CurveEdge, () => {
 
     test('when edge mode off, has no effect', () => {
         modes.clear();
-        click.topologicalItem(solid1.edges.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(0);
     })
 
     test('when edge mode on, selects', () => {
-        click.topologicalItem(solid1.edges.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
     });
 });
@@ -207,9 +207,9 @@ describe('ChangeSelectionModifier.Add', () => {
     })
 
     test('it selects multiple things', () => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
-        click.topologicalItem(solid1.faces.get(1), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(1), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(2);
         click.curve3D(curve.underlying, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
@@ -228,7 +228,7 @@ describe('ChangeSelectionModifier.Add', () => {
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(false);
-        expect(click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(false);
+        expect(click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(false);
         expect(selectionDb.selected.solids.size).toBe(1);
     })
 
@@ -237,7 +237,7 @@ describe('ChangeSelectionModifier.Add', () => {
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(1);
         click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
@@ -249,7 +249,7 @@ describe('ChangeSelectionModifier.Add', () => {
         expect(selectionDb.selected.solids.size).toBe(1);
 
         modes.set(SelectionMode.Face);
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
     })
@@ -275,21 +275,21 @@ describe('ChangeSelectionModifier.Replace', () => {
     })
 
     test('it selects one face at a time', () => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
         expect(selectionDb.selected.faces.first).toBe(solid1.faces.get(0));
 
-        click.topologicalItem(solid1.faces.get(1), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(1), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
         expect(selectionDb.selected.faces.first).toBe(solid1.faces.get(1));
     })
 
     test('it selects on edge at a time', () => {
-        click.topologicalItem(solid1.edges.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
         expect(selectionDb.selected.edges.first).toBe(solid1.edges.get(0));
 
-        click.topologicalItem(solid1.edges.get(1), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(1), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
         expect(selectionDb.selected.edges.first).toBe(solid1.edges.get(1));
     })
@@ -338,31 +338,31 @@ describe('ChangeSelectionModifier.Remove', () => {
     })
 
     beforeEach(() => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        click.topologicalItem(solid1.faces.get(1), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(1), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(2);
 
-        click.topologicalItem(solid1.edges.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
-        click.topologicalItem(solid1.edges.get(1), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(0), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(1), new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(2);
     })
 
     it('removes topology items', () => {
-        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
         expect(selectionDb.selected.faces.first).toBe(solid1.faces.get(1));
         expect(selectionDb.selected.edges.size).toBe(2);
 
-        click.topologicalItem(solid1.faces.get(1), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.faces.get(1), new Set(), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(2);
 
-        click.topologicalItem(solid1.edges.get(0), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(0), new Set(), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(1);
         expect(selectionDb.selected.edges.first).toBe(solid1.edges.get(1));
 
-        click.topologicalItem(solid1.edges.get(1), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        click.topologicalItem(solid1.edges.get(1), new Set(), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
     })
@@ -445,9 +445,9 @@ describe('dblClick', () => {
     it('selects a solid and removes selected children', () => {
         const face = solid1.faces.get(0);
         expect(selectionDb.selected.faces.size).toBe(0);
-        click.topologicalItem(face, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.topologicalItem(face, new Set(), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.faces.size).toBe(1);
-        click.dblClick(face, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        click.dblClick(face, ChangeSelectionModifier.Add);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
     })
@@ -457,7 +457,7 @@ describe(HoverStrategy, () => {
     let hover: HoverStrategy;
 
     beforeEach(() => {
-        hover = new HoverStrategy(modes, selectionDb.selected, selectionDb.hovered, selectionDb.hovered);
+        hover = new HoverStrategy(db, modes, selectionDb.selected, selectionDb.hovered, selectionDb.hovered);
     });
 
     describe('box', () => {

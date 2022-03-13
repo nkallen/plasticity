@@ -985,6 +985,9 @@ export default {
                 { signature: "bool VertexNormal(bool begin, MbVector3D & normal)", normal: isReturn, return: isErrorBool },
                 { signature: "bool GetProlongEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 // { signature: "void GetConnectedEdges(bool begin, RPArray<MbCurveEdge> & edges, SArray<bool> & orients)", edges: isReturn },
+                { signature: "bool FindOrientedEdge(bool orient, const MbFace * face, MbLoop *& findLoop, size_t & index)", face: isReturn, index: isReturn, return: { name: "success" } },
+                { signature: "bool FindOrientedEdgePlus(size_t & loopIndex, MbLoop *& findLoop, size_t & index)", index: isReturn, return: { name: "success" }, loopIndex: isReturn },
+                { signature: "bool FindOrientedEdgeMinus(size_t & loopIndex, MbLoop *& findLoop, size_t & index)", index: isReturn, return: { name: "success" }, loopIndex: isReturn },
             ]
         },
         ContourOnSurface: {
@@ -1031,6 +1034,7 @@ export default {
                 { signature: "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)", return: isOnHeap },
                 "ptrdiff_t GetEdgesCount()",
                 "MbOrientedEdge * GetOrientedEdge(size_t index)",
+                { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, bool findSame = true)", edges: isReturn },
             ]
         },
         Face: {

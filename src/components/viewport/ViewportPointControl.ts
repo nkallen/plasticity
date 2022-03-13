@@ -57,6 +57,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
         if (!(first instanceof visual.ControlPoint)) return false;
         const { domElement } = this.viewport;
         if (domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
+        if (downEvent.altKey) return false;
 
         switch (this.mode.tag) {
             case 'none':
@@ -84,9 +85,9 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
         }
     }
 
-    startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
+    startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): boolean {
         switch (this.mode.tag) {
-            case 'none': break;
+            case 'none': return false;
             case 'start':
                 const { center2d, center3d, pointStart3d, helper, viewport: { camera } } = this;
                 center3d.copy(pointStart3d).project(camera);
@@ -98,6 +99,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
                 this.editor.enqueue(command);
 
                 helper.onStart(this.viewport, center2d);
+                return true;
+            default: throw new Error('invalid precondition');
         }
     }
 
