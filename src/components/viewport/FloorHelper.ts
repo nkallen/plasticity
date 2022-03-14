@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as visual from "../../visual_model/VisualModel";
 
-export class GridHelper extends THREE.Group {
+export class FloorHelper extends THREE.Group {
     private readonly grid1: THREE.GridHelper;
     private readonly grid2: THREE.GridHelper;
 

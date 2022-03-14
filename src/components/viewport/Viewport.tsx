@@ -20,7 +20,7 @@ import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
-import { GridHelper } from "./GridHelper";
+import { FloorHelper } from "./FloorHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
@@ -76,7 +76,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
     private navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
-    private grid = new GridHelper(150, 300, this.gridColor1, this.gridColor2);
+    private floor = new FloorHelper(150, 300, this.gridColor1, this.gridColor2);
 
     constructor(
         private readonly editor: EditorLike,
@@ -258,7 +258,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (!this.needsRender) return;
         this.needsRender = false;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, grid, constructionPlane, domElement } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, floor, constructionPlane, domElement } = this
         const additional = [...this.additionalHelpers];
 
         try {
@@ -302,20 +302,20 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private addOverlays(scene: THREE.Scene) {
         if (!this.showOverlays) return;
-        const { grid, constructionPlane, camera, editor: { helpers } } = this;
+        const { floor, constructionPlane, camera, editor: { helpers } } = this;
 
-        grid.position.copy(constructionPlane.p);
-        grid.quaternion.setFromUnitVectors(Z, constructionPlane.n);
+        floor.position.copy(constructionPlane.p);
+        floor.quaternion.setFromUnitVectors(Z, constructionPlane.n);
         if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
-            grid.quaternion.copy(camera.quaternion);
+            floor.quaternion.copy(camera.quaternion);
         }
 
         scene.fog = new THREE.Fog(this.backgroundColor, 50, 300)
 
-        grid.update(camera);
+        floor.update(camera);
         helpers.axes.updateMatrixWorld();
         scene.add(helpers.axes);
-        scene.add(grid);
+        scene.add(floor);
     }
 
     private readonly clock = new THREE.Clock();

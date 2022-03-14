@@ -34,7 +34,7 @@ export class OrbitControls extends THREE.EventDispatcher {
 
     readonly target = new THREE.Vector3();
 
-    zoomSpeed = 1;
+    zoomSpeed = 0.5;
     rotateSpeed = 1;
     panSpeed = 1;
 
