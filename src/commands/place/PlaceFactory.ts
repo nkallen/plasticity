@@ -83,7 +83,7 @@ export default class PlaceFactory extends GeometryFactory implements PlaceParams
         toOrigin.makeTranslation(factor * -origin.x, factor * -origin.y, factor * -origin.z);
         toDestination.makeTranslation(factor * destination.x, factor * destination.y, factor * destination.z);
         rotate.makeRotationFromQuaternion(qelta);
-        _offset.makeTranslation(voffset.x, voffset.y, voffset.z);
+        _offset.makeTranslation(voffset.x, voffset.y, factor * voffset.z);
         _mat.copy(toOrigin).premultiply(rotate).premultiply(scaleMat).premultiply(toDestination).premultiply(_offset);
         return _mat;
     }
