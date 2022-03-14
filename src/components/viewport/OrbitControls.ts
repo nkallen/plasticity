@@ -39,9 +39,9 @@ export class OrbitControls extends THREE.EventDispatcher {
     panSpeed = 1;
 
     minDistance = 1;
-    maxDistance = Infinity;
-    minZoom = 0;
-    maxZoom = Infinity;
+    maxDistance = 1000;
+    minZoom = 0.01;
+    maxZoom = 10;
     minPolarAngle = 0;
     maxPolarAngle = Math.PI;
     minAzimuthAngle = -Infinity;
@@ -414,6 +414,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     onMouseWheel(event: WheelEvent) {
         const { state, enabled, enableZoom, zoomScale } = this;
         if (!enabled || !enableZoom || state.tag !== 'none') return;
+        if (event.ctrlKey || event.altKey || event.shiftKey) return;
 
 
         let deltaY = event.deltaY;

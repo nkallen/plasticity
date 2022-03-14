@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as cmd from "../../command/Command";
-import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { ConstructionPlane, ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { FaceSnap } from "../../editor/snaps/Snap";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
 import { point2point, vec2vec } from "../../util/Conversion";
@@ -16,7 +16,7 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
         controls: OrbitControls,
     ) { super(controls) }
 
-    navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region>): ConstructionPlaneSnap {
+    navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap): ConstructionPlaneSnap {
         const { editor, editor: { db, planes } } = this;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
@@ -42,6 +42,12 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
             editor.enqueue(new NavigateCommand(editor, to.underlying));
             return planes.temp(new ConstructionPlaneSnap(normal, target));
+        } else if (to instanceof ConstructionPlaneSnap) {
+            const normal = to.n;
+            const target = to.p;
+            this.controls.target.copy(target);
+            this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
+            return to;
         } else {
             return this.animateToOrientation(to);
         }

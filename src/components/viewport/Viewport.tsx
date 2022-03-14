@@ -20,7 +20,7 @@ import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
-import { FloorHelper } from "./FloorHelper";
+import { FloorHelper, TwoLevelGrid } from "./FloorHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
@@ -28,8 +28,6 @@ import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
-
-const Z = new THREE.Vector3(0, 0, 1);
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
@@ -45,6 +43,10 @@ export interface EditorLike extends selector.EditorLike {
     textures: TextureLoader,
 }
 
+const floorSize = 150;
+const defaultFloorDivisions = floorSize * 2;
+const defaultGridDivisions = defaultFloorDivisions * 100;
+
 export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
@@ -52,19 +54,20 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
 
-    readonly gridColor1 = new THREE.Color(this.editor.styles.colors.grid1).convertSRGBToLinear();
-    readonly gridColor2 = new THREE.Color(this.editor.styles.colors.grid2).convertSRGBToLinear();
-    readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
-    readonly selectionOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[400]).convertSRGBToLinear();
-    readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
+    private gridDivisions = defaultGridDivisions;
+    private readonly gridColor1 = new THREE.Color(this.editor.styles.colors.grid1).convertSRGBToLinear();
+    private readonly gridColor2 = new THREE.Color(this.editor.styles.colors.grid2).convertSRGBToLinear();
+    private readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
+    private readonly selectionOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[400]).convertSRGBToLinear();
+    private readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
 
-    readonly composer: EffectComposer;
-    readonly outlinePassSelection: OutlinePass;
-    readonly outlinePassHover: OutlinePass;
-    readonly phantomsPass: RenderPass;
-    readonly helpersPass: RenderPass;
+    private readonly composer: EffectComposer;
+    private readonly outlinePassSelection: OutlinePass;
+    private readonly outlinePassHover: OutlinePass;
+    private readonly phantomsPass: RenderPass;
+    private readonly helpersPass: RenderPass;
 
-    readonly points = new ViewportPointControl(this, this.editor);
+    private readonly points = new ViewportPointControl(this, this.editor);
     readonly selector = new ViewportSelector(this, this.editor);
     readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.signals);
 
@@ -75,8 +78,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-    private navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
-    private floor = new FloorHelper(150, 300, this.gridColor1, this.gridColor2);
+    private readonly navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
+
+    private floor = new FloorHelper(floorSize, defaultFloorDivisions, this.gridColor1, this.gridColor2);
+    private grid = new TwoLevelGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
 
     constructor(
         private readonly editor: EditorLike,
@@ -166,6 +171,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:toggle-faces': () => this.toggleFaces(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
+                'viewport:grid:incr': () => this.resizeGrid(2),
+                'viewport:grid:decr': () => this.resizeGrid(0.5),
             })
         );
 
@@ -302,20 +309,22 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private addOverlays(scene: THREE.Scene) {
         if (!this.showOverlays) return;
-        const { floor, constructionPlane, camera, editor: { helpers } } = this;
-
-        floor.position.copy(constructionPlane.p);
-        floor.quaternion.setFromUnitVectors(Z, constructionPlane.n);
-        if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
-            floor.quaternion.copy(camera.quaternion);
-        }
+        const { floor, grid, constructionPlane, camera, editor: { helpers } } = this;
 
         scene.fog = new THREE.Fog(this.backgroundColor, 50, 300)
 
-        floor.update(camera);
+        if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
+            grid.position.copy(constructionPlane.p);
+            grid.quaternion.copy(camera.quaternion);
+            grid.update(camera);
+            scene.add(grid);
+        } else {
+            floor.update(camera);
+            scene.add(floor);
+        }
+
         helpers.axes.updateMatrixWorld();
         scene.add(helpers.axes);
-        scene.add(floor);
     }
 
     private readonly clock = new THREE.Clock();
@@ -402,7 +411,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private transitionFromOrthoModeIfOrbitted(quaternion: THREE.Quaternion) {
         if (this.orthoState === undefined) return;
         const dot = quaternion.dot(this.camera.quaternion);
-        if (Math.abs(dot - 1) > 10e-5) {
+        if (Math.abs(dot - 1) > 10e-6) {
             this.transitionFromOrthoMode();
         }
     }
@@ -412,6 +421,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.camera.setMode(this.orthoState.oldCameraMode);
         this.orthoState = undefined;
         this.constructionPlane = PlaneDatabase.XY;
+        this.gridDivisions = defaultGridDivisions;
+        this.resizeGrid(1);
         this.changed.dispatch();
     }
 
@@ -520,8 +531,19 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
-    navigate(to?: Orientation | visual.Face | visual.PlaneInstance<visual.Region>) {
-        if (to === undefined) return;
+    resizeGrid(factor: number) {
+        this.gridDivisions *= factor;
+        this.grid.dispose();
+        this.grid = new TwoLevelGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+        this.setNeedsRender();
+    }
+
+    navigate(to?: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap) {
+        if (to === undefined) {
+            if (this.constructionPlane instanceof ConstructionPlaneSnap) to = this.constructionPlane;
+            else return;
+        }
+
         const constructionPlane = this.navigator.navigate(to);
         this.constructionPlane = constructionPlane;
         this.transitionToOrthoMode();

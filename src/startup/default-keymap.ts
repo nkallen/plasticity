@@ -231,6 +231,8 @@ export default {
         "space": "viewport:navigate:face",
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
+        "ctrl-wheel+up": "viewport:grid:incr",
+        "ctrl-wheel+down": "viewport:grid:decr",
     },
 
     "body:not([gizmo])": {
