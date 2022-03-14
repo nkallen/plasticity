@@ -157,7 +157,7 @@ class MirrorAxisGizmo extends AbstractGizmo<boolean>  {
     get shouldRescaleOnZoom() { return true }
 }
 
-class MirrorMoveGizmo extends MoveAxisGizmo {
+export class MirrorMoveGizmo extends MoveAxisGizmo {
     get shouldRescaleOnZoom() { return true }
 
     update(camera: ProxyCamera) {

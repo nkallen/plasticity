@@ -12,6 +12,7 @@ export interface PlaceParams {
     angle: number;
     degrees: number;
     scale: number;
+    offset: number;
 
     destination: THREE.Vector3;
     destinationOrientation: THREE.Quaternion;
@@ -29,6 +30,7 @@ export default class PlaceFactory extends GeometryFactory implements PlaceParams
         this.angle = THREE.MathUtils.degToRad(degrees);
     }
     scale = 1;
+    offset = 0;
 
     destination!: THREE.Vector3;
     destinationOrientation!: THREE.Quaternion;
@@ -55,6 +57,7 @@ export default class PlaceFactory extends GeometryFactory implements PlaceParams
     }
 
     private readonly delta = new THREE.Vector3();
+    private readonly voffset = new THREE.Vector3();
     private readonly qelta = new THREE.Quaternion();
     private readonly floop = new THREE.Quaternion();
 
@@ -62,23 +65,26 @@ export default class PlaceFactory extends GeometryFactory implements PlaceParams
     private readonly rotate = new THREE.Matrix4();
     private readonly scaleMat = new THREE.Matrix4();
     private readonly toDestination = new THREE.Matrix4();
+    private readonly _offset = new THREE.Matrix4();
     private readonly _mat = new THREE.Matrix4();
 
     mat(factor = unit(1)) {
-        const { origin, originOrientation, destination, destinationOrientation, flip, scale, angle } = this;
-        const { delta, qelta, toOrigin, rotate, toDestination, _mat, scaleMat, floop } = this;
+        const { origin, originOrientation, destination, destinationOrientation, flip, scale, angle, offset } = this;
+        const { delta, qelta, toOrigin, rotate, toDestination, _offset, _mat, scaleMat, floop, voffset } = this;
 
         delta.subVectors(destination, origin);
         qelta.copy(originOrientation).invert()
         if (angle != 0) qelta.premultiply(floop.setFromAxisAngle(Z, angle));
         if (flip) qelta.premultiply(floop.setFromAxisAngle(X, Math.PI))
         qelta.premultiply(destinationOrientation);
+        voffset.set(0, 0, offset).applyQuaternion(destinationOrientation);
 
         scaleMat.makeScale(scale, scale, scale);
         toOrigin.makeTranslation(factor * -origin.x, factor * -origin.y, factor * -origin.z);
         toDestination.makeTranslation(factor * destination.x, factor * destination.y, factor * destination.z);
         rotate.makeRotationFromQuaternion(qelta);
-        _mat.copy(toOrigin).premultiply(rotate).premultiply(scaleMat).premultiply(toDestination);
+        _offset.makeTranslation(voffset.x, voffset.y, voffset.z);
+        _mat.copy(toOrigin).premultiply(rotate).premultiply(scaleMat).premultiply(toDestination).premultiply(_offset);
         return _mat;
     }
 

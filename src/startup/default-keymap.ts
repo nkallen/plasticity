@@ -209,6 +209,7 @@ export default {
     },
 
     "[command='place'] plasticity-viewport": {
+        "d": "gizmo:place:offset",
         "f": "gizmo:place:flip",
         "a": "gizmo:place:angle",
         "s": "gizmo:place:scale",

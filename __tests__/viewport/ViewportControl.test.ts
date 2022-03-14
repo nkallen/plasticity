@@ -10,7 +10,6 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
-import { SelectionModeSet } from "../../src/selection/SelectionDatabase";
 import { Intersection } from "../../src/visual_model/Intersectable";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";

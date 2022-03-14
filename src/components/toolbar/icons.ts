@@ -168,6 +168,8 @@ keybindings.set("gizmo:revolution:thickness", "Thickness");
 keybindings.set("gizmo:evolution:thickness", "Thickness");
 keybindings.set("gizmo:pipe:thickness", "Thickness");
 keybindings.set("gizmo:offset-curve:distance", "Distance");
+keybindings.set("gizmo:place:offset", "Offset");
+keybindings.set("gizmo:place:scale", "Scale");
 keybindings.set("gizmo:place:flip", "Flip");
 keybindings.set("gizmo:place:angle", "Angle");
 keybindings.set("snaps:set-x", "X axis");
