@@ -20,7 +20,7 @@ import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
-import { FloorHelper, TwoLevelGrid } from "./FloorHelper";
+import { CustomGrid, FloorHelper, OrthoModeGrid } from "./FloorHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
@@ -44,7 +44,7 @@ export interface EditorLike extends selector.EditorLike {
 }
 
 const floorSize = 150;
-const defaultFloorDivisions = floorSize * 2;
+const defaultFloorDivisions = floorSize;
 const defaultGridDivisions = defaultFloorDivisions * 100;
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
@@ -81,7 +81,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
 
     private floor = new FloorHelper(floorSize, defaultFloorDivisions, this.gridColor1, this.gridColor2);
-    private grid = new TwoLevelGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+    private gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+    private customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
 
     constructor(
         private readonly editor: EditorLike,
@@ -307,17 +308,25 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
+    private readonly lookAt = new THREE.Matrix4()
     private addOverlays(scene: THREE.Scene) {
         if (!this.showOverlays) return;
-        const { floor, grid, constructionPlane, camera, editor: { helpers } } = this;
+        const { floor, gridBackground, customGrid, constructionPlane, camera, editor: { helpers } } = this;
 
         scene.fog = new THREE.Fog(this.backgroundColor, 50, 300)
 
         if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
-            grid.position.copy(constructionPlane.p);
-            grid.quaternion.copy(camera.quaternion);
-            grid.update(camera);
-            scene.add(grid);
+            gridBackground.position.copy(constructionPlane.p);
+            gridBackground.quaternion.copy(camera.quaternion);
+            gridBackground.update(camera);
+            scene.add(gridBackground);
+        } else if (constructionPlane !== PlaneDatabase.XY) {
+            const { lookAt } = this;
+            customGrid.position.copy(constructionPlane.p);
+            lookAt.lookAt(constructionPlane.p.clone().add(constructionPlane.n), constructionPlane.p, Z);
+            customGrid.quaternion.setFromRotationMatrix(lookAt);
+            customGrid.update(camera);
+            scene.add(customGrid);
         } else {
             floor.update(camera);
             scene.add(floor);
@@ -533,8 +542,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     resizeGrid(factor: number) {
         this.gridDivisions *= factor;
-        this.grid.dispose();
-        this.grid = new TwoLevelGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+        this.gridBackground.dispose();
+        this.customGrid.dispose();
+        this.gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+        this.customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
         this.setNeedsRender();
     }
 
@@ -700,3 +711,6 @@ export default (editor: EditorLike) => {
 
     customElements.define('plasticity-viewport', ViewportElement);
 }
+
+const Z = new THREE.Vector3(0, 0, 1);
+Object.freeze(Z);
