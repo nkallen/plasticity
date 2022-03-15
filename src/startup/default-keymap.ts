@@ -228,7 +228,8 @@ export default {
     },
 
     "plasticity-viewport": {
-        "space": "viewport:navigate:face",
+        "space": "viewport:navigate:selection",
+        "shift-space": "viewport:grid:selection",
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
         "ctrl-wheel+up": "viewport:grid:incr",

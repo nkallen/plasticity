@@ -12,6 +12,7 @@ import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
+import { PlaneDatabase } from "../../src/editor/PlaneDatabase";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from "../../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
@@ -106,29 +107,29 @@ const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
+let solid: visual.Solid;
+beforeEach(async () => {
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    solid = await makeBox.commit() as visual.Solid;
+});
+
+let region: visual.PlaneInstance<visual.Region>;
+beforeEach(async () => {
+    const makeCircle = new CenterCircleFactory(db, materials, signals);
+    const makeRegion = new RegionFactory(db, materials, signals);
+    makeCircle.center = new THREE.Vector3();
+    makeCircle.radius = 1;
+    const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    makeRegion.contours = [circle];
+    const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
+    region = items[0];
+});
+
 describe('navigate', () => {
-    let solid: visual.Solid;
-    beforeEach(async () => {
-        const makeBox = new ThreePointBoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        solid = await makeBox.commit() as visual.Solid;
-    });
-
-    let region: visual.PlaneInstance<visual.Region>;
-    beforeEach(async () => {
-        const makeCircle = new CenterCircleFactory(db, materials, signals);
-        const makeRegion = new RegionFactory(db, materials, signals);
-        makeCircle.center = new THREE.Vector3();
-        makeCircle.radius = 1;
-        const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-        makeRegion.contours = [circle];
-        const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
-        region = items[0];
-    });
-
     test("navigate(face)", () => {
         expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
@@ -157,6 +158,28 @@ describe('navigate', () => {
         viewport.navigator.update(1000000000);
         expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
         expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
+    });
+
+    test("navigate(undefined) custom cplane", () => {
+        viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(1, 0, 0));
+        expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
+        viewport.navigate();
+        // @ts-ignore
+        viewport.navigator.update(1000000000);
+        expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+        expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
+    });
+
+    test("navigate(undefined) default cplane", () => {
+        viewport.constructionPlane = PlaneDatabase.XY;
+        expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
+        viewport.navigate();
+        // @ts-ignore
+        viewport.navigator.update(1000000000);
+        expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0, 0, Math.SQRT1_2, Math.SQRT1_2))).toBeCloseTo(1);
     });
 
     test("isOrtho", () => {
@@ -220,3 +243,19 @@ test("toggleXRay", () => {
 test("toggleOverlays", () => {
     viewport.toggleOverlays();
 });
+
+test("constructionPlane=Face", () => {
+    viewport.constructionPlane = solid.faces.get(0);
+    expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
+})
+
+test("constructionPlane=Region", () => {
+    viewport.constructionPlane = region;
+    expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+})
+
+test("constructionPlane=ConstructionPlane", () => {
+    const cplane = new ConstructionPlaneSnap(new THREE.Vector3(1, 2, 3));
+    viewport.constructionPlane = cplane;
+    expect(viewport.constructionPlane).toBe(cplane);
+})

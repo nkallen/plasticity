@@ -35,7 +35,7 @@ export default (editor: Editor) => {
                 </div>, this);
         }
 
-        onClick = (event: MouseEvent, plane: ConstructionPlane) => {
+        onClick = (event: MouseEvent, plane: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap) => {
             if (editor.activeViewport !== undefined) editor.activeViewport.constructionPlane = plane;
             this.render();
         }

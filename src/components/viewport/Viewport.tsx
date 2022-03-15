@@ -9,7 +9,7 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlane, ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { TextureLoader } from "../../editor/TextureLoader";
 import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
 import { SolidSelection } from "../../selection/TypedSelection";
@@ -20,7 +20,7 @@ import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
-import { CustomGrid, FloorHelper, OrthoModeGrid } from "./FloorHelper";
+import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
@@ -79,10 +79,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
     private readonly navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
-
-    private floor = new FloorHelper(floorSize, defaultFloorDivisions, this.gridColor1, this.gridColor2);
-    private gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
-    private customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+    private grid = new GridHelper(this.gridColor1, this.gridColor2, this.backgroundColor);
 
     constructor(
         private readonly editor: EditorLike,
@@ -165,13 +162,14 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:navigate:back': () => this.navigate(Orientation.posY),
                 'viewport:navigate:left': () => this.navigate(Orientation.negX),
                 'viewport:navigate:bottom': () => this.navigate(Orientation.negZ),
-                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first),
+                'viewport:navigate:selection': () => this.navigate(this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-edges': () => this.toggleEdges(),
                 'viewport:toggle-faces': () => this.toggleFaces(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
+                'viewport:grid:selection': () => this.constructionPlane = this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first,
                 'viewport:grid:incr': () => this.resizeGrid(2),
                 'viewport:grid:decr': () => this.resizeGrid(0.5),
             })
@@ -266,7 +264,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (!this.needsRender) return;
         this.needsRender = false;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, floor, constructionPlane, domElement } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, domElement } = this
         const additional = [...this.additionalHelpers];
 
         try {
@@ -308,29 +306,14 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
-    private readonly lookAt = new THREE.Matrix4()
     private addOverlays(scene: THREE.Scene) {
         if (!this.showOverlays) return;
-        const { floor, gridBackground, customGrid, constructionPlane, camera, editor: { helpers } } = this;
+        const { grid, isOrthoMode, constructionPlane, camera, editor: { helpers } } = this;
 
         scene.fog = new THREE.Fog(this.backgroundColor, 50, 300)
 
-        if (this.isOrthoMode || this.constructionPlane === PlaneDatabase.ScreenSpace) {
-            gridBackground.position.copy(constructionPlane.p);
-            gridBackground.quaternion.copy(camera.quaternion);
-            gridBackground.update(camera);
-            scene.add(gridBackground);
-        } else if (constructionPlane !== PlaneDatabase.XY) {
-            const { lookAt } = this;
-            customGrid.position.copy(constructionPlane.p);
-            lookAt.lookAt(constructionPlane.p.clone().add(constructionPlane.n), constructionPlane.p, Z);
-            customGrid.quaternion.setFromRotationMatrix(lookAt);
-            customGrid.update(camera);
-            scene.add(customGrid);
-        } else {
-            floor.update(camera);
-            scene.add(floor);
-        }
+        const overlay = grid.getOverlay(isOrthoMode, constructionPlane, camera);
+        scene.add(overlay);
 
         helpers.axes.updateMatrixWorld();
         scene.add(helpers.axes);
@@ -454,9 +437,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private controlEnd() { }
 
-    private _constructionPlane!: ConstructionPlane;
-    get constructionPlane() { return this._constructionPlane }
-    set constructionPlane(plane: ConstructionPlane) {
+    private _constructionPlane!: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap;
+    get constructionPlane(): ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap { return this._constructionPlane }
+    set constructionPlane(plane: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap | visual.Face | visual.PlaneInstance<visual.Region> | undefined) {
+        if (plane === undefined) plane = PlaneDatabase.XY;
+        else if (plane instanceof visual.Face || plane instanceof visual.PlaneInstance) {
+            plane = this.navigator.navigate(plane, 'keep-camera-position');
+        }
         this._constructionPlane = plane;
         this.setNeedsRender();
         this.changed.dispatch();
@@ -541,19 +528,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     resizeGrid(factor: number) {
-        this.gridDivisions *= factor;
-        this.gridBackground.dispose();
-        this.customGrid.dispose();
-        this.gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
-        this.customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.gridColor1, this.gridColor2, this.backgroundColor);
+        this.grid.resizeGrid(factor);
         this.setNeedsRender();
     }
 
     navigate(to?: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap) {
-        if (to === undefined) {
-            if (this.constructionPlane instanceof ConstructionPlaneSnap) to = this.constructionPlane;
-            else return;
-        }
+        if (this.constructionPlane instanceof ScreenSpaceConstructionPlaneSnap) return;
+        if (to === undefined) to = this.constructionPlane;
 
         const constructionPlane = this.navigator.navigate(to);
         this.constructionPlane = constructionPlane;

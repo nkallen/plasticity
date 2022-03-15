@@ -81,7 +81,7 @@ export class FloorHelper extends THREE.Group {
 
         const grid2 = this.makeGrid2(size, divisions, color2);
         this.grid2 = grid2;
-        
+
         this.add(grid1, grid2);
         this.layers.set(visual.Layers.Overlay);
     }
@@ -147,7 +147,7 @@ export class CustomGrid extends THREE.Group {
 
         const grid2 = this.makeGrid2(size, divisions, color2);
         this.grid2 = grid2;
-        
+
         this.add(grid1, grid2);
         this.layers.set(visual.Layers.Overlay);
     }
@@ -205,10 +205,10 @@ export class CustomGrid extends THREE.Group {
             factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360), 7);
         } else throw new Error("invalid camera type");
 
-
         material1.opacity *= 1 / factor;
         this.grid1.visible = factor < 10;
 
         this.updateMatrixWorld();
     }
 }
+

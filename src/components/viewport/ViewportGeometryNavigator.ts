@@ -16,8 +16,8 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
         controls: OrbitControls,
     ) { super(controls) }
 
-    navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap): ConstructionPlaneSnap {
-        const { editor, editor: { db, planes } } = this;
+    private constructionPlane(to: visual.Face | visual.PlaneInstance<visual.Region>): ConstructionPlaneSnap {
+        const { editor: { db, planes } } = this;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
             const placement = model.GetControlPlacement();
@@ -25,10 +25,7 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             placement.Normalize(); // FIXME: for some reason necessary with curved faces
             const normal = vec2vec(placement.GetAxisY(), 1);
             const target = point2point(model.Point(0.5, 0.5));
-            this.controls.target.copy(target);
-            this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
             const faceSnap = new FaceSnap(to, db.lookupTopologyItem(to));
-            editor.enqueue(new NavigateCommand(editor, to));
             return planes.temp(new FaceConstructionPlaneSnap(normal, target, faceSnap));
         } else if (to instanceof visual.PlaneInstance) {
             const model = db.lookup(to);
@@ -38,15 +35,29 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             model.AddYourGabaritTo(cube);
             const min = point2point(cube.pmin), max = point2point(cube.pmax);
             const target = min.add(max).multiplyScalar(0.5);
-            this.controls.target.copy(target);
-            this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
-            editor.enqueue(new NavigateCommand(editor, to.underlying));
             return planes.temp(new ConstructionPlaneSnap(normal, target));
+        } else {
+            return to;
+        }
+    }
+
+    navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap, mode: 'keep-camera-position' | 'align-camera' = 'align-camera'): ConstructionPlaneSnap {
+        const { editor, controls } = this;
+        if (to instanceof visual.Face || to instanceof visual.PlaneInstance) {
+            const constructionPlane = this.constructionPlane(to);
+            if (mode === 'align-camera') {
+                controls.target.copy(constructionPlane.p);
+                this.animateToPositionAndQuaternion(constructionPlane.n, new THREE.Quaternion());
+            }
+            editor.enqueue(new NavigateCommand(editor, to));
+            return constructionPlane;
         } else if (to instanceof ConstructionPlaneSnap) {
             const normal = to.n;
             const target = to.p;
-            this.controls.target.copy(target);
-            this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
+            if (mode === 'align-camera') {
+                controls.target.copy(target);
+                this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
+            }
             return to;
         } else {
             return this.animateToOrientation(to);
@@ -57,11 +68,13 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
 export class NavigateCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly to: visual.Face | visual.Region
+        private readonly to: visual.Face | visual.PlaneInstance<visual.Region>
     ) { super(editor) }
 
     async execute(): Promise<void> {
-        this.editor.changeSelection.onBoxSelect(new Set([this.to]), ChangeSelectionModifier.Remove);
+        const { to } = this;
+        const select = (to instanceof visual.PlaneInstance) ? new Set([to.underlying]) : new Set([to]);
+        this.editor.changeSelection.onBoxSelect(select, ChangeSelectionModifier.Remove);
     }
 
     shouldAddToHistory(selectionChanged: boolean) {
