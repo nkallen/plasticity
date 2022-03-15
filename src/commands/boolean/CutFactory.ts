@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, PhantomInfo, ValidationError } from '../../command/GeometryFactory';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap } from "../../editor/snaps/Snap";
-import { composeMainName, ContourAndPlacement, curve3d2curve2d, deunit, vec2vec } from '../../util/Conversion';
+import { composeMainName, ContourAndPlacement, curve3d2curve2d, deunit, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 
@@ -82,20 +82,21 @@ abstract class AbstractCutFactory extends GeometryFactory {
             case 'axis':
             case 'contour':
                 let { placement, contour } = this.mode;
-                const bbox = new c3d.Cube();
-                this.model.AddYourGabaritTo(bbox);
-                const inout_max = bbox.pmax;
-                const inout_min = bbox.pmin;
-                placement.GetPointInto(inout_max);
-                placement.GetPointInto(inout_min);
-
+                
                 if (contour.IsStraight() && this.mode.tag != 'axis') {
+                    const bbox = new c3d.Cube();
+                    this.model.AddYourGabaritTo(bbox);
+                    const inout_max = bbox.pmax;
+                    const inout_min = bbox.pmin;
+                    
                     const limit1 = contour.GetLimitPoint(1), limit2 = contour.GetLimitPoint(2);
-
-                    const parallelToY = Math.abs(limit1.y - limit2.y) < 10e-6;
-                    const parallelToX = Math.abs(limit1.x - limit2.x) < 10e-6;
-                    const outsideBBwrtY = (limit1.y <= inout_min.y + 10e-6 && limit1.y <= inout_max.y + 10e-6) || (limit1.y >= inout_min.y - 10e-6 && limit1.y >= inout_max.y - 10e-6);
-                    const outsideBBwrtX = (limit1.x <= inout_min.x + 10e-6 && limit1.x <= inout_max.x + 10e-6) || (limit1.x >= inout_min.x - 10e-6 && limit1.x >= inout_max.x - 10e-6);
+                    const limit1_world = placement.GetPointFrom(limit1.x, limit1.y, 0);
+                    const limit2_world = placement.GetPointFrom(limit2.x, limit2.y, 0);
+                    
+                    const parallelToX = Math.abs(limit1_world.y - limit2_world.y) < 10e-6;
+                    const parallelToY = Math.abs(limit1_world.x - limit2_world.x) < 10e-6;
+                    const outsideBBwrtY = (limit1_world.y <= inout_min.y + 10e-6 && limit1_world.y <= inout_max.y + 10e-6) || (limit1_world.y >= inout_min.y - 10e-6 && limit1_world.y >= inout_max.y - 10e-6);
+                    const outsideBBwrtX = (limit1_world.x <= inout_min.x + 10e-6 && limit1_world.x <= inout_max.x + 10e-6) || (limit1_world.x >= inout_min.x - 10e-6 && limit1_world.x >= inout_max.x - 10e-6);
 
                     if (parallelToX && outsideBBwrtX) {
                         const curve3d = new c3d.PlaneCurve(placement, contour, true)

@@ -78,7 +78,7 @@ describe(CutFactory, () => {
         expect(result.length).toBe(2);
     });
 
-    test('works with lines parallel to Y axis (positive)', async () => {
+    test('works with lines parallel to X axis (positive)', async () => {
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(-2, 2, 0));
         makeLine.points.push(new THREE.Vector3(2, 2, 0));

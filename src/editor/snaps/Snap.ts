@@ -707,7 +707,7 @@ export class PlaneSnap extends Snap {
     }
 
     get placement() {
-        return new c3d.Placement3D(point2point(this.p), vec2vec(this.n, 1), false);
+        return new c3d.Placement3D(point2point(this.p), vec2vec(this.n, 1), vec2vec(this.x, 1), false);
     }
 
     get isTemp() { return true }
