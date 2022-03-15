@@ -13,7 +13,6 @@ import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../src/
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
 import { SolidCopier } from "../src/editor/SolidCopier";
-import { point2point, vec2vec } from "../src/util/Conversion";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -40,43 +39,6 @@ beforeEach(() => {
     raycaster = {
         intersectObjects: intersect
     } as unknown as THREE.Raycaster;
-})
-
-describe(PlaneSnap, () => {
-    test("project", () => {
-        let plane: PlaneSnap, i;
-        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        i = { point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection;
-        expect(plane.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-
-        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
-        i = { point: new THREE.Vector3(0, 0, 1) } as THREE.Intersection;
-        expect(plane.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-    });
-
-    test("isValid", () => {
-        let plane: PlaneSnap;
-        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
-        expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
-
-        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
-        expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
-        expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
-    });
-
-    test("placement", () => {
-        let plane: PlaneSnap, placement: c3d.Placement3D;
-        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        placement = plane.placement;
-        expect(point2point(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3());
-        expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-
-        plane = new PlaneSnap(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
-        placement = plane.placement;
-        expect(point2point(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-    });
 })
 
 describe(AxisSnap, () => {

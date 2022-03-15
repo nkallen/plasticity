@@ -107,7 +107,7 @@ describe(PointPickerSnapPicker, () => {
         expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
 
-    test('preference overrides nearest', () => {
+    test.only('preference overrides nearest', () => {
         const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([]);
         const faceSnap = picker.intersect(pointPicker, cache, db)[0].snap;

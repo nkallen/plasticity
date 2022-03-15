@@ -8,7 +8,6 @@ import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapResult } from "./SnapPicker";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
 
-
 export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
     readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose(); }
@@ -23,15 +22,14 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
         this.toggleFaceLayer(raycaster, viewport);
     }
 
-    intersectConstructionPlane(pointPicker: PointPickerModel, raycaster: THREE.Raycaster, viewport: Viewport): SnapResult[] {
+    intersectConstructionPlane(snapToGrid: boolean, pointPicker: PointPickerModel, raycaster: THREE.Raycaster, viewport: Viewport): SnapResult[] {
         const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrthoMode);
         const intersections = raycaster.intersectObject(constructionPlane.snapper);
         if (intersections.length === 0)
             return [];
         const approximatePosition = intersections[0].point;
-        const snap = constructionPlane;
-        const { position: precisePosition, orientation } = snap.project(approximatePosition);
-        return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
+        const { position: precisePosition, orientation } = constructionPlane.project(approximatePosition, snapToGrid);
+        return [{ snap: constructionPlane, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
     }
 
     intersectChoice(choice: Choice, raycaster: THREE.Raycaster): SnapResult[] {

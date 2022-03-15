@@ -15,20 +15,17 @@ export class GridHelper {
 
     constructor(private readonly color1: THREE.Color, private readonly color2: THREE.Color, private readonly backgroundColor: THREE.Color) { }
 
-    private readonly lookAt = new THREE.Matrix4();
     getOverlay(isOrthoMode: boolean, constructionPlane: ConstructionPlane, camera: THREE.Camera): THREE.Object3D {
         const { floor, gridBackground, customGrid } = this;
 
         if (isOrthoMode || constructionPlane === PlaneDatabase.ScreenSpace) {
             gridBackground.position.copy(constructionPlane.p);
-            gridBackground.quaternion.copy(camera.quaternion);
+            gridBackground.quaternion.copy(constructionPlane.orientation);
             gridBackground.update(camera);
             return gridBackground;
         } else if (constructionPlane !== PlaneDatabase.XY) {
-            const { lookAt } = this;
             customGrid.position.copy(constructionPlane.p);
-            lookAt.lookAt(constructionPlane.p.clone().add(constructionPlane.n), constructionPlane.p, Z);
-            customGrid.quaternion.setFromRotationMatrix(lookAt);
+            customGrid.quaternion.copy(constructionPlane.orientation);
             customGrid.update(camera);
             return customGrid;
         } else {

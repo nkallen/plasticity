@@ -16,31 +16,6 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
         controls: OrbitControls,
     ) { super(controls) }
 
-    private constructionPlane(to: visual.Face | visual.PlaneInstance<visual.Region>): ConstructionPlaneSnap {
-        const { editor: { db, planes } } = this;
-        if (to instanceof visual.Face) {
-            const model = db.lookupTopologyItem(to);
-            const placement = model.GetControlPlacement();
-            model.OrientPlacement(placement);
-            placement.Normalize(); // FIXME: for some reason necessary with curved faces
-            const normal = vec2vec(placement.GetAxisY(), 1);
-            const target = point2point(model.Point(0.5, 0.5));
-            const faceSnap = new FaceSnap(to, db.lookupTopologyItem(to));
-            return planes.temp(new FaceConstructionPlaneSnap(normal, target, faceSnap));
-        } else if (to instanceof visual.PlaneInstance) {
-            const model = db.lookup(to);
-            const placement = model.GetPlacement();
-            const normal = vec2vec(placement.GetAxisZ(), 1);
-            const cube = new c3d.Cube();
-            model.AddYourGabaritTo(cube);
-            const min = point2point(cube.pmin), max = point2point(cube.pmax);
-            const target = min.add(max).multiplyScalar(0.5);
-            return planes.temp(new ConstructionPlaneSnap(normal, target));
-        } else {
-            return to;
-        }
-    }
-
     navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap, mode: 'keep-camera-position' | 'align-camera' = 'align-camera'): ConstructionPlaneSnap {
         const { editor, controls } = this;
         if (to instanceof visual.Face || to instanceof visual.PlaneInstance) {
@@ -63,6 +38,31 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             return this.animateToOrientation(to);
         }
     }
+
+    private constructionPlane(to: visual.Face | visual.PlaneInstance<visual.Region>): ConstructionPlaneSnap {
+        const { editor: { db, planes } } = this;
+        if (to instanceof visual.Face) {
+            const model = db.lookupTopologyItem(to);
+            const placement = model.GetControlPlacement();
+            model.OrientPlacement(placement);
+            placement.Normalize(); // FIXME: for some reason necessary with curved faces
+            const normal = vec2vec(placement.GetAxisY(), 1);
+            const target = point2point(model.Point(0.5, 0.5));
+            const faceSnap = new FaceSnap(to, db.lookupTopologyItem(to));
+            return planes.temp(new FaceConstructionPlaneSnap(normal, target, undefined, faceSnap));
+        } else if (to instanceof visual.PlaneInstance) {
+            const model = db.lookup(to);
+            const placement = model.GetPlacement();
+            const normal = vec2vec(placement.GetAxisZ(), 1);
+            const cube = new c3d.Cube();
+            model.AddYourGabaritTo(cube);
+            const min = point2point(cube.pmin), max = point2point(cube.pmax);
+            const target = min.add(max).multiplyScalar(0.5);
+            return planes.temp(new ConstructionPlaneSnap(normal, target));
+        } else {
+            return to;
+        }
+    }
 }
 
 export class NavigateCommand extends cmd.CommandLike {
@@ -82,3 +82,4 @@ export class NavigateCommand extends cmd.CommandLike {
     }
 }
 
+const origin = new THREE.Vector3();

@@ -37,7 +37,7 @@ export abstract class Snap implements Restriction {
         });
     }
 
-    abstract project(point: THREE.Vector3): SnapProjection;
+    abstract project(point: THREE.Vector3, snapToGrid?: boolean): SnapProjection;
     abstract isValid(pt: THREE.Vector3): boolean;
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return }
@@ -619,7 +619,6 @@ export class LineAxisSnap extends AxisSnap {
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 
-const mat = new THREE.Matrix4()
 export class PlaneSnap extends Snap {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
@@ -631,7 +630,11 @@ export class PlaneSnap extends Snap {
 
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
+    readonly x: THREE.Vector3;
     readonly orientation = new THREE.Quaternion();
+
+    private readonly basis = new THREE.Matrix4();
+    private readonly basisInv = new THREE.Matrix4();
 
     static from(origin: THREE.Vector3, quaternion: THREE.Quaternion) {
         const n = new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion);
@@ -641,6 +644,7 @@ export class PlaneSnap extends Snap {
     // Even small (e.g., 10e-4) errors in the orientation can screw up coplanar calculations.
     // mat.lookAt, which is awesome for getting a great orientation for a weird plane, can introduce
     // such errors.
+    private static readonly mat = new THREE.Matrix4()
     private static avoidNumericalPrecisionProblems(n: THREE.Vector3, orientation: THREE.Quaternion) {
         if (n.dot(Z) === 1) {
             orientation.identity();
@@ -649,29 +653,46 @@ export class PlaneSnap extends Snap {
         } else if (n.dot(Y) === 1) {
             orientation.set(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
         } else {
-            mat.lookAt(new THREE.Vector3(), n, Z);
-            orientation.setFromRotationMatrix(mat);
+            const { mat } = this;
+            mat.lookAt(origin, n, Z);
+            orientation.setFromRotationMatrix(mat).normalize();
         }
     }
 
-    constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3(), readonly name?: string) {
+    private readonly translate = new THREE.Matrix4();
+    constructor(normal = Z, p = new THREE.Vector3(), x?: THREE.Vector3, readonly name?: string) {
         super();
 
-        n = n.clone();
+        normal = normal.clone();
         p = p.clone();
-        this.snapper.lookAt(n);
+        this.snapper.lookAt(normal);
         this.snapper.position.copy(p);
-        this.n = n;
+        this.n = normal;
         this.p = p;
-        PlaneSnap.avoidNumericalPrecisionProblems(n, this.orientation);
+        if (x !== undefined) {
+            throw new Error("not supported yet");
+        } else {
+            const { translate } = this;
+            PlaneSnap.avoidNumericalPrecisionProblems(normal, this.orientation);
+            this.x = new THREE.Vector3(1, 0, 0).applyQuaternion(this.orientation).normalize();
+            translate.makeTranslation(p.x, p.y, p.z);
+            this.basis.makeBasis(this.x, this.y.crossVectors(this.x, normal).normalize(), normal).premultiply(translate);
+            this.basisInv.copy(this.basis).invert();
+        }
         this.init();
     }
 
-    project(intersection: THREE.Vector3 | THREE.Intersection) {
+    private readonly y = new THREE.Vector3();
+    project(intersection: THREE.Vector3 | THREE.Intersection, snapToGrid = false) {
         const point = intersection instanceof THREE.Vector3 ? intersection : intersection.point;
-        const { n, p, orientation } = this;
+        const { n, p, orientation, basis, basisInv } = this;
         const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
         const position = plane.projectPoint(point, new THREE.Vector3());
+        if (snapToGrid) {
+            position.applyMatrix4(basisInv);
+            position.set(Math.round(position.x), Math.round(position.y), 0);
+            position.applyMatrix4(basis);
+        }
         return { position, orientation };
     }
 

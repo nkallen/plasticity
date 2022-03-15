@@ -11,9 +11,9 @@ const Z = freeze(new THREE.Vector3(0, 0, 1));
 export class PlaneDatabase {
     private counter = 0;
 
-    static readonly XY = new ConstructionPlaneSnap(Z, origin, "XY");
-    static readonly YZ = new ConstructionPlaneSnap(X, origin, "YZ");
-    static readonly XZ = new ConstructionPlaneSnap(Y, origin, "XZ");
+    static readonly XY = new ConstructionPlaneSnap(Z, origin, undefined, "XY");
+    static readonly YZ = new ConstructionPlaneSnap(X, origin, undefined, "YZ");
+    static readonly XZ = new ConstructionPlaneSnap(Y, origin, undefined, "XZ");
     static readonly ScreenSpace = new ScreenSpaceConstructionPlaneSnap(this.XY);
 
     private readonly _all = new Set<ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ, PlaneDatabase.ScreenSpace]);
@@ -28,7 +28,7 @@ export class PlaneDatabase {
     }
 
     add(plane: ConstructionPlaneSnap) {
-        this._all.add(new ConstructionPlaneSnap(plane.n, plane.p, `Custom plane ${this.counter++}`));
+        this._all.add(new ConstructionPlaneSnap(plane.n, plane.p, undefined, `Custom plane ${this.counter++}`));
         this.signals.constructionPlanesChanged.dispatch();
     }
 }
