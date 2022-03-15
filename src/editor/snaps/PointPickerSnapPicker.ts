@@ -54,7 +54,7 @@ export class PointPickerSnapPicker {
                 const chosen = strategy.intersectChoice(choice, raycaster);
                 return strategy.applyRestrictions(pointPicker, viewport, chosen);
             } else {
-                return strategy.intersectConstructionPlane(false, pointPicker, raycaster, viewport);
+                return strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport);
             }
         }
 
@@ -71,7 +71,7 @@ export class PointPickerSnapPicker {
             return strategy.applyRestrictions(pointPicker, viewport, result);
         }
 
-        intersections = intersections.concat(strategy.intersectConstructionPlane(false, pointPicker, raycaster, viewport));
+        intersections = intersections.concat(strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport));
         const restricted = strategy.applyRestrictions(pointPicker, viewport, intersections);
 
         return findAllSnapsInTheSamePlace(restricted);

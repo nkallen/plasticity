@@ -39,10 +39,15 @@ export default (editor: Editor) => {
             const ll = new THREE.Layers();
             render(
                 <div class="p-4">
-                    <h1 class="flex justify-between items-center py-0.5 px-2 mb-4 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.toggleAllSnaps(e)}>
+                    <h1 class="flex justify-between items-center py-0.5 px-2 mb-4 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700">
                         <div>Snaps</div>
-                        <div class="p-1 rounded group text-neutral-300">
-                            <plasticity-icon key={editor.snaps.xor} name={editor.snaps.xor ? 'eye' : 'eye-off'}></plasticity-icon>
+                        <div class="flex">
+                            <div class="p-1 rounded group text-neutral-300" onClick={e => this.toggleAllSnaps(e)}>
+                                <plasticity-icon key={editor.snaps.enabled} name={editor.snaps.enabled ? 'eye' : 'eye-off'}></plasticity-icon>
+                            </div>
+                            <div class="p-1 rounded group text-neutral-300" onClick={e => this.toggleGrid(e)}>
+                                <plasticity-icon key={editor.snaps.snapToGrid} name={editor.snaps.snapToGrid ? 'lock' : 'no-lock'}></plasticity-icon>
+                            </div>
                         </div>
                     </h1>
                     <ul class="space-y-1">
@@ -90,7 +95,12 @@ export default (editor: Editor) => {
         }
 
         toggleAllSnaps = (event: MouseEvent) => {
-            editor.snaps.xor = !editor.snaps.xor;
+            editor.snaps.enabled = !editor.snaps.enabled;
+            this.render();
+        }
+
+        toggleGrid = (event: MouseEvent) => {
+            editor.snaps.snapToGrid = !editor.snaps.snapToGrid;
             this.render();
         }
 

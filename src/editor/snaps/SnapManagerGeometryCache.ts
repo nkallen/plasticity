@@ -9,6 +9,7 @@ export class SnapManagerGeometryCache {
     get resolution() { return this._geometrySnaps.resolution; }
 
     get enabled() { return this.snaps.enabled }
+    get snapToGrid() { return this.snaps.snapToGrid }
 
     constructor(private readonly snaps: SnapManager, private readonly db: DatabaseLike) {
         this.update();

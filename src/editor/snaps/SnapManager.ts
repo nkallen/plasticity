@@ -26,6 +26,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         return this._enabled !== this.xor;
     }
 
+    private _snapToGrid = false;
+    set snapToGrid(snapToGrid: boolean) { this._snapToGrid = snapToGrid }
+    get snapToGrid() {
+        return this._snapToGrid && !this.xor;
+    }
+
     private _xor = false;
     get xor() { return this._xor }
     set xor(xor: boolean) {

@@ -4,7 +4,7 @@ import CurveFactory, { CurveWithPreviewFactory } from '../../src/commands/curve/
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { DontCacheMeshCreator, ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap, PointSnap, TanTanSnap } from "../../src/editor/snaps/Snap";
 import { SolidCopier } from "../../src/editor/SolidCopier";
