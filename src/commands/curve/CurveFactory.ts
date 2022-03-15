@@ -83,6 +83,7 @@ export default class CurveFactory extends GeometryFactory {
     style = 0;
 
     get startPoint() { return this.points[0] }
+    get otherPoints() { return this.points.slice(1) }
 
     async calculate() {
         const { points, type, style, snap } = this;
@@ -184,6 +185,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     }
 
     get startPoint() { return this.underlying.startPoint }
+    get otherPoints() { return this.underlying.otherPoints }
 
     wouldBeClosed(p: THREE.Vector3) {
         return this.underlying.wouldBeClosed(p);

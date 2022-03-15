@@ -35,15 +35,13 @@ export class CurveCommand extends Command {
                     pointPicker.undo();
                     makeCurve.undo();
                     makeCurve.update();
+                    addSnaps(makeCurve, pointPicker);
                     break;
             }
         }).resource(this);
 
         while (true) {
-            if (makeCurve.canBeClosed) {
-                pointPicker.clearAddedSnaps();
-                pointPicker.addSnap(new PointSnap("Closed", makeCurve.startPoint));
-            }
+            addSnaps(makeCurve, pointPicker);
             try {
                 const { point, info: { snap } } = await pointPicker.execute(async ({ point, info: { snap } }) => {
                     makeCurve.preview.last = point;
@@ -73,4 +71,14 @@ export class CurveCommand extends Command {
 export class LineCommand extends CurveCommand {
     protected type = c3d.SpaceType.Polyline3D;
     protected get keyboard() { return new LineKeyboardGizmo(this.editor); };
+}
+
+function addSnaps(makeCurve: CurveWithPreviewFactory, pointPicker: PointPicker) {
+    pointPicker.clearAddedSnaps();
+    if (makeCurve.canBeClosed) {
+        for (const point of makeCurve.otherPoints) {
+            pointPicker.addSnap(new PointSnap(undefined, point));
+        }
+        pointPicker.addSnap(new PointSnap("Closed", makeCurve.startPoint));
+    }
 }
