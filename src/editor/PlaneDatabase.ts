@@ -16,7 +16,7 @@ export class PlaneDatabase {
     static readonly XZ = new ConstructionPlaneSnap(Y, origin, undefined, "XZ");
     static readonly ScreenSpace = new ScreenSpaceConstructionPlaneSnap(this.XY);
 
-    private readonly _all = new Set<ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ, PlaneDatabase.ScreenSpace]);
+    private readonly _all = new Set<ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ]);
 
     constructor(private readonly signals: EditorSignals) { }
 

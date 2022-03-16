@@ -8,6 +8,7 @@ const defaultFloorDivisions = floorSize;
 const defaultGridDivisions = defaultFloorDivisions * 100;
 
 export class GridHelper {
+    private factor = 1;
     private gridDivisions = defaultGridDivisions;
     private floor = new FloorHelper(floorSize, defaultFloorDivisions, this.color1, this.color2);
     private gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.color1, this.color2, this.backgroundColor);
@@ -34,12 +35,15 @@ export class GridHelper {
         }
     }
 
-    resizeGrid(factor: number) {
-        this.gridDivisions *= factor;
+    resizeGrid(factor: number, constructionPlane: ConstructionPlane) {
+        this.factor *= factor;
+        this.factor = Math.min(8, Math.max(0.25, this.factor));
+        this.gridDivisions = this.factor * defaultGridDivisions;
         this.gridBackground.dispose();
         this.customGrid.dispose();
         this.gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.color1, this.color2, this.backgroundColor);
         this.customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.color1, this.color2, this.backgroundColor);
+        constructionPlane.gridFactor = this.gridDivisions / defaultGridDivisions;
     }
 }
 

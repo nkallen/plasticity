@@ -528,7 +528,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     resizeGrid(factor: number) {
-        this.grid.resizeGrid(factor);
+        this.grid.resizeGrid(factor, this.constructionPlane);
         this.setNeedsRender();
     }
 

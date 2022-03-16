@@ -13,9 +13,9 @@ beforeEach(async () => {
 });
 
 test("add", () => {
-    expect([...planes.all].map(p => p.name)).toEqual(["XY", "YZ", "XZ", "Screen Space"]);
+    expect([...planes.all].map(p => p.name)).toEqual(["XY", "YZ", "XZ"]);
     planes.add(new ConstructionPlaneSnap(new THREE.Vector3(1, 1, 1)));
-    expect([...planes.all].map(p => p.name)).toEqual(["XY", "YZ", "XZ", "Screen Space", "Custom plane 0"]);
+    expect([...planes.all].map(p => p.name)).toEqual(["XY", "YZ", "XZ", "Custom plane 0"]);
 })
 
 test("temp when plane doesn't exist", () => {

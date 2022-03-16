@@ -682,6 +682,13 @@ export class PlaneSnap extends Snap {
         this.init();
     }
 
+    private _gridFactor = 10;
+    get gridFactor() { return this._gridFactor / 10 }
+    set gridFactor(factor: number) {
+        if (factor > 10 || factor < 0) throw new Error("invalid precondition");
+        this._gridFactor = factor * 10;
+    }
+
     private readonly y = new THREE.Vector3();
     project(intersection: THREE.Vector3 | THREE.Intersection, snapToGrid = false) {
         const point = intersection instanceof THREE.Vector3 ? intersection : intersection.point;
@@ -689,8 +696,12 @@ export class PlaneSnap extends Snap {
         const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
         const position = plane.projectPoint(point, new THREE.Vector3());
         if (snapToGrid) {
+            const { gridFactor } = this;
             position.applyMatrix4(basisInv);
-            position.set(Math.round(position.x), Math.round(position.y), 0);
+            position.set(
+                Math.round(position.x * gridFactor) / gridFactor, 
+                Math.round(position.y * gridFactor) / gridFactor,
+                0);
             position.applyMatrix4(basis);
         }
         return { position, orientation };

@@ -10,6 +10,7 @@ export interface ConstructionPlane extends Snap {
     get placement(): c3d.Placement3D;
     move(vector: THREE.Vector3): ConstructionPlane;
     get isTemp(): boolean;
+    gridFactor: number;
 }
 
 // The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
@@ -99,6 +100,8 @@ export class ScreenSpaceConstructionPlaneSnap extends Snap implements Constructi
         // FIXME: this seems wrong
         return this;
     }
+
+    gridFactor = 1;
 
     get placement() {
         switch (this.state.tag) {

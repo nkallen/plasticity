@@ -29,3 +29,24 @@ test('getOverlay(false, ....)', () => {
     const result = grids.getOverlay(false, new ConstructionPlaneSnap(new THREE.Vector3(1, 0, 0)), new THREE.OrthographicCamera());
     expect(result).toBeInstanceOf(CustomGrid);
 })
+
+test('resizeGrid', () => {
+    const cplane = new ConstructionPlaneSnap();
+    expect(cplane.gridFactor).toBe(1);
+    grids.resizeGrid(2, cplane);
+    expect(cplane.gridFactor).toBe(2);
+    grids.resizeGrid(2, cplane);
+    expect(cplane.gridFactor).toBe(4);
+    grids.resizeGrid(0.5, cplane);
+    expect(cplane.gridFactor).toBe(2);
+    grids.resizeGrid(0.5, cplane);
+    expect(cplane.gridFactor).toBe(1);
+});
+
+test('resizeGrid edge cases', () => {
+    const cplane = new ConstructionPlaneSnap();
+    grids.resizeGrid(-1, cplane);
+    expect(cplane.gridFactor).toBe(0.25);
+    grids.resizeGrid(100000, cplane);
+    expect(cplane.gridFactor).toBe(8);
+})
