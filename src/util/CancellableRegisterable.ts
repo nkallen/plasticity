@@ -1,5 +1,5 @@
 import { Cancellable } from "./Cancellable";
-import { CancellableRegistor } from "./CancellableRegistor";
+import { CancellableRegistor, State } from "./CancellableRegistor";
 
 /**
  * A companion object to CancellableRegistor. This object can be "registered" to the registor. In other words,
@@ -10,7 +10,7 @@ import { CancellableRegistor } from "./CancellableRegistor";
 export abstract class CancellableRegisterable implements Cancellable {
     abstract cancel(): void;
     abstract finish(): void;
-    abstract interrupt(): void;
+    abstract interrupt(state?: State): void;
 
     resource(reg: CancellableRegistor): this {
         reg.resource(this);

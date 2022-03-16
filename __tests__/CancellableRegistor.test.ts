@@ -27,6 +27,8 @@ describe(CancellableRegistor, () => {
         const finished = command.finished;
         command.interrupt();
         await finished;
+        expect(command.state).toBe('Awaiting');
+        command.finish();
         expect(command.state).toBe('Finished');
     });
 
@@ -39,9 +41,12 @@ describe(CancellableRegistor, () => {
         command.resource(registerable);
         command.interrupt();
         await finished;
-        expect(command.state).toBe('Finished');
+        expect(command.state).toBe('Awaiting');
         expect(interrupt).toHaveBeenCalledTimes(1);
         expect(finish).toHaveBeenCalledTimes(0);
+        command.finish();
+        expect(command.state).toBe('Finished');
+        expect(finish).toHaveBeenCalledTimes(1);
     });
 
     test('resource when awaiting', async () => {

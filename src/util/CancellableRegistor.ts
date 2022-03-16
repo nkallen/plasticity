@@ -45,21 +45,27 @@ export abstract class CancellableRegistor implements Cancellable {
         this.state = 'Finished';
     }
 
+    // Interruption happens when the user takes some action to start a new command while
+    // some command is already running. Normally this should cancel the current command.
+    // However, when the command is in the 'Awaiting' state, the command is ready to be commit
+    // (i.e., the user entered all necessary data) and we generally interpret that as a commit.
+    // HOWEVER, in some cases, like when rejectOnInterrupt() is explicitly called, we rely
+    // calling interrupt will trigger an exception and the command will not be commit.
     interrupt(): void {
         switch (this.state) {
             case 'None':
                 for (const resource of this.resources) {
-                    resource.interrupt();
+                    resource.interrupt(this.state);
                 }
                 this.disposable.dispose();
                 this.state = 'Interrupted';
                 break;
             case 'Awaiting':
                 for (const resource of this.resources) {
-                    resource.interrupt();
+                    resource.interrupt(this.state);
                 }
-                this.disposable.dispose();
-                this.state = 'Finished';
+                // And here we DO NOT change the state because the CommandExecutor will explicity call .finish()
+                // IFF the Command.execute() completed without erroring
         }
     }
 

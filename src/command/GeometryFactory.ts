@@ -5,6 +5,7 @@ import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/Datab
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
+import { State as CancellableRegisterableState } from "../util/CancellableRegistor";
 import { toArray } from "../util/Conversion";
 import { zip } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
@@ -406,6 +407,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     throw error;
                 }
             default:
+                console.trace();
                 throw new Error('invalid state: ' + this.state.tag);
         }
     }
@@ -457,7 +459,9 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     }
 
     finish() { /* NOTE: finish is a noop */ }
-    interrupt() { this.cancel() }
+    interrupt(state?: CancellableRegisterableState) {
+        if (state !== 'Awaiting') this.cancel();
+    }
 }
 
 function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {

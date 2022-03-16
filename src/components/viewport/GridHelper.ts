@@ -43,6 +43,7 @@ export class GridHelper {
         this.customGrid.dispose();
         this.gridBackground = new OrthoModeGrid(floorSize * 10, this.gridDivisions, this.color1, this.color2, this.backgroundColor);
         this.customGrid = new CustomGrid(floorSize * 10, this.gridDivisions, this.color1, this.color2, this.backgroundColor);
+        this.floor = new FloorHelper(floorSize, this.factor * defaultFloorDivisions, this.color1, this.color2);
         constructionPlane.gridFactor = this.gridDivisions / defaultGridDivisions;
     }
 }
