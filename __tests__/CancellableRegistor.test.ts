@@ -30,6 +30,20 @@ describe(CancellableRegistor, () => {
         expect(command.state).toBe('Finished');
     });
 
+    test('interrupt with resource when awaiting', async () => {
+        const command = new MyCancellableRegistor();
+        const finished = command.finished;
+        const registerable = new MyCancellableRegisterable();
+        const interrupt = jest.spyOn(registerable, 'interrupt');
+        const finish = jest.spyOn(registerable, 'finish');
+        command.resource(registerable);
+        command.interrupt();
+        await finished;
+        expect(command.state).toBe('Finished');
+        expect(interrupt).toHaveBeenCalledTimes(1);
+        expect(finish).toHaveBeenCalledTimes(0);
+    });
+
     test('resource when awaiting', async () => {
         const command = new MyCancellableRegistor();
         const finished = command.finished;

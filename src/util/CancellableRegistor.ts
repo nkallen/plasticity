@@ -55,7 +55,11 @@ export abstract class CancellableRegistor implements Cancellable {
                 this.state = 'Interrupted';
                 break;
             case 'Awaiting':
-                this.finish();
+                for (const resource of this.resources) {
+                    resource.interrupt();
+                }
+                this.disposable.dispose();
+                this.state = 'Finished';
         }
     }
 

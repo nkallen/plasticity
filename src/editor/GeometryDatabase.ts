@@ -15,9 +15,9 @@ import { Nodes } from './Nodes';
 import { SolidCopier, SolidCopierPool } from './SolidCopier';
 import { TypeManager } from './TypeManager';
 
-const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
+const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.0009), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
-const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
+const temporary_precision_distance: [number, number][] = [[unit(0.003), 1]];
 const formNote = new c3d.FormNote(true, true, false, false, false);
 
 type Builder = build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | build.PlaneInstanceBuilder<visual.Region> | build.SolidBuilder;
