@@ -289,7 +289,7 @@ declare module "*c3d.node" {
         SimplifyFlatSolid = 618,  ///< \ru Строитель упрощения развёртки листового тела. \en Constructor of the sheet solid flat pattern simplification.
         UserStampSolid = 619,  ///< \ru Строитель оболочки с штамповкой телом. \en Constructor of a shell with stamping by solid. 
         RemoveOperationSolid = 620,  ///< \ru Строитель удаления операции листового тела. \en Constructor of removing of the sheet solid.
-        BuildSheetMetalSolid = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitary solid.
+        BuildSheetMetalSolid = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitrary solid.
 
         // \ru Строители оболочек. \en Creators of shells. 
         JoinShell = 701,  ///< \ru Строитель оболочки соединения. \en Constructor of a joint shell. 
@@ -485,7 +485,7 @@ declare module "*c3d.node" {
         ImpossibleReadAssembly,///< \ru Не поддерживает работу со сборками.  \en Assemblies are not supported.
         LicenseNotFound,       ///< \ru Ошибка получения лицензии.           \en License check failure.
         NotEnoughMemory,       ///< \ru Недостаточно памяти.                 \en Not enough memory.
-        UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extenstion.
+        UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extension.
       };
 
       declare enum MLTipType {
