@@ -15,7 +15,11 @@ export class ConstructionPlaneGenerator {
 
     constructionPlaneForSelection(selection: HasSelection): NavigationTarget | undefined {
         if (selection.faces.size > 0) {
-            return this.constructionPlaneForFace(selection.faces.first);
+            if (selection.edges.size > 0) {
+                return this.constructionPlaneForFaceAndEdge(selection.faces.first, selection.edges.first);
+            } else {
+                return this.constructionPlaneForFace(selection.faces.first);
+            }
         } else if (selection.regions.size > 0) {
             return this.constructionPlaneForRegion(selection.regions.first);
         } else return;
@@ -44,7 +48,22 @@ export class ConstructionPlaneGenerator {
         const target = point2point(model.Point(0.5, 0.5));
         const faceSnap = snaps.identityMap.lookup(to) as FaceSnap;
         const cplane = planes.temp(new FaceConstructionPlaneSnap(normal, target, undefined, faceSnap));
-        return { tag: 'face', target: to, cplane }
+        return { tag: 'face', targets: new Set([to]), cplane }
+    }
+
+    constructionPlaneForFaceAndEdge(faceView: visual.Face, edgeView: visual.CurveEdge): NavigationTarget {
+        const { db, planes, snaps } = this;
+        const faceModel = db.lookupTopologyItem(faceView);
+        const edgeModel = db.lookupTopologyItem(edgeView);
+        const placement = faceModel.GetControlPlacement();
+        faceModel.OrientPlacement(placement);
+        placement.Normalize(); // FIXME: for some reason necessary with curved faces
+        const normal = vec2vec(placement.GetAxisY(), 1);
+        const target = point2point(faceModel.Point(0.5, 0.5));
+        const faceSnap = snaps.identityMap.lookup(faceView) as FaceSnap;
+        const x = vec2vec(edgeModel.GetBegTangent(), 1);
+        const cplane = planes.temp(new FaceConstructionPlaneSnap(normal, target, x, faceSnap));
+        return { tag: 'face', targets: new Set([faceView, edgeView]), cplane }
     }
 
     constructionPlaneForOrientation(to: Orientation): NavigationTarget {

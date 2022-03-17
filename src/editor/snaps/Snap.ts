@@ -670,7 +670,15 @@ export class PlaneSnap extends Snap {
         this.n = normal;
         this.p = p;
         if (x !== undefined) {
-            throw new Error("not supported yet");
+            const { translate } = this;
+            this.x = x;
+            PlaneSnap.avoidNumericalPrecisionProblems(normal, this.orientation);
+            const wrong_x = new THREE.Vector3(1, 0, 0).applyQuaternion(this.orientation).normalize();
+            const wrongToRight = new THREE.Quaternion().setFromUnitVectors(wrong_x, x);
+            this.orientation.premultiply(wrongToRight);
+            translate.makeTranslation(p.x, p.y, p.z);
+            this.basis.makeBasis(x, this.y.crossVectors(x, normal).normalize(), normal).premultiply(translate);
+            this.basisInv.copy(this.basis).invert();
         } else {
             const { translate } = this;
             PlaneSnap.avoidNumericalPrecisionProblems(normal, this.orientation);
