@@ -9,7 +9,7 @@ import { Selectable, SelectionModeSet } from '../selection/SelectionDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from "./GeometryDatabase";
-import { ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
+import { ConstructionPlane, ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";
 
@@ -57,7 +57,7 @@ export class EditorSignals {
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
     selectionModeChanged: signals.Signal<SelectionModeSet> = new signals.Signal();
-    temporaryConstructionPlaneAdded: signals.Signal<ConstructionPlaneSnap> = new signals.Signal();
+    temporaryConstructionPlaneAdded: signals.Signal<ConstructionPlane> = new signals.Signal();
     constructionPlanesChanged: signals.Signal = new signals.Signal();
     snapsAdded: signals.Signal<{pointPicker: PointPickerModel, snaps: Snap[]}> = new signals.Signal();
     snapsCleared: signals.Signal<Snap[]> = new signals.Signal();

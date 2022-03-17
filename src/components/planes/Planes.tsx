@@ -20,7 +20,7 @@ export default (editor: Editor) => {
         connectedCallback() { this.render() }
         disconnectedCallback() { this.disposable.dispose() }
 
-        render = (temp?: ConstructionPlaneSnap) => {
+        render = (temp?: ConstructionPlane) => {
             render(
                 <div class="p-4">
                     <h1 class="mb-4 text-xs font-bold text-neutral-100">Construction Planes</h1>
@@ -35,7 +35,7 @@ export default (editor: Editor) => {
                 </div>, this);
         }
 
-        onClick = (event: MouseEvent, plane: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap) => {
+        onClick = (event: MouseEvent, plane: ConstructionPlaneSnap) => {
             if (editor.activeViewport !== undefined) editor.activeViewport.constructionPlane = plane;
             this.render();
         }

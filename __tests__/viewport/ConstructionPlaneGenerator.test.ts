@@ -47,18 +47,19 @@ beforeEach(() => {
 
 test("constructionPlane(Face)", () => {
     const face = solid.faces.get(0);
-    const constructionPlane = cplanes.constructionPlane(face);
-    expect(constructionPlane).toBeInstanceOf(FaceConstructionPlaneSnap);
-    const f = constructionPlane as FaceConstructionPlaneSnap;
+    const result = cplanes.constructionPlaneForFace(face);
+    expect(result.tag).toEqual('face');
+    const f = result.cplane as FaceConstructionPlaneSnap;
     const faceSnap = snaps.identityMap.lookup(face);
     expect(f.faceSnap).toBe(faceSnap);
     expect(f.isCompatibleWithSnap(faceSnap)).toBe(false);
-    expect(constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
-    expect(constructionPlane.p).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+    expect(f.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
+    expect(f.p).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
 })
 
 test("constructionPlane(Orientation)", () => {
-    const constructionPlane = cplanes.constructionPlane(Orientation.negX);
+    const result = cplanes.constructionPlaneForOrientation(Orientation.negX);
+    const constructionPlane = result.cplane;
     expect(constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
     expect(constructionPlane.p).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 })

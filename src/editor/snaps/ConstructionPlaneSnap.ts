@@ -16,6 +16,8 @@ export interface ConstructionPlane extends Snap {
 
 // The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
 export class ConstructionPlaneSnap extends PlaneSnap implements ConstructionPlane {
+    private _useNominal: undefined;
+
     move(pt: THREE.Vector3) {
         return new ConstructionPlaneSnap(this.n, pt);
     }
@@ -27,6 +29,8 @@ export class ConstructionPlaneSnap extends PlaneSnap implements ConstructionPlan
 }
 
 export class FaceConstructionPlaneSnap extends PlaneSnap implements ConstructionPlane {
+    private _useNominal: undefined;
+
     constructor(normal: THREE.Vector3, p: THREE.Vector3, x: THREE.Vector3 | undefined, readonly faceSnap: FaceSnap) {
         super(normal, p, x, "Face plane");
     }

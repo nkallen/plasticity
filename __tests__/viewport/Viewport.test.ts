@@ -29,7 +29,7 @@ let editor: Editor;
 let sphere: visual.Solid;
 let selection: SelectionDatabase;
 let interaction: ChangeSelectionExecutor;
-
+    
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
@@ -244,13 +244,18 @@ test("toggleOverlays", () => {
     viewport.toggleOverlays();
 });
 
+test("constructionPlane=undefined", () => {
+    viewport.constructionPlane = undefined;
+    expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+})
+
 test("constructionPlane=Face", () => {
-    viewport.constructionPlane = solid.faces.get(0);
+    viewport.constructionPlane = viewport.cplanes.constructionPlaneForFace(solid.faces.get(0));
     expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
 })
 
 test("constructionPlane=Region", () => {
-    viewport.constructionPlane = region;
+    viewport.constructionPlane = viewport.cplanes.constructionPlaneForRegion(region);
     expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
 })
 

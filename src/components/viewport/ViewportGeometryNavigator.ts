@@ -1,40 +1,43 @@
 import * as THREE from "three";
 import * as cmd from "../../command/Command";
-import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { ConstructionPlane, ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
 import * as visual from '../../visual_model/VisualModel';
-import { ConstructionPlaneGenerator } from "./ConstructionPlaneGenerator";
 import { OrbitControls } from "./OrbitControls";
 import { EditorLike } from "./Viewport";
-import { Orientation, ViewportNavigatorExecutor } from "./ViewportNavigator";
+import { ViewportNavigatorExecutor } from "./ViewportNavigator";
+
+export type NavigationTarget =
+    { tag: 'orientation', cplane: ConstructionPlaneSnap }
+    | { tag: 'face', target: visual.Face, cplane: FaceConstructionPlaneSnap }
+    | { tag: 'region', target: visual.PlaneInstance<visual.Region>, cplane: ConstructionPlaneSnap }
+    | { tag: 'cplane', cplane: ConstructionPlaneSnap | FaceConstructionPlaneSnap }
 
 export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
-    private readonly cplanes = new ConstructionPlaneGenerator(this.editor.db, this.editor.planes, this.editor.snaps);
-
     constructor(private readonly editor: EditorLike, controls: OrbitControls) { super(controls) }
 
-    navigate(to: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap, mode: 'keep-camera-position' | 'align-camera' = 'align-camera'): ConstructionPlaneSnap {
+    navigate(to: NavigationTarget, mode: 'keep-camera-position' | 'align-camera' = 'align-camera'): ConstructionPlane {
         const { editor, controls } = this;
-        if (to instanceof visual.Face || to instanceof visual.PlaneInstance) {
-            const constructionPlane = this.cplanes.constructionPlane(to);
-            if (mode === 'align-camera') {
-                controls.target.copy(constructionPlane.p);
-                this.animateToPositionAndQuaternion(constructionPlane.n, new THREE.Quaternion());
-            }
-            editor.enqueue(new NavigateCommand(editor, to));
-            return constructionPlane;
-        } else if (to instanceof ConstructionPlaneSnap) {
-            const normal = to.n;
-            const target = to.p;
-            if (mode === 'align-camera') {
-                controls.target.copy(target);
-                this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
-            }
-            return to;
-        } else {
-            const constructionPlane = this.cplanes.constructionPlane(to);
-            this.animateToPositionAndQuaternion(constructionPlane.n, new THREE.Quaternion());
-            return constructionPlane;
+        const cplane = to.cplane;
+        switch (to.tag) {
+            case 'face':
+            case 'region':
+                if (mode === 'align-camera') {
+                    controls.target.copy(cplane.p);
+                    this.animateToPositionAndQuaternion(cplane.n, new THREE.Quaternion());
+                }
+                editor.enqueue(new NavigateCommand(editor, to.target));
+                return cplane;
+            case 'cplane':
+                const normal = cplane.n, target = cplane.p;
+                if (mode === 'align-camera') {
+                    controls.target.copy(target);
+                    this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
+                }
+                return cplane;
+            default:
+                this.animateToPositionAndQuaternion(cplane.n, new THREE.Quaternion());
+                return cplane;
         }
     }
 }

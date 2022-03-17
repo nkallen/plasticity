@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { EditorSignals } from "./EditorSignals";
-import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 
 const freeze = Object.freeze;
 const origin = freeze(new THREE.Vector3());
@@ -16,18 +16,18 @@ export class PlaneDatabase {
     static readonly XZ = new ConstructionPlaneSnap(Y, origin, undefined, "XZ");
     static readonly ScreenSpace = new ScreenSpaceConstructionPlaneSnap(this.XY);
 
-    private readonly _all = new Set<ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ]);
+    private readonly _all = new Set<ConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ]);
 
     constructor(private readonly signals: EditorSignals) { }
 
-    get all(): Iterable<ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap> { return this._all }
+    get all(): Iterable<ConstructionPlaneSnap> { return this._all }
 
-    temp(plane: ConstructionPlaneSnap) {
+    temp<T extends ConstructionPlaneSnap | FaceConstructionPlaneSnap>(plane: T): T {
         this.signals.temporaryConstructionPlaneAdded.dispatch(plane);
         return plane;
     }
 
-    add(plane: ConstructionPlaneSnap) {
+    add(plane: ConstructionPlaneSnap | FaceConstructionPlaneSnap) {
         this._all.add(new ConstructionPlaneSnap(plane.n, plane.p, undefined, `Custom plane ${this.counter++}`));
         this.signals.constructionPlanesChanged.dispatch();
     }

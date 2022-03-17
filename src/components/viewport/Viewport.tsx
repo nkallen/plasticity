@@ -9,7 +9,7 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { TextureLoader } from "../../editor/TextureLoader";
 import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
 import { SolidSelection } from "../../selection/TypedSelection";
@@ -18,16 +18,17 @@ import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/LoadTheme";
 import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
-import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
+import { ConstructionPlaneGenerator } from "./ConstructionPlaneGenerator";
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { CameraMode, ProxyCamera } from "./ProxyCamera";
 import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
-import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
+import { NavigationTarget, ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
+import * as visual from '../../visual_model/VisualModel';
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
@@ -42,10 +43,6 @@ export interface EditorLike extends selector.EditorLike {
     planes: PlaneDatabase,
     textures: TextureLoader,
 }
-
-const floorSize = 150;
-const defaultFloorDivisions = floorSize;
-const defaultGridDivisions = defaultFloorDivisions * 100;
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly disposable = new CompositeDisposable();
@@ -77,6 +74,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
+    readonly cplanes = new ConstructionPlaneGenerator(this.editor.db, this.editor.planes, this.editor.snaps);
     private readonly navigator = new ViewportGeometryNavigator(this.editor, this.navigationControls);
     private grid = new GridHelper(this.gridColor1, this.gridColor2, this.backgroundColor);
 
@@ -155,20 +153,20 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
-                'viewport:navigate:front': () => this.navigate(Orientation.negY),
-                'viewport:navigate:right': () => this.navigate(Orientation.posX),
-                'viewport:navigate:top': () => this.navigate(Orientation.posZ),
-                'viewport:navigate:back': () => this.navigate(Orientation.posY),
-                'viewport:navigate:left': () => this.navigate(Orientation.negX),
-                'viewport:navigate:bottom': () => this.navigate(Orientation.negZ),
-                'viewport:navigate:selection': () => this.navigate(this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first),
+                'viewport:navigate:front': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.negY)),
+                'viewport:navigate:right': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.posX)),
+                'viewport:navigate:top': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.posZ)),
+                'viewport:navigate:back': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.posY)),
+                'viewport:navigate:left': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.negX)),
+                'viewport:navigate:bottom': () => this._navigate(this.cplanes.constructionPlaneForOrientation(Orientation.negZ)),
+                'viewport:navigate:selection': () => this._navigate(this.cplanes.constructionPlaneForSelection(this.editor.selection.selected)),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-edges': () => this.toggleEdges(),
                 'viewport:toggle-faces': () => this.toggleFaces(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
-                'viewport:grid:selection': () => this.constructionPlane = this.editor.selection.selected.faces.first ?? this.editor.selection.selected.regions.first,
+                'viewport:grid:selection': () => this.constructionPlane = this.cplanes.constructionPlaneForSelection(this.editor.selection.selected),
                 'viewport:grid:incr': () => this.resizeGrid(2),
                 'viewport:grid:decr': () => this.resizeGrid(0.5),
             })
@@ -436,12 +434,15 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private controlEnd() { }
 
-    private _constructionPlane!: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap;
-    get constructionPlane(): ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap { return this._constructionPlane }
-    set constructionPlane(plane: ConstructionPlaneSnap | ScreenSpaceConstructionPlaneSnap | visual.Face | visual.PlaneInstance<visual.Region> | undefined) {
-        if (plane === undefined) plane = PlaneDatabase.XY;
-        else if (plane instanceof visual.Face || plane instanceof visual.PlaneInstance) {
-            plane = this.navigator.navigate(plane, 'keep-camera-position');
+    private _constructionPlane!: ConstructionPlaneSnap | FaceConstructionPlaneSnap;
+    get constructionPlane(): ConstructionPlaneSnap | FaceConstructionPlaneSnap { return this._constructionPlane }
+    set constructionPlane(input: ConstructionPlaneSnap | FaceConstructionPlaneSnap | NavigationTarget | undefined) {
+        let plane: ConstructionPlaneSnap | FaceConstructionPlaneSnap;
+        if (input === undefined) plane = PlaneDatabase.XY;
+        else if (input instanceof ConstructionPlaneSnap || input instanceof FaceConstructionPlaneSnap) plane = input;
+        else {
+            this.navigator.navigate(input, 'keep-camera-position');
+            plane = input.cplane;
         }
         this._constructionPlane = plane;
         this.setNeedsRender();
@@ -531,12 +532,19 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
-    navigate(to?: Orientation | visual.Face | visual.PlaneInstance<visual.Region> | ConstructionPlaneSnap) {
-        if (this.constructionPlane instanceof ScreenSpaceConstructionPlaneSnap) return;
-        if (to === undefined) to = this.constructionPlane;
+    navigate(to?: visual.Face | visual.PlaneInstance<visual.Region> | Orientation) {
+        if (to === undefined) this._navigate();
+        else if (to instanceof visual.Face) this._navigate(this.cplanes.constructionPlaneForFace(to));
+        else if (to instanceof visual.PlaneInstance) this._navigate(this.cplanes.constructionPlaneForRegion(to));
+        else this._navigate(this.cplanes.constructionPlaneForOrientation(to));
+    }
 
-        const constructionPlane = this.navigator.navigate(to);
-        this.constructionPlane = constructionPlane;
+    private _navigate(to?: NavigationTarget) {
+        if (this.constructionPlane instanceof ScreenSpaceConstructionPlaneSnap) return;
+        if (to === undefined) to = { tag: 'cplane', cplane: this.constructionPlane };
+
+        this.navigator.navigate(to);
+        this.constructionPlane = to.cplane;
         this.transitionToOrthoMode();
         this.changed.dispatch();
     }
