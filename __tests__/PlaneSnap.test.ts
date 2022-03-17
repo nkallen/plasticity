@@ -40,7 +40,7 @@ test("project not axis aligned, at origin, snap to grid", () => {
 test("project not axis aligned, not at origin, snap to grid", () => {
     const normal = new THREE.Vector3(0.5, 0.5, Math.SQRT1_2);
     const plane = new PlaneSnap(normal, new THREE.Vector3(1, 0, 0));
-    plane.gridFactor = 1;
+    plane.gridFactor = 0.1;
     let i: THREE.Intersection;
     i = { point: origin } as THREE.Intersection;
     expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(-0.207, 0.2071, Math.SQRT1_2));
