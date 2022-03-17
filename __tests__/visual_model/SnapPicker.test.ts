@@ -17,7 +17,7 @@ import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
 import { PointPickerSnapPicker } from '../../src/editor/snaps/PointPickerSnapPicker';
-import { CurveEndPointSnap, EdgePointSnap, FaceSnap, PointAxisSnap, PointSnap } from "../../src/editor/snaps/Snap";
+import { CurveEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointAxisSnap, PointSnap } from "../../src/editor/snaps/Snap";
 import { SnapManager } from '../../src/editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
 import { RaycasterParams } from "../../src/editor/snaps/SnapPicker";
@@ -135,6 +135,26 @@ describe(PointPickerSnapPicker, () => {
         picker.disposable.dispose();
         expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
     });
+
+    test('with a high priorty construction plane, the construction plane is chosen when it is nearer', () => {
+        viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.55));
+        viewport.constructionPlane.priority = -1;
+        const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
+        raycast.mockReturnValueOnce([farther]);
+        const results = picker.intersect(pointPicker, cache, db);
+        expect(results.length).toBe(1);
+        expect(results[0].snap).toBe(viewport.constructionPlane);
+    });
+
+    test('with a low priorty construction plane, the plane is not chosen when there is something in front of it', () => {
+        viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.55));
+        viewport.constructionPlane.priority = 1000;
+        const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
+        raycast.mockReturnValueOnce([farther]);
+        const results = picker.intersect(pointPicker, cache, db);
+        expect(results.length).toBe(1);
+        expect(results[0].snap).toBeInstanceOf(FaceCenterPointSnap);
+    });
 });
 
 describe('Integration test', () => {
@@ -198,7 +218,7 @@ describe('Integration test', () => {
 
                 test('it returns snap points for the geometry', () => {
                     const actual = picker.nearby(pointPicker, cache, db);
-                    expect(actual.map(s=>s.name)).toEqual(["End", "Beginning", "Origin"]);
+                    expect(actual.map(s => s.name)).toEqual(["End", "Beginning", "Origin"]);
                 })
             })
         });

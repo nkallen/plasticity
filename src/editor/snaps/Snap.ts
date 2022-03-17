@@ -723,5 +723,6 @@ export class PlaneSnap extends Snap {
     }
 
     get isTemp() { return true }
+    isCompatibleWithSnap(_: Snap) { return true }
 }
 

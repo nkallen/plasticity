@@ -54,7 +54,7 @@ export abstract class SnapPickerStrategy {
         return { restriction, geo_intersections_snaps }
     }
 
-    intersectWithSnaps(additional: THREE.Object3D[], pointss: BetterRaycastingPoints[], raycaster: THREE.Raycaster, snaps: SnapManagerGeometryCache): SnapAndIntersection[] {
+    intersectWithSnaps(additional: readonly THREE.Object3D[], pointss: readonly BetterRaycastingPoints[], raycaster: THREE.Raycaster, snaps: SnapManagerGeometryCache): SnapAndIntersection[] {
         const other_intersections = raycaster.intersectObjects([...snaps.basic, ...additional, ...pointss], false);
         const other_intersections_snaps = this.intersections2snaps(snaps, other_intersections);
         return other_intersections_snaps;
@@ -64,10 +64,11 @@ export abstract class SnapPickerStrategy {
     projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], restriction: Snap | undefined) {
         const { isOrthoMode, constructionPlane: { orientation: constructionPlaneOrientation } } = viewport;
 
-        let intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
-        let results: (SnapResult & { distance: number })[] = [];
+        const intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
+        const results: (SnapResult & { distance: number })[] = [];
         let minDistance = Number.MAX_VALUE;
         for (const { snap, intersection } of intersections_snaps) {
+            // TODO: this should probably snapToGrid
             const { position, orientation } = snap.project(intersection.point);
 
             // Step 4.b.: If we are on a preferred face, discard all snaps that aren't also on the face

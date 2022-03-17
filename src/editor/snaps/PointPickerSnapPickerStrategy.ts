@@ -25,14 +25,13 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
     intersectConstructionPlane(snapToGrid: boolean, pointPicker: PointPickerModel, raycaster: THREE.Raycaster, viewport: Viewport): SnapResult[] {
         const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrthoMode);
         const intersections = raycaster.intersectObject(constructionPlane.snapper);
-        if (intersections.length === 0)
-            return [];
+        if (intersections.length === 0) return [];
         const approximatePosition = intersections[0].point;
         const { position: precisePosition, orientation } = constructionPlane.project(approximatePosition, snapToGrid);
         return [{ snap: constructionPlane, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
     }
 
-    intersectChoice(choice: Choice, raycaster: THREE.Raycaster): SnapResult[] {
+    intersectChoice(choice: Choice, raycaster: THREE.Raycaster): [SnapResult] | [] {
         const snap = choice.snap;
         const intersection = snap.intersect(raycaster, choice.info);
         if (intersection === undefined) return [];
@@ -41,8 +40,9 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
     }
 
     applyRestrictions(pointPicker: PointPickerModel, viewport: Viewport, input: SnapResult[]): SnapResult[] {
-        const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
-        if (restriction === undefined) return input;
+        const constructionPlane = viewport.constructionPlane;
+        const restriction = pointPicker.restrictionFor(constructionPlane, viewport.isOrthoMode);
+        if (restriction === undefined) return input.filter(info => constructionPlane.isCompatibleWithSnap(info.snap));
 
         const output = [];
         for (const info of input) {

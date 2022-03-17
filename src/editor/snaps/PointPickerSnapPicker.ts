@@ -6,7 +6,7 @@ import { DatabaseLike } from "../DatabaseLike";
 import { PointPickerSnapPickerStrategy } from "./PointPickerSnapPickerStrategy";
 import { PointSnap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
-import { defaultIntersectParams, defaultNearbyParams, findAllSnapsInTheSamePlace, RaycasterParams, SnapPicker, SnapResult } from "./SnapPicker";
+import { defaultIntersectParams, defaultNearbyParams, RaycasterParams, SnapPicker, SnapResult } from "./SnapPicker";
 
 export class PointPickerSnapPicker {
     readonly disposable = new CompositeDisposable();
@@ -62,7 +62,8 @@ export class PointPickerSnapPicker {
         const notPoints = ppSnaps.notPoints.map(s => s.snapper);
         const points = ppSnaps.points;
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
-        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, db, pointPicker.preference?.snap);
+        const preference = pointPicker.preference?.snap;
+        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, db, preference);
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);
@@ -72,8 +73,24 @@ export class PointPickerSnapPicker {
         }
 
         intersections = intersections.concat(strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport));
+        // One final sort; the construction plane has a chance to win depending on its priority
+        picker.sort(intersections);
+
         const restricted = strategy.applyRestrictions(pointPicker, viewport, intersections);
 
         return findAllSnapsInTheSamePlace(restricted);
     }
+}
+
+function findAllSnapsInTheSamePlace(snaps: SnapResult[]) {
+    if (snaps.length === 0) return [];
+
+    const { position: nearest } = snaps[0];
+    const result = [];
+    for (const snap of snaps) {
+        if (Math.abs(nearest.manhattanDistanceTo(snap.position)) < 10e-5) {
+            result.push(snap);
+        }
+    }
+    return result;
 }

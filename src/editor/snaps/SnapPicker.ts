@@ -3,7 +3,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
-import { ConstructionPlaneSnap } from "./ConstructionPlaneSnap";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { AxisSnap, axisSnapMaterial, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
@@ -66,7 +66,7 @@ export class SnapPicker {
         return pointss;
     }
 
-    intersect(additional: THREE.Object3D[], points: PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
+    intersect(additional: readonly THREE.Object3D[], points: readonly PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
         if (!snaps.enabled) return [];
         const { strategy, raycaster, viewport } = this;
 
@@ -75,12 +75,16 @@ export class SnapPicker {
         const pointss = this.prepare(everything);
 
         const { restriction, geo_intersections_snaps } = strategy.intersectWithGeometry(raycaster, snaps, db, preference);
+
         const other_intersections_snaps = strategy.intersectWithSnaps(additional, pointss, raycaster, snaps);
 
         let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, restriction);
         results = strategy.processXRay(viewport, results, minDistance);
-        results.sort(sort);
-        return results;
+        return this.sort(results);
+    }
+
+    sort(results: SnapResult[]) {
+        return results.sort(sort);
     }
 
     protected intersections2snaps(snaps: SnapManagerGeometryCache, intersections: THREE.Intersection[]): { snap: Snap, intersection: THREE.Intersection }[] {
@@ -124,19 +128,6 @@ export interface SnapResult {
     cursorOrientation: THREE.Quaternion;
 }
 
-export function findAllSnapsInTheSamePlace(snaps: SnapResult[]) {
-    if (snaps.length === 0) return [];
-
-    const { position: nearest } = snaps[0];
-    const result = [];
-    for (const snap of snaps) {
-        if (Math.abs(nearest.manhattanDistanceTo(snap.position)) < 10e-5) {
-            result.push(snap);
-        }
-    }
-    return result;
-}
-
 function sort(i1: SnapResult, i2: SnapResult) {
     return i1.snap.priority - i2.snap.priority;
 }
@@ -153,6 +144,7 @@ PointSnap.prototype.priority = 1;
 CurveSnap.prototype.priority = 2;
 AxisSnap.prototype.priority = 2;
 CurveEdgeSnap.prototype.priority = 2;
+FaceConstructionPlaneSnap.prototype.priority = 2;
 FaceSnap.prototype.priority = 3;
 PlaneSnap.prototype.priority = 4;
 ConstructionPlaneSnap.prototype.priority = 5;
@@ -161,3 +153,4 @@ originSnap.priority = 3;
 xAxisSnap.priority = 4;
 yAxisSnap.priority = 4;
 zAxisSnap.priority = 4;
+

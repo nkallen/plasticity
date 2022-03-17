@@ -54,7 +54,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
 
-    private gridDivisions = defaultGridDivisions;
     private readonly gridColor1 = new THREE.Color(this.editor.styles.colors.grid1).convertSRGBToLinear();
     private readonly gridColor2 = new THREE.Color(this.editor.styles.colors.grid2).convertSRGBToLinear();
     private readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
@@ -62,8 +61,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
 
     private readonly composer: EffectComposer;
-    private readonly outlinePassSelection: OutlinePass;
-    private readonly outlinePassHover: OutlinePass;
+    readonly outlinePassSelection: OutlinePass;
+    readonly outlinePassHover: OutlinePass;
     private readonly phantomsPass: RenderPass;
     private readonly helpersPass: RenderPass;
 
@@ -393,6 +392,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     // NOTE: ortho mode is not the same as an ortho camera; in ortho mode you have an ortho camera but there are also special snapping behaviors, etc.
     private orthoState?: { oldCameraMode: CameraMode } = undefined;
     get isOrthoMode(): boolean { return this.orthoState !== undefined }
+    get preferConstructionPlane(): boolean { return this.orthoState !== undefined || this.constructionPlane !== PlaneDatabase.XY }
 
     private transitionToOrthoMode() {
         if (this.orthoState !== undefined) return;
@@ -413,7 +413,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.camera.setMode(this.orthoState.oldCameraMode);
         this.orthoState = undefined;
         this.constructionPlane = PlaneDatabase.XY;
-        this.gridDivisions = defaultGridDivisions;
         this.resizeGrid(1);
         this.changed.dispatch();
     }

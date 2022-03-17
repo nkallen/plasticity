@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
-import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { OrbitControls } from "./OrbitControls";
 import { Viewport } from "./Viewport";
 
@@ -146,52 +144,10 @@ export class ViewportNavigatorExecutor {
 
     constructor(protected readonly controls: OrbitControls) { }
 
-    private readonly targetPosition = new THREE.Vector3();
-    private readonly targetQuaternion = new THREE.Quaternion();
     private readonly q1 = new THREE.Quaternion();
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    animateToOrientation(orientation: Orientation): ConstructionPlaneSnap {
-        const { targetPosition, targetQuaternion } = this;
-
-        let constructionPlane: ConstructionPlaneSnap;
-        switch (orientation) {
-            case Orientation.posX:
-                targetPosition.set(1, 0, 0);
-                targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
-                constructionPlane = PlaneDatabase.YZ;
-                break;
-            case Orientation.posY:
-                targetPosition.set(0, 1, 0);
-                targetQuaternion.setFromEuler(new THREE.Euler(- Math.PI * 0.5, 0, 0));
-                constructionPlane = PlaneDatabase.XZ;
-                break;
-            case Orientation.posZ:
-                targetPosition.set(0, 0, 1);
-                targetQuaternion.setFromEuler(new THREE.Euler());
-                constructionPlane = PlaneDatabase.XY;
-                break;
-            case Orientation.negX:
-                targetPosition.set(- 1, 0, 0);
-                targetQuaternion.setFromEuler(new THREE.Euler(0, - Math.PI * 0.5, 0));
-                constructionPlane = PlaneDatabase.YZ;
-                break;
-            case Orientation.negY:
-                targetPosition.set(0, - 1, 0);
-                targetQuaternion.setFromEuler(new THREE.Euler(Math.PI * 0.5, 0, 0));
-                constructionPlane = PlaneDatabase.XZ;
-                break;
-            case Orientation.negZ:
-                targetPosition.set(0, 0, - 1);
-                targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI, 0));
-                constructionPlane = PlaneDatabase.XY;
-                break;
-        }
-
-        this.animateToPositionAndQuaternion(targetPosition, targetQuaternion);
-        return constructionPlane;
-    }
 
     animateToPositionAndQuaternion(targetNormal: THREE.Vector3, targetQuaternion: THREE.Quaternion) {
         const { controls, q1, q2, dummy } = this;
