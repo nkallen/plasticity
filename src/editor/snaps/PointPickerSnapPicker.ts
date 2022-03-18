@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { PointPickerModel } from "../../command/point-picker/PointPickerModel";
 import { Viewport } from "../../components/viewport/Viewport";
 import { DatabaseLike } from "../DatabaseLike";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PointPickerSnapPickerStrategy } from "./PointPickerSnapPickerStrategy";
 import { PointSnap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
@@ -75,7 +76,8 @@ export class PointPickerSnapPicker {
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);
-            const projected = strategy.projectIntersectionOntoChoice(choice.snap, viewport, intersections);
+            const except = intersections.filter(i => !(i.snap instanceof FaceConstructionPlaneSnap || ConstructionPlaneSnap));
+            const projected = strategy.projectIntersectionOntoChoice(choice.snap, viewport, except);
             const result = projected.length > 0 ? projected : chosen;
             return strategy.applyRestrictions(pointPicker, viewport, result);
         }
