@@ -334,6 +334,8 @@ export default {
                 "const RPArray<MbCurve> & curves, bool sameCurves",
             ],
             functions: [
+                "void InitClosed(bool c)",
+                "void CheckClosed(double closedEps)",
                 "double GetArea(double sag = 1*Math::deviateSag)",
                 "size_t GetSegmentsCount()",
                 "const MbCurve * GetSegment(size_t i)",
@@ -2079,6 +2081,7 @@ export default {
                     progInd: isRaw,
                     return: { name: "graph" }
                 },
+                "bool RemoveContourGaps(MbContour &	contour, double	accuracy, bool canInsert, bool canReplace)",
             ]
         },
         CurveEnvelope: {

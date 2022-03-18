@@ -1,6 +1,8 @@
 # Plasticity
 ![ci workflow](https://github.com/nkallen/plasticity/actions/workflows/ci.yml/badge.svg) 
 
+Plasticity is still in early BETA. So please bear in mind it's missing many features and not yet easy to use or install.
+
 <img alt="screenshot of current build" width="100%" src="img/Screen Shot 2022-02-04.png" />
 
 ## CAD for artists
@@ -11,7 +13,7 @@ The goal of plasticity is to make working with NURBS like working with clay.
 
 #### FAQ
 
-Plasticity is mostly Open Source. When Plasticity reaches 1.0, it will cost $25 to use (no subscription).
+I am currently handling bugs and offering support only through Discord. You can email me for an invite.
 
 #### About
 

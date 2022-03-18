@@ -102,12 +102,13 @@ export class OffsetFaceFactory extends GeometryFactory {
         if (curve.IsPlanar()) {
             // NOTE: this algorithm performs better in the planar case:
             const result = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(curve, -unit(distance));
+            repairUnclosedContour(result);
             return new c3d.SpaceInstance(result);
         } else {
             const params = new c3d.SurfaceOffsetCurveParams(model, direction, unit(distance), names);
             const wireframe = await c3d.ActionSurfaceCurve.OffsetSurfaceCurve_async(curve, params);
             const curves = wireframe.GetCurves();
-    
+
             return new c3d.SpaceInstance(curves[0]);
         }
     }
@@ -187,5 +188,18 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
             const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
             return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
         }
+    }
+}
+
+function repairUnclosedContour(result: c3d.Curve3D) {
+    if (!result.IsClosed() && result.IsA() === c3d.SpaceType.ContourOnPlane) {
+        const cop = result.Cast<c3d.ContourOnPlane>(result.IsA());
+        const contour = cop.GetContour();
+        const uEps = cop.GetSurface().GetUParamToUnit() * 10e-6;
+        const vEps = cop.GetSurface().GetVParamToUnit() * 10e-6;
+        const uvEps = Math.min(uEps, vEps);
+        contour.InitClosed(true);
+        c3d.ContourGraph.RemoveContourGaps(contour, 10 * uvEps, false, true);
+        contour.CheckClosed(uvEps);
     }
 }
