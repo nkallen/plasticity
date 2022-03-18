@@ -63,7 +63,15 @@ export class PointPickerSnapPicker {
         const points = ppSnaps.points;
         const restrictionSnaps = pointPicker.restrictionSnapsFor().map(r => r.snapper);
         const preference = pointPicker.preference?.snap;
-        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, db, preference);
+
+        // NOTE: the construction plane can either act just as a fallback (when its the default floor) OR
+        // it can act like a real object (when the user explicity set the cplane). When "real", it needs
+        // to be ranked with other snaps/intersect/raycasting in the standard way.
+        const cplane = strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport);
+        const cplaneIsFallback = !viewport.preferConstructionPlane;
+        const other = !cplaneIsFallback ? cplane : [];
+
+        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, db, other, preference);
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);
@@ -72,10 +80,7 @@ export class PointPickerSnapPicker {
             return strategy.applyRestrictions(pointPicker, viewport, result);
         }
 
-        intersections = intersections.concat(strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport));
-        // One final sort; the construction plane has a chance to win depending on its priority
-        picker.sort(intersections);
-
+        if (cplaneIsFallback) intersections = intersections.concat(cplane);
         const restricted = strategy.applyRestrictions(pointPicker, viewport, intersections);
 
         return findAllSnapsInTheSamePlace(restricted);

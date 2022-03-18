@@ -157,6 +157,7 @@ export class EditCenterRectangleCommand extends Command {
         edit.p2 = pr2.point;
         edit.orientation = pr2.info.orientation;
         edit.rectangle = rectangle;
+        edit.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
         const dialog = new RectangleDialog(edit, this.editor.signals);
         const gizmo = new EditRectangleGizmo(edit, this.editor);

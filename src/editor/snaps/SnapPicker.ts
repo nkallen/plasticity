@@ -66,7 +66,7 @@ export class SnapPicker {
         return pointss;
     }
 
-    intersect(additional: readonly THREE.Object3D[], points: readonly PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, preference?: Snap): SnapResult[] {
+    intersect(additional: readonly THREE.Object3D[], points: readonly PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, cplane_intersection_results: (SnapResult & { distance: number })[], preference?: Snap): SnapResult[] {
         if (!snaps.enabled) return [];
         const { strategy, raycaster, viewport } = this;
 
@@ -78,7 +78,7 @@ export class SnapPicker {
 
         const other_intersections_snaps = strategy.intersectWithSnaps(additional, pointss, raycaster, snaps);
 
-        let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, restriction);
+        let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, cplane_intersection_results, restriction);
         results = strategy.processXRay(viewport, results, minDistance);
         return this.sort(results);
     }
@@ -144,7 +144,7 @@ PointSnap.prototype.priority = 1;
 CurveSnap.prototype.priority = 2;
 AxisSnap.prototype.priority = 2;
 CurveEdgeSnap.prototype.priority = 2;
-FaceConstructionPlaneSnap.prototype.priority = 2;
+FaceConstructionPlaneSnap.prototype.priority = 3;
 FaceSnap.prototype.priority = 3;
 PlaneSnap.prototype.priority = 4;
 ConstructionPlaneSnap.prototype.priority = 5;

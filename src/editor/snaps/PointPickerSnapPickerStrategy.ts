@@ -22,13 +22,14 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
         this.toggleFaceLayer(raycaster, viewport);
     }
 
-    intersectConstructionPlane(snapToGrid: boolean, pointPicker: PointPickerModel, raycaster: THREE.Raycaster, viewport: Viewport): SnapResult[] {
+    intersectConstructionPlane(snapToGrid: boolean, pointPicker: PointPickerModel, raycaster: THREE.Raycaster, viewport: Viewport): (SnapResult & { distance: number })[] {
         const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrthoMode);
         const intersections = raycaster.intersectObject(constructionPlane.snapper);
         if (intersections.length === 0) return [];
         const approximatePosition = intersections[0].point;
+        const distance = intersections[0].distance;
         const { position: precisePosition, orientation } = constructionPlane.project(approximatePosition, snapToGrid);
-        return [{ snap: constructionPlane, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
+        return [{ snap: constructionPlane, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation, distance }];
     }
 
     intersectChoice(choice: Choice, raycaster: THREE.Raycaster): [SnapResult] | [] {

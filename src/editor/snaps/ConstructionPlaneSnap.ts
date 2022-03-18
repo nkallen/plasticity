@@ -6,6 +6,7 @@ import { FaceSnap, PlaneSnap, Snap } from "./Snap";
 export interface ConstructionPlane extends Snap {
     get n(): THREE.Vector3;
     get p(): THREE.Vector3;
+    get x(): THREE.Vector3 | undefined;
     get orientation(): THREE.Quaternion;
     get placement(): c3d.Placement3D;
     move(vector: THREE.Vector3): ConstructionPlane;
@@ -37,6 +38,10 @@ export class FaceConstructionPlaneSnap extends PlaneSnap implements Construction
 
     isCompatibleWithSnap(snap: Snap) {
         return snap !== this.faceSnap;
+    }
+
+    move(pt: THREE.Vector3) {
+        return new FaceConstructionPlaneSnap(this.n, pt, this.x, this.faceSnap);
     }
 
     override isValid(pt: THREE.Vector3) { return true }
@@ -97,6 +102,8 @@ export class ScreenSpaceConstructionPlaneSnap extends Snap implements Constructi
             case 'start': return this.state.snap.p;
         }
     }
+
+    get x() { return undefined }
 
     get orientation() {
         switch (this.state.tag) {

@@ -26,6 +26,6 @@ export class GizmoSnapPicker {
     }
 
     intersect(snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
-        return this.picker.intersect([], [], snaps, db);
+        return this.picker.intersect([], [], snaps, db, []);
     }
 }

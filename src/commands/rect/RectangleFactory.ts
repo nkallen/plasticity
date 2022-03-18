@@ -75,10 +75,10 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     private static readonly c2 = new THREE.Vector3();
     private static readonly mat = new THREE.Matrix4();
 
-    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3): FourCorners {
+    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3, up?: THREE.Vector3): FourCorners {
         const { mat, inv, c1, c2 } = this;
 
-        const up = Math.abs(normal.dot(Z)) > 1 - 10e-6 ? X : Z;
+        up ??= Math.abs(normal.dot(Z)) > 1 - 10e-6 ? X : Z;
 
         mat.lookAt(origin, normal, up);
         inv.copy(mat).invert();
@@ -100,7 +100,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     protected orthogonal(): FourCorners {
         const { corner1, p2, normal } = this;
         if (corner1.manhattanDistanceTo(p2) < 10e-5) throw new NoOpError();
-        return DiagonalRectangleFactory.orthogonal(corner1, p2, normal);
+        return DiagonalRectangleFactory.orthogonal(corner1, p2, normal, this.constructionPlane?.x);
     }
 
     private readonly _normal = new THREE.Vector3();

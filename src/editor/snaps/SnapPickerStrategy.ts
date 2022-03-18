@@ -61,11 +61,13 @@ export abstract class SnapPickerStrategy {
     }
 
     // Project all the intersections (go from approximate to exact values)
-    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], restriction: Snap | undefined) {
+    // Fold in any additional results (sometimes the construction plane)
+    // return min distance
+    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], cplane_intersection_results: (SnapResult & { distance: number })[], restriction: Snap | undefined, ) {
         const { isOrthoMode, constructionPlane: { orientation: constructionPlaneOrientation } } = viewport;
 
         const intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
-        const results: (SnapResult & { distance: number })[] = [];
+        let results: (SnapResult & { distance: number })[] = [];
         let minDistance = Number.MAX_VALUE;
         for (const { snap, intersection } of intersections_snaps) {
             // TODO: this should probably snapToGrid
@@ -81,6 +83,10 @@ export abstract class SnapPickerStrategy {
             if (distance < minDistance) minDistance = distance;
             results.push(result);
         }
+        for (const o of cplane_intersection_results) {
+            if (o.distance < minDistance) minDistance = o.distance;
+        }
+        results = results.concat(cplane_intersection_results)
         return { minDistance, results };
     }
 
