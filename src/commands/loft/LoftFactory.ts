@@ -17,9 +17,15 @@ export default class LoftFactory extends GeometryFactory implements LoftParams {
     thickness2 = 0;
     closed = false;
 
-    protected _spine!: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D };
-    @derive(visual.Curve3D) get spine(): visual.SpaceInstance<visual.Curve3D> { throw '' }
-    set spine(spine: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) { }
+    protected _spine: { view?: visual.SpaceInstance<visual.Curve3D>, model?: c3d.Curve3D } = {};
+    get spine(): visual.SpaceInstance<visual.Curve3D> { return this._spine.view! }
+    set spine(spine: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) { 
+        if (spine instanceof c3d.Curve3D) this._spine = { model: spine };
+         else {
+            this._spine = { view: spine, model: inst2curve(this.db.lookup(spine)) };
+        }
+        if (this._spine.model!.IsClosed()) this.closed = true;
+    }
 
     get thickness() { return this.thickness1 }
     set thickness(thickness: number) {

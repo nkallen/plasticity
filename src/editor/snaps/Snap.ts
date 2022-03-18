@@ -162,6 +162,10 @@ export class CurvePointSnap extends PointSnap {
     additionalSnapsFor(point: THREE.Vector3): Snap[] {
         return this.curveSnap.additionalSnapsFor(point);
     }
+
+    override restrictionFor(point: THREE.Vector3): Restriction | undefined {
+        return this.curveSnap.restrictionFor(point);
+    }
 }
 
 
@@ -385,6 +389,14 @@ export class CurveSnap extends Snap {
         }
 
         return result;
+    }
+
+    override restrictionFor(point: THREE.Vector3): Restriction | undefined {
+        const { model } = this;
+        const { t } = this.model.NearPointProjection(point2point(point), false);
+        const tangent = vec2vec(model.Tangent(t), 1);
+
+        return new PlaneSnap(tangent, point);
     }
 }
 
