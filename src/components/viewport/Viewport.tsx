@@ -388,14 +388,14 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     // NOTE: ortho mode is not the same as an ortho camera; in ortho mode you have an ortho camera but there are also special snapping behaviors, etc.
-    private orthoState?: { oldCameraMode: CameraMode } = undefined;
+    private orthoState?: { oldCameraMode: CameraMode, oldConstructionPlane: ConstructionPlaneSnap | FaceConstructionPlaneSnap } = undefined;
     get isOrthoMode(): boolean { return this.orthoState !== undefined }
     get preferConstructionPlane(): boolean { return this.orthoState !== undefined || this.constructionPlane !== PlaneDatabase.XY }
 
-    private transitionToOrthoMode() {
+    private transitionToOrthoMode(oldConstructionPlane: ConstructionPlaneSnap | FaceConstructionPlaneSnap) {
         if (this.orthoState !== undefined) return;
         const oldCameraMode = this.camera.setOrtho();
-        this.orthoState = { oldCameraMode };
+        this.orthoState = { oldCameraMode, oldConstructionPlane };
     }
 
     private transitionFromOrthoModeIfOrbitted(quaternion: THREE.Quaternion) {
@@ -409,8 +409,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private transitionFromOrthoMode() {
         if (this.orthoState === undefined) return;
         this.camera.setMode(this.orthoState.oldCameraMode);
+        this.constructionPlane = this.orthoState.oldConstructionPlane;
         this.orthoState = undefined;
-        this.constructionPlane = PlaneDatabase.XY;
         this.resizeGrid(1);
         this.changed.dispatch();
     }
@@ -540,12 +540,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     private _navigate(to?: NavigationTarget) {
-        if (this.constructionPlane instanceof ScreenSpaceConstructionPlaneSnap) return;
         if (to === undefined) to = { tag: 'cplane', cplane: this.constructionPlane };
 
         this.navigator.navigate(to);
+        const oldConstructionPlane = this.constructionPlane;
         this.constructionPlane = to.cplane;
-        this.transitionToOrthoMode();
+        this.transitionToOrthoMode(oldConstructionPlane);
         this.changed.dispatch();
     }
 

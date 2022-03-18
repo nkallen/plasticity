@@ -204,10 +204,12 @@ describe('navigate', () => {
         expect(viewport.isOrthoMode).toBe(false);
     });
 
-    test("navigation start & end restores perspective/orthographic camera state", () => {
+    test("navigation start & end restores perspective/orthographic camera state, restores cplane", () => {
         viewport.togglePerspective();
         expect(viewport.camera.isPerspectiveCamera).toBe(true);
 
+        const beforeCplane = viewport.cplanes.constructionPlaneForFace(solid.faces.get(0));
+        viewport.constructionPlane = beforeCplane;
         expect(viewport.isOrthoMode).toBe(false);
         viewport.navigate(Orientation.posX);
         expect(viewport.isOrthoMode).toBe(true);
@@ -223,6 +225,7 @@ describe('navigate', () => {
         viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
         expect(viewport.isOrthoMode).toBe(false);
         expect(viewport.camera.isPerspectiveCamera).toBe(true);
+        expect(viewport.constructionPlane).toBe(beforeCplane.cplane);
     });
 })
 
