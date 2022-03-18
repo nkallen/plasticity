@@ -82,35 +82,31 @@ abstract class AbstractCutFactory extends GeometryFactory {
             case 'axis':
             case 'contour':
                 let { placement, contour } = this.mode;
-                
+
                 if (contour.IsStraight() && this.mode.tag != 'axis') {
                     const bbox = new c3d.Cube();
                     this.model.AddYourGabaritTo(bbox);
-                    const inout_max = bbox.pmax;
-                    const inout_min = bbox.pmin;
-                    
+                    const inout_min = bbox.pmin, inout_max = bbox.pmax;
+
                     const limit1 = contour.GetLimitPoint(1), limit2 = contour.GetLimitPoint(2);
                     const limit1_world = placement.GetPointFrom(limit1.x, limit1.y, 0);
                     const limit2_world = placement.GetPointFrom(limit2.x, limit2.y, 0);
-                    
-                    const parallelToX = Math.abs(limit1_world.y - limit2_world.y) < 10e-6;
-                    const parallelToY = Math.abs(limit1_world.x - limit2_world.x) < 10e-6;
-                    const outsideBBwrtY = (limit1_world.y <= inout_min.y + 10e-6 && limit1_world.y <= inout_max.y + 10e-6) || (limit1_world.y >= inout_min.y - 10e-6 && limit1_world.y >= inout_max.y - 10e-6);
-                    const outsideBBwrtX = (limit1_world.x <= inout_min.x + 10e-6 && limit1_world.x <= inout_max.x + 10e-6) || (limit1_world.x >= inout_min.x - 10e-6 && limit1_world.x >= inout_max.x - 10e-6);
 
-                    if (parallelToX && outsideBBwrtX) {
-                        const curve3d = new c3d.PlaneCurve(placement, contour, true)
-                        const { curve, placement: newPlacement } = curve3d2curve2d(curve3d, y_placement)!;
-                        this.mode.contour = new c3d.Contour([curve], true);
-                        this.mode.placement = newPlacement;
-                    } else if (parallelToY && outsideBBwrtY) {
-                        const curve3d = new c3d.PlaneCurve(placement, contour, true)
-                        const { curve, placement: newPlacement } = curve3d2curve2d(curve3d, x_placement)!;
-                        this.mode.contour = new c3d.Contour([curve], true);
-                        this.mode.placement = newPlacement;
+                    const l1 = point2point(limit1_world);
+                    const l2 = point2point(limit2_world);
+                    const box3 = new THREE.Box3(point2point(inout_min), point2point(inout_max));
+                    const z = vec2vec(this.mode.placement.GetAxisZ(), 1);
+                    const plane = new THREE.Plane().setFromCoplanarPoints(l1, l2, l1.clone().add(z));
+                    if (!wouldCut(box3, plane)) { // TODO: it would be better just to project the curve in northo mode
+                        const hint = bestPlacementForCut(box3, l1, l2);
+                        if (hint !== undefined) {
+                            const curve3d = new c3d.PlaneCurve(placement, contour, true)
+                            const { curve, placement: newPlacement } = curve3d2curve2d(curve3d, hint)!;
+                            this.mode.contour = new c3d.Contour([curve], true);
+                            this.mode.placement = newPlacement;
+                        }
                     }
                 }
-
                 placement = this.mode.placement;
                 const Z = vec2vec(placement.GetAxisZ(), 1);
                 const { dPlus, dMinus } = c3d.Action.GetDistanceToCube(placement, this.model.GetShell()!);
@@ -369,3 +365,21 @@ const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, pl
         'Z': { contour: contour_x, placement: x_placement },
     }
 })();
+
+export function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: THREE.Vector3): c3d.Placement3D | undefined {
+    const plane = new THREE.Plane();
+    const x = plane.setFromCoplanarPoints(limit1, limit2, limit2.clone().add(X));
+    if (wouldCut(bbox, x)) return x_placement;
+    const y = plane.setFromCoplanarPoints(limit1, limit2, limit2.clone().add(Y));
+    if (wouldCut(bbox, y)) return y_placement;
+    const z = plane.setFromCoplanarPoints(limit1, limit2, limit2.clone().add(Z));
+    if (wouldCut(bbox, z)) return z_placement;
+}
+
+export function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
+    return plane.normal.manhattanLength() > 0 && plane.intersectsBox(bbox)
+}
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 0);

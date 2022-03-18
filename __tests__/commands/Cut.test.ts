@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CutAndSplitFactory, CutFactory, MultiCutFactory, SplitFactory } from '../../src/commands/boolean/CutFactory';
+import { bestPlacementForCut, CutAndSplitFactory, CutFactory, MultiCutFactory, SplitFactory } from '../../src/commands/boolean/CutFactory';
 import { CenterBoxFactory, ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
@@ -9,6 +9,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { PlaneSnap } from "../../src/editor/snaps/Snap";
 import { SolidCopier } from "../../src/editor/SolidCopier";
+import { point2point, vec2vec } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -124,7 +125,7 @@ describe(CutFactory, () => {
         expect(result.length).toBe(2);
     });
 
-    test('works with dialogonal lines on y to z', async () => {
+    test('works with diagonal lines on y to z', async () => {
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(0, 1, 0));
         makeLine.points.push(new THREE.Vector3(0, -1, 2));
@@ -267,3 +268,70 @@ describe(MultiCutFactory, () => {
         expect(result.length).toBe(27);
     })
 })
+
+describe(bestPlacementForCut, () => {
+    const min = new THREE.Vector3(-1, -1, -1);
+    const max = new THREE.Vector3(1, 1, 1);
+    const bbox = new THREE.Box3(min, max);
+
+    test('works with lines parallel to X axis (negative)', async () => {
+        const limit1 = new THREE.Vector3(-2, -2, 0);
+        const limit2 = new THREE.Vector3(2, -2, 0);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(Y)
+    });
+
+    test('works with lines parallel to X axis (positive)', async () => {
+        const limit1 = new THREE.Vector3(-2, 2, 0);
+        const limit2 = new THREE.Vector3(2, 2, 0);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(Y)
+    });
+
+    test('works with lines parallel to Y axis (negative)', async () => {
+        const limit1 = new THREE.Vector3(-2, -2, 0);
+        const limit2 = new THREE.Vector3(-2, 2, 0);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(X)
+    });
+
+    test('works with lines parallel to Y axis (positive)', async () => {
+        const limit1 = new THREE.Vector3(2, -2, 0);
+        const limit2 = new THREE.Vector3(2, 2, 0);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(X)
+    });
+
+    test('works with lines parallel to Z axis (front)', async () => {
+        const limit1 = new THREE.Vector3(-2, 0, -2);
+        const limit2 = new THREE.Vector3(-2, 0, 2);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(X)
+    });
+
+    test('works with lines parallel to Z axis (front)', async () => {
+        const limit1 = new THREE.Vector3(2, 0, -2);
+        const limit2 = new THREE.Vector3(2, 0, 2);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(X)
+    });
+
+
+    test('works with lines parallel to Z axis (front)', async () => {
+        const limit1 = new THREE.Vector3(0, -2, -2);
+        const limit2 = new THREE.Vector3(0, -2, 2);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(Y)
+    });
+
+    test('works with lines parallel to Z axis (front)', async () => {
+        const limit1 = new THREE.Vector3(0, 2, -2);
+        const limit2 = new THREE.Vector3(0, 2, 2);
+        const result = vec2vec(bestPlacementForCut(bbox, limit1, limit2)!.GetAxisZ(), 1);
+        expect(result).toApproximatelyEqual(Y)
+    });
+  })
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 0);
