@@ -349,10 +349,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 }
 
+const origin = new THREE.Vector3();
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0)
+const Z = new THREE.Vector3(0, 0, 1);
+
 export const originSnap = new PointSnap("Origin");
-export const xAxisSnap = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
-export const yAxisSnap = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
-export const zAxisSnap = new AxisSnap("Z", new THREE.Vector3(0, 0, 1));
+export const xAxisSnap = new AxisSnap("X", X, origin, Z);
+export const yAxisSnap = new AxisSnap("Y", Y, origin, Z);
+export const zAxisSnap = new AxisSnap("Z", Z, origin, Z);
 
 function copyId2Snaps(id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.SimpleName, ReadonlySet<PointSnap>>>) {
     const id2snapsCopy = new Map<DisablableType, SnapMap>();
@@ -361,4 +366,3 @@ function copyId2Snaps(id2snaps: ReadonlyMap<DisablableType, ReadonlyMap<c3d.Simp
     }
     return id2snapsCopy;
 }
-

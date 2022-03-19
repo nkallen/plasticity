@@ -5,6 +5,8 @@ import { GeometryFactory } from '../../command/GeometryFactory';
 import { point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
 
+const maxItems = 1_000;
+
 export interface ArrayParams {
     dir1: THREE.Vector3;
     step1: number;
@@ -75,7 +77,7 @@ abstract class AbstractArrayFactory extends GeometryFactory implements ArrayPara
         if (item === undefined) throw new Error("invalid precondition");
         const result = [];
         let matrices = params.GenerateTransformMatrices();
-        matrices = matrices.slice(start, 200); // NOTE: a bit paranoid about users making a mistake
+        matrices = matrices.slice(start, maxItems); // NOTE: a bit paranoid about users making a mistake
         let normalize = matrices[0];
         normalize = normalize.Div(new c3d.Matrix3D());
         const normalized = item.Duplicate().Cast<c3d.Item>(item.IsA());

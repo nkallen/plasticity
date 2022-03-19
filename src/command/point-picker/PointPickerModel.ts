@@ -101,9 +101,11 @@ export class PointPickerModel {
                 let work: Snap[] = [];
                 let axes = [...straightSnaps];
                 if (facePreferenceMode === 'strong') {
-                    work = work.concat(new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation))));
+                    const rotated = axes.map(s => s.rotate(lastOrientation));
+                    work = work.concat(new PointSnap(undefined, last.point).axes(rotated));
                 } else if (facePreferenceMode === 'weak') {
-                    const oriented = new PointSnap(undefined, last.point).axes(axes.map(s => s.rotate(lastOrientation)));
+                    const rotated = axes.map(s => s.rotate(lastOrientation));
+                    const oriented = new PointSnap(undefined, last.point).axes(rotated);
                     for (const axis of oriented) {
                         if (isAxisAligned(axis)) continue;
                         else work.push(axis);

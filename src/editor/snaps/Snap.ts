@@ -521,9 +521,9 @@ export class AxisSnap extends Snap implements ChoosableSnap {
 
     readonly n = new THREE.Vector3();
     readonly o = new THREE.Vector3();
-    readonly orientation = new THREE.Quaternion();
+    private readonly orientation = new THREE.Quaternion();
 
-    constructor(readonly name: string | undefined, n: THREE.Vector3, o = new THREE.Vector3()) {
+    constructor(readonly name: string | undefined, n: THREE.Vector3, o = new THREE.Vector3(), z = n) {
         super();
         this.snapper.position.copy(o);
         this.snapper.quaternion.setFromUnitVectors(Y, n);
@@ -532,7 +532,7 @@ export class AxisSnap extends Snap implements ChoosableSnap {
 
         this.n.copy(n).normalize();
         this.o.copy(o);
-        this.orientation.setFromUnitVectors(Z, n)
+        this.orientation.setFromUnitVectors(Z, z);
 
         if (this.constructor === AxisSnap) this.init();
         // NOTE: All subclasses must call init()!
