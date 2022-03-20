@@ -11,9 +11,19 @@ Plasticity is a 3d modelling software for concept artists. Modelling in Plastici
 
 The goal of plasticity is to make working with NURBS like working with clay.
 
+**Plasticity is currently in BETA. It has a ton of bugs and missing features.**
+
+## License
+
+Plasticity is COMMERCIAL SOFTWARE. It will cost money to buy when it reaches 1.0.
+
+The code in this repository is licensed under the LGPL. To goal is to allow users to inspect the source and (in the future) allow users to make their own modifications and/or develop plugins.
+
+HOWEVER, it dynamically links with a commercial software software that I have licensed for $$$$$$$$. That license imposes many restrictions on how the app can be distributed and what functionality is available to end users. Please do not redistribute the binary.
+
 #### FAQ
 
-I am currently handling bugs and offering support only through Discord. You can email me for an invite.
+**I am currently handling bugs and offering support only through Discord. You can email me for an invite.**
 
 #### About
 
@@ -23,3 +33,6 @@ I am currently handling bugs and offering support only through Discord. You can 
 Plasticity is currently in the early stages of development with many more features to add and bugs to resolve. The project is currently in need of Beta Testers who can find and report bugs.
 
 Contact Nick Kallen nick@plasticity.xyz for a Discord community link.
+
+
+© 2022 Nicholas Kallen. All rights reserved.
