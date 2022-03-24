@@ -149,7 +149,8 @@ export class ViewportNavigatorExecutor {
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
 
-    animateToPositionAndQuaternion(targetNormal: THREE.Vector3, targetQuaternion: THREE.Quaternion) {
+    animateToPositionAndQuaternion(targetNormal: THREE.Vector3) {
+        console.trace();
         const { controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 

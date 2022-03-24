@@ -220,9 +220,9 @@ export default {
         "numpad3": "viewport:navigate:right",
         "numpad7": "viewport:navigate:top",
 
-        "shift-numpad1": "viewport:navigate:back",
-        "shift-numpad3": "viewport:navigate:left",
-        "shift-numpad7": "viewport:navigate:bottom",
+        "ctrl-numpad1": "viewport:navigate:back",
+        "ctrl-numpad3": "viewport:navigate:left",
+        "ctrl-numpad7": "viewport:navigate:bottom",
 
         "numpad5": "viewport:toggle-orthographic",
     },

@@ -7,6 +7,9 @@ const origin = freeze(new THREE.Vector3());
 const X = freeze(new THREE.Vector3(1, 0, 0));
 const Y = freeze(new THREE.Vector3(0, 1, 0));
 const Z = freeze(new THREE.Vector3(0, 0, 1));
+const _X = freeze(new THREE.Vector3(-1, 0, 0));
+const _Y = freeze(new THREE.Vector3(0, -1, 0));
+const _Z = freeze(new THREE.Vector3(0, 0, -1));
 
 export class PlaneDatabase {
     private counter = 0;
@@ -14,6 +17,10 @@ export class PlaneDatabase {
     static readonly XY = new ConstructionPlaneSnap(Z, origin, undefined, "XY");
     static readonly YZ = new ConstructionPlaneSnap(X, origin, undefined, "YZ");
     static readonly XZ = new ConstructionPlaneSnap(Y, origin, undefined, "XZ");
+    static readonly _XY = new ConstructionPlaneSnap(_Z, origin, undefined, "XY");
+    static readonly _YZ = new ConstructionPlaneSnap(_X, origin, undefined, "YZ");
+    static readonly _XZ = new ConstructionPlaneSnap(_Y, origin, undefined, "XZ");
+
     static readonly ScreenSpace = new ScreenSpaceConstructionPlaneSnap(this.XY);
 
     private readonly _all = new Set<ConstructionPlaneSnap>([PlaneDatabase.XY, PlaneDatabase.YZ, PlaneDatabase.XZ]);

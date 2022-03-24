@@ -71,9 +71,9 @@ export class ConstructionPlaneGenerator {
             case Orientation.posX: return { tag: 'orientation', cplane: PlaneDatabase.YZ };
             case Orientation.posY: return { tag: 'orientation', cplane: PlaneDatabase.XZ };
             case Orientation.posZ: return { tag: 'orientation', cplane: PlaneDatabase.XY };
-            case Orientation.negX: return { tag: 'orientation', cplane: PlaneDatabase.YZ };
-            case Orientation.negY: return { tag: 'orientation', cplane: PlaneDatabase.XZ };
-            case Orientation.negZ: return { tag: 'orientation', cplane: PlaneDatabase.XY };
+            case Orientation.negX: return { tag: 'orientation', cplane: PlaneDatabase._YZ };
+            case Orientation.negY: return { tag: 'orientation', cplane: PlaneDatabase._XZ };
+            case Orientation.negZ: return { tag: 'orientation', cplane: PlaneDatabase._XY };
         }
     }
 }

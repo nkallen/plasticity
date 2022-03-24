@@ -60,6 +60,6 @@ test("constructionPlane(Face)", () => {
 test("constructionPlane(Orientation)", () => {
     const result = cplanes.constructionPlaneForOrientation(Orientation.negX);
     const constructionPlane = result.cplane;
-    expect(constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+    expect(constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
     expect(constructionPlane.p).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 })
