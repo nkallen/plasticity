@@ -27,12 +27,11 @@ import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.css';
 import { Editor } from './editor/Editor';
-import { loadKeymap } from './startup/LoadKeymap';
-import { loadTheme } from './startup/LoadTheme';
+import { ConfigFiles } from './startup/ConfigFiles';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
-loadTheme();
+ConfigFiles.loadTheme();
 
 export const editor = new Editor();
 
@@ -52,7 +51,7 @@ Object.defineProperty(window, 'cmd', {
     writable: false,
 })
 
-loadKeymap();
+ConfigFiles.loadKeymap(editor.keymaps);
 
 registerDefaultCommands(editor);
 

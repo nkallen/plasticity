@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { EditorSignals } from '../editor/EditorSignals';
-import { Theme } from '../startup/LoadTheme';
+import { Theme } from '../startup/ConfigFiles';
 import * as visual from "../visual_model/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should

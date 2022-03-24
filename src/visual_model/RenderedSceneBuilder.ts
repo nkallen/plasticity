@@ -7,7 +7,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { TextureLoader } from "../editor/TextureLoader";
 import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
-import { Theme } from "../startup/LoadTheme";
+import { Theme } from "../startup/ConfigFiles";
 import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }

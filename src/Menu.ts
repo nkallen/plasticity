@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
 import { TempDir } from './editor/TempDir';
 import { isMac } from './index';
+import { ConfigFiles, Mode } from './startup/ConfigFiles';
 
 export function buildMenu(mainWindow: BrowserWindow) {
     const template: MenuItemConstructorOptions[] = [];
@@ -97,6 +98,14 @@ export function buildMenu(mainWindow: BrowserWindow) {
         });
     }
     template.push({
+        label: 'Keybindings',
+        submenu: [
+            { label: 'Default', click: updateOrbitControls('default') },
+            { label: 'Blender', click: updateOrbitControls('blender') },
+            { label: 'Maya', click: updateOrbitControls('maya') },
+        ]
+    });
+    template.push({
         role: 'help',
         submenu: [
             { label: `Version: ${app.getVersion()}` },
@@ -112,3 +121,11 @@ export function buildMenu(mainWindow: BrowserWindow) {
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
 }
+
+function updateOrbitControls(mode: Mode): ((menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow | undefined, event: Electron.KeyboardEvent) => void) | undefined {
+    return e => {
+        ConfigFiles.updateOrbitControls(mode);
+        BrowserWindow.getFocusedWindow()?.webContents.reload();
+    };
+}
+

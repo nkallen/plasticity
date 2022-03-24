@@ -1,7 +1,7 @@
-import { EditorSignals } from "../editor/EditorSignals";
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { Theme } from "../startup/LoadTheme";
+import { EditorSignals } from "../editor/EditorSignals";
+import { Theme } from "../startup/ConfigFiles";
 import theme from '../startup/default-theme';
 
 const depthInfo: THREE.MaterialParameters = {

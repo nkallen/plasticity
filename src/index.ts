@@ -1,10 +1,8 @@
 import { app, BrowserWindow, crashReporter, dialog, ipcMain } from 'electron';
 import window from 'electron-window-state';
-import fs from 'fs';
-import fse from 'fs-extra';
 import os from 'os';
-import path from 'path';
 import { buildMenu } from './Menu';
+import { ConfigFiles } from './startup/ConfigFiles';
 if (require('electron-squirrel-startup')) app.quit();
 
 export const isMac = process.platform === 'darwin'
@@ -22,10 +20,7 @@ crashReporter.start({
     uploadToServer: true
 });
 
-process.env.PLASTICITY_HOME = path.join(os.homedir(), '.plasticity');
-if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
-    fse.copySync(path.join(__dirname, 'dot-plasticity'), process.env.PLASTICITY_HOME);
-}
+ConfigFiles.create();
 
 const createWindow = () => {
     const mainWindowState = window({
