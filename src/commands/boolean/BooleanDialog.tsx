@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { BooleanParams } from "./BooleanFactory";
+import c3d from '../../../build/Release/c3d.node';
 
 export class BooleanDialog extends AbstractDialog<BooleanParams> {
     name = "Boolean";
@@ -11,7 +12,7 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
     }
 
     render() {
-        const { mergingFaces, mergingEdges, operationType } = this.params;
+        const { mergingFaces, mergingEdges, keepTools } = this.params;
         render(
             <>
                 <ol>
@@ -27,6 +28,14 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
                             <label for="mergingFaces">Coplanar faces</label>
                             <input type="checkbox" hidden id="mergingEdges" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
                             <label for="mergingEdges">Tangent edges</label>
+                        </div>
+                    </li>
+
+                    <li>
+                        <label for="keepTools">Merge</label>
+                        <div class="fields">
+                            <input type="checkbox" hidden id="keepTools" name="keepTools" checked={keepTools} onClick={this.onChange}></input>
+                            <label for="keepTools">Keep Tools</label>
                         </div>
                     </li>
                 </ul>

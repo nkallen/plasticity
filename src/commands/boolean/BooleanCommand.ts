@@ -35,6 +35,8 @@ export class BooleanCommand extends Command {
             }
             boolean.operationType = operationType;
             boolean.update();
+            console.log("?");
+            dialog.render();
         }).resource(this);
 
         GetTargetBodies: {

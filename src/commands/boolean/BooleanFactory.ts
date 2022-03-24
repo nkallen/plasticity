@@ -21,6 +21,7 @@ export interface BooleanParams {
     operationType: c3d.OperationType;
     mergingFaces: boolean;
     mergingEdges: boolean;
+    keepTools: boolean;
 }
 
 export class BooleanFactory extends GeometryFactory implements BooleanParams {
@@ -30,6 +31,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanParams {
 
     mergingFaces = true;
     mergingEdges = true;
+    keepTools = false;
 
     isOverlapping = false;
     isSurface = false;
@@ -97,7 +99,9 @@ export class BooleanFactory extends GeometryFactory implements BooleanParams {
     get originalItem() {
         let result = [];
         if (this.target !== undefined) result.push(this.target);
-        result = result.concat(this.tools);
+        if (!this.keepTools) {
+            result = result.concat(this.tools);
+        }
         return result;
     }
 
@@ -257,6 +261,7 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     @delegate.default(new THREE.Vector3()) pivot!: THREE.Vector3;
     @delegate.default(true) mergingFaces!: boolean;
     @delegate.default(true) mergingEdges!: boolean;
+    @delegate.default(false) keepTools!: boolean;
 
     isOverlapping = false;
     isSurface = false;
@@ -318,7 +323,8 @@ export class MultiBooleanFactory extends MultiGeometryFactory<MovingBooleanFacto
     }
 
     protected get originalItem(): visual.Item[] {
-        return [...this._targets.views, ...this._tools.views];
+        const tools = this.keepTools ? [] : this._tools.views;
+        return [...this._targets.views, ...tools];
     }
 
     private readonly unionSingleton = new MovingBooleanFactory(this.db, this.materials, this.signals);
