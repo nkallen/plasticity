@@ -1,5 +1,5 @@
 import KeymapManager from "atom-keymap-plasticity";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../command/Command';
@@ -82,10 +82,6 @@ export class Editor {
     windowLoaded = false;
 
     constructor(readonly styles = theme) {
-        this.onWindowResize = this.onWindowResize.bind(this);
-        this.onWindowLoad = this.onWindowLoad.bind(this);
-        this.onViewportActivated = this.onViewportActivated.bind(this);
-
         window.addEventListener('resize', this.onWindowResize, false);
         window.addEventListener('load', this.onWindowLoad, false);
 
@@ -97,41 +93,29 @@ export class Editor {
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
 
-        const d = this.registry.add(document.body, {
-            'file:new': () => this.clear(),
-            'file:open': () => this.open(),
-            'file:save-as': () => this.export(),
-            'edit:undo': () => this.undo(),
-            'edit:redo': () => this.redo(),
-            'edit:copy': () => this.clipboard.copy(),
-            'edit:paste': () => this.clipboard.paste(),
-            'repeat-last-command': () => this.executor.repeatLastCommand(),
-            'noop': () => { },
-        });
-        this.disposable.add(d);
-        this.disposable.add(this.registrar.register(this.registry));
+        this.registerCommands();
     }
 
     async enqueue(command: Command, interrupt?: boolean) {
         await this.executor.enqueue(command, interrupt);
     }
 
-    onWindowResize() {
+    onWindowResize = () => {
         this.signals.windowResized.dispatch();
     }
 
-    onWindowLoad() {
+    onWindowLoad = () => {
         this.windowLoaded = true;
         this.signals.windowLoaded.dispatch();
     }
 
     private _activeViewport?: Viewport;
     get activeViewport() { return this._activeViewport }
-    onViewportActivated(v: Viewport) {
+    onViewportActivated = (v: Viewport) => {
         this._activeViewport = v;
     }
 
-    async clear() {
+    clear = async () => {
         await this.backup.clear();
         ipcRenderer.invoke('reload');
     }
@@ -178,6 +162,32 @@ export class Editor {
         this.history.redo();
         this.executor.enqueueDefaultCommand();
     }
+
+    private registerCommands() {
+        const d = this.registry.add(document.body, {
+            'file:new': () => this.clear(),
+            'file:open': () => this.open(),
+            'file:save-as': () => this.export(),
+            'edit:undo': () => this.undo(),
+            'edit:redo': () => this.redo(),
+            'edit:copy': () => this.clipboard.copy(),
+            'edit:paste': () => this.clipboard.paste(),
+            'edit:repeat-last-command': () => this.executor.repeatLastCommand(),
+            'noop': () => { },
+        });
+        ipcRenderer.on('menu-command', this.command);
+        this.disposable.add(new Disposable(() => {
+            ipcRenderer.removeListener('menu-command', this.command);
+        }));
+        this.disposable.add(d);
+        this.disposable.add(this.registrar.register(this.registry));
+    }
+
+    private command = (event: IpcRendererEvent, ...args: any[]) => {
+        const element = this.activeViewport?.domElement ?? document.body;
+        element.dispatchEvent(new CustomEvent(args[0], { bubbles: true }));
+    }
+
 
     debug() {
         this.originator.debug();

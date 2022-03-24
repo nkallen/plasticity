@@ -4,6 +4,7 @@ import * as path from 'path';
 import { PlasticityDocument } from './PlasticityDocument';
 import { EditorSignals } from "./EditorSignals";
 import { EditorOriginator } from "./History";
+import { TempDir } from './TempDir';
 
 export class Backup {
     constructor(
@@ -14,10 +15,8 @@ export class Backup {
         signals.historyChanged.add(() => this.save());
     }
 
-    private dir = path.join(os.tmpdir(), 'plasticity');
-
     async save() {
-        await this.makeTempDir();
+        await TempDir.create();
         const document = new PlasticityDocument(this.originator);
         const tempFilePath = this.tempFilePath;
         await document.save(tempFilePath);
@@ -30,24 +29,14 @@ export class Backup {
 
     async clear() {
         try {
-            await fs.promises.rm(this.dir, { recursive: true, force: true });
-            await this.makeTempDir();
+            await TempDir.clear();
+            await TempDir.create();
         } catch (e) {
             console.warn(e);
         }
     }
 
-    private async makeTempDir() {
-        const dir = this.dir;
-        try {
-            await fs.promises.access(dir);
-        } catch (e) {
-            await fs.promises.mkdir(dir, { recursive: true });
-        }
-        return dir;
-    }
-
     get tempFilePath() {
-        return path.join(this.dir, `backup.${process.env.NODE_ENV ?? 'env'}.plasticity`);
+        return path.join(TempDir.dir, `backup.${process.env.NODE_ENV ?? 'env'}.plasticity`);
     }
 }

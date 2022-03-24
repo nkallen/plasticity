@@ -1,14 +1,14 @@
 import { app, BrowserWindow, crashReporter, dialog, ipcMain } from 'electron';
+import window from 'electron-window-state';
+import fs from 'fs';
+import fse from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import { buildMenu } from './Menu';
 if (require('electron-squirrel-startup')) app.quit();
 
 export const isMac = process.platform === 'darwin'
 
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
-import fse from 'fs-extra';
-import { buildContextMenu, buildMenu } from './Menu';
-import window from 'electron-window-state';
 
 const idealNumberOfThreads = Math.max(4, Math.min(8, os.cpus().length / 2));
 process.env.UV_THREADPOOL_SIZE = `${idealNumberOfThreads}`;
@@ -66,6 +66,7 @@ const createWindow = () => {
         mainWindow.webContents.reload();
     });
 
+    buildMenu(mainWindow);
 };
 
 ipcMain.handle('reload', async (event, args) => {
@@ -100,6 +101,3 @@ app.on('activate', () => {
         createWindow();
     }
 });
-
-buildMenu();
-buildContextMenu();
