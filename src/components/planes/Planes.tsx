@@ -26,7 +26,7 @@ export default (editor: Editor) => {
                     <h1 class="mb-4 text-xs font-bold text-neutral-100">Construction Planes</h1>
                     <ul class="space-y-1">
                         {[...editor.planes.all].map(plane =>
-                            <li class="flex justify-between items-center py-1 px-2 space-x-2 rounded group hover:bg-neutral-700" onClick={e => this.onClick(e, plane)}>
+                            <li class="flex justify-between items-center py-1 px-2 space-x-2 rounded group hover:bg-neutral-700" onClick={e => this.onClick(e, plane)} onDblClick={e => this.onDblClick(e, plane)}>
                                 <plasticity-icon name="offset-face" class="text-accent-500"></plasticity-icon>
                                 <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{plane.name}</div>
                             </li>
@@ -37,6 +37,11 @@ export default (editor: Editor) => {
 
         onClick = (event: MouseEvent, plane: ConstructionPlaneSnap) => {
             if (editor.activeViewport !== undefined) editor.activeViewport.constructionPlane = plane;
+            this.render();
+        }
+
+        onDblClick = (event: MouseEvent, plane: ConstructionPlaneSnap) => {
+            editor.activeViewport?.navigate();
             this.render();
         }
     }
