@@ -13,10 +13,7 @@ import reflection_check_vertical_png from '../../img/matcap/reflection_check_ver
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
 import { ViewportElement } from './Viewport';
 
-
-
 export default (editor: Editor) => {
-
     let counter = 0;
 
     class Header extends HTMLElement {
@@ -51,7 +48,7 @@ export default (editor: Editor) => {
                         <ol class="flex flex-row space-x-0.5">
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`control-point_${uid}`} checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
-                                    onClick={e => editor.selection.mode.set(SelectionMode.ControlPoint)}
+                                    onClick={e => this.onClick(e, SelectionMode.ControlPoint)}
                                 />
                                 <label for={`control-point_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='control-point'></plasticity-icon>
@@ -61,7 +58,7 @@ export default (editor: Editor) => {
 
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`edge_${uid}`} checked={editor.selection.mode.has(SelectionMode.CurveEdge)}
-                                    onClick={e => editor.selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve)}
+                                    onClick={e => this.onClick(e, SelectionMode.CurveEdge, SelectionMode.Curve)}
                                 />
                                 <label for={`edge_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='edge'></plasticity-icon>
@@ -71,7 +68,7 @@ export default (editor: Editor) => {
 
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`face_${uid}`} checked={editor.selection.mode.has(SelectionMode.Face)}
-                                    onClick={e => editor.selection.mode.set(SelectionMode.Face)}
+                                    onClick={e => this.onClick(e, SelectionMode.Face)}
                                 />
                                 <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='face'></plasticity-icon>
@@ -81,7 +78,7 @@ export default (editor: Editor) => {
 
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`solid_${uid}`} checked={editor.selection.mode.has(SelectionMode.Solid)}
-                                    onClick={e => editor.selection.mode.set(SelectionMode.Solid)}
+                                    onClick={e => this.onClick(e, SelectionMode.Solid)}
                                 />
                                 <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='solid'></plasticity-icon>
@@ -197,6 +194,14 @@ export default (editor: Editor) => {
                 </>
             );
             render(result, this);
+        }
+
+        private onClick = (mouseEvent: MouseEvent, ...modes: SelectionMode[]) => {
+            if (mouseEvent.shiftKey) {
+                editor.selection.mode.toggle(...modes);
+            } else {
+                editor.selection.mode.set(...modes);
+            }
         }
     }
 
