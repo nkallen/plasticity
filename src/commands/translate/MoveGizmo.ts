@@ -87,13 +87,28 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
     readonly state = new VectorStateMachine(new THREE.Vector3());
 
+    private readonly n = new THREE.Vector3();
+    private readonly pln = new THREE.Plane();
+
     onPointerMove(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
-        const { plane, startMousePosition, state } = this;
+        const { plane, startMousePosition, originalPosition, state } = this;
+        const { n, pln } = this;
 
-        const planeIntersect = intersect.raycast(plane);
-        if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+        let delta;
+        if (info.event.ctrlKey) {
+            const snapIntersect = intersect.snap()[0]?.position.clone();
+            if (snapIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+            n.copy(Z).applyQuaternion(this.quaternion);
+            pln.setFromNormalAndCoplanarPoint(n, this.worldPosition);
 
-        const delta = planeIntersect.point.clone().sub(startMousePosition).add(state.original);
+            const projected = pln.projectPoint(snapIntersect, new THREE.Vector3());
+            delta = projected.sub(originalPosition).add(state.original);
+        } else {
+            const planeIntersect = intersect.raycast(plane);
+            if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+            delta = planeIntersect.point.clone().sub(startMousePosition).add(state.original);
+        }
+
         this.state.current = delta;
         cb(delta);
         return delta;

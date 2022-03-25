@@ -251,18 +251,17 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<number>  {
         if (this.mode !== 'pointer') return this.state.current;
 
         let point, length, localY;
+        localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
         if (info.event.ctrlKey) {
             point = intersect.snap()[0]?.position.clone();
             if (point === undefined) return; // this only happens when the user is dragging through different viewports.
 
-            localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
             const dist = point.sub(this.originalPosition).dot(localY);
             length = this.accumulate(0, this.sign, dist);
         } else {
             point = intersect.raycast(this.plane)?.point;
             if (point === undefined) return; // this only happens when the user is dragging through different viewports.
 
-            localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
             const dist = point.sub(this.startMousePosition).dot(localY);
             length = this.accumulate(this.state.original, this.sign, dist);
         }
@@ -376,6 +375,7 @@ export class LengthGizmo extends AbstractAxisGizmo { // DO NOT SUBCLASS or the a
 }
 
 export abstract class PlanarGizmo<T> extends AbstractGizmo<T> {
+    protected originalPosition!: THREE.Vector3;
     protected denominator = 1;
     abstract readonly state: AbstractValueStateMachine<T>;
     get value() { return this.state.current }
@@ -424,6 +424,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<T> {
         this.startMousePosition.copy(planeIntersect.point);
         this.denominator = this.startMousePosition.distanceTo(this.worldPosition);
         if (this.denominator === 0) this.denominator = 1;
+        if (this.originalPosition === undefined) this.originalPosition = this.worldPosition.clone();
     }
 
     private updatePlane() {

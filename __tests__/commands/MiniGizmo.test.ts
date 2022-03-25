@@ -336,11 +336,13 @@ describe(PlanarMoveGizmo, () => {
         const pointStart = new THREE.Vector3();
         const pointEnd = new THREE.Vector3(1, 1, 0);
 
+        const event = new MouseEvent('move', { ctrlKey: false });
+
         gizmo.onPointerEnter(intersector);
         intersector.raycast.mockReturnValueOnce({ point: pointStart })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: pointEnd })
-        gizmo.onPointerMove(cb, intersector, {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { event } as MovementInfo);
         expect(gizmo.value).toEqual(pointEnd.clone().sub(pointStart));
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -349,7 +351,7 @@ describe(PlanarMoveGizmo, () => {
         intersector.raycast.mockReturnValueOnce({ point: pointStart })
         gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
         intersector.raycast.mockReturnValueOnce({ point: pointEnd })
-        gizmo.onPointerMove(cb, intersector, {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { event } as MovementInfo);
         expect(gizmo.value).toEqual(pointEnd.clone().sub(pointStart).multiplyScalar(2));
 
         gizmo.onInterrupt(() => { });
