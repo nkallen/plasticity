@@ -1,9 +1,7 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
-import { ModifyContourFactory } from "./ModifyContourFactory";
-import { ModifyContourGizmo } from "./ModifyContourGizmo";
-import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./ModifyContourPointFactory";
+import { AbstractFreestyleMoveCommand, AbstractFreestyleRotateCommand, AbstractFreestyleScaleCommand } from "../translate/FreestyleTranslateCommand";
 import { MoveDialog } from "../translate/MoveDialog";
 import { MoveGizmo } from '../translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "../translate/MoveKeyboardGizmo";
@@ -13,10 +11,11 @@ import { RotateKeyboardGizmo } from "../translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "../translate/ScaleDialog";
 import { ScaleGizmo } from "../translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "../translate/ScaleKeyboardGizmo";
-import { AbstractFreestyleMoveCommand, AbstractFreestyleRotateCommand, AbstractFreestyleScaleCommand } from "../translate/FreestyleTranslateCommand";
+import { choosePivot, onKeyPress } from "../translate/TranslateCommand";
 import { MoveFactoryLike, RotateFactoryLike } from '../translate/TranslateFactory';
-import { onKeyPress } from "../translate/TranslateCommand";
-
+import { ModifyContourFactory } from "./ModifyContourFactory";
+import { ModifyContourGizmo } from "./ModifyContourGizmo";
+import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./ModifyContourPointFactory";
 
 export class ModifyContourCommand extends Command {
     async execute(): Promise<void> {
@@ -40,6 +39,8 @@ export class ModifyContourCommand extends Command {
 }
 
 export class MoveControlPointCommand extends Command {
+    choosePivot = false;
+
     async execute(): Promise<void> {
         const { editor } = this;
         const selected = editor.selection.selected;
@@ -59,18 +60,19 @@ export class MoveControlPointCommand extends Command {
         const gizmo = new MoveGizmo(move, editor);
         const keyboard = new MoveKeyboardGizmo(editor);
 
+        choosePivot.call(this, this.choosePivot, centroid, move, gizmo);
+
         dialog.execute(async (params) => {
             await move.update();
             gizmo.render(params);
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        gizmo.position.copy(centroid);
         gizmo.execute(params => {
             move.update();
             dialog.render();
         }).resource(this);
 
-        keyboard.execute(onKeyPress(move, gizmo, FreestyleMoveControlPointCommand).bind(this)).resource(this);
+        keyboard.execute(onKeyPress(MoveControlPointCommand, gizmo, FreestyleMoveControlPointCommand).bind(this)).resource(this);
 
         await this.finished;
 
@@ -165,8 +167,7 @@ export class ScaleControlPointCommand extends Command {
         const curve = points[0].parentItem;
 
         const centroid = new THREE.Vector3();
-        for (const point of points)
-            centroid.add(point.position);
+        for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
         const scale = new ScaleContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
