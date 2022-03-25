@@ -260,6 +260,7 @@ export async function choosePivot(this: Command, choosePivot: boolean, fallback:
         factory.pivot = pivot;
         gizmo.enable();
     } else {
+        factory.pivot = fallback;
         gizmo.position.copy(fallback);
         gizmo.pivot.copy(fallback);
     }
