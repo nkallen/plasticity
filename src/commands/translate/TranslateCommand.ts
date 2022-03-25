@@ -230,6 +230,8 @@ export class DraftSolidCommand extends Command implements PivotCommand {
 }
 
 export function onKeyPress(Pivot: GConstructor<PivotCommand>, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo, Freestyle: GConstructor<Command>) {
+    // NB: both pivot & freestyle rely on snap points, which are only updated on commit; since move commands update objects
+    // it's important to commit and re-enqueue before choosing a pivot or freestyle point.
     return async function (this: Command, s: string) {
         switch (s) {
             case 'pivot':
