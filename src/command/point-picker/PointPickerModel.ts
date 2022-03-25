@@ -293,22 +293,20 @@ export class PointPickerModel {
     private readonly mutualSnaps = new Set<Snap>();
     activateMutualSnaps(nearby: Snap[]) {
         const { mutualSnaps, pickedPointSnaps } = this;
-        if (pickedPointSnaps.length === 0)
-            return;
+        if (pickedPointSnaps.length === 0) return;
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
         const lastPickedSnap = last.info.snap;
-        if (lastPickedSnap === undefined)
-            return;
+        if (lastPickedSnap === undefined) return;
 
         for (const snap of nearby) {
-            if (mutualSnaps.has(snap))
-                continue;
+            if (mutualSnaps.has(snap)) continue;
             mutualSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveSnap) {
                 const additional = snap.additionalSnapsGivenPreviousSnap(last.point, lastPickedSnap);
                 this.snapsForLastPickedPoint.push(...additional);
+                this.snapsForLastPickedPoint.update();
             }
         }
     }
