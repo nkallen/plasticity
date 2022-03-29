@@ -64,8 +64,6 @@ export class MoveItemCommand extends Command implements PivotCommand {
         const gizmo = new MoveGizmo(move, editor);
         const keyboard = new MoveKeyboardGizmo(editor);
 
-        choosePivot.call(this, this.choosePivot, centroid, move, gizmo);
-
         dialog.execute(async (params) => {
             await move.update();
             gizmo.render(params);
@@ -76,6 +74,7 @@ export class MoveItemCommand extends Command implements PivotCommand {
             dialog.render();
         }).resource(this);
 
+        await choosePivot.call(this, this.choosePivot, centroid, move, gizmo);
         keyboard.execute(onKeyPress(MoveItemCommand, gizmo, FreestyleMoveItemCommand).bind(this)).resource(this);
 
         await this.finished;
@@ -118,8 +117,6 @@ export class ScaleItemCommand extends Command implements PivotCommand {
         const dialog = new ScaleDialog(scale, editor.signals);
         const keyboard = new ScaleKeyboardGizmo(editor);
 
-        choosePivot.call(this, this.choosePivot, centroid, scale, gizmo);
-
         dialog.execute(async (params) => {
             await scale.update();
             gizmo.render(params);
@@ -130,6 +127,7 @@ export class ScaleItemCommand extends Command implements PivotCommand {
             dialog.render();
         }).resource(this);
 
+        await choosePivot.call(this, this.choosePivot, centroid, scale, gizmo);
         keyboard.execute(onKeyPress(ScaleItemCommand, gizmo, FreestyleItemScaleCommand).bind(this)).resource(this);
 
         await this.finished;
@@ -174,8 +172,6 @@ export class RotateItemCommand extends Command implements PivotCommand {
         const dialog = new RotateDialog(rotate, editor.signals);
         const keyboard = new RotateKeyboardGizmo(editor);
 
-        choosePivot.call(this, this.choosePivot, centroid, rotate, gizmo);
-
         dialog.execute(async (params) => {
             await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
@@ -185,6 +181,7 @@ export class RotateItemCommand extends Command implements PivotCommand {
             dialog.render();
         }).resource(this);
 
+        await choosePivot.call(this, this.choosePivot, centroid, rotate, gizmo);
         keyboard.execute(onKeyPress(RotateItemCommand, gizmo, FreestyleRotateItemCommand).bind(this)).resource(this);
 
         await this.finished;
@@ -215,12 +212,11 @@ export class DraftSolidCommand extends Command implements PivotCommand {
         const gizmo = new RotateGizmo(draft, this.editor);
         const keyboard = new RotateKeyboardGizmo(this.editor);
 
-        choosePivot.call(this, this.choosePivot, midpoint, draft, gizmo);
-
         gizmo.execute(params => {
             draft.update();
         }).resource(this);
 
+        await choosePivot.call(this, this.choosePivot, midpoint, draft, gizmo);
         keyboard.execute(onKeyPress(DraftSolidCommand, gizmo, FreestyleDraftSolidCommand).bind(this)).resource(this);
 
         await this.finished;
@@ -251,7 +247,7 @@ export async function choosePivot(this: Command, choosePivot: boolean, fallback:
     if (choosePivot) {
         gizmo.disable();
         const pointPicker = new PointPicker(this.editor);
-        const { point: pivot, info: { orientation } } = await pointPicker.execute(({ point: pivot, info: { snap } }) => {
+        const { point: pivot } = await pointPicker.execute(({ point: pivot, info: { snap } }) => {
             const { orientation } = snap.project(pivot);
             gizmo.position.copy(pivot);
             gizmo.quaternion.copy(orientation);
