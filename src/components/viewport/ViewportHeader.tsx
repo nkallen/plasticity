@@ -10,7 +10,7 @@ import reflection_check_horizontal from '../../img/matcap/reflection_check_horiz
 import reflection_check_horizontal_png from '../../img/matcap/reflection_check_horizontal.png';
 import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.exr';
 import reflection_check_vertical_png from '../../img/matcap/reflection_check_vertical.png';
-import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
+import { SelectionMode } from '../../selection/SelectionModeSet';
 import { ViewportElement } from './Viewport';
 
 export default (editor: Editor) => {

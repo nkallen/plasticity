@@ -1,9 +1,8 @@
 import * as THREE from "three";
 import Command, { EditorLike } from "../../command/Command";
-import { GeometryFactory } from "../../command/GeometryFactory";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 import * as visual from "../../visual_model/VisualModel";
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";

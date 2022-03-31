@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from '../translate/MoveGizmo';

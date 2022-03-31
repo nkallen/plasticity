@@ -6,7 +6,7 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta } from '../selection/ChangeSelectionExecutor';
 import { NonemptyClickStrategy } from '../selection/Click';
 import { HasSelectedAndHovered, HasSelection, Selectable } from '../selection/SelectionDatabase';
 import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
@@ -17,6 +17,7 @@ import { Raycastable, Intersection, Intersectable } from '../visual_model/Inters
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import { Executable } from './Quasimode';
 import * as visual from '../visual_model/VisualModel';
+import { SelectionMode } from '../selection/SelectionModeSet';
 
 interface EditorLike {
     db: DatabaseLike;

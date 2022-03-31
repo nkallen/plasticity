@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from '../../selection/SelectionModeSet';
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PipeDialog } from "./PipeDialog";
 import { PossiblyBooleanPipeFactory } from "./PipeFactory";

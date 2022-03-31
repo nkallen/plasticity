@@ -10,8 +10,8 @@ import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFact
 import { EditBoxGizmo } from "./BoxGizmo";
 import { BoxDialog } from "./BoxDialog";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
 import { RectangleModeKeyboardGizmo } from "../rect/RectangleModeKeyboardGizmo";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 
 const Z = new THREE.Vector3(0, 0, 1);
 

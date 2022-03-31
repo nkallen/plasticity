@@ -1,7 +1,7 @@
 import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
-import { SelectionMode } from "../selection/ChangeSelectionExecutor";
-import { HasSelection, SelectionModeSet } from '../selection/SelectionDatabase';
+import { HasSelection } from '../selection/SelectionDatabase';
+import { SelectionMode, SelectionModeSet } from "../selection/SelectionModeSet";
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
 

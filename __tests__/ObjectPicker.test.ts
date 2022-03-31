@@ -8,8 +8,9 @@ import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { ChangeSelectionExecutor, SelectionMode } from "../src/selection/ChangeSelectionExecutor";
+import { ChangeSelectionExecutor } from "../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../src/selection/SelectionDatabase";
+import { SelectionMode } from "../src/selection/SelectionModeSet";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
@@ -25,7 +26,7 @@ beforeEach(() => {
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
 
-    db = editor.db;
+    db = editor._db;
     selection = editor.selection;
     changeSelection = editor.changeSelection;
 })

@@ -6,12 +6,7 @@ import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/
 import { ClickStrategy, HoverStrategy } from './Click';
 import { SelectionConversionStrategy } from './CommandRegistrar';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
-
-export enum SelectionMode {
-    CurveEdge, Face, Region, Solid, Curve, ControlPoint
-}
-
-export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Region, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
+import { SelectionMode } from "./SelectionModeSet";
 
 export enum ChangeSelectionModifier {
     Replace, Add, Remove

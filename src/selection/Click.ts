@@ -1,8 +1,9 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
-import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from "./ChangeSelectionExecutor";
-import { ModifiesSelection, SelectionModeSet } from "./SelectionDatabase";
+import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectionExecutor";
+import { ModifiesSelection } from "./SelectionDatabase";
+import { SelectionMode, SelectionModeSet } from "./SelectionModeSet";
 import { SelectionExtensionStrategy } from "./SelectionExtensionStrategy";
 
 export class ClickStrategy {

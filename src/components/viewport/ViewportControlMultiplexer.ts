@@ -1,5 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { SelectionModeSet } from "../../selection/SelectionDatabase";
+import { SelectionModeSet } from "../../selection/SelectionModeSet";
 import * as intersectable from "../../visual_model/Intersectable";
 import { RaycasterParameters, ViewportControl } from "./ViewportControl";
 

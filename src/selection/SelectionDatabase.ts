@@ -7,7 +7,7 @@ import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
-import { SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
+import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
 
 export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
@@ -363,36 +363,6 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     debug() { }
-}
-
-export class SelectionModeSet extends Set<SelectionMode> {
-    constructor(values: SelectionMode[], private readonly signals: EditorSignals) {
-        super(values);
-    }
-
-    toggle(...elements: SelectionMode[]) {
-        for (const element of elements) {
-            if (this.has(element)) this.delete(element);
-            else this.add(element);
-        }
-        this.signals.selectionModeChanged.dispatch(this);
-    }
-
-    set(...elements: SelectionMode[]) {
-        this.clear();
-        for (const element of elements) {
-            this.add(element);
-        }
-        this.signals.selectionModeChanged.dispatch(this);
-    }
-
-    is(...elements: SelectionMode[]) {
-        if (this.size !== elements.length) return false;
-        for (const element of elements) {
-            if (!this.has(element)) return false;
-        }
-        return true;
-    }
 }
 
 export interface HasSelectedAndHovered {

@@ -4,8 +4,9 @@ import { EditorLike } from '../command/Command';
 import CommandRegistry from '../components/atom/CommandRegistry';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import * as visual from '../visual_model/VisualModel';
-import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
+import { ChangeSelectionModifier } from './ChangeSelectionExecutor';
 import { HasSelectedAndHovered } from './SelectionDatabase';
+import { SelectionMode, SelectionModeAll } from './SelectionModeSet';
 
 export class SelectionCommandRegistrar {
     private readonly disposable = new CompositeDisposable();

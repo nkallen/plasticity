@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Mode } from "../../command/AbstractGizmo";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";
 import { LoftDialog } from "./LoftDialog";
 import LoftFactory from "./LoftFactory";

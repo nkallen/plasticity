@@ -2,7 +2,7 @@ import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { Quasimode } from "../../command/Quasimode";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 import { point2point } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
 import { MoveGizmo } from "../translate/MoveGizmo";

@@ -1,6 +1,6 @@
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
-import { SelectionMode } from "../../selection/ChangeSelectionExecutor";
+import { SelectionMode } from "../../selection/SelectionModeSet";
 import * as visual from "../../visual_model/VisualModel";
 import { CutDialog } from "./CutDialog";
 import { MultiCutFactory } from "./CutFactory";

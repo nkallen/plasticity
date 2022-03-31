@@ -7,7 +7,6 @@ if (require('electron-squirrel-startup')) app.quit();
 
 export const isMac = process.platform === 'darwin'
 
-
 const idealNumberOfThreads = Math.max(4, Math.min(8, os.cpus().length / 2));
 process.env.UV_THREADPOOL_SIZE = `${idealNumberOfThreads}`;
 
