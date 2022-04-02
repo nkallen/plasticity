@@ -7,7 +7,10 @@ import { DatabaseLike } from "../DatabaseLike";
 import { EditorSignals } from "../EditorSignals";
 import { MementoOriginator, SnapMemento } from "../History";
 import { DisablableType } from "../TypeManager";
-import { AxisSnap, CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, PointSnap, Snap } from "./Snap";
+import { CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap } from "./Snaps";
+import { AxisSnap } from "./AxisSnap";
+import { PointSnap } from "./PointSnap";
+import { Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 

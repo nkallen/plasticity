@@ -2,7 +2,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
-import { FaceSnap } from "../../editor/snaps/Snap";
+import { FaceSnap } from "../../editor/snaps/Snaps";
 import { SnapManager } from "../../editor/snaps/SnapManager";
 import { HasSelection } from '../../selection/SelectionDatabase';
 import { point2point, vec2vec } from "../../util/Conversion";

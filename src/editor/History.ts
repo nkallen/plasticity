@@ -8,7 +8,7 @@ import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
 import { Nodes } from "./Nodes";
-import { PointSnap } from "./snaps/Snap";
+import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
 
 export class Memento {

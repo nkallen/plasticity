@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PointResult } from "../../command/point-picker/PointPicker";
-import { FaceSnap, PlaneSnap, Snap } from "./Snap";
+import { FaceSnap } from "./Snaps";
+import { PlaneSnap } from "./PlaneSnap";
+import { Snap } from "./Snap";
 
 export interface ConstructionPlane extends Snap {
     get n(): THREE.Vector3;

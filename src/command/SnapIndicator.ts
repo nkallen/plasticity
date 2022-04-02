@@ -5,7 +5,7 @@ import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import { Helper, SimpleHelper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
 import { SnapResult } from "../editor/snaps/SnapPicker";
-import { PointSnap } from "../editor/snaps/Snap";
+import { PointSnap } from "../editor/snaps/PointSnap";
 
 const nearbyGeometry = new THREE.CircleGeometry(0.025, 24);
 const snapGeometry = new LineGeometry();

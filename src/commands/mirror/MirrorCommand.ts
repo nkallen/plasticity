@@ -2,7 +2,7 @@ import * as THREE from "three";
 import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { AxisSnap } from "../../editor/snaps/Snap";
+import { AxisSnap } from "../../editor/snaps/AxisSnap";
 import { ModifiesSelection } from "../../selection/SelectionDatabase";
 import { SelectionMode } from "../../selection/SelectionModeSet";
 import { PhantomLineFactory } from '../line/LineFactory';

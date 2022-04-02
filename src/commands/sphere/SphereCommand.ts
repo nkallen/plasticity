@@ -1,6 +1,6 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { AxisSnap } from "../../editor/snaps/Snap";
+import { AxisSnap } from "../../editor/snaps/AxisSnap";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanSphereFactory } from './SphereFactory';

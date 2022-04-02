@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { PointPicker, PointResult } from "../../src/command/point-picker/PointPicker";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from '../../src/editor/Editor';
-import { PointSnap } from "../../src/editor/snaps/Snap";
+import { PointSnap } from "../../src/editor/snaps/PointSnap";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 

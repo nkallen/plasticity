@@ -2,7 +2,7 @@ import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
-import { AxisSnap } from "../../editor/snaps/Snap";
+import { AxisSnap } from "../../editor/snaps/AxisSnap";
 import { SelectionMode } from "../../selection/SelectionModeSet";
 import * as visual from "../../visual_model/VisualModel";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";

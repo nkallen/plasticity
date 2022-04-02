@@ -10,7 +10,9 @@ import LayerManager from '../../editor/LayerManager';
 import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
-import { PlaneSnap, PointAxisSnap, PointSnap, Snap } from "../../editor/snaps/Snap";
+import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
+import { PointSnap } from "../../editor/snaps/PointSnap";
+import { Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
 import { PointSnapCache } from "../../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams } from '../../editor/snaps/SnapPicker';
@@ -22,6 +24,7 @@ import { GizmoMaterialDatabase } from '../GizmoMaterials';
 import { Executable } from '../Quasimode';
 import { SnapInfo, SnapPresentation, SnapPresenter } from '../SnapPresenter';
 import { Choices, PointPickerModel, PreferenceMode } from './PointPickerModel';
+import { PointAxisSnap } from '../../editor/snaps/AxisSnap';
 
 export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 

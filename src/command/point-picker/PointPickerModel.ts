@@ -5,7 +5,11 @@ import { CrossPoint, CrossPointDatabase } from '../../editor/curves/CrossPointDa
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ChoosableSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, LineAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "../../editor/snaps/Snaps";
+import { AxisSnap, LineAxisSnap, PointAxisSnap } from "../../editor/snaps/AxisSnap";
+import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
+import { PointSnap } from "../../editor/snaps/PointSnap";
+import { ChoosableSnap, OrRestriction, Restriction, Snap } from "../../editor/snaps/Snap";
 import { inst2curve, point2point } from '../../util/Conversion';
 import * as visual from "../../visual_model/VisualModel";
 import { PointResult, SnapCollection } from './PointPicker';

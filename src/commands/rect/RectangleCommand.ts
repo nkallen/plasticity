@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
 import { PointPicker, PointResult } from "../../command/point-picker/PointPicker";
-import { AxisSnap } from "../../editor/snaps/Snap";
+import { AxisSnap } from "../../editor/snaps/AxisSnap";
 import * as visual from "../../visual_model/VisualModel";
 import LineFactory from '../line/LineFactory';
 import { RectangleDialog } from "./RectangleDialog";

@@ -114,5 +114,3 @@ export class ExportCommand extends cmd.CommandLike {
 
     shouldAddToHistory(_: boolean) { return false }
 }
-
-module.hot?.accept();

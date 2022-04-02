@@ -475,5 +475,3 @@ export class NoOpError extends ValidationError {
         super("Operation has no effect");
     }
 }
-
-module.hot?.accept();

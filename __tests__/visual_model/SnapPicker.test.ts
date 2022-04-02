@@ -17,7 +17,7 @@ import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ConstructionPlaneSnap } from '../../src/editor/snaps/ConstructionPlaneSnap';
 import { PointPickerSnapPicker } from '../../src/editor/snaps/PointPickerSnapPicker';
-import { CurveEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointAxisSnap, PointSnap } from "../../src/editor/snaps/Snap";
+import { CurveEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap } from "../../src/editor/snaps/Snaps";
 import { SnapManager } from '../../src/editor/snaps/SnapManager';
 import { PointSnapCache, SnapManagerGeometryCache } from '../../src/editor/snaps/SnapManagerGeometryCache';
 import { RaycasterParams } from "../../src/editor/snaps/SnapPicker";
@@ -25,6 +25,8 @@ import { RaycastableTopologyItem } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
+import { PointSnap } from '../../src/editor/snaps/PointSnap';
+import { PointAxisSnap } from '../../src/editor/snaps/AxisSnap';
 
 let editor: Editor;
 let layers: LayerManager;

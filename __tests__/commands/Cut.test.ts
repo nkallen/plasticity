@@ -7,7 +7,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
-import { PlaneSnap } from "../../src/editor/snaps/Snap";
+import { PlaneSnap } from "../../src/editor/snaps/PlaneSnap";
 import { SolidCopier } from "../../src/editor/SolidCopier";
 import { point2point, vec2vec } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';

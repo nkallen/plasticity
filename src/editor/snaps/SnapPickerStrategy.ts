@@ -4,7 +4,9 @@ import { RaycastableTopologyItem } from "../../visual_model/Intersectable";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
-import { FaceSnap, PointSnap, Snap } from "./Snap";
+import { FaceSnap } from "./Snaps";
+import { PointSnap } from "./PointSnap";
+import { Snap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { RaycasterParams, SnapResult } from "./SnapPicker";
 

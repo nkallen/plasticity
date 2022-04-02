@@ -5,7 +5,9 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from "../../editor/EditorSignals";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
-import { CurveEdgeSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, Snap, TanTanSnap } from "../../editor/snaps/Snap";
+import { CurveEdgeSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, TanTanSnap } from "../../editor/snaps/Snaps";
+import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
+import { Snap } from "../../editor/snaps/Snap";
 import { ContourAndPlacement, curve3d2curve2d, point2point } from "../../util/Conversion";
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();

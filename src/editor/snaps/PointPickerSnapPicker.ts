@@ -5,7 +5,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import { DatabaseLike } from "../DatabaseLike";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PointPickerSnapPickerStrategy } from "./PointPickerSnapPickerStrategy";
-import { PointSnap } from "./Snap";
+import { PointSnap } from "./PointSnap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { defaultIntersectParams, defaultNearbyParams, RaycasterParams, SnapPicker, SnapResult } from "./SnapPicker";
 

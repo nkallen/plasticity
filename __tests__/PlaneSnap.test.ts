@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
-import { PlaneSnap } from "../src/editor/snaps/Snap";
+import { PlaneSnap } from "../src/editor/snaps/PlaneSnap";
 import { point2point, vec2vec } from "../src/util/Conversion";
 import './matchers';
 

@@ -6,7 +6,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
 import { PointPickerSnapPicker } from "../editor/snaps/PointPickerSnapPicker";
-import { PointSnap } from "../editor/snaps/Snap";
+import { PointSnap } from "../editor/snaps/PointSnap";
 import { SnapManagerGeometryCache } from '../editor/snaps/SnapManagerGeometryCache';
 import { SnapResult } from '../editor/snaps/SnapPicker';
 import { Helper, Helpers } from '../util/Helpers';

@@ -10,12 +10,16 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { ConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../src/editor/snaps/ConstructionPlaneSnap";
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
+import {  CurveEdgeSnap, CurveSnap, FaceSnap, TanTanSnap } from "../src/editor/snaps/Snaps";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
 import { SolidCopier } from "../src/editor/SolidCopier";
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
+import { AxisSnap } from "../src/editor/snaps/AxisSnap";
+import { OrRestriction } from "../src/editor/snaps/Snap";
+import { PlaneSnap } from "../src/editor/snaps/PlaneSnap";
+import { PointSnap } from "../src/editor/snaps/PointSnap";
 
 let db: GeometryDatabase;
 let snaps: SnapManager;

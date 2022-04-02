@@ -23,13 +23,13 @@ export default class SphereFactory extends GeometryFactory implements SpherePara
 
         if (radius < 10e-6) throw new NoOpError();
 
-        Z.set(1, 0, 0).add(center);
-        X.set(0, 0, 1).multiplyScalar(radius).add(center);
+        X.set(1, 0, 0).add(center);
+        Z.set(0, 0, 1).multiplyScalar(radius).add(center);
 
         const points = [
             point2point(center),
-            point2point(Z),
-            point2point(X)
+            point2point(X),
+            point2point(Z)
         ];
         const names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);

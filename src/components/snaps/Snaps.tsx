@@ -2,7 +2,7 @@ import { render } from 'preact';
 import * as THREE from 'three';
 import { PointPickerModel } from "../../command/point-picker/PointPickerModel";
 import { Editor } from '../../editor/Editor';
-import { Snap } from '../../editor/snaps/Snap';
+import { Snap } from "../../editor/snaps/Snap";
 import { SnapType } from '../../editor/snaps/SnapManager';
 import * as visual from '../../visual_model/VisualModel';
 

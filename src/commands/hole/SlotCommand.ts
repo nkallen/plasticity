@@ -1,7 +1,9 @@
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/point-picker/PointPicker";
 import { FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
-import { AxisSnap, FaceSnap, PlaneSnap } from "../../editor/snaps/Snap";
+import { FaceSnap } from "../../editor/snaps/Snaps";
+import { AxisSnap } from "../../editor/snaps/AxisSnap";
+import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { SlotDialog as SlotDialog } from "./SlotDialog";
 import { SlotFactory } from "./SlotFactory";
 

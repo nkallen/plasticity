@@ -2,7 +2,8 @@ import * as THREE from "three";
 import * as intersectable from "../../visual_model/Intersectable";
 import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
-import { PointSnap, Snap } from "../snaps/Snap";
+import { PointSnap } from "./PointSnap";
+import { Snap } from "./Snap";
 import { SnapManager } from "../snaps/SnapManager";
 
 export class SnapManagerGeometryCache {

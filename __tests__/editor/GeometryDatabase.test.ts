@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import c3d from '../build/Release/c3d.node';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -8,7 +8,7 @@ import { SolidCopier } from '../../src/editor/SolidCopier';
 import { point2point } from '../../src/util/Conversion';
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import './matchers';
+import '../matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -56,7 +56,6 @@ test("addItem with explicit name", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
 
-    const box2 = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
     const n = await db.addItem(box) as visual.Solid;
     expect(n.simpleName).toBe(101);
     expect(db.lookup(v)).toBeTruthy();
