@@ -5,6 +5,7 @@ import { PointSnap } from "./PointSnap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { GizmoSnapPickerStrategy } from "./GizmoSnapPickerStrategy";
 import { SnapPicker, RaycasterParams, defaultIntersectParams, defaultNearbyParams, SnapResult } from "./SnapPicker";
+import { Scene } from "../Scene";
 
 
 export class GizmoSnapPicker {
@@ -21,11 +22,11 @@ export class GizmoSnapPicker {
         this.picker.setFromViewport(e, viewport);
     }
 
-    nearby(snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
+    nearby(snaps: SnapManagerGeometryCache, scene: Scene): PointSnap[] {
         return this.picker.nearby([], snaps);
     }
 
-    intersect(snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
-        return this.picker.intersect([], [], snaps, db, []);
+    intersect(snaps: SnapManagerGeometryCache, scene: Scene): SnapResult[] {
+        return this.picker.intersect([], [], snaps, scene, []);
     }
 }

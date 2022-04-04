@@ -13,6 +13,7 @@ import { PointSnap } from "./PointSnap";
 import { Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
+import { Scene } from "../Scene";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -58,6 +59,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     constructor(
         private readonly db: DatabaseLike,
+        private readonly scene: Scene,
         private readonly crosses: CrossPointDatabase,
         private readonly signals: EditorSignals
     ) {
@@ -83,7 +85,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get all(): { basicSnaps: ReadonlySet<Snap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
-        const { db: { types } } = this;
+        const { scene: { types } } = this;
         const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<Snap>();
         const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
 

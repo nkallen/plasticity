@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
-import { NodeMemento } from './History';
+import { MementoOriginator, NodeMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { GeometryDatabase } from './GeometryDatabase';
 
 
-export class Nodes {
+export class Nodes implements MementoOriginator<NodeMemento> {
     private readonly name2material = new Map<c3d.SimpleName, number>();
     private readonly hidden = new Set<c3d.SimpleName>();
     private readonly invisible = new Set<c3d.SimpleName>();
@@ -48,7 +48,7 @@ export class Nodes {
         return this.hidden.has(name);
     }
 
-    async makeHidden(item: visual.Item, newValue: boolean) {
+     makeHidden(item: visual.Item, newValue: boolean) {
         const { hidden } = this;
         const name = this.db.lookupName(item.simpleName)!;
         const oldValue = hidden.has(name);
@@ -65,7 +65,7 @@ export class Nodes {
         }
     }
 
-    async makeVisible(item: visual.Item, newValue: boolean) {
+     makeVisible(item: visual.Item, newValue: boolean) {
         const { invisible } = this;
         const name = this.db.lookupName(item.simpleName)!;
         const oldValue = !invisible.has(name);

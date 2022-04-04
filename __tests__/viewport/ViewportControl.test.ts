@@ -87,7 +87,7 @@ class MyViewportControl extends ViewportControl {
 
 let control: MyViewportControl;
 beforeEach(() => {
-    control = new MyViewportControl(viewport, editor.layers, editor.db, editor.signals);
+    control = new MyViewportControl(viewport, editor.layers, editor.db, editor.scene, editor.signals);
 })
 
 afterEach(() => {

@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
+import { Scene } from "../editor/Scene";
 import { TextureLoader } from "../editor/TextureLoader";
 import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
@@ -29,13 +30,17 @@ export class RenderedSceneBuilder {
 
     constructor(
         private readonly db: DatabaseLike,
+        private readonly scene: Scene,
         private readonly textures: TextureLoader,
         private readonly editorSelection: HasSelectedAndHovered,
         theme: Theme,
         private readonly signals: EditorSignals,
     ) {
         const bindings: signals.SignalBinding[] = [];
-        bindings.push(signals.temporaryObjectAdded.add(({ view, material }) => this.highlightItem(view, material)));
+        bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) =>{
+            const material = ancestor !== undefined ? this.scene.getMaterial(ancestor) : undefined;
+            this.highlightItem(view, material)
+        }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
         bindings.push(signals.sceneGraphChanged.add(this.highlight));
@@ -132,7 +137,7 @@ export class RenderedSceneBuilder {
 
     highlight = () => {
         performance.mark('begin-highlight');
-        for (const item of this.db.visibleObjects) {
+        for (const item of this.scene.visibleObjects) {
             this.highlightItem(item);
         }
         this.highlightControlPoints();
@@ -265,7 +270,7 @@ export class RenderedSceneBuilder {
             hovered_phantom.forEach(s => s.materialIndex = 3);
             facegroup.mesh.material = this._mode === 'normal'
                 ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-                : [face_hovered, face_highlighted, override ?? this.db.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
+                : [face_hovered, face_highlighted, override ?? this.scene.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
             facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
         }
     }

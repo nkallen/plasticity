@@ -6,6 +6,7 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
+import { Scene } from "../editor/Scene";
 import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { SnapResult } from "../editor/snaps/SnapPicker";
@@ -48,6 +49,7 @@ export interface EditorLike {
     snaps: SnapManager;
     layers: LayerManager;
     activeViewport?: Viewport;
+    scene: Scene;
 }
 
 export interface GizmoLike<I, O> {
@@ -331,7 +333,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
     private readonly presenter = new SnapPresenter(this.editor);
     private readonly raycast = (...obj: THREE.Object3D[]) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster);
     private readonly snap = () => {
-        const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.db, this.editor.snaps.cache, this.editor.gizmos);
+        const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.scene, this.editor.snaps.cache, this.editor.gizmos);
         this.presenter.onPointerMove(this.viewport, presentation);
         return intersections;
     }

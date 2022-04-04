@@ -42,7 +42,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
 
     constructor(viewport: Viewport, private readonly editor: EditorLike) {
-        super(viewport, editor.layers, editor.db, editor.signals);
+        super(viewport, editor.layers, editor.db, editor.scene, editor.signals);
         this._raycaster.layers.enableAll();
     }
 
@@ -116,7 +116,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<T
                 if (moveEvent.ctrlKey) {
                     const { unprojected, snapPicker } = this;
                     snapPicker.setFromViewport(moveEvent, this.viewport);
-                    const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.db, this.editor.snaps.cache, this.editor.gizmos);
+                    const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.scene, this.editor.snaps.cache, this.editor.gizmos);
                     this.presenter.onPointerMove(this.viewport, presentation);
                     const point: THREE.Vector3 | undefined = intersections[0]?.position.clone();
                     if (point === undefined) return;

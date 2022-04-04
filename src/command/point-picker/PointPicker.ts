@@ -25,20 +25,22 @@ import { Executable } from '../Quasimode';
 import { SnapInfo, SnapPresentation, SnapPresenter } from '../SnapPresenter';
 import { Choices, PointPickerModel, PreferenceMode } from './PointPickerModel';
 import { PointAxisSnap } from '../../editor/snaps/AxisSnap';
+import { Scene } from '../../editor/Scene';
 
 export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
 export interface EditorLike {
-    db: DatabaseLike,
-    viewports: Viewport[],
-    snaps: SnapManager,
-    signals: EditorSignals,
-    helpers: Helpers,
-    crosses: CrossPointDatabase,
-    registry: CommandRegistry,
-    layers: LayerManager,
+    db: DatabaseLike;
+    viewports: Viewport[];
+    snaps: SnapManager;
+    signals: EditorSignals;
+    helpers: Helpers;
+    crosses: CrossPointDatabase;
+    registry: CommandRegistry;
+    layers: LayerManager;
     gizmos: GizmoMaterialDatabase;
     activeViewport?: Viewport;
+    scene: Scene;
 }
 
 export type PointInfo = { constructionPlane: ConstructionPlane, snap: Snap, orientation: THREE.Quaternion, cameraPosition: THREE.Vector3, cameraOrientation: THREE.Quaternion, isOrthoMode: boolean, viewport: Viewport }
@@ -183,7 +185,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
 
                     lastMoveEvent = () => onPointerMove(e);
                     picker.setFromViewport(e, viewport);
-                    const { presentation, intersections } = SnapPresentation.makeForPointPicker(picker, viewport, model, editor.db, snapCache, editor.gizmos);
+                    const { presentation, intersections } = SnapPresentation.makeForPointPicker(picker, viewport, model, editor.scene, snapCache, editor.gizmos);
                     presenter.onPointerMove(viewport, presentation);
 
                     this.model.activateMutualSnaps(intersections.map(s => s.snap));

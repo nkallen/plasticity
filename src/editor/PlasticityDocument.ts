@@ -61,7 +61,7 @@ export class PlasticityDocument {
             if (info.material === undefined) continue;
             name2material.set(item.simpleName, info.material);
         }
-        into.db.nodes.restoreFromMemento(new NodeMemento(name2material, new Set(), new Set(), new Set()));
+        into.scene.nodes.restoreFromMemento(new NodeMemento(name2material, new Set(), new Set(), new Set()));
         await into.contours.rebuild();
         return new PlasticityDocument(into);
     }

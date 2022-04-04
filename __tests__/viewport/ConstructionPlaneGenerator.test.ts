@@ -8,6 +8,7 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { PlaneDatabase } from "../../src/editor/PlaneDatabase";
+import { Scene } from "../../src/editor/Scene";
 import { FaceConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SolidCopier } from "../../src/editor/SolidCopier";
@@ -17,6 +18,7 @@ import '../matchers';
 
 let db: GeometryDatabase;
 let signals: EditorSignals;
+let scene: Scene;
 let materials: MaterialDatabase;
 let planes: PlaneDatabase;
 let snaps: SnapManager;
@@ -25,8 +27,9 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    scene = new Scene(db, materials, signals);
     planes = new PlaneDatabase(signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
+    snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);
 })
 
 let solid: visual.Solid;

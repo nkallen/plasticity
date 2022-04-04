@@ -27,11 +27,13 @@ import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 import { PointSnap } from '../../src/editor/snaps/PointSnap';
 import { PointAxisSnap } from '../../src/editor/snaps/AxisSnap';
+import { Scene } from '../../src/editor/Scene';
 
 let editor: Editor;
 let layers: LayerManager;
 let signals: EditorSignals;
 let db: GeometryDatabase;
+let scene: Scene;
 let materials: MaterialDatabase;
 let viewport: Viewport;
 let snaps: SnapManager;
@@ -45,6 +47,7 @@ beforeEach(() => {
     db = editor._db;
     signals = editor.signals;
     layers = editor.layers;
+    scene = editor.scene;
     viewport = MakeViewport(editor);
     snaps = editor.snaps;
     cache = new SnapManagerGeometryCache(snaps, editor.db);
@@ -95,7 +98,7 @@ describe(PointPickerSnapPicker, () => {
     test('intersect', () => {
         const intersection = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([intersection]).mockReturnValueOnce([]);
-        const result = picker.intersect(pointPicker, cache, db);
+        const result = picker.intersect(pointPicker, cache, scene);
         expect(result[0].snap).toBeInstanceOf(FaceSnap);
     });
 
@@ -104,7 +107,7 @@ describe(PointPickerSnapPicker, () => {
         const closer = { point: new THREE.Vector3(), distance: 0.1, object, index: 1 };
         const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([farther]).mockReturnValueOnce([closer]);
-        const results = picker.intersect(pointPicker, cache, db);
+        const results = picker.intersect(pointPicker, cache, scene);
         expect(results.length).toBe(1);
         expect(results[0].snap).toBeInstanceOf(EdgePointSnap);
     });
@@ -112,7 +115,7 @@ describe(PointPickerSnapPicker, () => {
     test('preference overrides nearest', () => {
         const faceIntersection = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([]);
-        const faceSnap = picker.intersect(pointPicker, cache, db)[0].snap;
+        const faceSnap = picker.intersect(pointPicker, cache, scene)[0].snap;
         if (!(faceSnap instanceof FaceSnap)) throw '';
 
         pointPicker.facePreferenceMode = 'weak';
@@ -121,7 +124,7 @@ describe(PointPickerSnapPicker, () => {
         const object = [...cache.geometrySnaps.points][0];
         const closer = { point: new THREE.Vector3(), distance: 0.1, object, index: 12 };
         raycast.mockReturnValueOnce([faceIntersection]).mockReturnValueOnce([closer]);
-        const results = picker.intersect(pointPicker, cache, db);
+        const results = picker.intersect(pointPicker, cache, scene);
         expect(results).toHaveLength(1);
         expect(results[0].snap).toBeInstanceOf(FaceSnap);
     });
@@ -132,7 +135,7 @@ describe(PointPickerSnapPicker, () => {
         picker.setFromViewport(event, viewport);
         raycaster.layers.enableAll();
         expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
-        picker.intersect(pointPicker, cache, db);
+        picker.intersect(pointPicker, cache, scene);
         expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(false);
         picker.disposable.dispose();
         expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
@@ -143,7 +146,7 @@ describe(PointPickerSnapPicker, () => {
         viewport.constructionPlane.priority = -1;
         const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([farther]);
-        const results = picker.intersect(pointPicker, cache, db);
+        const results = picker.intersect(pointPicker, cache, scene);
         expect(results.length).toBe(1);
         expect(results[0].snap).toBe(viewport.constructionPlane);
     });
@@ -153,7 +156,7 @@ describe(PointPickerSnapPicker, () => {
         viewport.constructionPlane.priority = 1000;
         const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
         raycast.mockReturnValueOnce([farther]);
-        const results = picker.intersect(pointPicker, cache, db);
+        const results = picker.intersect(pointPicker, cache, scene);
         expect(results.length).toBe(1);
         expect(results[0].snap).toBeInstanceOf(FaceCenterPointSnap);
     });
@@ -178,13 +181,13 @@ describe('Integration test', () => {
 
     describe('nearby', () => {
         test('when no geometry or point picker settings', () => {
-            expect(picker.nearby(pointPicker, cache, db).map(s => s.name)).toEqual(["Origin"]);
+            expect(picker.nearby(pointPicker, cache, scene).map(s => s.name)).toEqual(["Origin"]);
         });
 
         test('when point picker additions', () => {
             const snap = new PointSnap("foo", new THREE.Vector3());
             pointPicker.addSnap(snap);
-            expect(picker.nearby(pointPicker, cache, db).map(s => s.name)).toEqual(["foo", "Origin"]);
+            expect(picker.nearby(pointPicker, cache, scene).map(s => s.name)).toEqual(["foo", "Origin"]);
         })
 
         describe('when geometry additions', () => {
@@ -201,7 +204,7 @@ describe('Integration test', () => {
                 })
 
                 test('it returns snap points for the geometry', () => {
-                    const actual = picker.nearby(pointPicker, cache, db);
+                    const actual = picker.nearby(pointPicker, cache, scene);
                     expect(actual.length).toBe(20);
                 })
             });
@@ -219,7 +222,7 @@ describe('Integration test', () => {
                 })
 
                 test('it returns snap points for the geometry', () => {
-                    const actual = picker.nearby(pointPicker, cache, db);
+                    const actual = picker.nearby(pointPicker, cache, scene);
                     expect(actual.map(s => s.name)).toEqual(["End", "Beginning", "Origin"]);
                 })
             })
@@ -228,7 +231,7 @@ describe('Integration test', () => {
 
     describe('intersect', () => {
         test('when no geometry or point picker settings', () => {
-            expect(picker.intersect(pointPicker, cache, db)).toHaveLength(3);
+            expect(picker.intersect(pointPicker, cache, scene)).toHaveLength(3);
         });
 
         describe('when geometry additions', () => {
@@ -245,7 +248,7 @@ describe('Integration test', () => {
                 })
 
                 test('it returns snap points for the geometry', () => {
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(viewport.isOrthoMode).toBe(false);
                     expect(actual.length).toBe(1);
                     expect(actual.map(s => s.snap.name)).toEqual(['Center']);
@@ -266,7 +269,7 @@ describe('Integration test', () => {
                 })
 
                 test('it returns snap points for the geometry', () => {
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(actual.length).toBe(1);
                     expect(actual.map(s => s.snap.name)).toEqual(['End']);
                 })
@@ -287,7 +290,7 @@ describe('Integration test', () => {
                 })
 
                 test("when no restrictions", () => {
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(actual.length).toBe(1);
                     const first = actual[0];
                     expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
@@ -296,7 +299,7 @@ describe('Integration test', () => {
 
                 test('with a restriction, cursorPosition and position differ', () => {
                     pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3());
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(actual.length).toBe(2);
                     const first = actual[0];
                     expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
@@ -307,7 +310,7 @@ describe('Integration test', () => {
                     pointPicker.addAxesAt(new THREE.Vector3(1, 1, 0));
                     pointPicker.choose("x");
                     pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 0));
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(actual.length).toBe(1);
                     const first = actual[0];
                     expect(first.snap).toBeInstanceOf(PointAxisSnap);
@@ -323,7 +326,7 @@ describe('Integration test', () => {
                     pointPicker.addAxesAt(new THREE.Vector3(1, 1, 0));
                     pointPicker.choose("x");
                     pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 0));
-                    const actual = picker.intersect(pointPicker, cache, db);
+                    const actual = picker.intersect(pointPicker, cache, scene);
                     expect(actual.length).toBe(1);
                     const first = actual[0];
                     expect(first.snap).toBeInstanceOf(PointAxisSnap);

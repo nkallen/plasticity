@@ -14,6 +14,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { EditorOriginator, History } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { Scene } from '../src/editor/Scene';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
 import { SolidCopier } from '../src/editor/SolidCopier';
 import { Selection, SelectionDatabase } from '../src/selection/SelectionDatabase';
@@ -34,6 +35,7 @@ describe(EditorOriginator, () => {
     let selection: SelectionDatabase;
     let crosses: CrossPointDatabase;
     let viewports: Viewport[];
+    let scene: Scene;
     let history: History;
 
     beforeEach(() => {
@@ -50,7 +52,8 @@ describe(EditorOriginator, () => {
         curves = editor.curves;
         contours = editor.contours;
         viewports = [MakeViewport(editor)];
-        originator = new EditorOriginator(db, materials, selected, snaps, crosses, curves, contours, viewports);
+        scene = editor.scene;
+        originator = new EditorOriginator(db,scene, materials, selected, snaps, crosses, curves, contours, viewports);
     });
 
     let box1: visual.Solid;
@@ -76,7 +79,7 @@ describe(EditorOriginator, () => {
         const memento = originator.saveToMemento();
 
         db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-        originator = new EditorOriginator(db, materials, selected, snaps, crosses, curves, contours, viewports);
+        originator = new EditorOriginator(db, scene, materials, selected, snaps, crosses, curves, contours, viewports);
 
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);
@@ -84,12 +87,12 @@ describe(EditorOriginator, () => {
 
     test("undo & redo", async () => {
         history.add("Initial", originator.saveToMemento());
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
         await db.removeItem(box1);
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         history.undo();
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
         history.redo();
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
     })
 })

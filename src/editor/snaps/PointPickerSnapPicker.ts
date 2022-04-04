@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { PointPickerModel } from "../../command/point-picker/PointPickerModel";
 import { Viewport } from "../../components/viewport/Viewport";
 import { DatabaseLike } from "../DatabaseLike";
+import { Scene } from "../Scene";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PointPickerSnapPickerStrategy } from "./PointPickerSnapPickerStrategy";
 import { PointSnap } from "./PointSnap";
@@ -26,7 +27,7 @@ export class PointPickerSnapPicker {
         this.picker.setFromViewport(e, viewport);
     }
 
-    nearby(pointPicker: PointPickerModel, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
+    nearby(pointPicker: PointPickerModel, snaps: SnapManagerGeometryCache, scene: Scene): PointSnap[] {
         const points = this.collectPickerSnaps(pointPicker).points;
         return this.picker.nearby(points, snaps);
     }
@@ -46,7 +47,7 @@ export class PointPickerSnapPicker {
         return { points, notPoints };
     }
 
-    intersect(pointPicker: PointPickerModel, snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
+    intersect(pointPicker: PointPickerModel, snaps: SnapManagerGeometryCache, scene: Scene): SnapResult[] {
         const { picker, picker: { viewport }, strategy, raycaster } = this;
         const { choice } = pointPicker;
 
@@ -72,7 +73,7 @@ export class PointPickerSnapPicker {
         const cplaneIsFallback = !viewport.preferConstructionPlane;
         const other = !cplaneIsFallback ? cplane : [];
 
-        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, db, other, preference);
+        let intersections = picker.intersect([...notPoints, ...restrictionSnaps], points, snaps, scene, other, preference);
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);

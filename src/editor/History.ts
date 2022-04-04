@@ -8,6 +8,7 @@ import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
 import { Nodes } from "./Nodes";
+import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
 
@@ -138,7 +139,8 @@ export class EditorOriginator {
     private version = 0;
 
     constructor(
-        readonly db: MementoOriginator<GeometryMemento> & Serializble & { get nodes(): Nodes },
+        readonly db: MementoOriginator<GeometryMemento> & Serializble,
+        readonly scene: Scene,
         readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
@@ -152,7 +154,7 @@ export class EditorOriginator {
         const memento = new Memento(
             this.version++,
             this.db.saveToMemento(),
-            this.db.nodes.saveToMemento(),
+            this.scene.nodes.saveToMemento(),
             this.materials.saveToMemento(),
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
@@ -172,7 +174,7 @@ export class EditorOriginator {
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
-                    this.db.nodes.saveToMemento(),
+                    this.scene.saveToMemento(),
                     this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
@@ -186,7 +188,7 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
-            this.db.nodes.restoreFromMemento(m.nodes);
+            this.scene.restoreFromMemento(m.nodes);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
             this.snaps.restoreFromMemento(m.snaps);
@@ -206,7 +208,7 @@ export class EditorOriginator {
         this.selection.validate();
         this.curves.validate();
         this.db.validate();
-        this.db.nodes.validate();
+        this.scene.validate();
     }
 
     debug() {
@@ -217,7 +219,7 @@ export class EditorOriginator {
         this.curves.debug();
         this.crosses.debug();
         this.db.debug();
-        this.db.nodes.debug();
+        this.scene.debug();
         console.groupEnd();
     }
 }

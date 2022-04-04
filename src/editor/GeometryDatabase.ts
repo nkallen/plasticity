@@ -11,9 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { MeshCreator } from './MeshCreator';
-import { Nodes } from './Nodes';
 import { SolidCopier, SolidCopierPool } from './SolidCopier';
-import { TypeManager } from './TypeManager';
 
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.0009), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
@@ -24,7 +22,6 @@ type Builder = build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | bui
 
 export class GeometryDatabase implements DatabaseLike, MementoOriginator<GeometryMemento> {
     readonly queue = new SequentialExecutor();
-    readonly types = new TypeManager(this.signals);
 
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();
@@ -35,8 +32,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly automatics = new Set<c3d.SimpleName>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
-
-    readonly nodes = new Nodes(this, this.materials, this.signals);
 
     constructor(
         private readonly meshCreator: MeshCreator,
@@ -81,8 +76,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
         return this.queue.enqueue(async () => {
-            const result = await this._removeItem(view, agent);
-            this.nodes.delete(view.simpleName);
+            const result = this._removeItem(view, agent);
             const old = this.version2name.get(view.simpleName)!;
             this.version2name.delete(view.simpleName);
             this.name2version.delete(old);
@@ -114,19 +108,29 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         }
     }
 
-    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
-        return this.addTemporaryItem(object, undefined, materials, this.phantomObjects);
-    }
-
-    async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
-        return this.addTemporaryItem(to, from);
-    }
-
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {
         return fast();
     }
 
-    async addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
+    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+        return this._addTemporaryItem(object, undefined, materials, this.phantomObjects);
+    }
+
+    async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
+        const temp = await this._addTemporaryItem(to, from);
+        const view = temp.underlying as visual.Item;
+        this.signals.temporaryObjectAdded.dispatch({ view, ancestor: from });
+        return temp;
+    }
+
+    async addTemporaryItem(model: c3d.Item): Promise<TemporaryObject> {
+        const temp = await this._addTemporaryItem(model);
+        const view = temp.underlying as visual.Item;
+        this.signals.temporaryObjectAdded.dispatch({ view });
+        return temp;
+    }
+
+    private async _addTemporaryItem(model: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const { signals } = this;
         const tempId = this.negativeCounter--;
         const builder = await this.meshes(
@@ -137,11 +141,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             materials);
         const view = builder.build(tempId);
         into.add(view);
-        // TODO: find a more elegant way to do this
-        if (into === this.temporaryObjects) {
-            const material = ancestor !== undefined ? this.nodes.getMaterial(ancestor) : undefined;
-            this.signals.temporaryObjectAdded.dispatch({ view, material });
-        }
 
         view.visible = false;
         return {
@@ -168,7 +167,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.phantomObjects.clear();
     }
 
-    private async _removeItem(view: visual.Item, agent: Agent = 'user') {
+    private _removeItem(view: visual.Item, agent: Agent = 'user') {
         const simpleName = view.simpleName;
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(view);
@@ -251,21 +250,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         } else throw new Error("unsupported duplication");
     }
 
-    get visibleObjects(): visual.Item[] {
-        const { geometryModel, nodes, types } = this;
-        const difference = [];
-        for (const { view } of geometryModel.values()) {
-            if (nodes.isHidden(view)) continue;
-            if (!nodes.isVisible(view)) continue;
-            if (!types.isEnabled(view)) continue;
-            difference.push(view);
-        }
-        return difference;
-    }
-
-    get selectableObjects(): visual.Item[] {
-        const { nodes } = this;
-        return this.visibleObjects.filter(i => nodes.isSelectable(i));
+    get items() {
+        return [...this.geometryModel.values()];
     }
 
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][], includeMetadata: boolean, materials?: MaterialOverride): Promise<build.Builder<visual.SpaceInstance<visual.Curve3D | visual.Surface> | visual.Solid | visual.PlaneInstance<visual.Region>>> {
@@ -391,16 +377,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             }
         })
     }
-
-    isHidden(item: visual.Item): boolean { return this.nodes.isHidden(item) }
-    makeHidden(item: visual.Item, value: boolean): Promise<void> { return this.nodes.makeHidden(item, value) }
-    unhideAll(): Promise<visual.Item[]> { return this.nodes.unhideAll() }
-    isVisible(item: visual.Item): boolean { return this.nodes.isVisible(item) }
-    makeVisible(item: visual.Item, value: boolean): Promise<void> { return this.nodes.makeVisible(item, value) }
-    isSelectable(item: visual.Item): boolean { return this.nodes.isSelectable(item) }
-    makeSelectable(item: visual.Item, value: boolean): void { return this.nodes.makeSelectable(item, value) }
-    setMaterial(item: visual.Item, id: number): void { return this.nodes.setMaterial(item, id) }
-    getMaterial(item: visual.Item): THREE.Material | undefined { return this.nodes.getMaterial(item) }
 
     lookupName(version: c3d.SimpleName) {
         return this.version2name.get(version);

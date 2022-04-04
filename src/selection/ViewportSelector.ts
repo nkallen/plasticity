@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Scene } from "../editor/Scene";
 import Command, * as cmd from "../command/Command";
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, RaycasterParameters, ViewportControl } from "../components/viewport/ViewportControl";
@@ -23,11 +24,12 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         viewport: Viewport,
         layers: LayerManager,
         db: DatabaseLike,
+        scene: Scene,
         protected readonly keypress: SelectionKeypressStrategy,
         signals: EditorSignals,
         raycasterParams: RaycasterParameters = defaultRaycasterParams(),
     ) {
-        super(viewport, layers, db, signals, raycasterParams);
+        super(viewport, layers, db, scene, signals, raycasterParams);
     }
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
@@ -52,7 +54,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        const selected = this.selectionBox.selectObjects(this.db.selectableObjects) as unknown as intersectable.Intersectable[];
+        const selected = this.selectionBox.selectObjects(this.scene.selectableObjects) as unknown as intersectable.Intersectable[];
         this.processBoxHover(new Set(selected), moveEvent);
     }
 
@@ -69,7 +71,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        const selected = this.selectionBox.selectObjects(this.db.selectableObjects) as unknown as intersectable.Intersectable[];
+        const selected = this.selectionBox.selectObjects(this.scene.selectableObjects) as unknown as intersectable.Intersectable[];
         this.processBoxSelect(new Set(selected), upEvent);
     }
 
@@ -113,7 +115,7 @@ export function command2option(command: string) {
 
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(viewport: Viewport, private readonly editor: EditorLike,) {
-        super(viewport, editor.layers, editor.db, new SelectionKeypressStrategy(editor.keymaps), editor.signals);
+        super(viewport, editor.layers, editor.db, editor.scene, new SelectionKeypressStrategy(editor.keymaps), editor.signals);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent) {

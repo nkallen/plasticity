@@ -30,8 +30,6 @@ export interface MaterialOverride {
 }
 
 export interface DatabaseLike {
-    get types(): TypeManager;
-    
     get version(): number; addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
@@ -76,28 +74,6 @@ export interface DatabaseLike {
     find(klass: typeof visual.SpaceInstance, includeAutomatics?: boolean): { view: visual.SpaceInstance<visual.Curve3D>; model: c3d.SpaceInstance; }[];
     find(klass: typeof visual.Solid, includeAutomatics?: boolean): { view: visual.Solid; model: c3d.Solid; }[];
     findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[];
-
-    get visibleObjects(): visual.Item[];
-    get selectableObjects(): visual.Item[];
-    
-    ///
-
-    get nodes(): Nodes;
-
-    isHidden(item: visual.Item): boolean;
-    makeHidden(item: visual.Item, value: boolean): Promise<void>;
-    unhideAll(): Promise<visual.Item[]>;
-
-    isVisible(item: visual.Item): boolean;
-    makeVisible(item: visual.Item, value: boolean): Promise<void>;
-
-    isSelectable(item: visual.Item): boolean;
-    makeSelectable(item: visual.Item, value: boolean): void;
-
-    setMaterial(item: visual.Item, id: number): void;
-    getMaterial(item: visual.Item): THREE.Material | undefined;
-
-    ///
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool;
 

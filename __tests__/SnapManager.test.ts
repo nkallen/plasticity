@@ -8,6 +8,7 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
+import { Scene } from "../src/editor/Scene";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
 import { SolidCopier } from "../src/editor/SolidCopier";
 import { TypeManager } from "../src/editor/TypeManager";
@@ -16,6 +17,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let db: GeometryDatabase;
+let scene: Scene;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
@@ -29,9 +31,10 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    scene = new Scene(db, materials, signals);
     camera = new THREE.PerspectiveCamera();
-    types = db.types;
-    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
+    types = scene.types;
+    snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
 
@@ -80,23 +83,23 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.geometrySnaps.length).toBe(1);
     expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
-    db.makeHidden(box, true);
+    scene.makeHidden(box, true);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
 
-    db.makeHidden(box, false);
+    scene.makeHidden(box, false);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
     expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
-    db.makeHidden(box, true);
+    scene.makeHidden(box, true);
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
 
-    db.unhideAll();
+    scene.unhideAll();
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);

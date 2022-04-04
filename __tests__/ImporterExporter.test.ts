@@ -35,12 +35,12 @@ test("export & import c3d", async () => {
     const model = db.saveToMemento().model;
 
     await db.removeItem(item);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 
     const dir = os.tmpdir();
     const filePath = path.join(dir, 'export.c3d');
     await importer.export(model, filePath);
 
     await importer.open([filePath]);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 })

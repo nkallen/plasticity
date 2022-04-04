@@ -8,7 +8,9 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
+import { Scene } from '../src/editor/Scene';
 import { SolidCopier } from '../src/editor/SolidCopier';
+import { TextureLoader } from '../src/editor/TextureLoader';
 import { ChangeSelectionExecutor, ChangeSelectionModifier } from '../src/selection/ChangeSelectionExecutor';
 import { SelectionDatabase } from '../src/selection/SelectionDatabase';
 import { SelectionMode } from '../src/selection/SelectionModeSet';
@@ -19,6 +21,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let db: GeometryDatabase;
+let scene: Scene;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selection: SelectionDatabase;
@@ -30,8 +33,9 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    scene = new Scene(db, materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
-    highlighter = new RenderedSceneBuilder(db, materials, selection, theme, signals);
+    highlighter = new RenderedSceneBuilder(db, scene, new TextureLoader(), selection, theme, signals);
 
     const makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();

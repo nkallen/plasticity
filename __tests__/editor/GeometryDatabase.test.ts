@@ -33,38 +33,38 @@ beforeEach(() => {
 })
 
 test("addItem & lookup & removeItem", async () => {
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);
 
     const v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 });
 
 test("addItem with explicit name", async () => {
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);
 
     const v = await db.addItem(box, 'user', 100) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     const n = await db.addItem(box) as visual.Solid;
     expect(n.simpleName).toBe(101);
     expect(db.lookup(v)).toBeTruthy();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test("addItem & replaceItem", async () => {
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);
 
     const view1 = await db.addItem(box) as visual.Solid;
@@ -95,7 +95,7 @@ test("addItem & replaceItem", async () => {
 })
 
 test('lookupName & lookupByName', async () => {
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);
 
     const view1 = await db.addItem(box) as visual.Solid;
@@ -129,79 +129,25 @@ test('lookupName & lookupByName', async () => {
 
 test("saveToMemento & restoreFromMemento", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 
     const v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     const memento = db.saveToMemento();
 
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 
     db.restoreFromMemento(memento);
 
     expect(db.lookup(v)).toBeTruthy();
     expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
-})
-
-test("hide & unhide", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
-
-    const v = await db.addItem(box) as visual.Solid;
-    expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
-
-    db.makeHidden(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
-
-    db.makeHidden(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
-})
-
-test("toggle visibility", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
-
-    const v = await db.addItem(box) as visual.Solid;
-    expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
-
-    db.makeVisible(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(0);
-
-    db.makeVisible(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.visibleObjects.length).toBe(1);
-})
-
-test("toggle selectable", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.selectableObjects.length).toBe(0);
-
-    const v = await db.addItem(box) as visual.Solid;
-    expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.selectableObjects.length).toBe(1);
-
-    db.makeSelectable(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.selectableObjects.length).toBe(0);
-
-    db.makeSelectable(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(db.selectableObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 })
 
 test("lookupTopologyItem", async () => {
@@ -217,25 +163,25 @@ test("lookupTopologyItem", async () => {
 describe("addTemporaryItem", () => {
     test("cancel", async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(0);
-        expect(db.selectableObjects.length).toBe(0);
+        expect(db.items.length).toBe(0);
+        expect(db.items.length).toBe(0);
 
         const temp = await db.addTemporaryItem(box);
         expect(db.temporaryObjects.children.length).toBe(1);
-        expect(db.visibleObjects.length).toBe(0);
-        expect(db.selectableObjects.length).toBe(0);
+        expect(db.items.length).toBe(0);
+        expect(db.items.length).toBe(0);
 
         temp.cancel();
 
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(0);
-        expect(db.selectableObjects.length).toBe(0);
+        expect(db.items.length).toBe(0);
+        expect(db.items.length).toBe(0);
     });
 });
 
 test("lookupTopologyItemById", async () => {
     const solid = await db.addItem(box) as visual.Solid;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     const faces = solid.allFaces;
     expect(faces.length).toBe(2 * 6);
@@ -253,7 +199,7 @@ test("lookupTopologyItemById", async () => {
 test("lookupControlPointById", async () => {
     const curve = c3d.ActionCurve3D.SplineCurve(points.map(p => point2point(p)), false, c3d.SpaceType.Hermit3D);
     const instance = await db.addItem(new c3d.SpaceInstance(curve)) as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     const controlPoints: visual.ControlPointGroup[] = [];
     instance.traverse(o => {
@@ -316,10 +262,10 @@ test("serialize & deserialize", async () => {
     expect(view.simpleName).toBe(10);
 
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 
     await db.deserialize(data);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
-    expect(db.visibleObjects[0].simpleName).toBe(1);
+    expect(db.items[0].view.simpleName).toBe(1);
 })

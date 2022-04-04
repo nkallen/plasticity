@@ -2,6 +2,7 @@ import KeymapManager from "atom-keymap-plasticity";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { Scene } from "./Scene";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
 import { GizmoMaterialDatabase } from "../command/GizmoMaterials";
@@ -54,7 +55,7 @@ export class Editor {
 
     readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
     readonly regions = new RegionManager(this._db, this.curves);
-    readonly contours = new ContourManager(this._db, this.curves, this.regions);
+    readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
     readonly db = this.contours as DatabaseLike;
 
     readonly selection = new SelectionDatabase(this._db, this.materials, this.signals);
@@ -62,19 +63,20 @@ export class Editor {
     readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
-    readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
+    readonly scene = new Scene(this._db, this.materials, this.signals);
+    readonly snaps = new SnapManager(this.db, this.scene, this.crosses, this.signals);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this._db, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
+    readonly originator = new EditorOriginator(this._db, this.scene, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
-    readonly highlighter = new RenderedSceneBuilder(this.db, this.textures, this.selection, this.styles, this.signals);
+    readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
     readonly importer = new ImporterExporter(this);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
@@ -110,7 +112,7 @@ export class Editor {
     }
 
     private _activeViewport?: Viewport;
-    get activeViewport() { return this._activeViewport }
+    get activeViewport() { return this._activeViewport ?? this.viewports[0] }
     onViewportActivated = (v: Viewport) => {
         this._activeViewport = v;
     }

@@ -74,10 +74,10 @@ describe(AbstractGeometryFactory, () => {
             replacement2 = await makeSphere4.calculate() as c3d.Solid;
         });
 
-        test("it replaces the original item", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+        test.only("it replaces the original item", async () => {
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)
@@ -90,15 +90,15 @@ describe(AbstractGeometryFactory, () => {
             expect(newViews.length).toBe(1);
             const newView = newViews[0];
 
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere2);
-            expect(db.visibleObjects[1]).toBe(newView);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere2);
+            expect(db.items[1].view).toBe(newView);
         });
 
         test("when it produces less than it consumes", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)
@@ -111,14 +111,14 @@ describe(AbstractGeometryFactory, () => {
             expect(newViews.length).toBe(1);
             const newView = newViews[0];
 
-            expect(db.visibleObjects.length).toBe(1);
-            expect(db.visibleObjects[0]).toBe(newView);
+            expect(db.items.length).toBe(1);
+            expect(db.items[0].view).toBe(newView);
         });
 
         test("when it produces more than it consumes", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)
@@ -132,10 +132,10 @@ describe(AbstractGeometryFactory, () => {
             const newView0 = newViews[0];
             const newView1 = newViews[1];
 
-            expect(db.visibleObjects.length).toBe(3);
-            expect(db.visibleObjects[0]).toBe(sphere2);
-            expect(db.visibleObjects[1]).toBe(newView0);
-            expect(db.visibleObjects[2]).toBe(newView1);
+            expect(db.items.length).toBe(3);
+            expect(db.items[0].view).toBe(sphere2);
+            expect(db.items[1].view).toBe(newView0);
+            expect(db.items[2]).toBe(newView1);
         });
     });
 
@@ -163,9 +163,9 @@ describe(AbstractGeometryFactory, () => {
         });
 
         test("it replaces the original item", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)
@@ -186,9 +186,9 @@ describe(AbstractGeometryFactory, () => {
         });
 
         test("when it produces less than it consumes", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)
@@ -211,9 +211,9 @@ describe(AbstractGeometryFactory, () => {
         });
 
         test("when it produces more than it consumes", async () => {
-            expect(db.visibleObjects.length).toBe(2);
-            expect(db.visibleObjects[0]).toBe(sphere1);
-            expect(db.visibleObjects[1]).toBe(sphere2);
+            expect(db.items.length).toBe(2);
+            expect(db.items[0].view).toBe(sphere1);
+            expect(db.items[1].view).toBe(sphere2);
 
             const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
             expect(view1).toBe(sphere1)

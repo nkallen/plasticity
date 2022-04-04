@@ -9,6 +9,7 @@ import { PointSnap } from "./PointSnap";
 import { Snap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { RaycasterParams, SnapResult } from "./SnapPicker";
+import { Scene } from "../Scene";
 
 const defaultIntersectParams: RaycasterParams = {
     Line: { threshold: 0.1 },
@@ -41,8 +42,8 @@ export abstract class SnapPickerStrategy {
         raycaster.layers.mask = snaps.layers.mask;
     }
 
-    intersectWithGeometry(raycaster: THREE.Raycaster, snaps: SnapManagerGeometryCache, db: DatabaseLike, preference: Snap | undefined): { restriction: Snap | undefined; geo_intersections_snaps: SnapAndIntersection[] } {
-        let visible = db.visibleObjects;
+    intersectWithGeometry(raycaster: THREE.Raycaster, snaps: SnapManagerGeometryCache, scene: Scene, preference: Snap | undefined): { restriction: Snap | undefined; geo_intersections_snaps: SnapAndIntersection[] } {
+        let visible = scene.visibleObjects;
         visible = visible.filter(item => !item.isTemporaryOptimization); // FIXME: I dislike this approach; make TranslateFactory generate real TemporaryObjects rather than reusing the actual Items
         const geoIntersections = raycaster.intersectObjects(visible, false);
         const geo_intersections_snaps = this.intersections2snaps(snaps, geoIntersections);

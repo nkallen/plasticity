@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { Scene } from "../../editor/Scene";
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from "../../editor/EditorSignals";
 import LayerManager from "../../editor/LayerManager";
@@ -61,6 +62,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly viewport: Viewport,
         protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
+        protected readonly scene: Scene,
         private readonly signals: EditorSignals,
         readonly raycasterParams: RaycasterParameters = defaultRaycasterParams(),
     ) {
@@ -101,7 +103,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 this.viewport.getNormalizedMousePosition(downEvent, this.onDownPosition);
                 this.normalizedMousePosition.copy(this.onDownPosition);
 
-                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.selectableObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.scene.selectableObjects);
                 if (!this.startClick(intersects, downEvent)) return;
 
                 const disposable = new CompositeDisposable();
@@ -130,14 +132,14 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
         switch (this.state.tag) {
             case 'none': {
-                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.selectableObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.scene.selectableObjects);
                 if (intersects.length === 0) break;
                 this.startHover(intersects, moveEvent);
                 this.state = { tag: 'hover', previousEvent: this.state.previousEvent };
                 break;
             }
             case 'hover': {
-                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.selectableObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.scene.selectableObjects);
                 if (intersects.length === 0) {
                     this.endHover();
                     this.state = { tag: 'none' };
@@ -178,7 +180,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'down':
                 const { previousEvent } = this.state;
 
-                const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.selectableObjects]);
+                const intersects = this.getIntersects(this.normalizedMousePosition, [...this.scene.selectableObjects]);
                 const currentTime = upEvent.timeStamp;
                 try {
                     if (previousEvent !== undefined
@@ -228,7 +230,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 wheelEvent.stopImmediatePropagation();
 
                 this.viewport.getNormalizedMousePosition(this.state.downEvent, this.normalizedMousePosition);
-                const intersections = this.getIntersects(this.normalizedMousePosition, [...this.db.selectableObjects], true);
+                const intersections = this.getIntersects(this.normalizedMousePosition, [...this.scene.selectableObjects], true);
                 if (intersections.length === 0) return;
                 this.startHover([intersections[0]], wheelEvent);
                 this.state = { tag: 'wheel', intersections, index: 0, disposable: this.state.disposable };

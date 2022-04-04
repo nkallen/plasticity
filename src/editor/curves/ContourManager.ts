@@ -5,6 +5,7 @@ import * as visual from "../../visual_model/VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
 import { Agent } from '../DatabaseLike';
+import { EditorSignals } from '../EditorSignals';
 
 /**
  * The ContourManager is a DatabaseProxy that observes inserts/deletes/replaces of curves. When the curves change in the system
@@ -39,12 +40,14 @@ export default class ContourManager extends DatabaseProxy {
         db: GeometryDatabase,
         private readonly curves: PlanarCurveDatabase,
         private readonly regions: RegionManager,
+        signals: EditorSignals,
     ) {
         super(db);
+        signals.objectUnhidden.add(item => this.makeHidden(item, false));
+        signals.objectHidden.add(item => this.makeHidden(item, true));
     }
 
-    async makeHidden(item: visual.Item, value: boolean) {
-        const result = await this.db.makeHidden(item, value);
+    private async makeHidden(item: visual.Item, value: boolean) {
         if (item instanceof visual.SpaceInstance) {
             if (value) {
                 await this.removeCurve(item);
@@ -52,32 +55,6 @@ export default class ContourManager extends DatabaseProxy {
                 await this.addCurve(item);
             }
         }
-        return result;
-    }
-
-    async makeVisible(item: visual.Item, value: boolean): Promise<void> {
-        const result = await this.db.makeVisible(item, value);
-        if (item instanceof visual.SpaceInstance) {
-            if (value) {
-                await this.addCurve(item);
-            } else {
-                await this.removeCurve(item);
-            }
-        }
-        return result;
-    }
-
-    // FIXME, this should be in a contour transaction
-    async unhideAll(): Promise<visual.Item[]> {
-        const unhidden = await this.db.unhideAll();
-        const promises = [];
-        for (const item of unhidden) {
-            if (item instanceof visual.SpaceInstance) {
-                promises.push(this.addCurve(item));
-            }
-        }
-        await Promise.all(promises);
-        return unhidden;
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -112,7 +89,7 @@ export default class ContourManager extends DatabaseProxy {
         return result;
     }
 
-    async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+    private async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none':
                 await this.curves.add(curve);
@@ -124,7 +101,7 @@ export default class ContourManager extends DatabaseProxy {
         }
     }
 
-    async removeCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+    private async removeCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none':
                 const info = this.curves.lookup(curve);

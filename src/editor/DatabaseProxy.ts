@@ -7,7 +7,6 @@ import { Material } from 'three';
 export class DatabaseProxy implements DatabaseLike {
     constructor(protected readonly db: DatabaseLike) { }
 
-    get types() { return this.db.types }
     get version() { return this.db.version }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -103,28 +102,6 @@ export class DatabaseProxy implements DatabaseLike {
     findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[] {
         return this.db.findAll(includeAutomatics);
     }
-
-    ///
-
-    get nodes() { return this.db.nodes }
-
-    get visibleObjects(): visual.Item[] { return this.db.visibleObjects }
-    get selectableObjects(): visual.Item[] { return this.db.selectableObjects }
-
-    isHidden(item: visual.Item) { return this.db.isHidden(item) }
-    makeHidden(item: visual.Item, value: boolean): Promise<void> { return this.db.makeHidden(item, value) }
-    unhideAll(): Promise<visual.Item[]> { return this.db.unhideAll() }
-
-    isVisible(item: visual.Item) { return this.db.isVisible(item) }
-    makeVisible(item: visual.Item, value: boolean): Promise<void> { return this.db.makeVisible(item, value) }
-
-    isSelectable(item: visual.Item) { return this.db.isSelectable(item) }
-    makeSelectable(item: visual.Item, value: boolean) { this.db.makeSelectable(item, value) }
-
-    setMaterial(item: visual.Item, id: number) { this.db.setMaterial(item, id) }
-    getMaterial(item: visual.Item) { return this.db.getMaterial(item) }
-
-    ///
 
     pool(solid: c3d.Solid, size: number) {
         return this.db.pool(solid, size);

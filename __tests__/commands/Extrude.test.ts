@@ -162,7 +162,7 @@ describe(FaceExtrudeFactory, () => {
 
         expect(extrude.originalItem).toBeUndefined();
 
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
     })
 
     test('faces automatically set the boolean operation type based on direction', async () => {
@@ -183,7 +183,7 @@ describe(FaceExtrudeFactory, () => {
 
         expect(extrude.originalItem).toBe(box);
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     });
 })
 
@@ -209,7 +209,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
         makeSphere.radius = 1;
         sphere = await makeSphere.commit() as visual.Solid;
 
-        expect(db.visibleObjects.length).toBe(3);
+        expect(db.items.length).toBe(3);
     });
 
     describe('region', () => {
@@ -235,7 +235,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 2));
 
-            expect(db.visibleObjects.length).toBe(3);
+            expect(db.items.length).toBe(3);
         })
 
         test('newBody=true', async () => {
@@ -254,7 +254,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.1, -0.1, 0.5));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.1, 0.1, 2));
 
-            expect(db.visibleObjects.length).toBe(4);
+            expect(db.items.length).toBe(4);
         })
 
         test('solid=undefined', async () => {
@@ -271,7 +271,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.1, -0.1, 0.5));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.1, 0.1, 2));
 
-            expect(db.visibleObjects.length).toBe(4);
+            expect(db.items.length).toBe(4);
         })
 
         test('basic difference', async () => {
@@ -289,7 +289,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 
-            expect(db.visibleObjects.length).toBe(3);
+            expect(db.items.length).toBe(3);
         })
 
         describe('phantom', () => {

@@ -45,114 +45,114 @@ test('adding and deleting a circle', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     await curves.remove(circle1);
     await db.removeItem(circle1);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 })
 
 test('three intersecting circles, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 
     await curves.add(circle2);
-    expect(db.visibleObjects.length).toBe(2 + 4);
+    expect(db.items.length).toBe(2 + 4);
 
     makeCircle3.center = new THREE.Vector3(0, 1.1, 0);
     makeCircle3.radius = 1;
     const circle3 = await makeCircle3.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(6 + 1);
+    expect(db.items.length).toBe(6 + 1);
 
     await curves.add(circle3);
-    expect(db.visibleObjects.length).toBe(3 + 8);
+    expect(db.items.length).toBe(3 + 8);
 
     await curves.remove(circle3);
     await db.removeItem(circle3);
-    expect(db.visibleObjects.length).toBe(6);
+    expect(db.items.length).toBe(6);
 
     await curves.remove(circle2);
     await db.removeItem(circle2);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test('two non-intersecting circles', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 5, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 
     await curves.add(circle2);
-    expect(db.visibleObjects.length).toBe(4);
+    expect(db.items.length).toBe(4);
 
     await curves.remove(circle2);
     await db.removeItem(circle2);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test('two circles that intersect in 2d but not 3d', async () => {
     makeCircle1.center = new THREE.Vector3(-0.25, 0, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0.25, 0, 1);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 
     await curves.add(circle2);
-    expect(db.visibleObjects.length).toBe(4);
+    expect(db.items.length).toBe(4);
 
     await curves.remove(circle2);
     await db.removeItem(circle2);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test('the newly created curves have right placement', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 1);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
-    expect(db.visibleObjects[0]).toBeInstanceOf(visual.SpaceInstance);
-    expect(db.visibleObjects[1]).toBeInstanceOf(visual.SpaceInstance);
+    expect(db.items[0].view).toBeInstanceOf(visual.SpaceInstance);
+    expect(db.items[1].view).toBeInstanceOf(visual.SpaceInstance);
 
     const bbox = new THREE.Box3();
     const center = new THREE.Vector3();
 
-    bbox.setFromObject(db.visibleObjects[0]);
+    bbox.setFromObject(db.items[0].view);
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
 
-    bbox.setFromObject(db.visibleObjects[1]);
+    bbox.setFromObject(db.items[1].view);
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
 });
@@ -161,23 +161,23 @@ test('open curve through circle, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;
     const circle = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     makeCurve1.points.push(new THREE.Vector3(-2, 2, 0))
     makeCurve1.points.push(new THREE.Vector3());
     makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
     const curve = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 
     await curves.add(curve);
-    expect(db.visibleObjects.length).toBe(2 + 5);
+    expect(db.items.length).toBe(2 + 5);
 
     await curves.remove(curve);
     await db.removeItem(curve);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test('userAddedCurve event is dispatched only when the user interacts with the db, not when fragments are automatically created; other events behave the same in both cases', async () => {
@@ -193,13 +193,13 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
 
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
     expect(userAddedObject).toBe(1);
     expect(robotAddedObject).toBe(0);
 
     await curves.add(circle1);
 
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
     expect(userAddedObject).toBe(1);
     expect(robotAddedObject).toBe(1);
 
@@ -208,13 +208,13 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
 
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
     expect(userAddedObject).toBe(2);
     expect(robotAddedObject).toBe(1);
 
     await curves.add(circle2);
 
-    expect(db.visibleObjects.length).toBe(2 + 4);
+    expect(db.items.length).toBe(2 + 4);
     expect(userAddedObject).toBe(2);
     expect(robotAddedObject).toBe(5);
 });
@@ -223,22 +223,22 @@ test("removing circles in reverse order works", async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
 
     await curves.add(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 
     await curves.add(circle2);
-    expect(db.visibleObjects.length).toBe(2 + 4);
+    expect(db.items.length).toBe(2 + 4);
 
     await curves.remove(circle1);
     await db.removeItem(circle1);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 })
 
 test("removing lines in reverse order works", async () => {
@@ -248,7 +248,7 @@ test("removing lines in reverse order works", async () => {
     const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
     await curves.add(curve1);
 
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     const makeCurve2 = new CurveFactory(db, materials, signals);
     makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
@@ -256,7 +256,7 @@ test("removing lines in reverse order works", async () => {
     const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
     await curves.add(curve2);
 
-    expect(db.visibleObjects.length).toBe(4);
+    expect(db.items.length).toBe(4);
 
     const makeCurve3 = new CurveFactory(db, materials, signals);
     makeCurve3.points.push(new THREE.Vector3(0, 5, 0));
@@ -264,19 +264,19 @@ test("removing lines in reverse order works", async () => {
     const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
     await curves.add(curve3);
 
-    expect(db.visibleObjects.length).toBe(6);
+    expect(db.items.length).toBe(6);
 
     await curves.remove(curve1);
     db.removeItem(curve1);
-    expect(db.visibleObjects.length).toBe(4);
+    expect(db.items.length).toBe(4);
 
     await curves.remove(curve2);
     await db.removeItem(curve2);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 
     await curves.remove(curve3);
     await db.removeItem(curve3);
-    expect(db.visibleObjects.length).toBe(0);
+    expect(db.items.length).toBe(0);
 });
 
 test("simple polylines don't error", async () => {
@@ -286,9 +286,9 @@ test("simple polylines don't error", async () => {
     makeLine.points.push(new THREE.Vector3(-2, 4, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
     await curves.add(line);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.items.length).toBe(2);
 });
 
 test("polylines are broken into their constituent segments", async () => {
@@ -299,9 +299,9 @@ test("polylines are broken into their constituent segments", async () => {
     makeLine.points.push(new THREE.Vector3(-4, -4, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
     await curves.add(line);
-    expect(db.visibleObjects.length).toBe(3);
+    expect(db.items.length).toBe(3);
 });
 
 test("closed polylines are borken into their constituent segments", async () => {
@@ -310,9 +310,9 @@ test("closed polylines are borken into their constituent segments", async () => 
     makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
     const rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.items.length).toBe(1);
     await curves.add(rectangle);
-    expect(db.visibleObjects.length).toBe(5);
+    expect(db.items.length).toBe(5);
 });
 
 describe("Joints", () => {
@@ -320,16 +320,16 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3());
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         await curves.add(curve1);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(3);
+        expect(db.items.length).toBe(3);
         await curves.add(curve2);
-        expect(db.visibleObjects.length).toBe(4);
+        expect(db.items.length).toBe(4);
 
         const joints1 = curves.lookup(curve1).joints;
         const joints2 = curves.lookup(curve2).joints;
@@ -351,16 +351,16 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve1.points.push(new THREE.Vector3());
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         await curves.add(curve1);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(3);
+        expect(db.items.length).toBe(3);
         await curves.add(curve2);
-        expect(db.visibleObjects.length).toBe(4);
+        expect(db.items.length).toBe(4);
 
         const joints1 = curves.lookup(curve1).joints;
         const joints2 = curves.lookup(curve2).joints;
@@ -382,16 +382,16 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3());
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         await curves.add(curve1);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(3);
+        expect(db.items.length).toBe(3);
         await curves.add(curve2);
-        expect(db.visibleObjects.length).toBe(4);
+        expect(db.items.length).toBe(4);
 
         const joints1 = curves.lookup(curve1).joints;
         const joints2 = curves.lookup(curve2).joints;
@@ -413,23 +413,23 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3());
         makeCurve1.points.push(new THREE.Vector3(1, 1, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         await curves.add(curve1);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(1, 1, 0));
         makeCurve2.points.push(new THREE.Vector3(0, 1, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(3);
+        expect(db.items.length).toBe(3);
         await curves.add(curve2);
-        expect(db.visibleObjects.length).toBe(4);
+        expect(db.items.length).toBe(4);
 
         makeCurve3.points.push(new THREE.Vector3());
         makeCurve3.points.push(new THREE.Vector3(0, 1, 0));
         const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(5);
+        expect(db.items.length).toBe(5);
         await curves.add(curve3);
-        expect(db.visibleObjects.length).toBe(6);
+        expect(db.items.length).toBe(6);
 
         const joints1 = curves.lookup(curve1).joints;
         const joints2 = curves.lookup(curve2).joints;

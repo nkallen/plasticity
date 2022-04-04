@@ -11,6 +11,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { Scene } from "../../src/editor/Scene";
 import { SolidCopier } from "../../src/editor/SolidCopier";
 import { inst2curve, point2point } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -20,6 +21,7 @@ import '../matchers';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
+let scene: Scene;
 let curves: PlanarCurveDatabase;
 let regions: RegionManager;
 let contours: ContourManager;
@@ -32,9 +34,10 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    scene = new Scene(db, materials, signals);
     curves = new PlanarCurveDatabase(db, materials, signals);
     regions = new RegionManager(db, curves);
-    contours = new ContourManager(db, curves, regions);
+    contours = new ContourManager(db, curves, regions, signals);
 })
 
 describe(TrimFactory, () => {
@@ -283,7 +286,7 @@ describe(TrimFactory, () => {
             })
 
             test("fragment=0", async () => {
-                expect(db.visibleObjects.length).toBe(2);
+                expect(scene.visibleObjects.length).toBe(2);
 
                 const { fragments } = curves.lookup(line);
                 const fragment = await fragments[0];
@@ -291,7 +294,7 @@ describe(TrimFactory, () => {
                 const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
                 expect(trimmed.length).toBe(0);
 
-                expect(db.visibleObjects.length).toBe(1);
+                expect(scene.visibleObjects.length).toBe(1);
             });
         })
     })

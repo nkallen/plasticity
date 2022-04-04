@@ -116,7 +116,7 @@ describe(ContourFilletFactory, () => {
         makeContour.push(line2);
         const contour = (await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[])[0] as visual.SpaceInstance<visual.Curve3D>;
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
@@ -129,7 +129,7 @@ describe(ContourFilletFactory, () => {
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     });
 
     test("fillet of 0th control point of triangle", async () => {
@@ -196,6 +196,6 @@ describe(ContourFilletFactory, () => {
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     });
 });

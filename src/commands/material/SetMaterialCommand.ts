@@ -22,13 +22,13 @@ export interface MaterialParams {
 
 export class SetMaterialCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        const { editor: { db, selection: { selected }, materials, signals } } = this;
+        const { editor: { db, scene, selection: { selected }, materials, signals } } = this;
         const view = selected.solids.first;
-        let material = db.getMaterial(view) as THREE.MeshPhysicalMaterial;
+        let material = scene.getMaterial(view) as THREE.MeshPhysicalMaterial;
         if (material === undefined) {
             material = defaultPhysicalMaterial.clone();
             const id = materials.add("New material", material);
-            db.setMaterial(view, id);
+            scene.setMaterial(view, id);
         }
 
         const dialog = new MaterialDialog(material, signals);

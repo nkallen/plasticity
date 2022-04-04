@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Scene } from '../editor/Scene';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";
 import { GizmoSnapPicker } from "../editor/snaps/GizmoSnapPicker";
 import { PointPickerSnapPicker } from "../editor/snaps/PointPickerSnapPicker";
@@ -25,11 +26,11 @@ export interface SnapInfo extends PointInfo {
 // There are icons, indicators, textual name explanations, etc.
 
 export class SnapPresentation {
-    static makeForPointPicker(picker: PointPickerSnapPicker, viewport: Viewport, pointPicker: PointPickerModel, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
+    static makeForPointPicker(picker: PointPickerSnapPicker, viewport: Viewport, pointPicker: PointPickerModel, scene: Scene, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
         const { constructionPlane, isOrthoMode } = viewport;
 
-        const nearby = picker.nearby(pointPicker, snapCache, db);
-        const intersections = picker.intersect(pointPicker, snapCache, db);
+        const nearby = picker.nearby(pointPicker, snapCache, scene);
+        const intersections = picker.intersect(pointPicker, snapCache, scene);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrthoMode);
         const indicator = new SnapIndicator(gizmos);
         const activatedHelpers = [...pointPicker.activatedHelpers].map(s => s.helper!).filter(h => h !== undefined);
@@ -38,11 +39,11 @@ export class SnapPresentation {
         return { presentation, intersections, nearby };
     }
 
-    static makeForGizmo(picker: GizmoSnapPicker, viewport: Viewport, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
+    static makeForGizmo(picker: GizmoSnapPicker, viewport: Viewport, scene: Scene, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
         const { constructionPlane } = viewport;
 
-        const nearby = picker.nearby(snapCache, db);
-        const intersections = picker.intersect(snapCache, db);
+        const nearby = picker.nearby(snapCache, scene);
+        const intersections = picker.intersect(snapCache, scene);
         const indicators = new SnapIndicator(gizmos);
 
         const presentation = new SnapPresentation(nearby, intersections, constructionPlane, viewport, indicators, []);

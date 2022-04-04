@@ -58,7 +58,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-3, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 0, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
     });
 
@@ -113,7 +113,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('moving first point', async () => {
@@ -129,7 +129,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-1, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('moving middle point', async () => {
@@ -145,7 +145,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('moving two points', async () => {
@@ -161,7 +161,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-1, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     })
 
@@ -203,7 +203,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     });
 
@@ -253,7 +253,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 0.25, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     });
 
@@ -290,7 +290,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, -0.017, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2.03, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('controlPointInfo', async () => {
@@ -347,7 +347,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-0.99, 0.932, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, -0.28, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2.15, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     });
 
@@ -398,7 +398,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1.33, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.33, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('controlPointInfo', async () => {
@@ -470,7 +470,7 @@ describe(MoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1.33, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.33, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('controlPointInfo', async () => {
@@ -536,7 +536,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('remove middle point', async () => {
@@ -551,7 +551,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('remove last point', async () => {
@@ -566,7 +566,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('remove two adjacent points', async () => {
@@ -581,7 +581,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(2.5, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('remove two staggered points', async () => {
@@ -596,7 +596,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 2, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('remove all but one point', async () => {
@@ -653,7 +653,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1.45, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.08, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('removing a mid point', async () => {
@@ -668,7 +668,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1.7, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0.41, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
 
         test('removing all points in polycurve removes its segment', async () => {
@@ -688,7 +688,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(2.5, 2.5, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     });
 
@@ -733,7 +733,7 @@ describe(RemoveContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 0.75, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1.5, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         })
     });
 });
@@ -779,7 +779,7 @@ describe(ScaleContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, -0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, -1));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('scale all points', async () => {
@@ -795,7 +795,7 @@ describe(ScaleContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
     })
 })
@@ -842,7 +842,7 @@ describe(RotateContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, -0.75));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, -1.5));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
 
         test('rotate all points', async () => {
@@ -859,7 +859,7 @@ describe(RotateContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(1.5, 1.5, 1.25));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(1, -1, -1.5));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 4, 4));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
     })
 })
@@ -905,7 +905,7 @@ describe(FreestyleScaleContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
-            expect(db.visibleObjects.length).toBe(1);
+            expect(db.items.length).toBe(1);
         });
     })
 })

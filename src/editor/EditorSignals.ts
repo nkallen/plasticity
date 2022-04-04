@@ -30,7 +30,7 @@ export class EditorSignals {
     selectionDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     hoverDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
-    temporaryObjectAdded: signals.Signal<{ view: visual.Item, material?: THREE.Material }> = new signals.Signal();
+    temporaryObjectAdded: signals.Signal<{ view: visual.Item, ancestor?: visual.Item }> = new signals.Signal();
     modifiersLoaded: signals.Signal = new signals.Signal();
     snapped: signals.Signal<{ position: Readonly<THREE.Vector3>, names: readonly string[] } | undefined> = new signals.Signal();
     factoryUpdated: signals.Signal = new signals.Signal();

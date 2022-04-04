@@ -12,6 +12,7 @@ import { Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
+import { Scene } from "../Scene";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
@@ -70,7 +71,7 @@ export class SnapPicker {
         return pointss;
     }
 
-    intersect(additional: readonly THREE.Object3D[], points: readonly PointSnapCache[], snaps: SnapManagerGeometryCache, db: DatabaseLike, cplane_intersection_results: (SnapResult & { distance: number })[], preference?: Snap): SnapResult[] {
+    intersect(additional: readonly THREE.Object3D[], points: readonly PointSnapCache[], snaps: SnapManagerGeometryCache, scene: Scene, cplane_intersection_results: (SnapResult & { distance: number })[], preference?: Snap): SnapResult[] {
         if (!snaps.enabled) return [];
         const { strategy, raycaster, viewport } = this;
 
@@ -78,7 +79,7 @@ export class SnapPicker {
         const everything = [...points, snaps.geometrySnaps];
         const pointss = this.prepare(everything);
 
-        const { restriction, geo_intersections_snaps } = strategy.intersectWithGeometry(raycaster, snaps, db, preference);
+        const { restriction, geo_intersections_snaps } = strategy.intersectWithGeometry(raycaster, snaps, scene, preference);
 
         const other_intersections_snaps = strategy.intersectWithSnaps(additional, pointss, raycaster, snaps);
 

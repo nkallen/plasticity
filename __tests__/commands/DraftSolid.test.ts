@@ -36,7 +36,7 @@ beforeEach(async () => {
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5))
 
         const face = solid.faces.get(5);
@@ -50,6 +50,6 @@ describe('commit', () => {
         const drafted = await draftSolid.commit();
         expect(drafted).toHaveCentroidNear(new THREE.Vector3(0.25, 0.5, 0.5))
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     })
 })

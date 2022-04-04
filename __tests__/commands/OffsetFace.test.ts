@@ -40,7 +40,7 @@ describe(OffsetFaceFactory, () => {
 
     test('invokes the appropriate c3d commands', async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         const face = solid.faces.get(0);
         offsetFace.solid = solid;
         offsetFace.faces = [face];
@@ -49,7 +49,7 @@ describe(OffsetFaceFactory, () => {
         const offsetted = await offsetFace.commit();
         expect(offsetted).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 1));
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     })
 })
 
@@ -80,6 +80,6 @@ describe(MultiOffsetFactory, () => {
         const first = offsetteds[0];
         expect(first).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 1));
         expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
     })
 })

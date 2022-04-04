@@ -155,7 +155,7 @@ describe(SymmetryFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.5, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     });
 
     test('update', async () => {
@@ -175,7 +175,7 @@ describe(SymmetryFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.86, -0.86));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 0.86, 0.86));
 
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
     });
 
     test('solids cut=false, union=false', async () => {
@@ -188,7 +188,7 @@ describe(SymmetryFactory, () => {
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(1);
         const item = items[0];
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
         bbox.setFromObject(item);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
@@ -206,7 +206,7 @@ describe(SymmetryFactory, () => {
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(1);
         const item = items[0];
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         bbox.setFromObject(item);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
@@ -236,7 +236,7 @@ describe(SymmetryFactory, () => {
             const items = await mirror.commit() as visual.Solid[];
             expect(items.length).toBe(1);
             const item = items[0];
-            expect(db.visibleObjects.length).toBe(2);
+            expect(db.items.length).toBe(2);
             bbox.setFromObject(item);
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
@@ -255,7 +255,7 @@ describe(SymmetryFactory, () => {
             expect(db.temporaryObjects.children.length).toBe(1);
             const item = db.temporaryObjects.children[0];
 
-            expect(db.visibleObjects.length).toBe(2);
+            expect(db.items.length).toBe(2);
             bbox.setFromObject(item);
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
@@ -275,7 +275,7 @@ describe(SymmetryFactory, () => {
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(1);
         const item = items[0];
-        expect(db.visibleObjects.length).toBe(1);
+        expect(db.items.length).toBe(1);
         bbox.setFromObject(item);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
@@ -292,7 +292,7 @@ describe(SymmetryFactory, () => {
 
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(2);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         const item0 = items[0];
         bbox.setFromObject(item0);
@@ -319,7 +319,7 @@ describe(SymmetryFactory, () => {
 
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(2);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
 
         const item0 = items[0];
         bbox.setFromObject(item0);
@@ -370,7 +370,7 @@ describe(MultiSymmetryFactory, () => {
 
         const items = await mirror.commit() as visual.Solid[];
         expect(items.length).toBe(2);
-        expect(db.visibleObjects.length).toBe(2);
+        expect(db.items.length).toBe(2);
         bbox.setFromObject(items[0]);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));

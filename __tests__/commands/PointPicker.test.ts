@@ -11,6 +11,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
+import { Scene } from "../../src/editor/Scene";
 import { AxisSnap, LineAxisSnap, PointAxisSnap } from "../../src/editor/snaps/AxisSnap";
 import { ConstructionPlaneSnap } from "../../src/editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap } from "../../src/editor/snaps/PlaneSnap";
@@ -31,6 +32,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 let pointPicker: PointPickerModel;
 let db: GeometryDatabase;
+let scene: Scene;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let presenter: SnapIndicator;
@@ -40,11 +42,12 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    scene = new Scene(db, materials, signals);
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();
     const registry = new CommandRegistry();
-    snaps = new SnapManager(db, crosses, signals);
+    snaps = new SnapManager(db, scene, crosses, signals);
     pointPicker = new PointPickerModel(db, crosses, registry, signals);
 });
 

@@ -20,8 +20,10 @@ import { AxisSnap } from "../src/editor/snaps/AxisSnap";
 import { OrRestriction } from "../src/editor/snaps/Snap";
 import { PlaneSnap } from "../src/editor/snaps/PlaneSnap";
 import { PointSnap } from "../src/editor/snaps/PointSnap";
+import { Scene } from "../src/editor/Scene";
 
 let db: GeometryDatabase;
+let scene: Scene;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
@@ -34,7 +36,8 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
+    scene = new Scene(db, materials, signals);
+    snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();

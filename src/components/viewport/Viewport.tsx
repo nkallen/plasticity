@@ -29,6 +29,7 @@ import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./Vi
 import { ViewportPointControl } from "./ViewportPointControl";
 import * as visual from '../../visual_model/VisualModel';
 import { Theme } from "../../startup/ConfigFiles";
+import { Scene } from "../../editor/Scene";
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
@@ -42,6 +43,7 @@ export interface EditorLike extends selector.EditorLike {
     styles: Theme,
     planes: PlaneDatabase,
     textures: TextureLoader,
+    scene: Scene,
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
@@ -65,7 +67,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private readonly points = new ViewportPointControl(this, this.editor);
     readonly selector = new ViewportSelector(this, this.editor);
-    readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.signals);
+    readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.scene, this.editor.signals);
 
     lastPointerEvent?: MouseEvent;
 
@@ -96,7 +98,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const size = renderer.getSize(new THREE.Vector2());
         const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
         // @ts-expect-error('three.js @types are out of date')
-        const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, skipInvalidateFramebuffer: true, depthTexture});
+        const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, samples: 4, depthTexture });
 
         EffectComposer: {
             this.composer = new EffectComposer(renderer, renderTarget);
@@ -256,13 +258,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (!this.needsRender) return;
         this.needsRender = false;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, domElement } = this
+        const { editor: { scene: editorScene, db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, domElement } = this
         const additional = [...this.additionalHelpers];
 
         try {
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
-                const visibleObjects = db.visibleObjects;
+                const visibleObjects = editorScene.visibleObjects;
                 if (visibleObjects.length > 0) scene.add(...visibleObjects);
                 scene.add(db.temporaryObjects);
                 this.addOverlays(scene);
@@ -546,7 +548,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     focus() {
         const { solids, curves, regions, controlPoints } = this.editor.selection.selected;
-        this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints], this.editor.db.visibleObjects);
+        this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints], this.editor.scene.visibleObjects);
     }
 
     validate() {

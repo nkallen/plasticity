@@ -54,7 +54,7 @@ export class LockSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
-        for (const item of selectedItems) this.editor.db.makeSelectable(item, false);
+        for (const item of selectedItems) this.editor.scene.makeSelectable(item, false);
         this.editor.selection.selected.removeAll();
     }
 }
@@ -63,7 +63,7 @@ export class HideSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
-        for (const item of selectedItems) this.editor.db.makeHidden(item, true);
+        for (const item of selectedItems) this.editor.scene.makeHidden(item, true);
         this.editor.selection.selected.removeAll();
     }
 }
@@ -74,23 +74,23 @@ export class HideUnselectedCommand extends cmd.CommandLike {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = new Set([...solids.ids, ...curves.ids, ...regions.ids]);
         for (const { view } of db.findAll()) {
-            if (!selectedItems.has(view.simpleName)) this.editor.db.makeHidden(view, true);
+            if (!selectedItems.has(view.simpleName)) this.editor.scene.makeHidden(view, true);
         }
     }
 }
 
 export class InvertHiddenCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        const db = this.editor.db;
+        const {scene, db} = this.editor;
         for (const { view } of db.findAll()) {
-            db.makeHidden(view, !db.isHidden(view));
+            scene.makeHidden(view, !scene.isHidden(view));
         }
     }
 }
 
 export class UnhideAllCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        this.editor.db.unhideAll();
+        this.editor.scene.unhideAll();
     }
 }
 

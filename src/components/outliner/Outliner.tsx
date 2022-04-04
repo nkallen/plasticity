@@ -45,7 +45,7 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { db, db: { types } } = editor;
+            const { db, scene: { types } } = editor;
             render(
                 <div class="py-3 px-4">
                     {this.section("Solid", visual.Solid, db.find(visual.Solid).map(i => i.view))}
@@ -54,7 +54,7 @@ export default (editor: Editor) => {
         }
 
         private section(name: "Solid" | "Curve", klass: typeof visual.Solid | typeof visual.Curve3D, items: visual.Item[]) {
-            const { db, db: { types } } = editor;
+            const { db, scene, scene: { types } } = editor;
             const selection = editor.selection.selected;
             const isEnabled = types.isEnabled(klass);
             return <section class={isEnabled ? '' : 'opacity-10'}>
@@ -66,9 +66,9 @@ export default (editor: Editor) => {
                 </h1>
                 <ol class="space-y-1" key={name}>
                     {items.map(item => {
-                        const visible = db.isVisible(item);
-                        const hidden = db.isHidden(item);
-                        const selectable = db.isSelectable(item);
+                        const visible = scene.isVisible(item);
+                        const hidden = scene.isHidden(item);
+                        const selectable = scene.isSelectable(item);
                         const isSelected = selection.has(item);
                         return <li key={item.simpleName} class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
                             <plasticity-icon name={name.toLowerCase()} class="text-accent-500"></plasticity-icon>
@@ -115,8 +115,8 @@ export default (editor: Editor) => {
         }
 
         setLayer = (e: MouseEvent, kind: DisablableType, value: boolean) => {
-            if (value) editor.db.types.enable(kind);
-            else editor.db.types.disable(kind);
+            if (value) editor.scene.types.enable(kind);
+            else editor.scene.types.disable(kind);
             this.render();
         }
     }
@@ -149,7 +149,7 @@ class ToggleVisibilityCommand extends cmd.CommandLike {
     }
 
     async execute(): Promise<void> {
-        this.editor.db.makeVisible(this.item, this.value);
+        this.editor.scene.makeVisible(this.item, this.value);
         this.editor.selection.selected.remove(this.item);
     }
 }
@@ -164,8 +164,8 @@ class ToggleHiddenCommand extends cmd.CommandLike {
     }
 
     async execute(): Promise<void> {
-        const { editor: { db, selection }, item, value } = this;
-        db.makeHidden(this.item, this.value);
+        const { editor: { scene, selection }, item, value } = this;
+        scene.makeHidden(this.item, this.value);
         selection.selected.remove(item);
     }
 }
@@ -180,8 +180,8 @@ class ToggleSelectableCommand extends cmd.CommandLike {
     }
 
     async execute(): Promise<void> {
-        const { editor: { db, selection }, item, value } = this;
-        db.makeSelectable(this.item, this.value);
+        const { editor: { scene, selection }, item, value } = this;
+        scene.makeSelectable(this.item, this.value);
         selection.selected.remove(item);
     }
 }

@@ -18,6 +18,7 @@ import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
 import { Executable } from './Quasimode';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode } from '../selection/SelectionModeSet';
+import { Scene } from '../editor/Scene';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -29,6 +30,7 @@ interface EditorLike {
     keymaps: AtomKeymap.KeymapManager;
     selection: HasSelectedAndHovered;
     highlighter: RenderedSceneBuilder;
+    scene: Scene;
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
@@ -43,7 +45,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         private readonly prohibitions: ReadonlySet<Selectable>,
         keymapSelector?: string,
     ) {
-        super(viewport, editor.layers, editor.db, new SelectionKeypressStrategy(editor.keymaps, keymapSelector), editor.signals, raycasterParams);
+        super(viewport, editor.layers, editor.db, editor.scene, new SelectionKeypressStrategy(editor.keymaps, keymapSelector), editor.signals, raycasterParams);
     }
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
