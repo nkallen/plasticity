@@ -233,7 +233,7 @@ export class Surface extends SpaceItem {
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(deunit(0.01));
+        mesh.scale.setScalar(deunit(1));
         const built = new Surface(mesh);
 
         built.layers.set(Layers.Surface);
