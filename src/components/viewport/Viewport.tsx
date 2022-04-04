@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
@@ -129,7 +129,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const navigatorGizmo = new ViewportNavigatorGizmo(this, 100);
             const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
-            const gammaCorrection = new ShaderPass(CopyShader);
+            const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 
             this.composer.addPass(renderPass);
             this.composer.addPass(this.outlinePassHover);
