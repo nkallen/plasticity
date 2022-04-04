@@ -137,7 +137,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.composer.addPass(this.phantomsPass);
             this.composer.addPass(this.helpersPass);
             this.composer.addPass(navigatorPass);
-            // this.composer.addPass(gammaCorrection);
+            this.composer.addPass(gammaCorrection);
         }
 
         this.render = this.render.bind(this);
