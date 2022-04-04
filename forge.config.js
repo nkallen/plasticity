@@ -53,6 +53,8 @@ module.exports = {
                     "liveReload": false,
                     "hot": false
                 },
+                "port": 3001,
+                "loggerPort": 9001,
                 "renderer": {
                     "nodeIntegration": true,
                     "config": "./webpack.renderer.config.js",

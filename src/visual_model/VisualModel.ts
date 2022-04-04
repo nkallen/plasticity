@@ -3,6 +3,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
+import { deunit } from "../util/Conversion";
 import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
 import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 
@@ -232,7 +233,7 @@ export class Surface extends SpaceItem {
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(0.01);
+        mesh.scale.setScalar(deunit(0.01));
         const built = new Surface(mesh);
 
         built.layers.set(Layers.Surface);

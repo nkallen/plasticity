@@ -173,6 +173,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         );
 
         this.disposable.add(new Disposable(() => {
+            this.multiplexer.dispose();
             this.selector.dispose();
             this.points.dispose();
             this.navigationControls.dispose();
@@ -215,7 +216,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.multiplexer.addEventListener('start', this.controlStart);
         this.multiplexer.addEventListener('end', this.controlEnd);
-
         this.multiplexer.addEventLiseners();
         this.navigationControls.addEventListeners();
 
@@ -243,10 +243,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.navigationControls.removeEventListener('start', this.navigationStart);
             this.multiplexer.removeEventListener('start', this.controlStart);
             this.multiplexer.removeEventListener('end', this.controlEnd);
-
-            this.multiplexer.dispose();
-            this.selector.dispose();
-            this.points.dispose();
 
             this.renderer.setAnimationLoop(null);
             this.started = false;
