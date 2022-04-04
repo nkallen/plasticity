@@ -18,7 +18,7 @@ import {
     UniformsUtils,
     Vector2,
     Vector3,
-    WebGLMultisampleRenderTarget
+    WebGLRenderTarget
 } from 'three';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
@@ -46,7 +46,7 @@ class OutlinePass extends Pass {
 
         this.maskBufferMaterial = new MeshBasicMaterial({ color: 0xffffff });
         this.maskBufferMaterial.side = DoubleSide;
-        this.renderTargetMaskBuffer = new WebGLMultisampleRenderTarget(this.resolution.x, this.resolution.y, pars);
+        this.renderTargetMaskBuffer = new WebGLRenderTarget(this.resolution.x, this.resolution.y, pars);
         this.renderTargetMaskBuffer.texture.name = 'OutlinePass.mask';
         this.renderTargetMaskBuffer.texture.generateMipmaps = false;
 
@@ -59,12 +59,12 @@ class OutlinePass extends Pass {
         this.prepareMaskMaterial.side = DoubleSide;
         this.prepareMaskMaterial.fragmentShader = replaceDepthToViewZ(this.prepareMaskMaterial.fragmentShader, this.renderCamera);
 
-        this.renderTargetDepthBuffer = new WebGLMultisampleRenderTarget(this.resolution.x, this.resolution.y, pars);
+        this.renderTargetDepthBuffer = new WebGLRenderTarget(this.resolution.x, this.resolution.y, pars);
         this.renderTargetDepthBuffer.texture.name = 'OutlinePass.depth';
         this.renderTargetDepthBuffer.texture.generateMipmaps = false;
 
         this.edgeDetectionMaterial = this.getEdgeDetectionMaterial();
-        this.renderTargetEdgeBuffer1 = new WebGLMultisampleRenderTarget(this.resolution.x, this.resolution.y, pars);
+        this.renderTargetEdgeBuffer1 = new WebGLRenderTarget(this.resolution.x, this.resolution.y, pars);
         this.renderTargetEdgeBuffer1.texture.name = 'OutlinePass.edge1';
         this.renderTargetEdgeBuffer1.texture.generateMipmaps = false;
 

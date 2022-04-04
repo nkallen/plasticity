@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader';
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
@@ -96,8 +96,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const size = renderer.getSize(new THREE.Vector2());
         const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
         // @ts-expect-error('three.js @types are out of date')
-        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, skipInvalidateFramebuffer: true, depthTexture });
-        renderTarget.samples = 4;
+        const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, skipInvalidateFramebuffer: true, depthTexture});
 
         EffectComposer: {
             this.composer = new EffectComposer(renderer, renderTarget);
@@ -130,7 +129,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const navigatorGizmo = new ViewportNavigatorGizmo(this, 100);
             const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
-            const gammaCorrection = new ShaderPass(GammaCorrectionShader);
+            const gammaCorrection = new ShaderPass(CopyShader);
 
             this.composer.addPass(renderPass);
             this.composer.addPass(this.outlinePassHover);
@@ -138,7 +137,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.composer.addPass(this.phantomsPass);
             this.composer.addPass(this.helpersPass);
             this.composer.addPass(navigatorPass);
-            this.composer.addPass(gammaCorrection);
+            // this.composer.addPass(gammaCorrection);
         }
 
         this.render = this.render.bind(this);
