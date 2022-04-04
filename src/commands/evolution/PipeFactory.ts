@@ -80,7 +80,6 @@ export class PipeFactory extends GeometryFactory implements PipeParams {
 
         const sweptData = new c3d.SweptData(rotated, new c3d.Contour([polygon], false));
 
-
         const params = new c3d.EvolutionValues();
         params.shellClosed = true;
         params.thickness1 = unit(thickness1);

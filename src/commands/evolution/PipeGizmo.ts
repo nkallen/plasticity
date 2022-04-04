@@ -12,8 +12,8 @@ const Y = new THREE.Vector3(0, 1, 0);
 
 export class PipeGizmo extends CompositeGizmo<PipeParams> {
     private readonly sectionSizeGizmo = new SectionSizeGizmo("pipe:section-size", this.editor);
-    private readonly angleGizmo = new AngleGizmo("pipe:angle", this.editor, this.editor.gizmos.white);
-    private readonly thicknessGizmo = new MagnitudeGizmo("pipe:thickness", this.editor);
+    private readonly angleGizmo = new PipeAngleGizmo("pipe:angle", this.editor, this.editor.gizmos.white);
+    private readonly thicknessGizmo = new ThicknessGizmo("pipe:thickness", this.editor);
 
     protected prepare(mode: Mode) {
         const { sectionSizeGizmo, thicknessGizmo, angleGizmo } = this;
@@ -47,7 +47,7 @@ export class PipeGizmo extends CompositeGizmo<PipeParams> {
         return super.execute(cb, finishFast);
     }
 
-    get shouldRescaleOnZoom() { return true }
+    get shouldRescaleOnZoom() { return false }
 
     render(params: PipeParams) {
         this.sectionSizeGizmo.render(1);
@@ -74,5 +74,13 @@ class SectionSizeGizmo extends AbstractAxialScaleGizmo {
         super.render(length - 0.5);
     }
 
-    get shouldRescaleOnZoom() { return false }
+    get shouldRescaleOnZoom() { return true }
+}
+
+class ThicknessGizmo extends MagnitudeGizmo {
+    get shouldRescaleOnZoom() { return true }
+}
+
+class PipeAngleGizmo extends AngleGizmo {
+    get shouldRescaleOnZoom() { return true }
 }

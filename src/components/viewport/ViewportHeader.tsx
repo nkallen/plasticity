@@ -68,7 +68,7 @@ export default (editor: Editor) => {
 
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`face_${uid}`} checked={editor.selection.mode.has(SelectionMode.Face)}
-                                    onClick={e => this.onClick(e, SelectionMode.Face)}
+                                    onClick={e => this.onClick(e, SelectionMode.Face, SelectionMode.Region)}
                                 />
                                 <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='face'></plasticity-icon>
