@@ -16,13 +16,6 @@ let nodes: Nodes;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 
-const points = [
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(1, 1, 0),
-    new THREE.Vector3(1, 1, 1),
-]
-
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
@@ -46,6 +39,8 @@ test('isHidden & makeSelectable', () => {
     expect(nodes.isHidden(box)).toBe(false);
     nodes.makeHidden(box, true);
     expect(nodes.isHidden(box)).toBe(true);
+    db.removeItem(box);
+    expect(() => nodes.isHidden(box)).toThrow();
 })
 
 test('isHidden & makeHidden when object changes', async () => {
@@ -61,6 +56,8 @@ test('isSelectable & makeSelectable', () => {
     expect(nodes.isSelectable(box)).toBe(true);
     nodes.makeSelectable(box, false);
     expect(nodes.isSelectable(box)).toBe(false);
+    db.removeItem(box);
+    expect(() => nodes.isHidden(box)).toThrow();
 })
 
 test('isSelectable & makeSelectable when object changes', async () => {
@@ -77,6 +74,8 @@ test('isVisible & makeVisible', () => {
     expect(nodes.isVisible(box)).toBe(true);
     nodes.makeVisible(box, false);
     expect(nodes.isVisible(box)).toBe(false);
+    db.removeItem(box);
+    expect(() => nodes.isVisible(box)).toThrow();
 })
 
 test('isVisible & makeVisible when object changes', async () => {
@@ -92,6 +91,8 @@ test('setName & getName', async () => {
     expect(nodes.getName(box)).toBe(undefined);
     nodes.setName(box, "My favorite box");
     expect(nodes.getName(box)).toBe("My favorite box");
+    db.removeItem(box);
+    expect(() => nodes.getName(box)).toThrow();
 })
 
 test('setName & getName when object changes', async () => {

@@ -7,7 +7,7 @@ import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
-import { Nodes } from "./Nodes";
+import { NodeKey, Nodes } from "./Nodes";
 import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
@@ -54,11 +54,11 @@ export class GeometryMemento {
 
 export class NodeMemento {
     constructor(
-        readonly id2material: ReadonlyMap<c3d.SimpleName, number>,
-        readonly hidden: ReadonlySet<c3d.SimpleName>,
-        readonly invisible: ReadonlySet<c3d.SimpleName>,
-        readonly unselectable: ReadonlySet<c3d.SimpleName>,
-        readonly id2name: ReadonlyMap<c3d.SimpleName, string>,
+        readonly id2material: ReadonlyMap<NodeKey, number>,
+        readonly hidden: ReadonlySet<NodeKey>,
+        readonly invisible: ReadonlySet<NodeKey>,
+        readonly unselectable: ReadonlySet<NodeKey>,
+        readonly id2name: ReadonlyMap<NodeKey, string>,
     ) { }
 }
 

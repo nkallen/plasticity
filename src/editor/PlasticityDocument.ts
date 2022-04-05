@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as THREE from "three";
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, MaterialMemento, NodeMemento, ViewportMemento } from "./History";
 import c3d from '../../build/Release/c3d.node';
+import { NodeKey, Nodes } from './Nodes';
 
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
@@ -55,15 +56,16 @@ export class PlasticityDocument {
         const items = await into.db.deserialize(c3d);
         console.timeEnd("load backup");
 
-        const id2material = new Map<c3d.SimpleName, number>();
-        const id2name = new Map<c3d.SimpleName, string>();
+        const id2material = new Map<NodeKey, number>();
+        const id2name = new Map<NodeKey, string>();
         for (const [i, item] of items.entries()) {
             const info = json.nodes[i];
+            const key = Nodes.itemKey(item.simpleName);
             if (info.material !== undefined) {
-                id2material.set(item.simpleName, info.material);
+                id2material.set(key, info.material);
             }
             if (info.name !== undefined) {
-                id2name.set(item.simpleName, info.name);
+                id2name.set(key, info.name);
             }
         }
         into.scene.nodes.restoreFromMemento(new NodeMemento(id2material, new Set(), new Set(), new Set(), id2name));
@@ -123,9 +125,10 @@ export class PlasticityDocument {
             nodes: [...db.geometryModel.values()].flatMap(({ view }) => {
                 if (db.automatics.has(view.simpleName)) return [];
                 const id = db.version2id.get(view.simpleName)!;
-                const materialId = nodes.id2material.get(id);
+                const key = Nodes.itemKey(id);
+                const materialId = nodes.id2material.get(key);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
-                const name = nodes.id2name.get(id);
+                const name = nodes.id2name.get(key);
                 return { material, name } as NodeJSON
             }),
             // groups: [

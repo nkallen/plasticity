@@ -75,8 +75,8 @@ describe(PlasticityDocument, () => {
         await db.removeItem(box1);
         await db.removeItem(box2);
         expect(db.items.length).toBe(0);
-        expect(scene.getName(box1)).toBe(undefined);
-        expect(scene.getName(box2)).toBe(undefined);
+        expect(() => scene.getName(box1)).toThrow();
+        expect(() => scene.getName(box2)).toThrow();
 
         await PlasticityDocument.load(json, c3d, originator);
         expect(db.items.length).toBe(2);
@@ -98,8 +98,8 @@ describe(PlasticityDocument, () => {
         await db.removeItem(box1);
         await db.removeItem(box2);
         expect(db.items.length).toBe(0);
-        expect(scene.getMaterial(box1)).toBe(undefined);
-        expect(scene.getMaterial(box2)).toBe(undefined);
+        expect(() => scene.getMaterial(box1)).toThrow();
+        expect(() => scene.getMaterial(box2)).toThrow();
 
         await PlasticityDocument.load(json, c3d, originator);
         expect(db.items.length).toBe(2);

@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
-import { Agent, DatabaseLike } from "../editor/DatabaseLike";
+import { Agent, DatabaseLike, RemovalMode } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
@@ -59,7 +59,7 @@ export interface ModifiesSelection extends HasSelection {
 }
 
 interface SignalLike {
-    objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
+    objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent, RemovalMode]>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;

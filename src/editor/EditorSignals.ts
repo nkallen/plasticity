@@ -8,7 +8,7 @@ import { SelectionDelta } from "../selection/ChangeSelectionExecutor";
 import { Selectable } from '../selection/SelectionDatabase';
 import { SelectionModeSet } from "../selection/SelectionModeSet";
 import * as visual from '../visual_model/VisualModel';
-import { Agent } from "./DatabaseLike";
+import { Agent, RemovalMode } from "./DatabaseLike";
 import { Replacement } from "./GeometryDatabase";
 import { ConstructionPlane, ConstructionPlaneSnap } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
@@ -16,7 +16,7 @@ import { DisablableType } from "./TypeManager";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
-    objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
+    objectRemoved: signals.Signal<[visual.Item, Agent, RemovalMode]> = new signals.Signal();
     objectReplaced: signals.Signal<Replacement> = new signals.Signal();
     objectHidden: signals.Signal<visual.Item> = new signals.Signal();
     objectUnhidden: signals.Signal<visual.Item> = new signals.Signal();
