@@ -60,9 +60,10 @@ beforeEach(() => {
 })
 
 test("transactions batch add and removes", async () => {
-    let added = 0, removed = 0;
+    let added = 0, removed = 0, replaced = 0;
     signals.objectAdded.add(() => added++);
     signals.objectRemoved.add(() => removed++);
+    signals.objectReplaced.add(() => replaced++);
 
     await contours.transaction(async () => {
         makeLine1.p1 = new THREE.Vector3();
@@ -84,8 +85,9 @@ test("transactions batch add and removes", async () => {
 
     expect(_db.find(visual.SpaceInstance, true).length).toBe(4);
     expect(_db.find(visual.PlaneInstance, true).length).toBe(0);
-    expect(added).toBe(7);
-    expect(removed).toBe(3);
+    expect(added).toBe(5);
+    expect(removed).toBe(1);
+    expect(replaced).toBe(2);
 });
 
 test("two overlapping coplanar circles, adding and removing creates the right regions", async () => {

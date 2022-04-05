@@ -6,7 +6,6 @@ import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRayca
 import { SolidCopierPool } from './SolidCopier';
 
 export type Agent = 'user' | 'automatic';
-export type RemovalMode = 'delete' | 'replace';
 
 export interface TemporaryObject {
     get underlying(): THREE.Object3D;

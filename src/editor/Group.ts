@@ -21,8 +21,8 @@ export class Groups implements MementoOriginator<GroupMemento> {
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.addItem(this.item2id(item));
         });
-        signals.objectRemoved.add(([item, agent, mode]) => {
-            if (agent === 'user' && mode === 'delete') this.deleteItem(this.item2id(item));
+        signals.objectRemoved.add(([item, agent]) => {
+            if (agent === 'user') this.deleteItem(this.item2id(item));
         });
     }
 
@@ -81,6 +81,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
     private addItem(id: c3d.SimpleName, into = this.cwd) {
         const k = Nodes.itemKey(id);
         this.addMembership(k, into);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     private deleteItem(id: c3d.SimpleName) {

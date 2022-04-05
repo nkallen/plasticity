@@ -59,7 +59,7 @@ export interface ModifiesSelection extends HasSelection {
 }
 
 interface SignalLike {
-    objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent, RemovalMode]>;
+    objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;

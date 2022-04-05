@@ -27,7 +27,7 @@ test('simple flatten', () => {
     expect(flatten(groups.root, groups, new Set([groups.root]))).toEqual([{ tag: "ExpandedGroup", id: 0 }]);
 });
 
-test.only('nested flatten', () => {
+test('nested flatten', () => {
     const g1 = groups.create();
     const g2 = groups.create();
     const g3 = groups.create();

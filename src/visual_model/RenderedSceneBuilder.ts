@@ -43,7 +43,9 @@ export class RenderedSceneBuilder {
         }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
-        bindings.push(signals.sceneGraphChanged.add(this.highlight));
+        bindings.push(signals.objectAdded.add(this.highlight));
+        bindings.push(signals.objectRemoved.add(this.highlight));
+        bindings.push(signals.objectReplaced.add(this.highlight));
         bindings.push(signals.modifiersLoaded.add(this.highlight));
         bindings.push(signals.historyChanged.add(this.highlight));
         bindings.push(signals.quasimodeChanged.add(this.highlight));

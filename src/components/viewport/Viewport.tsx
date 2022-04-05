@@ -198,7 +198,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.hoverDelta.add(this.outlineHover);
 
         this.editor.signals.selectionChanged.add(this.setNeedsRender);
-        this.editor.signals.sceneGraphChanged.add(this.setNeedsRender);
+        this.editor.signals.objectAdded.add(this.setNeedsRender);
+        this.editor.signals.objectRemoved.add(this.setNeedsRender);
+        this.editor.signals.objectReplaced.add(this.setNeedsRender);
+        this.editor.signals.itemMaterialChanged.add(this.setNeedsRender);
         this.editor.signals.factoryUpdated.add(this.setNeedsRender);
         this.editor.signals.factoryCancelled.add(this.setNeedsRender);
         this.editor.signals.pointPickerChanged.add(this.setNeedsRender);
@@ -231,7 +234,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.factoryCommitted.remove(this.outlineSelection);
 
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
-            this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
+            this.editor.signals.objectAdded.remove(this.setNeedsRender);
+            this.editor.signals.objectRemoved.remove(this.setNeedsRender);
+            this.editor.signals.objectReplaced.remove(this.setNeedsRender);
+            this.editor.signals.itemMaterialChanged.remove(this.setNeedsRender);
             this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
             this.editor.signals.factoryCancelled.remove(this.setNeedsRender);
             this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);

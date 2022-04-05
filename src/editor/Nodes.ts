@@ -36,8 +36,8 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.addItem(item);
         });
-        signals.objectRemoved.add(([item, agent, mode]) => {
-            if (agent === 'user' && mode === 'delete') this.deleteItem(item);
+        signals.objectRemoved.add(([item, agent]) => {
+            if (agent === 'user') this.deleteItem(item);
         });
     }
 
@@ -141,7 +141,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         const { node2material } = this;
         const k = this.item2key(item);
         node2material.set(k, materialId);
-        this.signals.sceneGraphChanged.dispatch();
+        this.signals.itemMaterialChanged.dispatch(item);
     }
 
     getMaterial(item: visual.Item): THREE.Material | undefined {
