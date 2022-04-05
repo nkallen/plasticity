@@ -7,6 +7,7 @@ import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
+import { GroupId } from "./Group";
 import { NodeKey, Nodes } from "./Nodes";
 import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";
@@ -17,6 +18,7 @@ export class Memento {
         readonly version: number,
         readonly db: GeometryMemento,
         readonly nodes: NodeMemento,
+        readonly groups: GroupMemento,
         readonly materials: MaterialMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
@@ -54,11 +56,18 @@ export class GeometryMemento {
 
 export class NodeMemento {
     constructor(
-        readonly id2material: ReadonlyMap<NodeKey, number>,
+        readonly node2material: ReadonlyMap<NodeKey, number>,
         readonly hidden: ReadonlySet<NodeKey>,
         readonly invisible: ReadonlySet<NodeKey>,
         readonly unselectable: ReadonlySet<NodeKey>,
         readonly id2name: ReadonlyMap<NodeKey, string>,
+    ) { }
+}
+
+export class GroupMemento {
+    constructor(
+        readonly member2parent: ReadonlyMap<NodeKey, GroupId>,
+        readonly group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>,
     ) { }
 }
 
@@ -151,31 +160,14 @@ export class EditorOriginator {
         readonly viewports: MementoOriginator<ViewportMemento>[],
     ) { }
 
-    group(fn: () => void) {
-        const memento = new Memento(
-            this.version++,
-            this.db.saveToMemento(),
-            this.scene.nodes.saveToMemento(),
-            this.materials.saveToMemento(),
-            this.selection.saveToMemento(),
-            this.snaps.saveToMemento(),
-            this.crosses.saveToMemento(),
-            this.curves.saveToMemento());
-
-        this.state = { tag: 'group', memento: memento };
-        try { fn() }
-        finally {
-            this.state = { tag: 'start' };
-        }
-    }
-
     saveToMemento(): Memento {
         switch (this.state.tag) {
             case 'start':
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
-                    this.scene.saveToMemento(),
+                    this.scene.nodes.saveToMemento(),
+                    this.scene.groups.saveToMemento(),
                     this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
@@ -189,7 +181,8 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
-            this.scene.restoreFromMemento(m.nodes);
+            this.scene.nodes.restoreFromMemento(m.nodes);
+            this.scene.groups.restoreFromMemento(m.groups);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
             this.snaps.restoreFromMemento(m.snaps);

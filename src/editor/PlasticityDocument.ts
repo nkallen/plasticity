@@ -126,7 +126,7 @@ export class PlasticityDocument {
                 if (db.automatics.has(view.simpleName)) return [];
                 const id = db.version2id.get(view.simpleName)!;
                 const key = Nodes.itemKey(id);
-                const materialId = nodes.id2material.get(key);
+                const materialId = nodes.node2material.get(key);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
                 const name = nodes.id2name.get(key);
                 return { material, name } as NodeJSON

@@ -2,11 +2,12 @@ import c3d from '../../build/Release/c3d.node';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
+import { GroupMemento, MementoOriginator } from './History';
 import { NodeKey, Nodes, Node } from './Nodes';
 
 export type GroupId = number;
 
-export class Groups {
+export class Groups implements MementoOriginator<GroupMemento> {
     private counter = 0;
 
     private readonly member2parent = new Map<NodeKey, GroupId>();
@@ -96,4 +97,25 @@ export class Groups {
         const version = item.simpleName;
         return db.lookupId(version)!;
     }
+
+    saveToMemento(): GroupMemento {
+        return new GroupMemento(
+            new Map(this.member2parent),
+            copyGroup2Children(this.group2children),
+        )
+    }
+    restoreFromMemento(m: GroupMemento) {
+        (this.member2parent as Groups['member2parent']) = new Map(m.member2parent);
+        (this.group2children as Groups['group2children']) = copyGroup2Children(m.group2children);
+    }
+    validate() { }
+    debug() { }
+}
+
+function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>) {
+    const group2childrenCopy = new Map<GroupId, Set<NodeKey>>();
+    for (const [key, value] of group2children) {
+        group2childrenCopy.set(key, new Set(value));
+    }
+    return group2childrenCopy;
 }

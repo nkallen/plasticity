@@ -165,7 +165,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     restoreFromMemento(m: NodeMemento) {
-        (this.node2material as Nodes['node2material']) = new Map(m.id2material);
+        (this.node2material as Nodes['node2material']) = new Map(m.node2material);
         (this.hidden as Nodes['hidden']) = new Set(m.hidden);
         (this.invisible as Nodes['invisible']) = new Set(m.invisible);
         (this.unselectable as Nodes['unselectable']) = new Set(m.unselectable);
