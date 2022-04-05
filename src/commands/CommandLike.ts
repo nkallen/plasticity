@@ -114,3 +114,12 @@ export class ExportCommand extends cmd.CommandLike {
 
     shouldAddToHistory(_: boolean) { return false }
 }
+
+export class GroupSelectedCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const { solids, curves } = this.editor.selection.selected;
+        const selectedItems = [...solids, ...curves];
+        const group = this.editor.scene.createGroup();
+        for (const item of selectedItems) this.editor.scene.moveToGroup(item, group);
+    }
+}

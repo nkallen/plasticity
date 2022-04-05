@@ -1,13 +1,12 @@
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Groups } from './Group';
-import { MementoOriginator, NodeMemento } from "./History";
+import { GroupId, Groups } from './Group';
 import MaterialDatabase from "./MaterialDatabase";
 import { Nodes } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
-export class Scene implements MementoOriginator<NodeMemento> {
+export class Scene {
     readonly types = new TypeManager(this.signals);
     readonly nodes = new Nodes(this.db, this.materials, this.signals);
     readonly groups = new Groups(this.db, this.signals);
@@ -48,11 +47,6 @@ export class Scene implements MementoOriginator<NodeMemento> {
     getMaterial(item: visual.Item): THREE.Material | undefined { return this.nodes.getMaterial(item) }
     getName(item: visual.Item): string | undefined { return this.nodes.getName(item) }
     setName(item: visual.Item, name: string) { this.nodes.setName(item, name) }
-
-    saveToMemento(): NodeMemento {
-        return this.nodes.saveToMemento();
-    }
-    restoreFromMemento(m: NodeMemento): void {
-        this.nodes.restoreFromMemento(m);
-    }
+    createGroup() { return this.groups.create() }
+    moveToGroup(item: visual.Item, group: GroupId) { this.groups.moveItemToGroup(item, group) }
 }

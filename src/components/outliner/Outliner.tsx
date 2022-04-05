@@ -4,6 +4,7 @@ import * as cmd from "../../command/Command";
 import { ExportCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
+import { GroupId } from '../../editor/Group';
 import { DisablableType } from '../../editor/TypeManager';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
@@ -13,6 +14,7 @@ export default (editor: Editor) => {
     class Outliner extends HTMLElement {
         private readonly keypress = new SelectionKeypressStrategy(editor.keymaps);
         private readonly disposable = new CompositeDisposable();
+        private readonly expandedGroups = new Set<GroupId>([editor.scene.groups.root]);
 
         connectedCallback() {
             this.render();
@@ -45,20 +47,52 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { db, scene: { types } } = editor;
+            const { scene: { groups: { root } } } = editor;
+            this.renderGroup(root);
+        }
+
+        private renderGroup(group: GroupId) {
+            const { db, scene: { groups } } = editor;
+            const items = groups.list(group);
+            const subgroups = [], solids = [], curves = [];
+            for (const item of items) {
+                switch (item.tag) {
+                    case 'Group':
+                        subgroups.push(item.id);
+                        break;
+                    case 'Item':
+                        const lookup = db.lookupItemById(item.id);
+                        if (lookup.view instanceof visual.Solid) solids.push(lookup.view)
+                        else if (lookup.view instanceof visual.SpaceInstance) curves.push(lookup.view)
+                }
+            }
             render(
                 <div class="py-3 px-4">
-                    {this.section("Solid", visual.Solid, db.find(visual.Solid).map(i => i.view))}
-                    {this.section("Curve", visual.Curve3D, db.find(visual.SpaceInstance).map(i => i.view))}
+                    <section>
+                        <h1
+                            class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700"
+                        >
+                            Children
+                        </h1>
+                        {subgroups.map(s => {
+                            <span>{s}</span>
+                        })}
+                    </section>
+                    {this.section("Solid", visual.Solid, solids)}
+                    {this.section("Curve", visual.Curve3D, curves)}
                 </div>, this)
+
         }
 
         private section(name: "Solid" | "Curve", klass: typeof visual.Solid | typeof visual.Curve3D, items: visual.Item[]) {
-            const { db, scene, scene: { types } } = editor;
+            const { scene, scene: { types } } = editor;
             const selection = editor.selection.selected;
             const isEnabled = types.isEnabled(klass);
             return <section class={isEnabled ? '' : 'opacity-10'}>
-                <h1 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700" onClick={e => this.setLayer(e, klass, !isEnabled)}>
+                <h1
+                    class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700"
+                    onClick={e => this.setLayer(e, klass, !isEnabled)}
+                >
                     <div>{name}</div>
                     <div class="p-1 rounded group text-neutral-300">
                         <plasticity-icon key={isEnabled} name={isEnabled ? 'eye' : 'eye-off'}></plasticity-icon>

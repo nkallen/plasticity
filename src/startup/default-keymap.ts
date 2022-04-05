@@ -295,6 +295,9 @@ export default {
         "alt-h": "command:unhide-all",
         "ctrl-h": "command:invert-hidden",
 
+        "ctrl-g": "command:group-selected",
+        "alt-g": "command:ungroup-selected",
+
         "shift-r": "edit:repeat-last-command",
         "cmd-z": "edit:undo",
         "cmd-shift-z": "edit:redo",

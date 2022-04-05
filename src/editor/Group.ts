@@ -34,7 +34,9 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const id = this.counter;
         this.group2children.set(id, new Set());
         this.member2parent.set(Nodes.groupKey(id), parent);
+        if (id !== parent) this.group2children.get(parent)!.add(Nodes.groupKey(id));
         this.counter++;
+        this.signals.sceneGraphChanged.dispatch();
         return id;
     }
 
@@ -48,10 +50,17 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const k = Nodes.groupKey(groupId);
         const parent = this.member2parent.get(k)!;
         this.group2children.get(parent)!.delete(k);
+        this.signals.sceneGraphChanged.dispatch();
+    }
+
+    moveGroupToGroup(groupId: GroupId, into: GroupId) {
+        this._moveItemToGroup(Nodes.groupKey(groupId), into);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     moveItemToGroup(item: visual.Item, into: GroupId) {
         this._moveItemToGroup(Nodes.itemKey(this.item2id(item)), into);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     groupForItem(item: visual.Item) {
@@ -118,4 +127,27 @@ function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<Nod
         group2childrenCopy.set(key, new Set(value));
     }
     return group2childrenCopy;
+}
+
+type FlatOutlineElement = { tag: 'ExpandedGroup', id: GroupId } | { tag: 'CollapsedGroup', id: GroupId }
+
+export function flatten(group: GroupId, groups: Groups, expandedGroups: Set<GroupId>): FlatOutlineElement[] {
+    const result: FlatOutlineElement[] = [];
+    const work = [group];
+    while (work.length > 0) {
+        const item = work.shift()!;
+        if (expandedGroups.has(item)) {
+            result.push({ tag: 'ExpandedGroup', id: item });
+            for (const child of groups.list(item)) {
+                switch (child.tag) {
+                    case 'Group':
+                        work.push(child.id);
+                        break;
+                }
+            }
+        } else {
+            result.push({ tag: 'CollapsedGroup', id: item });
+        }
+    }
+    return result;
 }
