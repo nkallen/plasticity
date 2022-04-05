@@ -6,7 +6,7 @@ import { GroupMemento, MementoOriginator } from './History';
 import { NodeKey, Nodes, Node } from './Nodes';
 
 export type GroupId = number;
-
+export type GroupListing = { tag: 'Group', id: GroupId } | { tag: 'Item', item: visual.Item }
 export class Groups implements MementoOriginator<GroupMemento> {
     private counter = 0;
 
@@ -72,10 +72,21 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.addMembership(key, into);
     }
 
-    list(groupId: GroupId): Node[] {
-        const { group2children } = this;
+    list(groupId: GroupId): GroupListing[] {
+        const { group2children, db } = this;
         const memberKeys = group2children.get(groupId)!;
-        return [...memberKeys].map(Nodes.dekey);
+        const result = [];
+        for (const key of memberKeys) {
+            const { tag, id } = Nodes.dekey(key);
+            switch (tag) {
+                case 'Group':
+                    result.push({ tag, id });
+                    break;
+                case 'Item':
+                    result.push({ tag, item: db.lookupById(id).view })
+            }
+        }
+        return result;
     }
 
     private addItem(id: c3d.SimpleName, into = this.cwd) {

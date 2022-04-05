@@ -1,8 +1,9 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
-import { Agent, DatabaseLike, RemovalMode } from "../editor/DatabaseLike";
+import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Replacement } from '../editor/GeometryDatabase';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Redisposable, RefCounter } from '../util/Util';
@@ -60,6 +61,7 @@ export interface ModifiesSelection extends HasSelection {
 
 interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
+    objectReplaced: signals.Signal<Replacement>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
@@ -83,6 +85,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         readonly signals: SignalLike
     ) {
         signals.objectRemovedFromDatabase.add(([item,]) => this.delete(item));
+        signals.objectReplaced.add(({ from }) => this.delete(from));
     }
 
     get solids() { return new ItemSelection<visual.Solid>(this.db, this.solidIds) }
@@ -380,12 +383,14 @@ export class SelectionDatabase implements HasSelectedAndHovered {
 
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectSelected,
         objectRemoved: this.signals.objectDeselected,
         selectionChanged: this.signals.selectionChanged
     }
     private readonly hoveredSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectHovered,
         objectRemoved: this.signals.objectUnhovered,
         selectionChanged: this.signals.selectionChanged

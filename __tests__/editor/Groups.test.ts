@@ -63,8 +63,24 @@ test("add item to group & delete", () => {
 test("list", () => {
     const g1 = groups.create();
     expect(groups.list(g1)).toEqual([]);
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', id: box.simpleName }, { tag: 'Group', id: g1 }]);
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }, { tag: 'Group', id: g1 }]);
     groups.moveItemToGroup(box, g1);
     expect(groups.list(groups.root)).toEqual([{ tag: 'Group', id: g1 }]);
-    expect(groups.list(g1)).toEqual([{ tag: 'Item', id: box.simpleName }]);
+    expect(groups.list(g1)).toEqual([{ tag: 'Item', item: box }]);
 })
+
+test("list when object changes", async () => {
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }]);
+    const fillet = await filletBox();
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: fillet }]);
+
+})
+
+async function filletBox() {
+    const makeFillet = new FilletFactory(db, materials, signals);
+    makeFillet.solid = box;
+    makeFillet.edges = [box.edges.get(0)];
+    makeFillet.distance = 0.1;
+    const fillet = await makeFillet.commit() as visual.Solid;
+    return fillet;
+}

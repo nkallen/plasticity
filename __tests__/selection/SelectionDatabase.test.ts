@@ -65,6 +65,7 @@ describe(Selection, () => {
     beforeEach(() => {
         const sigs = {
             objectRemovedFromDatabase: signals.objectRemoved,
+            objectReplaced: signals.objectReplaced,
             objectAdded: signals.objectSelected,
             objectRemoved: signals.objectDeselected,
             selectionChanged: signals.selectionChanged

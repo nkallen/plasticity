@@ -52,18 +52,18 @@ export default (editor: Editor) => {
         }
 
         private renderGroup(group: GroupId) {
-            const { db, scene: { groups } } = editor;
-            const items = groups.list(group);
+            const { scene: { groups } } = editor;
+            const listings = groups.list(group);
             const subgroups = [], solids = [], curves = [];
-            for (const item of items) {
-                switch (item.tag) {
+            for (const listing of listings) {
+                switch (listing.tag) {
                     case 'Group':
-                        subgroups.push(item.id);
+                        subgroups.push(listing.id);
                         break;
                     case 'Item':
-                        const lookup = db.lookupItemById(item.id);
-                        if (lookup.view instanceof visual.Solid) solids.push(lookup.view)
-                        else if (lookup.view instanceof visual.SpaceInstance) curves.push(lookup.view)
+                        const item = listing.item;
+                        if (item instanceof visual.Solid) solids.push(item)
+                        else if (item instanceof visual.SpaceInstance) curves.push(item)
                 }
             }
             render(
