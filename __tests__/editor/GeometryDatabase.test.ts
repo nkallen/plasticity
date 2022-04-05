@@ -102,8 +102,8 @@ test('lookupName & lookupByName', async () => {
     const { model: model1 } = db.lookupItemById(view1.simpleName);
     expect(model1).toBe(box);
 
-    const name1 = db.lookupName(view1.simpleName)!;
-    expect(db.lookupByName(name1).view).toBe(view1);
+    const name1 = db.lookupId(view1.simpleName)!;
+    expect(db.lookupById(name1).view).toBe(view1);
 
     const points = [
         new THREE.Vector3(0, 0, 0),
@@ -115,16 +115,16 @@ test('lookupName & lookupByName', async () => {
     const view2 = await db.replaceItem(view1, box2);
     expect(view2.simpleName).not.toBe(view1.simpleName);
 
-    const name2 = db.lookupName(view2.simpleName)!;
+    const name2 = db.lookupId(view2.simpleName)!;
 
     expect(name1).toBe(name2);
-    expect(db.lookupByName(name1).view).toBe(view2);
+    expect(db.lookupById(name1).view).toBe(view2);
 
     db.removeItem(view2);
-    const name3 = db.lookupName(view1.simpleName);
+    const name3 = db.lookupId(view1.simpleName);
     expect(name3).toBe(undefined);
 
-    expect(() => db.lookupByName(name1).view).toThrow();
+    expect(() => db.lookupById(name1).view).toThrow();
 });
 
 test("saveToMemento & restoreFromMemento", async () => {

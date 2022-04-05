@@ -28,8 +28,8 @@ export class Memento {
 export class GeometryMemento {
     constructor(
         readonly geometryModel: ReadonlyMap<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
-        readonly version2name: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
-        readonly name2version: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
+        readonly version2id: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
+        readonly id2version: ReadonlyMap<c3d.SimpleName, c3d.SimpleName>,
         readonly topologyModel: ReadonlyMap<string, TopologyData>,
         readonly controlPointModel: ReadonlyMap<string, ControlPointData>,
         readonly automatics: ReadonlySet<c3d.SimpleName>,
@@ -54,10 +54,11 @@ export class GeometryMemento {
 
 export class NodeMemento {
     constructor(
-        readonly name2material: ReadonlyMap<c3d.SimpleName, number>,
+        readonly id2material: ReadonlyMap<c3d.SimpleName, number>,
         readonly hidden: ReadonlySet<c3d.SimpleName>,
         readonly invisible: ReadonlySet<c3d.SimpleName>,
         readonly unselectable: ReadonlySet<c3d.SimpleName>,
+        readonly id2name: ReadonlyMap<c3d.SimpleName, string>,
     ) { }
 }
 

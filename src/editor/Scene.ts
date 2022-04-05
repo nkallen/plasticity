@@ -57,6 +57,8 @@ export class Scene implements MementoOriginator<NodeMemento> {
     makeSelectable(item: visual.Item, value: boolean): void { return this.nodes.makeSelectable(item, value) }
     setMaterial(item: visual.Item, id: number): void { return this.nodes.setMaterial(item, id) }
     getMaterial(item: visual.Item): THREE.Material | undefined { return this.nodes.getMaterial(item) }
+    getName(item: visual.Item): string | undefined { return this.nodes.getName(item) }
+    setName(item: visual.Item, name: string) { this.nodes.setName(item, name) }
 
     saveToMemento(): NodeMemento {
         return this.nodes.saveToMemento();

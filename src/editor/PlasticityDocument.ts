@@ -55,13 +55,18 @@ export class PlasticityDocument {
         const items = await into.db.deserialize(c3d);
         console.timeEnd("load backup");
 
-        const name2material = new Map<c3d.SimpleName, number>();
+        const id2material = new Map<c3d.SimpleName, number>();
+        const id2name = new Map<c3d.SimpleName, string>();
         for (const [i, item] of items.entries()) {
-            const info = json.items[i];
-            if (info.material === undefined) continue;
-            name2material.set(item.simpleName, info.material);
+            const info = json.nodes[i];
+            if (info.material !== undefined) {
+                id2material.set(item.simpleName, info.material);
+            }
+            if (info.name !== undefined) {
+                id2name.set(item.simpleName, info.name);
+            }
         }
-        into.scene.nodes.restoreFromMemento(new NodeMemento(name2material, new Set(), new Set(), new Set()));
+        into.scene.nodes.restoreFromMemento(new NodeMemento(id2material, new Set(), new Set(), new Set(), id2name));
         await into.contours.rebuild();
         return new PlasticityDocument(into);
     }
@@ -115,11 +120,13 @@ export class PlasticityDocument {
             //         children: [],
             //     }
             // ],
-            items: [...db.geometryModel.values()].flatMap(({ view }) => {
+            nodes: [...db.geometryModel.values()].flatMap(({ view }) => {
                 if (db.automatics.has(view.simpleName)) return [];
-                const materialId = nodes.name2material.get(db.version2name.get(view.simpleName)!);
+                const id = db.version2id.get(view.simpleName)!;
+                const materialId = nodes.id2material.get(id);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
-                return { material } as ItemJSON
+                const name = nodes.id2name.get(id);
+                return { material, name } as NodeJSON
             }),
             // groups: [
             //     {
@@ -188,8 +195,9 @@ interface GeometryDatabaseJSON {
     uri: string;
 }
 
-interface ItemJSON {
+interface NodeJSON {
     material: number;
+    name: string;
 }
 
 interface MaterialJSON {
@@ -214,5 +222,5 @@ interface PlasticityJSON {
     db: GeometryDatabaseJSON;
     viewports: ViewportJSON[];
     materials: MaterialJSON[];
-    items: ItemJSON[];
+    nodes: NodeJSON[];
 }

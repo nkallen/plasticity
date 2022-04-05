@@ -64,6 +64,29 @@ describe(PlasticityDocument, () => {
         expect(db.items.length).toBe(2);
     });
 
+    test("serialize & deserialize names", async () => {
+        scene.setName(box1, "my first box");
+        scene.setName(box2, "my other box");
+
+        const save = new PlasticityDocument(originator);
+        const filename = path.join(dir, 'test3.plasticity');
+        const { json, c3d } = await save.serialize(filename);
+        expect(db.items.length).toBe(2);
+        await db.removeItem(box1);
+        await db.removeItem(box2);
+        expect(db.items.length).toBe(0);
+        expect(scene.getName(box1)).toBe(undefined);
+        expect(scene.getName(box2)).toBe(undefined);
+
+        await PlasticityDocument.load(json, c3d, originator);
+        expect(db.items.length).toBe(2);
+
+        const box1_ = db.items[0].view;
+        const box2_ = db.items[1].view;
+        expect(scene.getName(box1_)).toBe("my first box");
+        expect(scene.getName(box2_)).toBe("my other box");
+    });
+
     test("serialize & deserialize materials", async () => {
         const materialId = materials.add("test", new THREE.MeshPhysicalMaterial({ color: 0x123456 }));
         scene.setMaterial(box1, materialId);

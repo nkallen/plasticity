@@ -31,7 +31,6 @@ beforeEach(() => {
 })
 
 let box: visual.Solid;
-let fillet: visual.Solid;
 
 beforeEach(async () => {
     const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -54,11 +53,7 @@ test('isHidden & makeHidden when object changes', async () => {
     nodes.makeHidden(box, true);
     expect(nodes.isHidden(box)).toBe(true);
 
-    const makeFillet = new FilletFactory(db, materials, signals);
-    makeFillet.solid = box;
-    makeFillet.edges = [box.edges.get(0)];
-    makeFillet.distance = 0.1;
-    fillet = await makeFillet.commit() as visual.Solid;
+    const fillet = await filletBox();
     expect(nodes.isHidden(fillet)).toBe(true);
 })
 
@@ -74,10 +69,7 @@ test('isSelectable & makeSelectable when object changes', async () => {
     expect(nodes.isSelectable(box)).toBe(false);
 
     const makeFillet = new FilletFactory(db, materials, signals);
-    makeFillet.solid = box;
-    makeFillet.edges = [box.edges.get(0)];
-    makeFillet.distance = 0.1;
-    fillet = await makeFillet.commit() as visual.Solid;
+    const fillet = await filletBox();
     expect(nodes.isSelectable(fillet)).toBe(false);
 })
 
@@ -92,10 +84,30 @@ test('isVisible & makeVisible when object changes', async () => {
     nodes.makeVisible(box, false);
     expect(nodes.isVisible(box)).toBe(false);
 
+    const fillet = await filletBox();
+    expect(nodes.isVisible(fillet)).toBe(false);
+})
+
+test('setName & getName', async () => {
+    expect(nodes.getName(box)).toBe(undefined);
+    nodes.setName(box, "My favorite box");
+    expect(nodes.getName(box)).toBe("My favorite box");
+})
+
+test('setName & getName when object changes', async () => {
+    expect(nodes.getName(box)).toBe(undefined);
+    nodes.setName(box, "My favorite box");
+    expect(nodes.getName(box)).toBe("My favorite box");
+
+    const fillet = await filletBox();
+    expect(nodes.getName(fillet)).toBe("My favorite box");
+})
+
+async function filletBox() {
     const makeFillet = new FilletFactory(db, materials, signals);
     makeFillet.solid = box;
     makeFillet.edges = [box.edges.get(0)];
     makeFillet.distance = 0.1;
-    fillet = await makeFillet.commit() as visual.Solid;
-    expect(nodes.isVisible(fillet)).toBe(false);
-})
+    const fillet = await makeFillet.commit() as visual.Solid;
+    return fillet;
+}

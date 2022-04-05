@@ -27,8 +27,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     readonly phantomObjects = new THREE.Scene();
 
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
-    private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
-    private readonly name2version = new Map<c3d.SimpleName, c3d.SimpleName>();
+    private readonly version2id = new Map<c3d.SimpleName, c3d.SimpleName>();
+    private readonly id2version = new Map<c3d.SimpleName, c3d.SimpleName>();
     private readonly automatics = new Set<c3d.SimpleName>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
@@ -52,8 +52,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async addItem(model: c3d.Item, agent: Agent = 'user', name?: c3d.SimpleName): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
             const result = await this.insertItem(model, agent, name);
-            this.version2name.set(result.simpleName, result.simpleName);
-            this.name2version.set(result.simpleName, result.simpleName);
+            this.version2id.set(result.simpleName, result.simpleName);
+            this.id2version.set(result.simpleName, result.simpleName);
             return result;
         });
     }
@@ -66,10 +66,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.queue.enqueue(async () => {
             const to = await this.insertItem(model, 'user');
             this._removeItem(from, 'user');
-            const name = this.version2name.get(from.simpleName)!;
-            this.version2name.delete(from.simpleName);
-            this.version2name.set(to.simpleName, name);
-            this.name2version.set(name, to.simpleName);
+            const name = this.version2id.get(from.simpleName)!;
+            this.version2id.delete(from.simpleName);
+            this.version2id.set(to.simpleName, name);
+            this.id2version.set(name, to.simpleName);
             return to;
         });
     }
@@ -77,9 +77,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
         return this.queue.enqueue(async () => {
             const result = this._removeItem(view, agent);
-            const old = this.version2name.get(view.simpleName)!;
-            this.version2name.delete(view.simpleName);
-            this.name2version.delete(old);
+            const old = this.version2id.get(view.simpleName)!;
+            this.version2id.delete(view.simpleName);
+            this.id2version.delete(old);
             return result;
         });
     }
@@ -378,12 +378,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
-    lookupName(version: c3d.SimpleName) {
-        return this.version2name.get(version);
+    lookupId(version: c3d.SimpleName) {
+        return this.version2id.get(version);
     }
 
-    lookupByName(name: c3d.SimpleName) {
-        return this.lookupItemById(this.name2version.get(name)!);
+    lookupById(name: c3d.SimpleName) {
+        return this.lookupItemById(this.id2version.get(name)!);
     }
 
     pool(solid: c3d.Solid, size: number): SolidCopierPool {
@@ -393,8 +393,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     saveToMemento(): GeometryMemento {
         return new GeometryMemento(
             new Map(this.geometryModel),
-            new Map(this.version2name),
-            new Map(this.name2version),
+            new Map(this.version2id),
+            new Map(this.id2version),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
             new Set(this.automatics));
@@ -402,8 +402,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = new Map(m.geometryModel);
-        (this.version2name as GeometryDatabase['version2name']) = new Map(m.version2name);
-        (this.name2version as GeometryDatabase['name2version']) = new Map(m.name2version);
+        (this.version2id as GeometryDatabase['version2id']) = new Map(m.version2id);
+        (this.id2version as GeometryDatabase['id2version']) = new Map(m.id2version);
         (this.topologyModel as GeometryDatabase['topologyModel']) = new Map(m.topologyModel);
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = new Map(m.controlPointModel);
         (this.automatics as GeometryDatabase['automatics']) = new Set(m.automatics);
@@ -440,13 +440,13 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     }
 
     validate() {
-        console.assert(this.name2version.size === this.version2name.size, "maps should have same size", this.name2version, this.version2name);
+        console.assert(this.id2version.size === this.version2id.size, "maps should have same size", this.id2version, this.version2id);
     }
 
     debug() {
         console.group("GeometryDatabase");
         console.info("Version: ", this.version);
-        const { geometryModel, topologyModel, controlPointModel, name2version, version2name } = this;
+        const { geometryModel, topologyModel, controlPointModel, id2version: name2version, version2id: version2name } = this;
         console.group("geometryModel");
         console.table([...geometryModel].map(([name]) => { return { name } }));
         console.groupEnd();
