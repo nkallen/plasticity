@@ -21,7 +21,7 @@ export class Group {
         private readonly selection: SelectionDatabase,
         private readonly signals: EditorSignals
     ) {
-        const b = signals.objectRemoved.add(([item, _]) => this.remove(item));
+        const b = signals.objectRemoved.add(([item, _, __]) => this.remove(item));
         this.disposable.add(new Disposable(() => {
             b.detach();
         }));

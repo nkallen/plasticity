@@ -287,6 +287,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     async update() {
         const abortEarly = () => this.done;
 
+        console.log(this.state);
         switch (this.state.tag) {
             case 'none':
             case 'failed':
@@ -298,6 +299,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                     const phantoms = this.doPhantoms(abortEarly);
                     const temps = this.doUpdate(abortEarly);
                     phantoms.then(() => {
+                        console.log("got ph");
                         if (state.step === 'begin') state.step = 'phantoms-completed';
                         else state.step = 'all-completed';
                         // ensure phantoms are rendered as soon as they're ready:

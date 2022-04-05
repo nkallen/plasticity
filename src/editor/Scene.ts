@@ -1,6 +1,7 @@
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
+import { Groups } from './Group';
 import { MementoOriginator, NodeMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
 import { Nodes } from "./Nodes";
@@ -9,26 +10,14 @@ import { TypeManager } from "./TypeManager";
 export class Scene implements MementoOriginator<NodeMemento> {
     readonly types = new TypeManager(this.signals);
     readonly nodes = new Nodes(this.db, this.materials, this.signals);
+    readonly groups = new Groups(this.db, this.signals);
 
     constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
-        signals.objectAdded.add(([item, agent]) => {
-            if (agent === 'user') this.add(item);
-        });
-        signals.objectRemoved.add(([item, agent]) => {
-            if (agent === 'user') this.delete(item);
-        });
     }
 
     validate(): void {
     }
     debug(): void {
-    }
-
-    private add(item: visual.Item) {
-    }
-
-    private delete(item: visual.Item) {
-        this.nodes.delete(item.simpleName);
     }
 
     get visibleObjects(): visual.Item[] {

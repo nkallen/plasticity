@@ -6,7 +6,7 @@ import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import * as build from '../visual_model/VisualModelBuilder';
-import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from './DatabaseLike';
+import { Agent, ControlPointData, DatabaseLike, MaterialOverride, RemovalMode, TemporaryObject, TopologyData } from './DatabaseLike';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
@@ -54,6 +54,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             const result = await this.insertItem(model, agent, name);
             this.version2id.set(result.simpleName, result.simpleName);
             this.id2version.set(result.simpleName, result.simpleName);
+            this.signals.objectAdded.dispatch([result, agent]);    
+            this.signals.sceneGraphChanged.dispatch();
             return result;
         });
     }
@@ -64,22 +66,33 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
-            const to = await this.insertItem(model, 'user');
-            this._removeItem(from, 'user');
+            const agent = 'user';
             const name = this.version2id.get(from.simpleName)!;
-            this.version2id.delete(from.simpleName);
+
+            const to = await this.insertItem(model, agent);
             this.version2id.set(to.simpleName, name);
             this.id2version.set(name, to.simpleName);
+            this.signals.objectAdded.dispatch([to, agent]);    
+
+            this._removeItem(from);
+            this.version2id.delete(from.simpleName);
+            this.signals.objectRemoved.dispatch([from, agent, 'replace']);
+
+            this.signals.sceneGraphChanged.dispatch();
             return to;
         });
     }
 
     async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
         return this.queue.enqueue(async () => {
-            const result = this._removeItem(view, agent);
+            const result = this._removeItem(view);
+            this.signals.objectRemoved.dispatch([view, agent, 'delete']);
+
             const old = this.version2id.get(view.simpleName)!;
             this.version2id.delete(view.simpleName);
             this.id2version.delete(old);
+            
+            this.signals.sceneGraphChanged.dispatch();
             return result;
         });
     }
@@ -95,8 +108,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.geometryModel.set(name, { view, model });
         if (agent === 'automatic') this.automatics.add(name);
 
-        this.signals.sceneGraphChanged.dispatch();
-        this.signals.objectAdded.dispatch([view, agent]);
         return view;
     }
 
@@ -157,7 +168,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 view.dispose();
                 into.remove(view);
                 if (ancestor !== undefined) ancestor.visible = true;
-                signals.objectRemoved.dispatch([view, 'automatic']);
+                signals.objectRemoved.dispatch([view, 'automatic', 'delete']);
             }
         }
     }
@@ -167,15 +178,12 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.phantomObjects.clear();
     }
 
-    private _removeItem(view: visual.Item, agent: Agent = 'user') {
+    private _removeItem(view: visual.Item) {
         const simpleName = view.simpleName;
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(view);
         this.removeControlPoints(view);
         this.automatics.delete(simpleName);
-
-        this.signals.objectRemoved.dispatch([view, agent]);
-        this.signals.sceneGraphChanged.dispatch();
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {

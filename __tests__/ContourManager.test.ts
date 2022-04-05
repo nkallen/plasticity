@@ -135,7 +135,7 @@ test("two overlapping coplanar circles, adding and hiding creates the right regi
     expect(_db.find(visual.PlaneInstance, true).length).toBe(1);
 });
 
-test.only("two overlapping coplanar circles, visible and invisible creates the right regions", async () => {
+test("two overlapping coplanar circles, visible and invisible creates the right regions", async () => {
     let circle1: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;

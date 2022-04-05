@@ -185,7 +185,7 @@ describe('undo', () => {
         box = await makeBox.commit() as visual.Solid;
     })
 
-    test('it works', async () => {
+    test.only('it works', async () => {
         const memento = snaps.saveToMemento();
         const before = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
         expect(before.length).toBe(42);

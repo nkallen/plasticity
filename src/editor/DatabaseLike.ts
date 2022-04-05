@@ -1,14 +1,12 @@
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
-import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
-import { Nodes } from './Nodes';
 import { SolidCopierPool } from './SolidCopier';
-import { TypeManager } from './TypeManager';
 
 export type Agent = 'user' | 'automatic';
+export type RemovalMode = 'delete' | 'replace';
 
 export interface TemporaryObject {
     get underlying(): THREE.Object3D;
