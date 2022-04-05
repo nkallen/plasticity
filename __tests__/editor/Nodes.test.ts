@@ -1,15 +1,15 @@
 import * as THREE from 'three';
-import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
-import FilletFactory from '../src/commands/fillet/FilletFactory';
-import { EditorSignals } from '../src/editor/EditorSignals';
-import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { ParallelMeshCreator } from '../src/editor/MeshCreator';
-import { Nodes } from '../src/editor/Nodes';
-import { SolidCopier } from '../src/editor/SolidCopier';
-import * as visual from '../src/visual_model/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import './matchers';
+import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
+import FilletFactory from '../../src/commands/fillet/FilletFactory';
+import { EditorSignals } from '../../src/editor/EditorSignals';
+import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { Nodes } from '../../src/editor/Nodes';
+import { SolidCopier } from '../../src/editor/SolidCopier';
+import * as visual from '../../src/visual_model/VisualModel';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import '../matchers';
 
 let db: GeometryDatabase;
 let nodes: Nodes;

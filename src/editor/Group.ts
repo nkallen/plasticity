@@ -11,12 +11,11 @@ export class Groups {
 
     private readonly member2parent = new Map<NodeKey, GroupId>();
     private readonly group2children = new Map<GroupId, Set<NodeKey>>();
-    private readonly group2name = new Map<GroupId, string>();
-    readonly root: GroupId;
+    readonly root: GroupId; // always 0
     cwd: GroupId;
 
     constructor(private readonly db: GeometryDatabase, private readonly signals: EditorSignals) {
-        this.root = this.create("/", 0); // the root is its own parent
+        this.root = this.create(0); // the root is its own parent
         this.cwd = this.root;
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.addItem(this.item2id(item));
@@ -26,13 +25,12 @@ export class Groups {
         });
     }
 
-    setName(groupId: GroupId, name: string){
-        this.group2name.set(groupId, name);
+    get all() {
+        return [...this.group2children.keys()];
     }
 
-    create(name: string, parent = this.root): GroupId {
+    create(parent = this.root): GroupId {
         const id = this.counter;
-        this.group2name.set(id, name);
         this.group2children.set(id, new Set());
         this.member2parent.set(Nodes.groupKey(id), parent);
         this.counter++;
@@ -49,11 +47,14 @@ export class Groups {
         const k = Nodes.groupKey(groupId);
         const parent = this.member2parent.get(k)!;
         this.group2children.get(parent)!.delete(k);
-        this.group2name.delete(groupId);
     }
 
     moveItemToGroup(item: visual.Item, into: GroupId) {
         this._moveItemToGroup(Nodes.itemKey(this.item2id(item)), into);
+    }
+
+    groupForItem(item: visual.Item) {
+        return this.member2parent.get(Nodes.itemKey(this.item2id(item)));
     }
 
     private _moveItemToGroup(key: NodeKey, into: GroupId) {
