@@ -74,7 +74,7 @@ describe(AbstractGeometryFactory, () => {
             replacement2 = await makeSphere4.calculate() as c3d.Solid;
         });
 
-        test.only("it replaces the original item", async () => {
+        test("it replaces the original item", async () => {
             expect(db.items.length).toBe(2);
             expect(db.items[0].view).toBe(sphere1);
             expect(db.items[1].view).toBe(sphere2);
@@ -135,7 +135,7 @@ describe(AbstractGeometryFactory, () => {
             expect(db.items.length).toBe(3);
             expect(db.items[0].view).toBe(sphere2);
             expect(db.items[1].view).toBe(newView0);
-            expect(db.items[2]).toBe(newView1);
+            expect(db.items[2].view).toBe(newView1);
         });
     });
 
@@ -417,6 +417,9 @@ describe(GeometryFactory, () => {
 
     test("in case of a long update and a fast phantom", async () => {
         const show = jest.fn(), cancel = jest.fn();
+        jest.spyOn(db, 'addPhantom').mockImplementation(() => {
+            return Promise.resolve({ show, cancel, underlying: new THREE.Object3D } as unknown as TemporaryObject);
+        })
         jest.spyOn(db, 'addTemporaryItem').mockImplementation(() => {
             return Promise.resolve({ show, cancel, underlying: new THREE.Object3D } as unknown as TemporaryObject);
         })

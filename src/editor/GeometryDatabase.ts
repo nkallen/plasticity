@@ -6,12 +6,14 @@ import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import * as build from '../visual_model/VisualModelBuilder';
-import { Agent, ControlPointData, DatabaseLike, MaterialOverride, RemovalMode, TemporaryObject, TopologyData } from './DatabaseLike';
+import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from './DatabaseLike';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { MeshCreator } from './MeshCreator';
+import { Nodes } from './Nodes';
 import { SolidCopier, SolidCopierPool } from './SolidCopier';
+import { TypeManager } from './TypeManager';
 
 const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.0009), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
