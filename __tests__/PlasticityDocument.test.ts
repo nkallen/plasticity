@@ -8,6 +8,7 @@ import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import { Group } from '../src/editor/Group';
 import { EditorOriginator } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { PlasticityDocument } from '../src/editor/PlasticityDocument';
@@ -120,5 +121,37 @@ describe(PlasticityDocument, () => {
         const mat1 = scene.getMaterial(box1_)! as THREE.MeshPhysicalMaterial;
         expect(mat1).toBeInstanceOf(THREE.MeshPhysicalMaterial);
         expect(mat1.color.getHex()).toEqual(0x123456);
+    });
+
+    test("serialize & deserialize groups", async () => {
+        const group = scene.createGroup();
+        scene.setName(group, "My group");
+        scene.moveToGroup(box1, group);
+
+        const save = new PlasticityDocument(originator);
+        const filename = path.join(dir, 'test4.plasticity');
+        const { json, c3d } = await save.serialize(filename);
+        expect(db.items.length).toBe(2);
+        await db.removeItem(box1);
+        await db.removeItem(box2);
+        scene.deleteGroup(group);
+        expect(db.items.length).toBe(0);
+        expect(() => scene.getName(box1)).toThrow();
+        expect(() => scene.getName(box2)).toThrow();
+        expect(() => scene.groups.list(group)).toThrow();
+
+        await PlasticityDocument.load(json, c3d, originator);
+        expect(db.items.length).toBe(2);
+
+        const root = scene.groups.root;
+        const g1 = new Group(1);
+        const rootChildren = scene.groups.list(root);
+        expect(rootChildren.length).toBe(2);
+        expect(rootChildren[0]).toEqual({ item: db.items[1].view, tag: "Item" });
+        expect(rootChildren[1]).toEqual({ group: g1, tag: "Group" });
+
+        const groupChildren = scene.groups.list(g1);
+        expect(groupChildren.length).toBe(1);
+        expect(groupChildren[0]).toEqual({ item: db.items[0].view, tag: "Item" });
     });
 })

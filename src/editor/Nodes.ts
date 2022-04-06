@@ -16,8 +16,8 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         return `${member.tag},${member.id}`;
     }
 
-    static itemKey(id: c3d.SimpleName) { return this.key({ tag: 'Item', id }) }
-    static groupKey(id: GroupId) { return this.key({ tag: 'Group', id }) }
+    static itemKey(id: c3d.SimpleName): NodeKey { return this.key({ tag: 'Item', id }) }
+    static groupKey(id: GroupId): NodeKey { return this.key({ tag: 'Group', id }) }
 
     static dekey(k: NodeKey): NodeDekey {
         const split = k.split(',');
@@ -168,7 +168,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         (this.hidden as Nodes['hidden']) = new Set(m.hidden);
         (this.invisible as Nodes['invisible']) = new Set(m.invisible);
         (this.unselectable as Nodes['unselectable']) = new Set(m.unselectable);
-        (this.node2name as Nodes['node2name']) = new Map(m.id2name);
+        (this.node2name as Nodes['node2name']) = new Map(m.node2name);
     }
 
     validate() {

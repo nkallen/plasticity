@@ -60,7 +60,7 @@ export class NodeMemento {
         readonly hidden: ReadonlySet<NodeKey>,
         readonly invisible: ReadonlySet<NodeKey>,
         readonly unselectable: ReadonlySet<NodeKey>,
-        readonly id2name: ReadonlyMap<NodeKey, string>,
+        readonly node2name: ReadonlyMap<NodeKey, string>,
     ) { }
 }
 

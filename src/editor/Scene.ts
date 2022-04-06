@@ -49,5 +49,6 @@ export class Scene {
     getName(node: NodeItem): string | undefined { return this.nodes.getName(node) }
     setName(node: NodeItem, name: string) { this.nodes.setName(node, name) }
     createGroup() { return this.groups.create() }
+    deleteGroup(group: Group) { return this.groups.delete(group) }
     moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
 }

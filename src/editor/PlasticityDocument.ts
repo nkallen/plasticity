@@ -1,8 +1,10 @@
 import * as fs from 'fs';
 import * as THREE from "three";
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, MaterialMemento, NodeMemento, ViewportMemento } from "./History";
 import c3d from '../../build/Release/c3d.node';
+import { GroupId } from './Group';
+import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, ViewportMemento } from "./History";
 import { NodeKey, Nodes } from './Nodes';
+import * as visual from '../visual_model/VisualModel';
 
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
@@ -52,44 +54,73 @@ export class PlasticityDocument {
             materials.set(i, { name, material });
         }
         into.materials.restoreFromMemento(new MaterialMemento(materials));
+
         console.time("load backup");
         const items = await into.db.deserialize(c3d);
         console.timeEnd("load backup");
 
-        const id2material = new Map<NodeKey, number>();
-        const id2name = new Map<NodeKey, string>();
-        for (const [i, item] of items.entries()) {
-            const info = json.nodes[i];
-            const key = Nodes.itemKey(item.simpleName);
-            if (info.material !== undefined) {
-                id2material.set(key, info.material);
+        const node2material = new Map<NodeKey, number>();
+        const node2name = new Map<NodeKey, string>();
+        for (const [i, node] of json.nodes.entries()) {
+            const key = keyForNode(node, items);
+            if (node.material !== undefined) {
+                node2material.set(key, node.material);
             }
-            if (info.name !== undefined) {
-                id2name.set(key, info.name);
+            if (node.name !== undefined) {
+                node2name.set(key, node.name);
             }
         }
-        into.scene.nodes.restoreFromMemento(new NodeMemento(id2material, new Set(), new Set(), new Set(), id2name));
+        into.scene.nodes.restoreFromMemento(new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name));
+
+        const group2children: Map<GroupId, Set<NodeKey>> = new Map();
+        const member2parent: Map<NodeKey, GroupId> = new Map();
+        for (const [i, group] of json.groups.entries()) {
+            const children = group.children.map(i => keyForNode(json.nodes[i], items));
+            group2children.set(i, new Set(children));
+            for (const child of children) {
+                member2parent.set(child, i);
+            }
+        }
+        into.scene.groups.restoreFromMemento(new GroupMemento(member2parent, group2children));
+
         await into.contours.rebuild();
         return new PlasticityDocument(into);
     }
 
     async serialize(filename: string) {
         const memento = this.originator.saveToMemento();
-        const { db, nodes } = memento;
+        const { db, nodes, groups } = memento;
         const c3d = await db.serialize();
         const c3dFilename = `${filename}.c3d`
 
         const viewports = this.originator.viewports.map(v => v.saveToMemento());
 
-        let i = 0;
+        let i, j;
+        i = 0;
         const materialId2position = new Map<number, number>();
         for (const id of memento.materials.materials.keys()) {
             materialId2position.set(id, i++);
         }
+        i = 0; j = 0;
+        const node2position = new Map<NodeKey, number>();
+        const allNodes = [];
+        for (const { view } of [...db.geometryModel.values()]) {
+            if (db.automatics.has(view.simpleName)) continue;
+            const id = db.version2id.get(view.simpleName)!;
+            const key = Nodes.itemKey(id);
+            allNodes.push({ 'item': j++, key });
+            node2position.set(key, i++);
+        }
+        j = 0;
+        for (const id of [...groups.group2children.keys()]) {
+            const key = Nodes.groupKey(id);
+            allNodes.push({ 'group': j++, key });
+            node2position.set(key, i++);
+        }
 
         const json = {
             asset: {
-                version: 1.0
+                version: 1.1
             },
             db: {
                 uri: c3dFilename,
@@ -111,31 +142,24 @@ export class PlasticityDocument {
                     isXRay: viewport.isXRay,
                 } as ViewportJSON
             )),
-            // nodes: [
-            //     {
-            //         name: "",
-            //         item: 1
-            //     },
-            //     {
-            //         name: "",
-            //         group: 1,
-            //         children: [],
-            //     }
-            // ],
-            nodes: [...db.geometryModel.values()].flatMap(({ view }) => {
-                if (db.automatics.has(view.simpleName)) return [];
-                const id = db.version2id.get(view.simpleName)!;
-                const key = Nodes.itemKey(id);
+            nodes: allNodes.map(nodeInfo => {
+                const { key, item, group } = nodeInfo;
                 const materialId = nodes.node2material.get(key);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
-                const name = nodes.id2name.get(key);
-                return { material, name } as NodeJSON
+                const name = nodes.node2name.get(key);
+                const { tag } = Nodes.dekey(key);
+                const node = {} as NodeJSON;
+                if (tag === 'Item') node.item = item;
+                else node.group = group;
+                if (material !== undefined) node.material = material;
+                if (name !== undefined) node.name = name;
+                return node;
             }),
-            // groups: [
-            //     {
-            //          name: "",
-            //     }
-            // ],
+            groups: [...groups.group2children].map(([gid, children]) => {
+                return {
+                    children: [...children].map(child => node2position.get(child)!),
+                } as GroupJSON
+            }),
             materials: [...memento.materials.materials.values()].map(mat => {
                 const { name, material } = mat;
                 return {
@@ -194,11 +218,17 @@ interface ViewportJSON {
     isXRay: boolean;
 }
 
+interface GroupJSON {
+    children: number[]
+}
+
 interface GeometryDatabaseJSON {
     uri: string;
 }
 
 interface NodeJSON {
+    item?: c3d.SimpleName;
+    group?: GroupId;
     material: number;
     name: string;
 }
@@ -226,4 +256,9 @@ interface PlasticityJSON {
     viewports: ViewportJSON[];
     materials: MaterialJSON[];
     nodes: NodeJSON[];
+    groups: GroupJSON[];
+}
+
+function keyForNode(node: NodeJSON, items: visual.Item[]): NodeKey {
+    return node.item !== undefined ? Nodes.itemKey(items[node.item].simpleName) : Nodes.groupKey(node.group!);
 }
