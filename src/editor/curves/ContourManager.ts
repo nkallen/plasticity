@@ -43,8 +43,12 @@ export default class ContourManager extends DatabaseProxy {
         signals: EditorSignals,
     ) {
         super(db);
-        signals.objectUnhidden.add(item => this.makeHidden(item, false));
-        signals.objectHidden.add(item => this.makeHidden(item, true));
+        signals.objectUnhidden.add(item => {
+            if (item instanceof visual.Item) this.makeHidden(item, false)
+        });
+        signals.objectHidden.add(item => {
+            if (item instanceof visual.Item) this.makeHidden(item, true)
+        });
     }
 
     private async makeHidden(item: visual.Item, value: boolean) {

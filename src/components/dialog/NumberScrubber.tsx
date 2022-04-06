@@ -38,13 +38,9 @@ export default (editor: Editor) => {
         }
 
         private _enabled = true;
-        set enabled(enabled: boolean) {
-            this._enabled = enabled;
-        }
+        set enabled(enabled: boolean) { this._enabled = enabled }
 
-        connectedCallback() {
-            this.render();
-        }
+        connectedCallback() { this.render() }
 
         toggle(e: Event) {
             e.stopPropagation();

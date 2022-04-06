@@ -1,9 +1,10 @@
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { GroupId, Groups } from './Group';
+import { Group, GroupId, Groups } from './Group';
+import { MementoOriginator, NodeMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
-import { Nodes } from "./Nodes";
+import { NodeItem, Nodes } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 export class Scene {
@@ -36,17 +37,17 @@ export class Scene {
         return this.visibleObjects.filter(i => nodes.isSelectable(i));
     }
 
-    isHidden(item: visual.Item): boolean { return this.nodes.isHidden(item) }
-    makeHidden(item: visual.Item, value: boolean) { return this.nodes.makeHidden(item, value) }
-    unhideAll(): Promise<visual.Item[]> { return this.nodes.unhideAll() }
-    isVisible(item: visual.Item): boolean { return this.nodes.isVisible(item) }
-    makeVisible(item: visual.Item, value: boolean) { return this.nodes.makeVisible(item, value) }
-    isSelectable(item: visual.Item): boolean { return this.nodes.isSelectable(item) }
-    makeSelectable(item: visual.Item, value: boolean): void { return this.nodes.makeSelectable(item, value) }
-    setMaterial(item: visual.Item, id: number): void { return this.nodes.setMaterial(item, id) }
-    getMaterial(item: visual.Item): THREE.Material | undefined { return this.nodes.getMaterial(item) }
-    getName(item: visual.Item): string | undefined { return this.nodes.getName(item) }
-    setName(item: visual.Item, name: string) { this.nodes.setName(item, name) }
+    isHidden(node: NodeItem): boolean { return this.nodes.isHidden(node) }
+    makeHidden(node: NodeItem, value: boolean) { return this.nodes.makeHidden(node, value) }
+    unhideAll(): Promise<NodeItem[]> { return this.nodes.unhideAll() }
+    isVisible(node: NodeItem): boolean { return this.nodes.isVisible(node) }
+    makeVisible(node: NodeItem, value: boolean) { return this.nodes.makeVisible(node, value) }
+    isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
+    makeSelectable(node: NodeItem, value: boolean): void { return this.nodes.makeSelectable(node, value) }
+    setMaterial(node: NodeItem, id: number): void { return this.nodes.setMaterial(node, id) }
+    getMaterial(node: NodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
+    getName(node: NodeItem): string | undefined { return this.nodes.getName(node) }
+    setName(node: NodeItem, name: string) { this.nodes.setName(node, name) }
     createGroup() { return this.groups.create() }
-    moveToGroup(item: visual.Item, group: GroupId) { this.groups.moveItemToGroup(item, group) }
+    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
 }

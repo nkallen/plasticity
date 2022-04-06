@@ -28,7 +28,6 @@ import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.css';
 import { Editor } from './editor/Editor';
 import { ConfigFiles } from './startup/ConfigFiles';
-import { unit } from './util/Conversion';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

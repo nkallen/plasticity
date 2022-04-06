@@ -3,20 +3,21 @@ import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
 import { GroupMemento, MementoOriginator } from './History';
-import { NodeKey, Nodes, Node } from './Nodes';
+import { NodeItem, NodeKey, Nodes } from './Nodes';
 
 export type GroupId = number;
-export type GroupListing = { tag: 'Group', id: GroupId } | { tag: 'Item', item: visual.Item }
+export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item }
+
 export class Groups implements MementoOriginator<GroupMemento> {
     private counter = 0;
 
     private readonly member2parent = new Map<NodeKey, GroupId>();
     private readonly group2children = new Map<GroupId, Set<NodeKey>>();
-    readonly root: GroupId; // always 0
-    cwd: GroupId;
+    readonly root: Group; // always 0
+    cwd: Group;
 
     constructor(private readonly db: GeometryDatabase, private readonly signals: EditorSignals) {
-        this.root = this.create(0); // the root is its own parent
+        this.root = this.create(); // the root is its own parent
         this.cwd = this.root;
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.addItem(this.item2id(item));
@@ -30,18 +31,22 @@ export class Groups implements MementoOriginator<GroupMemento> {
         return [...this.group2children.keys()];
     }
 
-    create(parent = this.root): GroupId {
+    create(parent = this.root): Group {
         const id = this.counter;
         this.group2children.set(id, new Set());
-        this.member2parent.set(Nodes.groupKey(id), parent);
-        if (id !== parent) this.group2children.get(parent)!.add(Nodes.groupKey(id));
+        const parentId = parent !== undefined ? parent.id : 0;
+        this.member2parent.set(Nodes.groupKey(id), parentId);
+        if (id !== parentId) this.group2children.get(parentId)!.add(Nodes.groupKey(id));
         this.counter++;
+        const group = new Group(id);
+        this.signals.groupCreated.dispatch(group);
         this.signals.sceneGraphChanged.dispatch();
-        return id;
+        return group;
     }
 
-    delete(groupId: GroupId) {
-        if (groupId === this.root) throw new Error("Cannot delete root");
+    delete(group: Group) {
+        const groupId = group.id;
+        if (group === this.root) throw new Error("Cannot delete root");
         const children = this.group2children.get(groupId)!;
         for (const child of children) {
             this._moveItemToGroup(child, this.root);
@@ -53,34 +58,34 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    moveGroupToGroup(groupId: GroupId, into: GroupId) {
-        this._moveItemToGroup(Nodes.groupKey(groupId), into);
+    moveNodeToGroup(item: NodeItem, into: Group) {
+        const key = item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+        this._moveItemToGroup(key, into);
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    moveItemToGroup(item: visual.Item, into: GroupId) {
-        this._moveItemToGroup(Nodes.itemKey(this.item2id(item)), into);
-        this.signals.sceneGraphChanged.dispatch();
+    groupForNode(item: NodeItem): Group | undefined {
+        const key = item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+        const id = this.member2parent.get(key);
+        if (id === undefined) return;
+        return new Group(id);
     }
 
-    groupForItem(item: visual.Item) {
-        return this.member2parent.get(Nodes.itemKey(this.item2id(item)));
-    }
-
-    private _moveItemToGroup(key: NodeKey, into: GroupId) {
+    private _moveItemToGroup(key: NodeKey, into: Group) {
         this.deleteMembership(key);
         this.addMembership(key, into);
     }
 
-    list(groupId: GroupId): GroupListing[] {
+    list(group: Group): GroupListing[] {
         const { group2children, db } = this;
-        const memberKeys = group2children.get(groupId)!;
+        const memberKeys = group2children.get(group.id);
+        if (memberKeys === undefined) throw new Error(`Group ${group.id} has no child set`);
         const result = [];
         for (const key of memberKeys) {
             const { tag, id } = Nodes.dekey(key);
             switch (tag) {
                 case 'Group':
-                    result.push({ tag, id });
+                    result.push({ tag, group: new Group(id) });
                     break;
                 case 'Item':
                     result.push({ tag, item: db.lookupById(id).view })
@@ -98,12 +103,14 @@ export class Groups implements MementoOriginator<GroupMemento> {
     private deleteItem(id: c3d.SimpleName) {
         const k = Nodes.itemKey(id);
         this.deleteMembership(k);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     private addMembership(key: NodeKey, into = this.cwd) {
         const { group2children, member2parent } = this;
-        group2children.get(into)!.add(key);
-        member2parent.set(key, into);
+        group2children.get(into.id)!.add(key);
+        member2parent.set(key, into.id);
+        this.signals.groupChanged.dispatch(into);
     }
 
     private deleteMembership(key: NodeKey) {
@@ -111,6 +118,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const groupId = member2parent.get(key)!;
         member2parent.delete(key);
         group2children.get(groupId)!.delete(key);
+        this.signals.groupChanged.dispatch(new Group(groupId));
     }
 
     private item2id(item: visual.Item): c3d.SimpleName {
@@ -141,25 +149,39 @@ function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<Nod
     return group2childrenCopy;
 }
 
-type FlatOutlineElement = { tag: 'ExpandedGroup', id: GroupId } | { tag: 'CollapsedGroup', id: GroupId }
+export class Group {
+    constructor(readonly id: GroupId) { }
+    get isRoot() { return this.id === 0 }
+}
 
-export function flatten(group: GroupId, groups: Groups, expandedGroups: Set<GroupId>): FlatOutlineElement[] {
-    const result: FlatOutlineElement[] = [];
-    const work = [group];
-    while (work.length > 0) {
-        const item = work.shift()!;
-        if (expandedGroups.has(item)) {
-            result.push({ tag: 'ExpandedGroup', id: item });
-            for (const child of groups.list(item)) {
-                switch (child.tag) {
-                    case 'Group':
-                        work.push(child.id);
-                        break;
-                }
+type FlatOutlineElement = { tag: 'ExpandedGroup', group: Group, indent: number } | { tag: 'CollapsedGroup', group: Group, indent: number } | { tag: 'Item', item: visual.Item, indent: number } | { tag: 'SolidSection', indent: number } | { tag: 'CurveSection', indent: number }
+
+export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
+    let result: FlatOutlineElement[] = [];
+    if (expandedGroups.has(group.id)) {
+        result.push({ tag: 'ExpandedGroup', group, indent });
+        const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];
+        for (const child of groups.list(group)) {
+            switch (child.tag) {
+                case 'Group':
+                    result = result.concat(flatten(child.group, groups, expandedGroups, indent + 1))
+                    break;
+                case 'Item':
+                    if (child.item instanceof visual.Solid) solids.push({ ...child, indent });
+                    else if (child.item instanceof visual.SpaceInstance) curves.push({ ...child, indent });
+                    else throw new Error("invalid item: " + child.item.constructor.name);
             }
-        } else {
-            result.push({ tag: 'CollapsedGroup', id: item });
         }
+        if (solids.length > 0) {
+            result.push({ tag: 'SolidSection', indent });
+            result = result.concat(solids);
+        }
+        if (curves.length > 0) {
+            result.push({ tag: 'CurveSection', indent });
+            result = result.concat(curves)
+        }
+    } else {
+        result.push({ tag: 'CollapsedGroup', group, indent });
     }
     return result;
 }

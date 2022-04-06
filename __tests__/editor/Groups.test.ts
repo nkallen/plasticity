@@ -47,25 +47,25 @@ beforeEach(async () => {
 
 test("add item to group", () => {
     const g1 = groups.create();
-    expect(groups.groupForItem(box)).toBe(groups.root);
-    groups.moveItemToGroup(box, g1);
-    expect(groups.groupForItem(box)).toBe(g1);
+    expect(groups.groupForNode(box)).toEqual(groups.root);
+    groups.moveNodeToGroup(box, g1);
+    expect(groups.groupForNode(box)).toEqual(g1);
 })
 
 test("add item to group & delete", () => {
     const g1 = groups.create();
-    groups.moveItemToGroup(box, g1);
-    expect(groups.groupForItem(box)).toBe(g1);
+    groups.moveNodeToGroup(box, g1);
+    expect(groups.groupForNode(box)).toEqual(g1);
     groups.delete(g1);
-    expect(groups.groupForItem(box)).toBe(groups.root);
+    expect(groups.groupForNode(box)).toEqual(groups.root);
 })
 
 test("list", () => {
     const g1 = groups.create();
     expect(groups.list(g1)).toEqual([]);
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }, { tag: 'Group', id: g1 }]);
-    groups.moveItemToGroup(box, g1);
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Group', id: g1 }]);
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }, { tag: 'Group', group: g1 }]);
+    groups.moveNodeToGroup(box, g1);
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Group', group: g1 }]);
     expect(groups.list(g1)).toEqual([{ tag: 'Item', item: box }]);
 })
 

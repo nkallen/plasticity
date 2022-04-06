@@ -5,20 +5,21 @@ import { EditorSignals } from './EditorSignals';
 import { MementoOriginator, NodeMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { GeometryDatabase } from './GeometryDatabase';
-import { GroupId } from './Group';
+import { Group, GroupId } from './Group';
 
-export type Node = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId }
+export type NodeDekey = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId }
 export type NodeKey = string;
+export type NodeItem = visual.Item | Group;
 
 export class Nodes implements MementoOriginator<NodeMemento> {
-    static key(member: Node): NodeKey {
+    static key(member: NodeDekey): NodeKey {
         return `${member.tag},${member.id}`;
     }
 
     static itemKey(id: c3d.SimpleName) { return this.key({ tag: 'Item', id }) }
     static groupKey(id: GroupId) { return this.key({ tag: 'Group', id }) }
 
-    static dekey(k: NodeKey): Node {
+    static dekey(k: NodeKey): NodeDekey {
         const split = k.split(',');
         const tag = split[0];
         const id = Number(split[1]);
@@ -41,10 +42,10 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         });
     }
 
-    private addItem(item: visual.Item) {
+    private addItem(item: NodeItem) {
     }
 
-    private deleteItem(item: visual.Item) {
+    private deleteItem(item: NodeItem) {
         const k = this.item2key(item);
         this.hidden.delete(k);
         this.invisible.delete(k);
@@ -53,22 +54,22 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         this.unselectable.delete(k)
     }
 
-    setName(item: visual.Item, name: string) {
+    setName(item: NodeItem, name: string) {
         const k = this.item2key(item);
         return this.node2name.set(k, name);
     }
 
-    getName(item: visual.Item): string | undefined {
+    getName(item: NodeItem): string | undefined {
         const k = this.item2key(item);
         return this.node2name.get(k);
     }
 
-    isSelectable(item: visual.Item): boolean {
+    isSelectable(item: NodeItem): boolean {
         const k = this.item2key(item);
         return !this.unselectable.has(k);
     }
 
-    makeSelectable(item: visual.Item, newValue: boolean) {
+    makeSelectable(item: NodeItem, newValue: boolean) {
         const { unselectable } = this;
         const k = this.item2key(item);
         const oldValue = !unselectable.has(k);
@@ -83,29 +84,27 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         }
     }
 
-    isHidden(item: visual.Item): boolean {
+    isHidden(item: NodeItem): boolean {
         const k = this.item2key(item);
         return this.hidden.has(k);
     }
 
-    makeHidden(item: visual.Item, newValue: boolean) {
+    makeHidden(item: NodeItem, newValue: boolean) {
         const { hidden } = this;
         const k = this.item2key(item);
         const oldValue = hidden.has(k);
         if (newValue) {
-            if (oldValue)
-                return;
+            if (oldValue) return;
             hidden.add(k);
             this.signals.objectHidden.dispatch(item);
         } else {
-            if (!oldValue)
-                return;
+            if (!oldValue) return;
             hidden.delete(k);
             this.signals.objectUnhidden.dispatch(item);
         }
     }
 
-    makeVisible(item: visual.Item, newValue: boolean) {
+    makeVisible(item: NodeItem, newValue: boolean) {
         const { invisible } = this;
         const k = this.item2key(item)
         const oldValue = !invisible.has(k);
@@ -120,7 +119,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         }
     }
 
-    isVisible(item: visual.Item): boolean {
+    isVisible(item: NodeItem): boolean {
         const k = this.item2key(item);
         return !this.invisible.has(k);
     }
@@ -137,14 +136,14 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         return views;
     }
 
-    setMaterial(item: visual.Item, materialId: number): void {
+    setMaterial(item: NodeItem, materialId: number): void {
         const { node2material } = this;
         const k = this.item2key(item);
         node2material.set(k, materialId);
         this.signals.itemMaterialChanged.dispatch(item);
     }
 
-    getMaterial(item: visual.Item): THREE.Material | undefined {
+    getMaterial(item: NodeItem): THREE.Material | undefined {
         const { node2material: version2material } = this;
         const k = this.item2key(item);
         const materialId = version2material.get(k);
@@ -221,7 +220,10 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         return result;
     }
 
-    private item2key(item: visual.Item): NodeKey {
-        return Nodes.key({ tag: 'Item', id: this.item2id(item) });
+    item2key(item: NodeItem): NodeKey {
+        if (item instanceof visual.Item)
+            return Nodes.key({ tag: 'Item', id: this.item2id(item) });
+        else
+            return Nodes.key({ tag: 'Group', id: item.id });
     }
 }

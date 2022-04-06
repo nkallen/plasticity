@@ -23,8 +23,8 @@ beforeEach(() => {
 })
 
 test('simple flatten', () => {
-    expect(flatten(groups.root, groups, new Set())).toEqual([{ tag: "CollapsedGroup", id: 0 }]);
-    expect(flatten(groups.root, groups, new Set([groups.root]))).toEqual([{ tag: "ExpandedGroup", id: 0 }]);
+    expect(flatten(groups.root, groups, new Set())).toEqual([{ tag: "CollapsedGroup", group: groups.root, indent: 0 }]);
+    expect(flatten(groups.root, groups, new Set([groups.root.id]))).toEqual([{ tag: "ExpandedGroup", group: groups.root, indent: 0 }]);
 });
 
 test('nested flatten', () => {
@@ -33,34 +33,34 @@ test('nested flatten', () => {
     const g3 = groups.create();
     const g4 = groups.create();
     const g5 = groups.create();
-    groups.moveGroupToGroup(g3, g2);
-    groups.moveGroupToGroup(g4, g2);
-    groups.moveGroupToGroup(g5, g3);
+    groups.moveNodeToGroup(g3, g2);
+    groups.moveNodeToGroup(g4, g2);
+    groups.moveNodeToGroup(g5, g3);
 
-    expect(flatten(groups.root, groups, new Set())).toEqual([{ tag: "CollapsedGroup", id: 0 }]);
-    expect(flatten(groups.root, groups, new Set([groups.root]))).toEqual([
-        { tag: "ExpandedGroup", id: 0 },
-        { tag: "CollapsedGroup", id: g1 },
-        { tag: "CollapsedGroup", id: g2 },
+    expect(flatten(groups.root, groups, new Set())).toEqual([{ tag: "CollapsedGroup", group: groups.root, indent: 0 }]);
+    expect(flatten(groups.root, groups, new Set([groups.root.id]))).toEqual([
+        { tag: "ExpandedGroup", group: groups.root, indent: 0 },
+        { tag: "CollapsedGroup", group: g1, indent: 1 },
+        { tag: "CollapsedGroup", group: g2, indent: 1 },
     ]);
-    expect(flatten(groups.root, groups, new Set([groups.root, g1]))).toEqual([
-        { tag: "ExpandedGroup", id: groups.root },
-        { tag: "ExpandedGroup", id: g1 },
-        { tag: "CollapsedGroup", id: g2 },
+    expect(flatten(groups.root, groups, new Set([groups.root.id, g1.id]))).toEqual([
+        { tag: "ExpandedGroup", group: groups.root, indent: 0 },
+        { tag: "ExpandedGroup", group: g1, indent: 1 },
+        { tag: "CollapsedGroup", group: g2, indent: 1 },
     ]);
-    expect(flatten(groups.root, groups, new Set([groups.root, g1, g2]))).toEqual([
-        { tag: "ExpandedGroup", id: groups.root },
-        { tag: "ExpandedGroup", id: g1 },
-        { tag: "ExpandedGroup", id: g2 },
-        { tag: "CollapsedGroup", id: g3 },
-        { tag: "CollapsedGroup", id: g4 },
+    expect(flatten(groups.root, groups, new Set([groups.root.id, g1.id, g2.id]))).toEqual([
+        { tag: "ExpandedGroup", group: groups.root, indent: 0 },
+        { tag: "ExpandedGroup", group: g1, indent: 1 },
+        { tag: "ExpandedGroup", group: g2, indent: 1 },
+        { tag: "CollapsedGroup", group: g3, indent: 2 },
+        { tag: "CollapsedGroup", group: g4, indent: 2 },
     ]);
-    expect(flatten(groups.root, groups, new Set([groups.root, g1, g2, g3]))).toEqual([
-        { tag: "ExpandedGroup", id: groups.root },
-        { tag: "ExpandedGroup", id: g1 },
-        { tag: "ExpandedGroup", id: g2 },
-        { tag: "ExpandedGroup", id: g3 },
-        { tag: "CollapsedGroup", id: g4 },
-        { tag: "CollapsedGroup", id: g5 },
+    expect(flatten(groups.root, groups, new Set([groups.root.id, g1.id, g2.id, g3.id]))).toEqual([
+        { tag: "ExpandedGroup", group: groups.root, indent: 0 },
+        { tag: "ExpandedGroup", group: g1, indent: 1 },
+        { tag: "ExpandedGroup", group: g2, indent: 1 },
+        { tag: "ExpandedGroup", group: g3, indent: 2 },
+        { tag: "CollapsedGroup", group: g5, indent: 3 },
+        { tag: "CollapsedGroup", group: g4, indent: 2 },
     ]);
 });

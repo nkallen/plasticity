@@ -10,6 +10,8 @@ import { SelectionModeSet } from "../selection/SelectionModeSet";
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from "./GeometryDatabase";
+import { Group } from "./Group";
+import { NodeItem } from "./Nodes";
 import { ConstructionPlane } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";
@@ -18,10 +20,10 @@ export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectReplaced: signals.Signal<Replacement> = new signals.Signal();
-    objectHidden: signals.Signal<visual.Item> = new signals.Signal();
-    objectUnhidden: signals.Signal<visual.Item> = new signals.Signal();
-    objectSelectable: signals.Signal<visual.Item> = new signals.Signal();
-    objectUnselectable: signals.Signal<visual.Item> = new signals.Signal();
+    objectHidden: signals.Signal<NodeItem> = new signals.Signal();
+    objectUnhidden: signals.Signal<NodeItem> = new signals.Signal();
+    objectSelectable: signals.Signal<NodeItem> = new signals.Signal();
+    objectUnselectable: signals.Signal<NodeItem> = new signals.Signal();
     objectSelected: signals.Signal<Selectable> = new signals.Signal();
     objectDeselected: signals.Signal<Selectable> = new signals.Signal();
     objectHovered: signals.Signal<Selectable> = new signals.Signal();
@@ -29,6 +31,8 @@ export class EditorSignals {
     selectionChanged: signals.Signal = new signals.Signal();
     selectionDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     hoverDelta: signals.Signal<SelectionDelta> = new signals.Signal();
+    groupCreated: signals.Signal<Group> = new signals.Signal();
+    groupChanged: signals.Signal<Group> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     temporaryObjectAdded: signals.Signal<{ view: visual.Item, ancestor?: visual.Item }> = new signals.Signal();
     modifiersLoaded: signals.Signal = new signals.Signal();
@@ -68,5 +72,5 @@ export class EditorSignals {
     typeDisabled: signals.Signal<DisablableType> = new signals.Signal();
     typeEnabled: signals.Signal<DisablableType> = new signals.Signal();
     visibleLayersChanged: signals.Signal = new signals.Signal();
-    itemMaterialChanged: signals.Signal<visual.Item> = new signals.Signal();
+    itemMaterialChanged: signals.Signal<NodeItem> = new signals.Signal();
 }
