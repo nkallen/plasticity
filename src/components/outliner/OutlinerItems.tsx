@@ -2,6 +2,7 @@ import { render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
 import { Group } from '../../editor/Group';
+import { NodeItem, NodeKey } from '../../editor/Nodes';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
@@ -10,9 +11,9 @@ export default (editor: Editor) => {
     const keypress = new SelectionKeypressStrategy(editor.keymaps);
 
     class OutlinerItem extends HTMLElement {
-        private _item!: visual.Item;
-        get item() { return this._item }
-        set item(item: visual.Item) { this._item = item }
+        private _nodeKey!: NodeKey;
+        get nodeKey() { return this._nodeKey }
+        set nodeKey(nodeKey: NodeKey) { this._nodeKey = nodeKey }
 
         private _indent!: number;
         get indent() { return this._indent }
@@ -22,18 +23,28 @@ export default (editor: Editor) => {
         disconnectedCallback() { }
 
         get klass(): string {
-            return this.item instanceof visual.Solid ? "Solid" : "Curve";
+            const item = editor.scene.nodes.key2item(this.nodeKey);
+            if (item instanceof visual.Solid) return "Solid";
+            else if (item instanceof visual.SpaceInstance) return "Curve";
+            else if (item instanceof Group) return "Group";
+            throw new Error("Should be unreachable");
         }
 
         render = () => {
-            const { scene, selection: { selected } } = editor;
-            const { item, klass } = this;
+            const { scene, scene: { nodes }, selection: { selected } } = editor;
+            const { nodeKey: key, klass } = this;
+            const item = nodes.key2item(key);
 
             const visible = scene.isVisible(item);
             const hidden = scene.isHidden(item);
             const selectable = scene.isSelectable(item);
-            const isSelected = selected.has(item);
-            const name = scene.getName(item) ?? `${klass} ${item.simpleName}`;
+            const isSelected = item instanceof visual.Item && selected.has(item);
+            let name;
+            if (item instanceof Group) {
+                name = item.isRoot ? "Scene" : scene.getName(item) ?? `${klass} ${item.id}`
+            } else {
+                name = scene.getName(item) ?? `${klass} ${item.simpleName}`
+            }
             const result = <div class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
                 <plasticity-icon name={klass.toLowerCase()} class="text-accent-500"></plasticity-icon>
                 <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{name}</div>
@@ -50,24 +61,25 @@ export default (editor: Editor) => {
             render(result, this);
         }
 
-        select = (e: MouseEvent, item: visual.Item) => {
+        select = (e: MouseEvent, item: NodeItem) => {
+            if (item instanceof Group) return;
             const command = new OutlinerChangeSelectionCommand(editor, [item], keypress.event2modifier(e));
             editor.enqueue(command, true);
         }
 
-        setVisibility = (e: MouseEvent, item: visual.Item, value: boolean) => {
+        setVisibility = (e: MouseEvent, item: NodeItem, value: boolean) => {
             const command = new ToggleVisibilityCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
         }
 
-        setHidden = (e: MouseEvent, item: visual.Item, value: boolean) => {
+        setHidden = (e: MouseEvent, item: NodeItem, value: boolean) => {
             const command = new ToggleHiddenCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
         }
 
-        setSelectable = (e: MouseEvent, item: visual.Item, value: boolean) => {
+        setSelectable = (e: MouseEvent, item: NodeItem, value: boolean) => {
             const command = new ToggleSelectableCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
@@ -115,7 +127,7 @@ class OutlinerChangeSelectionCommand extends cmd.CommandLike {
 class ToggleVisibilityCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: visual.Item,
+        private readonly item: NodeItem,
         private readonly value: boolean,
     ) {
         super(editor);
@@ -123,38 +135,38 @@ class ToggleVisibilityCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         this.editor.scene.makeVisible(this.item, this.value);
-        this.editor.selection.selected.remove(this.item);
+        if (this.item instanceof visual.Item) this.editor.selection.selected.remove(this.item);
     }
 }
 
 class ToggleHiddenCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: visual.Item,
+        private readonly item: NodeItem,
         private readonly value: boolean,
     ) {
         super(editor);
     }
 
     async execute(): Promise<void> {
-        const { editor: { scene, selection }, item, value } = this;
+        const { editor: { scene, selection }, item } = this;
         scene.makeHidden(this.item, this.value);
-        selection.selected.remove(item);
+        if (item instanceof visual.Item) selection.selected.remove(item);
     }
 }
 
 class ToggleSelectableCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: visual.Item,
+        private readonly item: NodeItem,
         private readonly value: boolean,
     ) {
         super(editor);
     }
 
     async execute(): Promise<void> {
-        const { editor: { scene, selection }, item, value } = this;
+        const { editor: { scene, selection }, item } = this;
         scene.makeSelectable(this.item, this.value);
-        selection.selected.remove(item);
+        if (item instanceof visual.Item) selection.selected.remove(item);
     }
 }

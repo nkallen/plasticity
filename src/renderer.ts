@@ -35,7 +35,6 @@ ConfigFiles.loadTheme();
 
 export const editor = new Editor();
 
-editor.backup.load();
 Object.defineProperty(window, 'editor', {
     value: editor,
     writable: false
@@ -75,3 +74,6 @@ Snaps(editor);
 Planes(editor);
 Clipboard(editor);
 Menu(editor);
+
+editor.backup.load();
+

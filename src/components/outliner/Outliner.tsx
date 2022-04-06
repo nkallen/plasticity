@@ -21,6 +21,7 @@ export default (editor: Editor) => {
             this.render();
             const { disposable } = this;
 
+            editor.signals.backupLoaded.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.selectionDelta.add(this.updateSelection);
             editor.signals.objectHidden.add(this.updateNodeItem);
@@ -39,6 +40,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
+            editor.signals.backupLoaded.remove(this.render);
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.selectionDelta.remove(this.updateSelection);
             editor.signals.objectHidden.remove(this.updateNodeItem);
@@ -69,24 +71,29 @@ export default (editor: Editor) => {
                 const ref = createRef();
                 let row;
                 switch (item.tag) {
-                    case 'CollapsedGroup':
-                        map.set(nodes.item2key(item.group), ref);
-                        row = <plasticity-outliner-group
-                            collapsed={true} group={item.group} key={item.group.id}
-                            onClick={() => this.expand(item.group)}
-                        ></plasticity-outliner-group>
+                    case 'Group':
+                        const key = nodes.item2key(item.group);
+                        map.set(key, ref);
+                        row = <plasticity-outliner-item
+                            key={key}
+                            nodeKey={key}
+                            expanded={item.expanded} group={item.group}
+                            ref={ref}
+                            onClick={() => item.expanded ? this.collapse(item.group) : this.expand(item.group)}
+                        ></plasticity-outliner-item>
                         break;
-                    case 'ExpandedGroup':
-                        map.set(nodes.item2key(item.group), ref);
-                        row = <plasticity-outliner-group
-                            collapsed={false} group={item.group} key={item.group.id}
-                            onClick={() => this.collapse(item.group)}
-                        ></plasticity-outliner-group>
+                    case 'Item': {
+                        const key = nodes.item2key(item.item);
+                        map.set(key, ref);
+                        row = <plasticity-outliner-item
+                            key={key}
+                            nodeKey={key}
+                            ref={ref}
+                            item={item.item}
+                            indent={item.indent}>
+                        </plasticity-outliner-item>
                         break;
-                    case 'Item':
-                        map.set(nodes.item2key(item.item), ref);
-                        row = <plasticity-outliner-item ref={ref} item={item.item} indent={item.indent} key={item.item.simpleName}></plasticity-outliner-item>
-                        break;
+                    }
                     case 'SolidSection':
                         row = <h2 class="flex justify-between items-center py-0.5 px-2 space-x-2 text-xs font-bold rounded text-neutral-100 hover:bg-neutral-700">Solids</h2>
                         break;

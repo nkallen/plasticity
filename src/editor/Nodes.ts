@@ -226,4 +226,13 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         else
             return Nodes.key({ tag: 'Group', id: item.id });
     }
+
+    key2item(key: NodeKey): NodeItem {
+        const { tag, id } = Nodes.dekey(key);
+        if (tag === 'Item') {
+            return this.db.lookupById(id).view;
+        } else {
+            return new Group(id);
+        }
+    }
 }

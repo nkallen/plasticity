@@ -137,7 +137,14 @@ export class Groups implements MementoOriginator<GroupMemento> {
         (this.member2parent as Groups['member2parent']) = new Map(m.member2parent);
         (this.group2children as Groups['group2children']) = copyGroup2Children(m.group2children);
     }
-    validate() { }
+
+    validate() {
+        for (const [key, parent] of this.member2parent) {
+            if (key === "Group,0") continue;
+            console.assert(this.group2children.get(parent)!.has(key), `${key} has parent ${parent} but parent has no child ${key} (${[...this.group2children.get(parent)!]})`);
+        }
+    }
+
     debug() { }
 }
 
@@ -154,12 +161,12 @@ export class Group {
     get isRoot() { return this.id === 0 }
 }
 
-type FlatOutlineElement = { tag: 'ExpandedGroup', group: Group, indent: number } | { tag: 'CollapsedGroup', group: Group, indent: number } | { tag: 'Item', item: visual.Item, indent: number } | { tag: 'SolidSection', indent: number } | { tag: 'CurveSection', indent: number }
+type FlatOutlineElement = { tag: 'Group', group: Group, expanded: boolean, indent: number } | { tag: 'Item', item: visual.Item, indent: number } | { tag: 'SolidSection', indent: number } | { tag: 'CurveSection', indent: number }
 
 export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
     if (expandedGroups.has(group.id)) {
-        result.push({ tag: 'ExpandedGroup', group, indent });
+        result.push({ tag: 'Group', expanded: true, group, indent });
         const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];
         for (const child of groups.list(group)) {
             switch (child.tag) {
@@ -181,7 +188,7 @@ export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupI
             result = result.concat(curves)
         }
     } else {
-        result.push({ tag: 'CollapsedGroup', group, indent });
+        result.push({ tag: 'Group', expanded: false, group, indent });
     }
     return result;
 }

@@ -55,6 +55,7 @@ export class EditorSignals {
     hovered: signals.Signal<THREE.Intersection[]> = new signals.Signal();
     historyChanged: signals.Signal = new signals.Signal();
     historyAdded: signals.Signal = new signals.Signal();
+    backupLoaded: signals.Signal = new signals.Signal();
     contoursChanged: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }> = new signals.Signal();
     dialogAdded: signals.Signal<AbstractDialog<any>> = new signals.Signal();

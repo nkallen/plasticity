@@ -16,6 +16,8 @@ export class Scene {
     }
 
     validate(): void {
+        this.nodes.validate();
+        this.groups.validate();
     }
     debug(): void {
     }

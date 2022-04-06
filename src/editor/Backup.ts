@@ -1,9 +1,7 @@
-import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
-import { PlasticityDocument } from './PlasticityDocument';
 import { EditorSignals } from "./EditorSignals";
 import { EditorOriginator } from "./History";
+import { PlasticityDocument } from './PlasticityDocument';
 import { TempDir } from './TempDir';
 
 export class Backup {
@@ -25,6 +23,7 @@ export class Backup {
     async load() {
         const tempFilePath = this.tempFilePath;
         await PlasticityDocument.open(tempFilePath, this.originator);
+        this.signals.backupLoaded.dispatch();
     }
 
     async clear() {
