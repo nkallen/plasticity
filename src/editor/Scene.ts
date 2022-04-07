@@ -15,11 +15,14 @@ export class Scene {
     constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
     }
 
-    validate(): void {
+    validate() {
         this.nodes.validate();
         this.groups.validate();
     }
-    debug(): void {
+    
+    debug() {
+        this.nodes.debug();
+        this.groups.debug();
     }
 
     get visibleObjects(): visual.Item[] {

@@ -47,7 +47,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
     delete(group: Group) {
         const groupId = group.id;
         if (group === this.root) throw new Error("Cannot delete root");
-        const children = this.group2children.get(groupId)!;
+        const children = this.group2children.get(groupId)! as ReadonlySet<NodeKey>;
         for (const child of children) {
             this._moveItemToGroup(child, this.root);
         }
@@ -78,7 +78,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
 
     list(group: Group): GroupListing[] {
         const { group2children, db } = this;
-        const memberKeys = group2children.get(group.id);
+        const memberKeys = group2children.get(group.id) as ReadonlySet<NodeKey>;
         if (memberKeys === undefined) throw new Error(`Group ${group.id} has no child set`);
         const result = [];
         for (const key of memberKeys) {
@@ -129,11 +129,15 @@ export class Groups implements MementoOriginator<GroupMemento> {
 
     saveToMemento(): GroupMemento {
         return new GroupMemento(
+            this.counter,
+            this.cwd.id,
             new Map(this.member2parent),
             copyGroup2Children(this.group2children),
         )
     }
     restoreFromMemento(m: GroupMemento) {
+        (this.counter as Groups['counter']) = m.counter;
+        (this.cwd as Groups['cwd']) = new Group(m.cwd);
         (this.member2parent as Groups['member2parent']) = new Map(m.member2parent);
         (this.group2children as Groups['group2children']) = copyGroup2Children(m.group2children);
     }
@@ -145,7 +149,18 @@ export class Groups implements MementoOriginator<GroupMemento> {
         }
     }
 
-    debug() { }
+    debug() {
+        console.group("Groups");
+        const { member2parent, group2children, counter } = this;
+        console.info("counter", counter)
+        console.group("member2parent");
+        console.table([...member2parent].map(([member, parent]) => ({ member, parent })));
+        console.groupEnd();
+        console.group("group2children");
+        console.table([...group2children].map(([group, children]) => ({ group, children: [...children].join(',') })));
+        console.groupEnd();        
+        console.groupEnd();
+    }
 }
 
 function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>) {

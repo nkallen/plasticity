@@ -66,6 +66,8 @@ export class NodeMemento {
 
 export class GroupMemento {
     constructor(
+        readonly counter: number,
+        readonly cwd: GroupId,
         readonly member2parent: ReadonlyMap<NodeKey, GroupId>,
         readonly group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>,
     ) { }

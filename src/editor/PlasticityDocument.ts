@@ -81,7 +81,7 @@ export class PlasticityDocument {
                 member2parent.set(child, i);
             }
         }
-        into.scene.groups.restoreFromMemento(new GroupMemento(member2parent, group2children));
+        into.scene.groups.restoreFromMemento(new GroupMemento(json.groups.length, 0, member2parent, group2children));
 
         await into.contours.rebuild();
         return new PlasticityDocument(into);
