@@ -7,6 +7,8 @@ import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
 
+export const indentSize = 28;
+
 export default (editor: Editor) => {
     const keypress = new SelectionKeypressStrategy(editor.keymaps);
 
@@ -39,25 +41,43 @@ export default (editor: Editor) => {
             const hidden = scene.isHidden(item);
             const selectable = scene.isSelectable(item);
             const isSelected = item instanceof visual.Item && selected.has(item);
-            let name;
-            if (item instanceof Group) {
-                name = item.isRoot ? "Scene" : scene.getName(item) ?? `${klass} ${item.id}`
-            } else {
-                name = scene.getName(item) ?? `${klass} ${item.simpleName}`
-            }
-            const result = <div class={`flex justify-between items-center py-0.5 px-2 space-x-2 rounded group hover:bg-neutral-700 ${isSelected ? 'bg-neutral-600' : ''}`} onClick={e => this.select(e, item)}>
-                <plasticity-icon name={klass.toLowerCase()} class="text-accent-500"></plasticity-icon>
-                <div class="flex-grow text-xs text-neutral-300 group-hover:text-neutral-100">{name}</div>
-                <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setHidden(e, item, !hidden)}>
-                    <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
-                </button>
-                <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setVisibility(e, item, !visible)}>
-                    <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
-                </button>
-                <button class="p-1 rounded group text-neutral-300 group-hover:text-neutral-100 hover:bg-neutral-500" onClick={e => this.setSelectable(e, item, !selectable)}>
-                    <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
-                </button>
-            </div>;
+            const name = scene.getName(item) ?? `${klass} ${item instanceof Group ? item.id : item.simpleName}`;
+            const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
+            const result =
+                <div
+                    class={`ml-9 flex gap-3 h-8 p-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`margin-left: ${indentSize * indent}px`}
+                    onClick={e => this.select(e, item)}
+                >
+                    {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}
+                    <plasticity-icon name={klass.toLowerCase()} class={isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-accent-500 hover:text-neutral-50'}></plasticity-icon>
+                    <div class="py-0.5 flex-1">
+                        <input
+                            type="text"
+                            class={`w-full text-xs ${isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-neutral-300 group-hover:text-neutral-100'} h-6 py-0.5 bg-transparent rounded pointer-events-none overflow-hidden overflow-ellipsis whitespace-nowrap`}
+                            disabled autoComplete='no' autocorrect='off' spellCheck={false}
+                            placeholder={klass} value={name}
+                        >
+                        </input>
+                    </div>
+                    <button
+                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        onClick={e => this.setHidden(e, item, !hidden)}
+                    >
+                        <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
+                    </button>
+                    <button
+                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        onClick={e => this.setVisibility(e, item, !visible)}
+                    >
+                        <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
+                    </button>
+                    <button
+                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        onClick={e => this.setSelectable(e, item, !selectable)}
+                    >
+                        <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
+                    </button>
+                </div>;
             render(result, this);
         }
 

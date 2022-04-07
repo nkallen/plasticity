@@ -34,6 +34,7 @@ export class ChangeSelectionExecutor {
         this.onBoxHover = this.wrapFunction(this.onBoxHover);
         this.onBoxSelect = this.wrapFunction(this.onBoxSelect);
         this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
+        this.onOutlinerSelect = this.wrapFunction(this.onOutlinerSelect);
         this.onConvert = this.wrapFunction(this.onConvert);
     }
 

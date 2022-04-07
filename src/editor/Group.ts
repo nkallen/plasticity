@@ -176,12 +176,12 @@ export class Group {
     get isRoot() { return this.id === 0 }
 }
 
-type FlatOutlineElement = { tag: 'Group', group: Group, expanded: boolean, indent: number } | { tag: 'Item', item: visual.Item, indent: number } | { tag: 'SolidSection', indent: number } | { tag: 'CurveSection', indent: number }
+type FlatOutlineElement = { tag: 'Group', object: Group, expanded: boolean, indent: number } | { tag: 'Item', object: visual.Item, indent: number } | { tag: 'SolidSection', indent: number } | { tag: 'CurveSection', indent: number }
 
 export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
-    if (expandedGroups.has(group.id)) {
-        result.push({ tag: 'Group', expanded: true, group, indent });
+    if (expandedGroups.has(group.id) || true) {
+        if (!group.isRoot) result.push({ tag: 'Group', expanded: true, object: group, indent });
         const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];
         for (const child of groups.list(group)) {
             switch (child.tag) {
@@ -189,8 +189,8 @@ export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupI
                     result = result.concat(flatten(child.group, groups, expandedGroups, indent + 1))
                     break;
                 case 'Item':
-                    if (child.item instanceof visual.Solid) solids.push({ ...child, indent });
-                    else if (child.item instanceof visual.SpaceInstance) curves.push({ ...child, indent });
+                    if (child.item instanceof visual.Solid) solids.push({ tag: child.tag, object: child.item, indent });
+                    else if (child.item instanceof visual.SpaceInstance) curves.push({ tag: child.tag, object: child.item, indent });
                     else throw new Error("invalid item: " + child.item.constructor.name);
             }
         }
@@ -203,7 +203,7 @@ export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupI
             result = result.concat(curves)
         }
     } else {
-        result.push({ tag: 'Group', expanded: false, group, indent });
+        result.push({ tag: 'Group', expanded: false, object: group, indent });
     }
     return result;
 }
