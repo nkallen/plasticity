@@ -87,3 +87,23 @@ test("toggle selectable", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(scene.selectableObjects.length).toBe(1);
 })
+
+test("group visibility", async () => {
+    const group = scene.createGroup();
+    expect(scene.visibleObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+    expect(scene.visibleObjects.length).toBe(1);
+    scene.makeHidden(group, true);
+    expect(scene.visibleObjects.length).toBe(0);
+});
+
+test("group selectability", async () => {
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+    expect(scene.selectableObjects.length).toBe(1);
+    scene.makeSelectable(group, false);
+    expect(scene.selectableObjects.length).toBe(0);
+});

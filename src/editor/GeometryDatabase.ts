@@ -237,6 +237,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.find(undefined, includeAutomatics);
     }
 
+    findAutomatics() {
+        return [...this.automatics].map(id => this.geometryModel.get(id)!.view)
+    }
 
     async duplicate(model: visual.Solid): Promise<visual.Solid>;
     async duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;

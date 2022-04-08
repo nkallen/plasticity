@@ -26,39 +26,59 @@ export class Scene implements MementoOriginator<SceneMemento> {
     }
 
     get visibleObjects(): visual.Item[] {
-        const { nodes, types } = this;
-        const difference = [];
-        for (const { view } of this.db.items) {
-            if (nodes.isHidden(view)) continue;
-            if (!nodes.isVisible(view)) continue;
-            if (!types.isEnabled(view)) continue;
-            difference.push(view);
-        }
-        return difference;
+        const acc = this.computeVisibleObjectsInGroup(this.root, [], false);
+        return acc.concat(this.db.findAutomatics());
     }
+
+    private computeVisibleObjectsInGroup(start: Group, acc: visual.Item[], checkSelectable: boolean): visual.Item[] {
+        const { nodes, types } = this;
+        this.list(start);
+        for (const listing of this.list(start)) {
+            switch (listing.tag) {
+                case 'Group':
+                    const group = listing.group;
+                    if (nodes.isHidden(group)) continue;
+                    if (!nodes.isVisible(group)) continue;
+                    if (checkSelectable && !nodes.isSelectable(group)) continue;
+                    this.computeVisibleObjectsInGroup(group, acc, checkSelectable);
+                    break;
+                case 'Item':
+                    const view = listing.item;
+                    if (nodes.isHidden(view)) continue;
+                    if (!nodes.isVisible(view)) continue;
+                    if (!types.isEnabled(view)) continue;
+                    if (checkSelectable && !nodes.isSelectable(view)) continue;
+                    acc.push(view);
+                    break;
+            }
+        }
+        return acc;
+    }
+
+    private rebuild() { }
 
     get selectableObjects(): visual.Item[] {
-        const { nodes } = this;
-        return this.visibleObjects.filter(i => nodes.isSelectable(i));
+        return this.computeVisibleObjectsInGroup(this.root, [], true);
     }
 
+    makeHidden(node: NodeItem, value: boolean) { this.nodes.makeHidden(node, value); this.rebuild() }
+    unhideAll(): Promise<NodeItem[]> { const result = this.nodes.unhideAll(); this.rebuild(); return result }
+    makeVisible(node: NodeItem, value: boolean) { this.nodes.makeVisible(node, value); this.rebuild() }
+    makeSelectable(node: NodeItem, value: boolean): void { this.nodes.makeSelectable(node, value); this.rebuild() }
+    deleteGroup(group: Group) { this.groups.delete(group); this.rebuild() }
+    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group); this.rebuild() }
+    setMaterial(node: NodeItem, id: number): void { this.nodes.setMaterial(node, id); this.rebuild() }
+    createGroup() { const result = this.groups.create(); this.rebuild(); return result; }
+
+    get root() { return this.groups.root }
     isHidden(node: NodeItem): boolean { return this.nodes.isHidden(node) }
-    makeHidden(node: NodeItem, value: boolean) { return this.nodes.makeHidden(node, value) }
-    unhideAll(): Promise<NodeItem[]> { return this.nodes.unhideAll() }
     isVisible(node: NodeItem): boolean { return this.nodes.isVisible(node) }
-    makeVisible(node: NodeItem, value: boolean) { return this.nodes.makeVisible(node, value) }
     isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
-    makeSelectable(node: NodeItem, value: boolean): void { return this.nodes.makeSelectable(node, value) }
-    setMaterial(node: NodeItem, id: number): void { return this.nodes.setMaterial(node, id) }
     getMaterial(node: NodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
     getName(node: NodeItem): string | undefined { return this.nodes.getName(node) }
     setName(node: NodeItem, name: string) { this.nodes.setName(node, name) }
-    createGroup() { return this.groups.create() }
-    deleteGroup(group: Group) { return this.groups.delete(group) }
-    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
     key2item(key: NodeKey) { return this.nodes.key2item(key) }
     item2key(item: NodeItem) { return this.nodes.item2key(item) }
-    get root() { return this.groups.root }
     list(group: Group) { return this.groups.list(group) }
 
     saveToMemento(): SceneMemento {

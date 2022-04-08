@@ -9,14 +9,17 @@ import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
-import { ConstructionPlaneSnap, FaceConstructionPlaneSnap, ScreenSpaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
+import { Scene } from "../../editor/Scene";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { TextureLoader } from "../../editor/TextureLoader";
 import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
 import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
+import { Theme } from "../../startup/ConfigFiles";
 import { Helper, Helpers } from "../../util/Helpers";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
+import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
 import { ConstructionPlaneGenerator } from "./ConstructionPlaneGenerator";
 import { GridHelper } from "./GridHelper";
@@ -27,9 +30,6 @@ import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { NavigationTarget, ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorGizmo, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
-import * as visual from '../../visual_model/VisualModel';
-import { Theme } from "../../startup/ConfigFiles";
-import { Scene } from "../../editor/Scene";
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
