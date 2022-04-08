@@ -82,7 +82,7 @@ export default (editor: Editor) => {
                     case 'CurveSection': {
                         const hidden = false;
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
-                        return <div class="flex gap-1 h-8 px-3 py-2 overflow-hidden items-center rounded-md group" style={`margin-left: ${indentSize * item.indent}px`}>
+                        return <div class="flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group" style={`margin-left: ${indentSize * item.indent}px`}>
                             <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon>
                             <plasticity-icon name="folder-solids" class="text-neutral-500 group-hover:text-neutral-200"></plasticity-icon>
                             <div class="py-0.5 flex-1">

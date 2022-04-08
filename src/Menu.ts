@@ -37,27 +37,27 @@ export function buildMenu(mainWindow: BrowserWindow) {
     template.push({
         label: 'Edit',
         submenu: [
-            { label: 'Undo', accelerator: "CommandOrControl+Z", click: e => mainWindow.webContents.send('menu-command', 'edit:undo') },
-            { label: 'Redo', accelerator: "Shift+CommandOrControl+Z", click: e => mainWindow.webContents.send('menu-command', 'edit:redo') },
-            { label: 'Repeat last command', accelerator: "Shift+R", click: e => mainWindow.webContents.send('menu-command', 'edit:repeat-last-command') },
+            { label: 'Undo', accelerator: "CommandOrControl+Z", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'edit:undo') } },
+            { label: 'Redo', accelerator: "Shift+CommandOrControl+Z", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'edit:redo') } },
+            { label: 'Repeat last command', accelerator: "Shift+R", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'edit:repeat-last-command') } },
         ]
     });
     template.push({
         label: 'Selection',
         submenu: [
-            { label: 'Hide selected', accelerator: "H", click: e => mainWindow.webContents.send('menu-command', 'command:hide-selected') },
-            { label: 'Unhide all', accelerator: "Alt+H", click: e => mainWindow.webContents.send('menu-command', 'command:unhide-all') },
-            { label: 'Hide everything other than selected', accelerator: "Shift+H", click: e => mainWindow.webContents.send('menu-command', 'command:hide-unselected') },
-            { label: 'Invert hidden', accelerator: "Control+H", click: e => mainWindow.webContents.send('menu-command', 'command:invert-hidden') },
+            { label: 'Hide selected', accelerator: "H", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'command:hide-selected') } },
+            { label: 'Unhide all', accelerator: "Alt+H", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'command:unhide-all') } },
+            { label: 'Hide everything other than selected', accelerator: "Shift+H", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'command:hide-unselected') } },
+            { label: 'Invert hidden', accelerator: "Control+H", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'command:invert-hidden') } },
             { type: 'separator' },
-            { label: 'Focus camera on selected', accelerator: "/", click: e => mainWindow.webContents.send('menu-command', 'viewport:focus') },
+            { label: 'Focus camera on selected', accelerator: "/", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'viewport:focus') } },
             { type: 'separator' },
-            { label: 'Deselect all', accelerator: "Alt+A", click: e => mainWindow.webContents.send('menu-command', 'command:deselect-all') },
+            { label: 'Deselect all', accelerator: "Alt+A", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'command:deselect-all') } },
             { type: 'separator' },
-            { label: 'Convert current selection to points', accelerator: "Control+1", click: e => mainWindow.webContents.send('menu-command', 'selection:convert:control-point') },
-            { label: 'Convert current selection to edges', accelerator: "Control+2", click: e => mainWindow.webContents.send('menu-command', 'selection:convert:edge') },
-            { label: 'Convert current selection to faces', accelerator: "Control+3", click: e => mainWindow.webContents.send('menu-command', 'selection:convert:face') },
-            { label: 'Convert current selection to solids', accelerator: "Control+4", click: e => mainWindow.webContents.send('menu-command', 'selection:convert:solid') },
+            { label: 'Convert current selection to points', accelerator: "Control+1", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'selection:convert:control-point') } },
+            { label: 'Convert current selection to edges', accelerator: "Control+2", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'selection:convert:edge') } },
+            { label: 'Convert current selection to faces', accelerator: "Control+3", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'selection:convert:face') } },
+            { label: 'Convert current selection to solids', accelerator: "Control+4", click: (i, w, e) => { if (e.triggeredByAccelerator) return; mainWindow.webContents.send('menu-command', 'selection:convert:solid') } },
         ]
     });
     // { role: 'viewMenu' }
