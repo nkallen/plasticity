@@ -6,6 +6,7 @@ import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
+import { Group, Groups } from '../../src/editor/Group';
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { SolidCopier } from '../../src/editor/SolidCopier';
@@ -23,6 +24,7 @@ let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
+let groups: Groups;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -31,6 +33,7 @@ beforeEach(() => {
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     click = new ClickStrategy(db, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
+    groups = new Groups(db, signals);
 })
 
 let solid1: visual.Solid;
@@ -38,6 +41,7 @@ let solid2: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
 let curve: visual.SpaceInstance<visual.Curve3D>;
 let region: visual.PlaneInstance<visual.Region>;
+let group: Group;
 
 beforeEach(async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
@@ -67,6 +71,8 @@ beforeEach(async () => {
     makeRegion.contours = [circle];
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
+
+    group = groups.create();
 });
 
 describe(visual.Curve3D, () => {
@@ -111,15 +117,27 @@ describe(visual.Solid, () => {
         expect(selectionDb.selected.faces.size).toBe(1);
     })
 
-    test('when the face is already selected, returns false and does not modify the selection', () => {
+    test('in solid & face mode, when the face is already selected, returns false and does not modify the selection', () => {
         modes.set(SelectionMode.Solid, SelectionMode.Face);
         click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
 
-        expect(click.solid(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(false);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(false);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
+    })
+
+    test('in solid mode, when the face is already selected, add converts selection to solid', () => {
+        modes.set(SelectionMode.Solid, SelectionMode.Face);
+        click.topologicalItem(solid1.faces.get(0), new Set(), ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
+        expect(selectionDb.selected.solids.size).toBe(0);
+        expect(selectionDb.selected.faces.size).toBe(1);
+
+        modes.set(SelectionMode.Solid);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
     })
 
     test('when face is already selected, and mode is ONLY solid, returns true and DOES modify the selection', () => {
@@ -432,6 +450,13 @@ describe('box', () => {
         click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
+    })
+
+    test("selecting a group", () => {
+        click.box(new Set([group]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        expect(selectionDb.selected.groups.size).toBe(1);
+        click.box(new Set([group]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        expect(selectionDb.selected.groups.size).toBe(0);
     })
 })
 

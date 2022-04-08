@@ -6,7 +6,7 @@ import { RemoveContourPointFactory } from "../modify_contour/ModifyContourPointF
 
 
 export class DeleteCommand extends Command {
-    remember = false;
+    readonly remember = false;
     
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
@@ -30,6 +30,10 @@ export class DeleteCommand extends Command {
             const command = new RemoveControlPointCommand(this.editor);
             await command.execute();
         }
+        if (selected.groups.size > 0) {
+            const command = new RemoveGroupCommand(this.editor);
+            await command.execute();
+        }
     }
 }
 
@@ -38,6 +42,14 @@ export class RemoveItemCommand extends Command {
         const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
+    }
+}
+
+export class RemoveGroupCommand extends Command {
+    async execute(): Promise<void> {
+        for (const group of this.editor.selection.selected.groups) {
+            this.editor.scene.deleteGroup(group);
+        }
     }
 }
 

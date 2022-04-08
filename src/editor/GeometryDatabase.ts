@@ -382,11 +382,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
-    lookupId(version: c3d.SimpleName) {
+    lookupId(version: c3d.SimpleName): number | undefined {
         return this.version2id.get(version);
     }
 
-    lookupById(name: c3d.SimpleName) {
+    lookupById(name: c3d.SimpleName): { view: visual.Item; model: c3d.Item; } {
         return this.lookupItemById(this.id2version.get(name)!);
     }
 

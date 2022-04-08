@@ -49,10 +49,9 @@ export class FakeMaterials implements MaterialDatabase {
     setResolution(_size: THREE.Vector2) { }
 
     saveToMemento(): MaterialMemento {
-        throw new Error("Method not implemented.");
+        return null as any;
     }
     restoreFromMemento(m: MaterialMemento): void {
-        throw new Error("Method not implemented.");
     }
     validate(): void {
     }

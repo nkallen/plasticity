@@ -5,11 +5,12 @@ import LineFactory from '../../src/commands/line/LineFactory';
 import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Groups, Group } from '../../src/editor/Group';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionExecutor } from '../../src/selection/ChangeSelectionExecutor';
-import { Selection, SelectionDatabase } from '../../src/selection/SelectionDatabase';
+import { Selection, SelectionDatabase, SignalLike } from '../../src/selection/SelectionDatabase';
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -19,6 +20,7 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let changeSelection: ChangeSelectionExecutor;
+let groups: Groups;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -26,6 +28,7 @@ beforeEach(() => {
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
+    groups = new Groups(db, signals);
 });
 
 
@@ -33,6 +36,7 @@ export let solid: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
 let curve: visual.SpaceInstance<visual.Curve3D>;
 let region: visual.PlaneInstance<visual.Region>;
+let group: Group;
 
 beforeEach(async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
@@ -57,20 +61,23 @@ beforeEach(async () => {
     makeRegion.contours = [circle];
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
+
+    group = groups.create();
 });
 
 describe(Selection, () => {
     let selection: Selection;
 
     beforeEach(() => {
-        const sigs = {
+        const sigs: SignalLike = {
             objectRemovedFromDatabase: signals.objectRemoved,
+            groupRemoved: signals.groupDeleted,
             objectReplaced: signals.objectReplaced,
             objectAdded: signals.objectSelected,
             objectRemoved: signals.objectDeselected,
             selectionChanged: signals.selectionChanged
         };
-        selection = new Selection(db, sigs as any);
+        selection = new Selection(db, sigs);
     });
 
     test("add & remove solid", async () => {
@@ -155,11 +162,79 @@ describe(Selection, () => {
         expect(selection.hasSelectedChildren(solid)).toBe(false);
     });
 
+    test("deleting an object removes face selection", async () => {
+        const face = solid.faces.get(0);
+        selection.addFace(face);
+        expect(selection.faces.first).toBe(face);
+        await db.removeItem(solid);
+        expect(selection.faces.size).toBe(0);
+    });
+
     test("removeAll", () => {
         const face = solid.faces.get(0);
         selection.addFace(face);
+        selection.addGroup(group);
+        const point = curve.underlying.points.get(0);
+        selection.addControlPoint(point);
         expect(selection.faces.size).toBe(1);
+        expect(selection.groups.size).toBe(1);
+        expect(selection.controlPoints.size).toBe(1);
         selection.removeAll();
         expect(selection.faces.size).toBe(0);
+        expect(selection.groups.size).toBe(0);
+        expect(selection.controlPoints.size).toBe(0);
+    });
+
+    test("add & remove region", () => {
+        selection.addRegion(region);
+        expect(selection.regions.size).toBe(1);
+        selection.removeRegion(region);
+        expect(selection.regions.size).toBe(0);
     })
+
+    test("addGroup & removeGroup", () => {
+        expect(selection.groups.size).toBe(0);
+        selection.has(group);
+        expect(selection.has(group)).toBe(false);
+
+        selection.addGroup(group);
+        expect(selection.groups.size).toBe(1);
+        expect(selection.has(group)).toBe(true);
+
+        selection.removeGroup(group);
+        expect(selection.groups.size).toBe(0);
+        expect(selection.has(group)).toBe(false);
+    })
+
+    test("add & remove group", () => {
+        expect(selection.groups.size).toBe(0);
+        selection.has(group);
+        expect(selection.has(group)).toBe(false);
+
+        selection.add(group);
+        expect(selection.groups.size).toBe(1);
+        expect(selection.has(group)).toBe(true);
+
+        selection.remove([group]);
+        expect(selection.groups.size).toBe(0);
+        expect(selection.has(group)).toBe(false);
+    })
+
+    test("add & remove control point", () => {
+        expect(selection.controlPoints.size).toBe(0);
+        const point = curve.underlying.points.get(0);
+        selection.addControlPoint(point);
+        expect(selection.controlPoints.size).toBe(1);
+        selection.removeControlPoint(point);
+        expect(selection.controlPoints.size).toBe(0);
+    });
+
+    test("deleting curve deletes its control point", async () => {
+        expect(selection.controlPoints.size).toBe(0);
+        const point = curve.underlying.points.get(0);
+        selection.addControlPoint(point);
+        expect(selection.controlPoints.size).toBe(1);
+        await db.removeItem(curve);
+        expect(selection.controlPoints.size).toBe(0);
+    });
 });

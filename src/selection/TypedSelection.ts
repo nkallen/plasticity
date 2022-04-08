@@ -1,9 +1,10 @@
 import c3d from '../build/Release/c3d.node';
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { GroupId, Group } from '../editor/Group';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 
-export abstract class TypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
+export abstract class TypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint | Group, S extends c3d.SimpleName | string | GroupId> {
     size: number;
 
     constructor(
@@ -63,6 +64,12 @@ export class TopologyItemSelection<T extends visual.TopologyItem> extends TypedS
 export class ControlPointSelection extends TypedSelection<visual.ControlPoint, string> {
     lookupById(id: string) {
         return this.db.lookupControlPointById(id).views.values().next().value;
+    }
+}
+
+export class GroupSelection extends TypedSelection<Group, GroupId> {
+    lookupById(id: GroupId) {
+        return new Group(id);
     }
 }
 

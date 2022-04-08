@@ -32,6 +32,7 @@ export class EditorSignals {
     selectionDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     hoverDelta: signals.Signal<SelectionDelta> = new signals.Signal();
     groupCreated: signals.Signal<Group> = new signals.Signal();
+    groupDeleted: signals.Signal<Group> = new signals.Signal();
     groupChanged: signals.Signal<Group> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     temporaryObjectAdded: signals.Signal<{ view: visual.Item, ancestor?: visual.Item }> = new signals.Signal();

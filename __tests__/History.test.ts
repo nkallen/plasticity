@@ -53,7 +53,7 @@ describe(EditorOriginator, () => {
         contours = editor.contours;
         viewports = [MakeViewport(editor)];
         scene = editor.scene;
-        originator = new EditorOriginator(db,scene, materials, selected, snaps, crosses, curves, contours, viewports);
+        originator = new EditorOriginator(db, scene, materials, selected, snaps, crosses, curves, contours, viewports);
     });
 
     let box1: visual.Solid;

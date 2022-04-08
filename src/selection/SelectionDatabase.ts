@@ -4,14 +4,15 @@ import c3d from '../../build/Release/c3d.node';
 import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { Replacement } from '../editor/GeometryDatabase';
+import { Group, GroupId } from '../editor/Group';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
-import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
+import { ControlPointSelection, GroupSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
 
-export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
+export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint | Group;
 
 export interface HasSelection {
     readonly solids: ItemSelection<visual.Solid>;
@@ -20,9 +21,9 @@ export interface HasSelection {
     readonly regions: ItemSelection<visual.PlaneInstance<visual.Region>>;
     readonly curves: ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
     readonly controlPoints: ControlPointSelection;
+    readonly groups: GroupSelection;
     has(item: visual.Item): boolean;
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): boolean;
-    deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
 
     readonly solidIds: ReadonlySet<c3d.SimpleName>;
     readonly edgeIds: ReadonlySet<string>;
@@ -56,11 +57,17 @@ export interface ModifiesSelection extends HasSelection {
     removeControlPoint(index: visual.ControlPoint): void;
     addControlPoint(index: visual.ControlPoint): void;
 
+    removeGroup(group: Group): void;
+    addGroup(group: Group): void;
+
+    deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
+
     removeAll(): void;
 }
 
-interface SignalLike {
+export interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
+    groupRemoved: signals.Signal<Group>;
     objectReplaced: signals.Signal<Replacement>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;
@@ -74,6 +81,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     readonly regionIds = new Set<c3d.SimpleName>();
     readonly curveIds = new Set<c3d.SimpleName>();
     readonly controlPointIds = new Set<string>();
+    readonly groupIds = new Set<GroupId>();
 
     // selectedChildren is the set of solids that have actively selected topological items;
     // It's used in selection logic -- you can't select a solid if its face is already selected, for instance;
@@ -84,8 +92,9 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         readonly db: DatabaseLike,
         readonly signals: SignalLike
     ) {
-        signals.objectRemovedFromDatabase.add(([item,]) => this.delete(item));
-        signals.objectReplaced.add(({ from }) => this.delete(from));
+        signals.objectRemovedFromDatabase.add(([item,]) => this.objectDeleted(item));
+        signals.groupRemoved.add(group => this.objectDeleted(group));
+        signals.objectReplaced.add(({ from }) => this.objectDeleted(from));
     }
 
     get solids() { return new ItemSelection<visual.Solid>(this.db, this.solidIds) }
@@ -94,6 +103,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     get regions() { return new ItemSelection<visual.PlaneInstance<visual.Region>>(this.db, this.regionIds) }
     get curves() { return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.curveIds) }
     get controlPoints() { return new ControlPointSelection(this.db, this.controlPointIds) }
+    get groups() { return new GroupSelection(this.db, this.groupIds) }
 
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.has(solid.simpleName)
@@ -103,13 +113,15 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
     }
 
-    has(item: visual.Item) {
+    has(item: visual.Item | Group) {
         if (item instanceof visual.Solid) {
             return this.solids.has(item);
         } else if (item instanceof visual.SpaceInstance) {
             return this.curves.has(item);
         } else if (item instanceof visual.PlaneInstance) {
             return this.regions.has(item);
+        } else if (item instanceof Group) {
+            return this.groups.has(item);
         } else throw new Error("not supported yet");
     }
 
@@ -128,11 +140,13 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.addEdge(item);
             } else if (item instanceof visual.ControlPoint) {
                 this.addControlPoint(item);
+            } else if (item instanceof Group) {
+                this.addGroup(item);
             } else throw new Error("invalid type: " + item.constructor.name);
         }
     }
 
-    remove(selectables: Selectable[]) {
+    remove(selectables: Selectable | Selectable[]) {
         if (!(selectables instanceof Array)) selectables = [selectables];
 
         for (const selectable of selectables) {
@@ -148,8 +162,24 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.removeEdge(selectable);
             } else if (selectable instanceof visual.ControlPoint) {
                 this.removeControlPoint(selectable);
+            } else if (selectable instanceof Group) {
+                this.removeGroup(selectable);
             }
         }
+    }
+
+    private objectDeleted(item: visual.Item | Group) {
+        if (item instanceof visual.Solid) {
+            this.removeSolid(item);
+            this.deselectChildren(item);
+        } else if (item instanceof visual.SpaceInstance) {
+            this.removeCurve(item);
+            this.deselectChildren(item);
+        } else if (item instanceof visual.PlaneInstance) {
+            this.removeRegion(item);
+        } else if (item instanceof Group) {
+            this.removeGroup(item);
+        } else throw new Error("invalid precondition");
     }
 
     removeFace(object: visual.Face) {
@@ -264,6 +294,22 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectRemoved.dispatch(point);
     }
 
+    removeGroup(group: Group) {
+        const id = group.id;
+        if (!this.groupIds.has(id)) return;
+
+        this.groupIds.delete(group.simpleName);
+        this.signals.objectRemoved.dispatch(group);
+    }
+
+    addGroup(group: Group) {
+        const id = group.simpleName;
+        if (this.groupIds.has(id)) return;
+
+        this.groupIds.add(id);
+        this.signals.objectAdded.dispatch(group);
+    }
+
     removeAll(): void {
         for (const collection of [this.edgeIds, this.faceIds]) {
             for (const id of collection) {
@@ -284,6 +330,10 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             const { views } = this.db.lookupControlPointById(id);
             this.signals.objectRemoved.dispatch([...views][0]);
         }
+        for (const id of this.groupIds) {
+            this.groupIds.delete(id);
+            this.signals.objectRemoved.dispatch(new Group(id));
+        }
         this.parentsWithSelectedChildren.clear();
     }
 
@@ -293,21 +343,9 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.solidIds.clear();
         this.curveIds.clear();
         this.regionIds.clear();
+        this.groupIds.clear();
         this.controlPointIds.clear();
         this.parentsWithSelectedChildren.clear();
-    }
-
-    delete(item: visual.Item) {
-        if (item instanceof visual.Solid) {
-            this.solidIds.delete(item.simpleName);
-            this.parentsWithSelectedChildren.delete(item.simpleName);
-        } else if (item instanceof visual.SpaceInstance) {
-            this.curveIds.delete(item.simpleName);
-            this.parentsWithSelectedChildren.delete(item.simpleName);
-        } else if (item instanceof visual.PlaneInstance) {
-            this.regionIds.delete(item.simpleName);
-        } else throw new Error("invalid precondition");
-        this.signals.objectRemoved.dispatch(item);
     }
 
     copy(that: HasSelection, ...modes: SelectionMode[]) {
@@ -383,6 +421,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
 
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        groupRemoved: this.signals.groupDeleted,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectSelected,
         objectRemoved: this.signals.objectDeselected,
@@ -390,6 +429,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
     }
     private readonly hoveredSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        groupRemoved: this.signals.groupDeleted,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectHovered,
         objectRemoved: this.signals.objectUnhovered,

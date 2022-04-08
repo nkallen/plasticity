@@ -7,7 +7,7 @@ import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
 
-export const indentSize = 28;
+export const indentSize = 20;
 
 export default (editor: Editor) => {
     const keypress = new SelectionKeypressStrategy(editor.keymaps);
@@ -40,12 +40,12 @@ export default (editor: Editor) => {
             const visible = scene.isVisible(item);
             const hidden = scene.isHidden(item);
             const selectable = scene.isSelectable(item);
-            const isSelected = item instanceof visual.Item && selected.has(item);
-            const name = scene.getName(item) ?? `${klass} ${item instanceof Group ? item.id : item.simpleName}`;
+            const isSelected = selected.has(item);
+            const name = scene.getName(item) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(item.simpleName)}`;
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
             const result =
                 <div
-                    class={`ml-9 flex gap-3 h-8 p-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`margin-left: ${indentSize * indent}px`}
+                    class={`ml-9 flex gap-1 px-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`margin-left: ${indentSize * indent}px`}
                     onClick={e => this.select(e, item)}
                 >
                     {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}
@@ -60,19 +60,19 @@ export default (editor: Editor) => {
                         </input>
                     </div>
                     <button
-                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
                         onClick={e => this.setHidden(e, item, !hidden)}
                     >
                         <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                     </button>
                     <button
-                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
                         onClick={e => this.setVisibility(e, item, !visible)}
                     >
                         <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                     </button>
                     <button
-                        class={`p-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
                         onClick={e => this.setSelectable(e, item, !selectable)}
                     >
                         <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
@@ -82,7 +82,6 @@ export default (editor: Editor) => {
         }
 
         select = (e: MouseEvent, item: NodeItem) => {
-            if (item instanceof Group) return;
             const command = new OutlinerChangeSelectionCommand(editor, [item], keypress.event2modifier(e));
             editor.enqueue(command, true);
         }
@@ -132,7 +131,7 @@ export default (editor: Editor) => {
 class OutlinerChangeSelectionCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly items: readonly visual.Item[],
+        private readonly items: readonly NodeItem[],
         private readonly modifier: ChangeSelectionModifier
     ) {
         super(editor);

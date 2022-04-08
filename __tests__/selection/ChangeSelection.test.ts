@@ -3,10 +3,17 @@ import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import { CenterCircleFactory } from '../../src/commands/circle/CircleFactory';
 import LineFactory from '../../src/commands/line/LineFactory';
 import { RegionFactory } from '../../src/commands/region/RegionFactory';
+import ContourManager from '../../src/editor/curves/ContourManager';
+import { CrossPointDatabase } from '../../src/editor/curves/CrossPointDatabase';
+import { PlanarCurveDatabase } from '../../src/editor/curves/PlanarCurveDatabase';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Group, Groups } from '../../src/editor/Group';
+import { EditorOriginator } from '../../src/editor/History';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { Scene } from '../../src/editor/Scene';
+import { SnapManager } from '../../src/editor/snaps/SnapManager';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from '../../src/selection/ChangeSelectionExecutor';
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
@@ -21,6 +28,13 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let changeSelection: ChangeSelectionExecutor;
+let groups: Groups;
+let originator: EditorOriginator;
+let scene: Scene;
+let snaps: SnapManager;
+let crosses: CrossPointDatabase;
+let curves: PlanarCurveDatabase;
+let contours: ContourManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -28,12 +42,19 @@ beforeEach(() => {
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
+    scene = new Scene(db, materials, signals);
+    crosses = new CrossPointDatabase();
+    snaps = new SnapManager(db, scene, crosses, signals);
+    curves = new PlanarCurveDatabase(db, materials, signals);
+    originator = new EditorOriginator(db, scene, materials, selectionDb.selected, snaps, crosses, curves, contours, []);
+    groups = scene.groups;
 });
 
 let solid: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
 let curve: visual.SpaceInstance<visual.Curve3D>;
 let region: visual.PlaneInstance<visual.Region>;
+let group: Group;
 
 beforeEach(async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
@@ -58,6 +79,8 @@ beforeEach(async () => {
     makeRegion.contours = [circle];
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
+
+    group = groups.create();
 });
 
 describe('onClick', () => {
@@ -117,7 +140,7 @@ describe('onClick', () => {
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
 
-    test("delete curve removes the selection", () => {
+    test("delete curve removes the selection", async () => {
         let intersections = [{
             point: new THREE.Vector3(),
             object: curve.underlying
@@ -135,7 +158,7 @@ describe('onClick', () => {
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
 
-        selectionDb.selected.delete(curve);
+        await db.removeItem(curve);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
@@ -238,7 +261,7 @@ describe('onClick', () => {
         expect(selectionDb.selected.edges.size).toBe(1);
     });
 
-    test("delete solid removes the selection", () => {
+    test("delete solid removes the selection", async () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
@@ -252,12 +275,12 @@ describe('onClick', () => {
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
 
-        selectionDb.selected.delete(solid);
+        await db.removeItem(solid);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
     });
 
-    test("deleting, then undoing, then deleting again", () => {
+    test("deleting, then undoing, then deleting again", async () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
@@ -271,17 +294,17 @@ describe('onClick', () => {
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
 
-        const before = selectionDb.selected.saveToMemento();
+        const before = originator.saveToMemento();
 
-        selectionDb.selected.delete(solid);
+        await db.removeItem(solid);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
 
-        selectionDb.selected.restoreFromMemento(before);
+        originator.restoreFromMemento(before);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(1);
 
-        selectionDb.selected.delete(solid);
+        await db.removeItem(solid);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
     });
@@ -550,7 +573,7 @@ describe('onPointerMove', () => {
         expect(selectionDb.hovered.edges.size).toBe(1);
     });
 
-    test("delete solid removes the hover selection", () => {
+    test("delete solid removes the hover selection", async () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
@@ -579,14 +602,22 @@ describe('onPointerMove', () => {
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(1);
 
-        selectionDb.hovered.delete(solid);
-        selectionDb.selected.delete(solid);
+        await db.removeItem(solid);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
     });
 })
+
+
+describe('onOutlinerSelect', () => {
+    test('groups', () => {
+        expect(selectionDb.selected.groups.size).toBe(0);
+        changeSelection.onOutlinerSelect([group], ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.groups.size).toBe(1);
+    })
+});
 
 describe(SelectionDatabase, () => {
     test('hovering on a curve highlights the curve', () => {

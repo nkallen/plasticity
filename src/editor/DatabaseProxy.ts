@@ -2,7 +2,6 @@ import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from "../util/Util";
 import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./DatabaseLike";
 import * as visual from "../visual_model/VisualModel";
-import { Material } from 'three';
 
 export class DatabaseProxy implements DatabaseLike {
     constructor(protected readonly db: DatabaseLike) { }
@@ -105,6 +104,14 @@ export class DatabaseProxy implements DatabaseLike {
 
     pool(solid: c3d.Solid, size: number) {
         return this.db.pool(solid, size);
+    }
+
+    lookupId(version: number): number | undefined {
+        return this.db.lookupId(version);
+    }
+    
+    lookupById(name: number): { view: visual.Item; model: c3d.Item; } {
+        return this.db.lookupById(name);
     }
 
     async deserialize(data: Buffer): Promise<visual.Item[]> { return this.db.deserialize(data) }

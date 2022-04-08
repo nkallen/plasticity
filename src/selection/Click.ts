@@ -5,6 +5,7 @@ import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectio
 import { ModifiesSelection } from "./SelectionDatabase";
 import { SelectionMode, SelectionModeSet } from "./SelectionModeSet";
 import { SelectionExtensionStrategy } from "./SelectionExtensionStrategy";
+import { Group } from "../editor/Group";
 
 export class ClickStrategy {
     private readonly extend = new SelectionExtensionStrategy(this.db);
@@ -69,9 +70,10 @@ export class ClickStrategy {
                     this.writeable.removeSolid(parentItem);
                     return true;
                 });
-        } else if (!this.selected.hasSelectedChildren(parentItem) || this.mode.is(SelectionMode.Solid)) {
+        } else if (!this.selected.hasSelectedChildren(parentItem) || (this.mode.is(SelectionMode.Solid))) {
             return this.modify(modifier,
                 () => {
+                    this.writeable.deselectChildren(parentItem);
                     this.writeable.addSolid(parentItem);
                     return true;
                 },
@@ -134,7 +136,7 @@ export class ClickStrategy {
             });
     }
 
-    box(set: ReadonlySet<Intersectable | Solid>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+    box(set: ReadonlySet<Intersectable | Solid | Group>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
         const { hovered } = this;
         hovered.removeAll();
 
@@ -146,6 +148,7 @@ export class ClickStrategy {
         const changedCurves = new Set<SpaceInstance<Curve3D>>();
         const changedRegions = new Set<PlaneInstance<Region>>();
         const changedPoints = new Set<ControlPoint>();
+        const changedGroups = new Set<Group>();
 
         for (const object of set) {
             if (object instanceof Solid) {
@@ -193,19 +196,22 @@ export class ClickStrategy {
             } else if (object instanceof Region) {
                 if (!this.mode.has(SelectionMode.Region)) continue;
                 changedRegions.add(object.parentItem);
+            } else if (object instanceof Group) {
+                changedGroups.add(object);
             }
         }
 
         this.modify(modifier,
             () => {
+                for (const parent of changedParents) this.writeable.remove(parent);
+
                 for (const solid of changedSolids) this.writeable.addSolid(solid);
                 for (const face of changedFaces) this.writeable.addFace(face);
                 for (const edge of changedEdges) this.writeable.addEdge(edge);
                 for (const curve of changedCurves) this.writeable.addCurve(curve);
                 for (const region of changedRegions) this.writeable.addRegion(region);
                 for (const point of changedPoints) this.writeable.addControlPoint(point);
-
-                for (const parent of changedParents) this.writeable.remove(parent);
+                for (const group of changedGroups) this.writeable.addGroup(group);
             },
             () => {
                 for (const solid of changedSolids) this.writeable.removeSolid(solid);
@@ -214,6 +220,7 @@ export class ClickStrategy {
                 for (const curve of changedCurves) this.writeable.removeCurve(curve);
                 for (const region of changedRegions) this.writeable.removeRegion(region);
                 for (const point of changedPoints) this.writeable.removeControlPoint(point);
+                for (const group of changedGroups) this.writeable.removeGroup(group);
             });
     }
 

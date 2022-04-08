@@ -26,6 +26,10 @@ beforeEach(() => {
     groups = new Groups(db, signals);
 })
 
+afterEach(() => {
+    groups.validate();
+})
+
 test("create & delete", () => {
     expect(groups.all.length).toBe(1);
     const id = groups.create();
@@ -53,11 +57,28 @@ test("add item to group", () => {
 })
 
 test("add item to group & delete", () => {
+    const deleted = jest.fn();
+    signals.groupDeleted.add(deleted);
     const g1 = groups.create();
     groups.moveNodeToGroup(box, g1);
     expect(groups.groupForNode(box)).toEqual(g1);
     groups.delete(g1);
     expect(groups.groupForNode(box)).toEqual(groups.root);
+    expect(deleted).toBeCalledTimes(1);
+    groups.validate();
+})
+
+test("add item to group & move", () => {
+    const changed = jest.fn();
+    signals.sceneGraphChanged.add(changed);
+    const g1 = groups.create(), g2 = groups.create();
+    expect(changed).toBeCalledTimes(2);
+    groups.moveNodeToGroup(box, g1);
+    expect(groups.groupForNode(box)).toEqual(g1);
+    expect(changed).toBeCalledTimes(3);
+    groups.moveNodeToGroup(box, g2);
+    expect(groups.groupForNode(box)).toEqual(g2);
+    expect(changed).toBeCalledTimes(4);
 })
 
 test("list", () => {
@@ -73,7 +94,6 @@ test("list when object changes", async () => {
     expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }]);
     const fillet = await filletBox();
     expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: fillet }]);
-
 })
 
 async function filletBox() {

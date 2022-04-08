@@ -1,5 +1,7 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Group } from "../editor/Group";
+import { NodeItem } from "../editor/Nodes";
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
@@ -100,12 +102,13 @@ export class ChangeSelectionExecutor {
         this.clickStrategy.box(new Set(topologyItems), modifier, ChangeSelectionOption.None);
     }
 
-    onOutlinerSelect(items: Iterable<visual.Item>, modifier: ChangeSelectionModifier) {
+    onOutlinerSelect(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier) {
         const intersectables = [];
         for (const item of items) {
-            let intersectable: Intersectable | visual.Solid;
+            let intersectable: Intersectable | visual.Solid | Group;
             if (item instanceof visual.Solid) intersectable = item;
             else if (item instanceof visual.SpaceInstance || item instanceof visual.PlaneInstance) intersectable = item.underlying;
+            else if (item instanceof Group) intersectable = item;
             else throw new Error("Invalid condition");
             intersectables.push(intersectable);
         }

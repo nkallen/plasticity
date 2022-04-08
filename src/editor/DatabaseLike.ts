@@ -72,6 +72,8 @@ export interface DatabaseLike {
     find(klass: typeof visual.Solid, includeAutomatics?: boolean): { view: visual.Solid; model: c3d.Solid; }[];
     findAll(includeAutomatics?: boolean): { view: visual.Item, model: c3d.Solid }[];
 
+    lookupId(version: c3d.SimpleName): number | undefined;
+    lookupById(name: c3d.SimpleName): { view: visual.Item; model: c3d.Item; };
     pool(solid: c3d.Solid, size: number): SolidCopierPool;
 
     deserialize(data: Buffer): Promise<visual.Item[]>;
