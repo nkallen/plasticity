@@ -103,6 +103,7 @@ export function buildMenu(mainWindow: BrowserWindow) {
             { label: 'Default', click: updateOrbitControls('default') },
             { label: 'Blender', click: updateOrbitControls('blender') },
             { label: 'Maya', click: updateOrbitControls('maya') },
+            { label: 'Moi3D', click: updateOrbitControls('moi') },
         ]
     });
     template.push({

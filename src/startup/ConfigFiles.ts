@@ -7,7 +7,7 @@ import os from 'os';
 import fse from 'fs-extra';
 
 export type Theme = typeof import('./default-theme')
-export type Mode = 'default' | 'blender' | 'maya';
+export type Mode = 'default' | 'blender' | 'maya' | 'moi';
 
 export class ConfigFiles {
     static readonly homePath = path.join(os.homedir(), '.plasticity');
@@ -85,6 +85,12 @@ export class ConfigFiles {
                         parsed['orbit-controls'] = {
                             "alt-mouse0": "orbit:rotate",
                             "alt-mouse1": "orbit:pan",
+                            "alt-mouse2": "orbit:dolly"
+                        }
+                    case 'moi':
+                        parsed['orbit-controls'] = {
+                            "mouse2": "orbit:rotate",
+                            "shift-mouse2": "orbit:pan",
                             "alt-mouse2": "orbit:dolly"
                         }
                 }
