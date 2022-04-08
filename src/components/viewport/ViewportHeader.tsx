@@ -52,7 +52,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`control-point_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='control-point'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="selection:set-control-point">Control-Point select</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="selection:mode:set:control-point">Control-Point select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -62,7 +62,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`edge_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='edge'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="selection:set-edge">Edge select</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="selection:mode:set:edge">Edge select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -72,7 +72,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='face'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="selection:set-face">Face select</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="selection:mode:set:face">Face select</plasticity-tooltip>
                                 </label>
                             </li>
 
@@ -82,7 +82,7 @@ export default (editor: Editor) => {
                                 />
                                 <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='solid'></plasticity-icon>
-                                    <plasticity-tooltip placement="bottom" command="selection:set-solid">Solid select</plasticity-tooltip>
+                                    <plasticity-tooltip placement="bottom" command="selection:mode:set:solid">Solid select</plasticity-tooltip>
                                 </label>
                             </li>
                         </ol>
