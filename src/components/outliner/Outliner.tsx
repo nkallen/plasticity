@@ -4,10 +4,8 @@ import { ExportCommand, HideSelectedCommand, HideUnselectedCommand, InvertHidden
 import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { Group, GroupId } from '../../editor/Group';
+import { NodeKey } from '../../editor/Nodes';
 import { flatten } from "./FlattenOutline";
-import { NodeItem, NodeKey } from '../../editor/Nodes';
-import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
-import * as visual from '../../visual_model/VisualModel';
 import OutlinerItems, { indentSize } from './OutlinerItems';
 
 export default (editor: Editor) => {
@@ -25,11 +23,11 @@ export default (editor: Editor) => {
             editor.signals.backupLoaded.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.historyChanged.add(this.render);
-            editor.signals.selectionDelta.add(this.updateSelection);
-            editor.signals.objectHidden.add(this.updateNodeItem);
-            editor.signals.objectUnhidden.add(this.updateNodeItem);
-            editor.signals.objectSelectable.add(this.updateNodeItem);
-            editor.signals.objectUnselectable.add(this.updateNodeItem);
+            editor.signals.selectionDelta.add(this.render);
+            editor.signals.objectHidden.add(this.render);
+            editor.signals.objectUnhidden.add(this.render);
+            editor.signals.objectSelectable.add(this.render);
+            editor.signals.objectUnselectable.add(this.render);
             editor.signals.groupCreated.add(this.expand);
 
             for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand]) {
@@ -45,28 +43,17 @@ export default (editor: Editor) => {
             editor.signals.backupLoaded.remove(this.render);
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
-            editor.signals.selectionDelta.remove(this.updateSelection);
-            editor.signals.objectHidden.remove(this.updateNodeItem);
-            editor.signals.objectUnhidden.remove(this.updateNodeItem);
-            editor.signals.objectSelectable.remove(this.updateNodeItem);
-            editor.signals.objectUnselectable.remove(this.updateNodeItem);
+            editor.signals.selectionDelta.remove(this.render);
+            editor.signals.objectHidden.remove(this.render);
+            editor.signals.objectUnhidden.remove(this.render);
+            editor.signals.objectSelectable.remove(this.render);
+            editor.signals.objectUnselectable.remove(this.render);
             editor.signals.groupCreated.add(this.remove);
             this.disposable.dispose();
         }
 
-        private updateNodeItem = (item: NodeItem) => {
-            this.map.get(editor.scene.nodes.item2key(item))?.current.render();
-        }
-
-        private updateSelection = (delta: SelectionDelta) => {
-            for (const item of [...delta.added, ...delta.removed]) {
-                if (item instanceof visual.Item || item instanceof Group)
-                    this.updateNodeItem(item);
-            }
-        }
-
         render = () => {
-            const { scene: { groups, groups: { root }, nodes } } = editor;
+            const { scene, scene: { groups, groups: { root }, nodes }, selection: { selected } } = editor;
             const flattened = flatten(root, groups, this.expandedGroups);
             const map = new Map<NodeKey, RefObject<any>>();
             const result = flattened.map((item) => {
@@ -74,11 +61,19 @@ export default (editor: Editor) => {
                 switch (item.tag) {
                     case 'Group':
                     case 'Item':
-                        const key = nodes.item2key(item.object);
-                        map.set(key, ref);
-                        return <plasticity-outliner-item key={`${key},${item.indent}`} nodeKey={key} ref={ref} indent={item.indent}></plasticity-outliner-item>
+                        const object = item.object;
+                        const visible = scene.isVisible(object);
+                        const hidden = scene.isHidden(object);
+                        const selectable = scene.isSelectable(object);
+                        const isSelected = selected.has(object);
+                        const nodeKey = nodes.item2key(item.object);
+                        const klass = "Solid"
+                        const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
+                        const diffKey = `${nodeKey},${name},${item.indent},${visible},${hidden},${selectable},${isSelected}`;
+                        map.set(nodeKey, ref);
+                        return <plasticity-outliner-item key={diffKey} nodeKey={nodeKey} ref={ref} name={name} indent={item.indent} visible={visible} hidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
                     case 'SolidSection':
-                    case 'CurveSection':
+                    case 'CurveSection': {
                         const hidden = false;
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
                         return <div class="flex gap-1 h-8 px-3 py-2 overflow-hidden items-center rounded-md group" style={`margin-left: ${indentSize * item.indent}px`}>
@@ -91,6 +86,7 @@ export default (editor: Editor) => {
                                 <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                             </button>
                         </div>
+                    }
                 }
             });
             this.map = map;

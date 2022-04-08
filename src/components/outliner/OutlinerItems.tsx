@@ -21,8 +21,27 @@ export default (editor: Editor) => {
         get indent() { return this._indent }
         set indent(indent: number) { this._indent = indent }
 
-        connectedCallback() { this.render() }
-        disconnectedCallback() { }
+        private _visible!: boolean;
+        get visible() { return this._visible }
+        set visible(visible: boolean) { this._visible = visible }
+
+        private _hidden!: boolean;
+        get hidden() { return this._hidden }
+        set hidden(hidden: boolean) { this._hidden = hidden }
+
+        private _selectable!: boolean;
+        get selectable() { return this._selectable }
+        set selectable(selectable: boolean) { this._selectable = selectable }
+
+        private _isSelected!: boolean;
+        get isSelected() { return this._isSelected }
+        set isSelected(isSelected: boolean) { this._isSelected = isSelected }
+
+        private _name!: string;
+        get name() { return this._name }
+        set name(name: string) { this._name = name }
+
+        connectedCallback() { this.render() } disconnectedCallback() { }
 
         get klass(): string {
             const item = editor.scene.nodes.key2item(this.nodeKey);
@@ -33,15 +52,10 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { scene, scene: { nodes }, selection: { selected } } = editor;
-            const { nodeKey: key, klass } = this;
+            const { scene: { nodes } } = editor;
+            const { nodeKey: key, klass, visible, hidden, selectable, isSelected , name} = this;
             const item = nodes.key2item(key);
 
-            const visible = scene.isVisible(item);
-            const hidden = scene.isHidden(item);
-            const selectable = scene.isSelectable(item);
-            const isSelected = selected.has(item);
-            const name = scene.getName(item) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(item.simpleName)}`;
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
             const result =
                 <div

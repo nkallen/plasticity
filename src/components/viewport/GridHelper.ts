@@ -3,7 +3,7 @@ import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlane } from '../../editor/snaps/ConstructionPlaneSnap';
 import { FloorHelper, OrthoModeGrid, CustomGrid } from './FloorHelper';
 
-const floorSize = 150;
+const floorSize = 120;
 const defaultFloorDivisions = floorSize;
 const defaultGridDivisions = defaultFloorDivisions * 100;
 
