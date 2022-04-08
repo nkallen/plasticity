@@ -75,7 +75,7 @@ export default (editor: Editor) => {
 
             const result =
                 <div
-                    class={`ml-9 flex gap-1 px-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`margin-left: ${indentSize * indent}px`}
+                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
                     onClick={e => this.select(e, item)}
                 >
                     {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}

@@ -100,7 +100,7 @@ export default (editor: Editor) => {
                 <div class="px-4 pt-4 pb-3">
                     <h1 class="text-xs font-bold text-neutral-100">Scene</h1>
                 </div>
-                <div class="pl-1 pr-4">
+                <div class="pl-3 pr-4">
                     {result}
                 </div>
             </>, this);
