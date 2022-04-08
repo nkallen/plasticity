@@ -64,7 +64,6 @@ export class HideSelectedCommand extends cmd.CommandLike {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
         for (const item of selectedItems) this.editor.scene.makeHidden(item, true);
-        this.editor.selection.selected.removeAll();
     }
 }
 

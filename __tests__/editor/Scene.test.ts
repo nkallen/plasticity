@@ -107,3 +107,79 @@ test("group selectability", async () => {
     scene.makeSelectable(group, false);
     expect(scene.selectableObjects.length).toBe(0);
 });
+
+test("makeSelectable descent dispatch of signal", async () => {
+    const objectUnselectable = jest.fn(), objectSeletable = jest.fn();
+    signals.objectUnselectable.add(objectUnselectable);
+    signals.objectSelectable.add(objectSeletable);
+
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+
+    scene.makeSelectable(group, false);
+    expect(objectUnselectable).toBeCalledTimes(2);
+    expect(objectSeletable).toBeCalledTimes(0);
+
+    scene.makeSelectable(group, true);
+    expect(objectUnselectable).toBeCalledTimes(2);
+    expect(objectSeletable).toBeCalledTimes(2);
+})
+
+test("makeVisible descent dispatch of signal", async () => {
+    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
+    signals.objectHidden.add(objectHidden);
+    signals.objectUnhidden.add(objectUnhidden);
+
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+
+    scene.makeVisible(group, false);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeVisible(group, true);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(2);
+})
+
+test("makeHidden descent dispatch of signal", async () => {
+    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
+    signals.objectHidden.add(objectHidden);
+    signals.objectUnhidden.add(objectUnhidden);
+
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+
+    scene.makeHidden(group, true);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(group, false);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(2);
+})
+
+test("makeHidden & unhideAll descent dispatch of signal", async () => {
+    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
+    signals.objectHidden.add(objectHidden);
+    signals.objectUnhidden.add(objectUnhidden);
+
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(0);
+    const v = await db.addItem(box) as visual.Solid;
+    scene.moveToGroup(v, group);
+
+    scene.makeHidden(group, true);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    await scene.unhideAll();
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(2);
+})

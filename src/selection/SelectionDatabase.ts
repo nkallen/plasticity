@@ -7,6 +7,7 @@ import { Replacement } from '../editor/GeometryDatabase';
 import { Group, GroupId } from '../editor/Group';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
+import { HideMode, NodeItem } from '../editor/Nodes';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
@@ -68,6 +69,8 @@ export interface ModifiesSelection extends HasSelection {
 export interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     groupRemoved: signals.Signal<Group>;
+    objectHidden: signals.Signal<[NodeItem, HideMode]>;
+    objectUnselectable: signals.Signal<[NodeItem, HideMode]>;
     objectReplaced: signals.Signal<Replacement>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;
@@ -94,6 +97,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     ) {
         signals.objectRemovedFromDatabase.add(([item,]) => this.objectDeleted(item));
         signals.groupRemoved.add(group => this.objectDeleted(group));
+        signals.objectHidden.add(([item, mode]) => this.objectDeleted(item));
+        signals.objectUnselectable.add(([item, mode]) => this.objectDeleted(item));
         signals.objectReplaced.add(({ from }) => this.objectDeleted(from));
     }
 
@@ -423,6 +428,8 @@ export class SelectionDatabase implements HasSelectedAndHovered {
 
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        objectHidden: this.signals.objectHidden,
+        objectUnselectable: this.signals.objectUnselectable,
         groupRemoved: this.signals.groupDeleted,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectSelected,
@@ -431,6 +438,8 @@ export class SelectionDatabase implements HasSelectedAndHovered {
     }
     private readonly hoveredSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
+        objectHidden: this.signals.objectHidden,
+        objectUnselectable: this.signals.objectUnselectable,
         groupRemoved: this.signals.groupDeleted,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectHovered,

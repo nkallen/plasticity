@@ -1,10 +1,11 @@
+import signals from 'signals';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, Groups } from './Group';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { NodeItem, NodeKey, Nodes } from "./Nodes";
+import { HideMode, NodeItem, NodeKey, Nodes } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 export class Scene implements MementoOriginator<SceneMemento> {
@@ -55,16 +56,50 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return acc;
     }
 
+    // TODO: optimize by memoize
     private rebuild() { }
 
     get selectableObjects(): visual.Item[] {
         return this.computeVisibleObjectsInGroup(this.root, [], true);
     }
 
-    makeHidden(node: NodeItem, value: boolean) { this.nodes.makeHidden(node, value); this.rebuild() }
-    unhideAll(): Promise<NodeItem[]> { const result = this.nodes.unhideAll(); this.rebuild(); return result }
-    makeVisible(node: NodeItem, value: boolean) { this.nodes.makeVisible(node, value); this.rebuild() }
-    makeSelectable(node: NodeItem, value: boolean): void { this.nodes.makeSelectable(node, value); this.rebuild() }
+    makeHidden(node: NodeItem, value: boolean) {
+        this.nodes.makeHidden(node, value);
+        this.dispatchDescend(node, 'direct', value ? this.signals.objectHidden : this.signals.objectUnhidden);
+        this.rebuild();
+    }
+
+    makeVisible(node: NodeItem, value: boolean) {
+        this.nodes.makeVisible(node, value);
+        this.dispatchDescend(node, 'direct', value ? this.signals.objectUnhidden : this.signals.objectHidden);
+        this.rebuild();
+    }
+
+    async unhideAll(): Promise<NodeItem[]> {
+        const result = await this.nodes.unhideAll();
+        for (const item of result) {
+            this.dispatchDescend(item, 'direct', this.signals.objectUnhidden);
+        }
+        this.rebuild();
+        return result;
+    }
+
+    private dispatchDescend(item: NodeItem, mode: HideMode, signal: signals.Signal<[NodeItem, HideMode]>) {
+        signal.dispatch([item, mode]);
+        if (item instanceof Group) {
+            for (const child of this.list(item)) {
+                const node = child.tag === 'Group' ? child.group : child.item;
+                this.dispatchDescend(node, 'indirect', signal);
+            }
+        }
+    }
+
+    makeSelectable(node: NodeItem, value: boolean) {
+        this.nodes.makeSelectable(node, value);
+        this.dispatchDescend(node, 'direct', value ? this.signals.objectSelectable : this.signals.objectUnselectable);
+        this.rebuild();
+    }
+
     deleteGroup(group: Group) { this.groups.delete(group); this.rebuild() }
     moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group); this.rebuild() }
     setMaterial(node: NodeItem, id: number): void { this.nodes.setMaterial(node, id); this.rebuild() }

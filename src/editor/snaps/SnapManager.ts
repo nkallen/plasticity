@@ -81,10 +81,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             this.delete(from);
             this.add(to);
         });
-        signals.objectUnhidden.add(item => {
+        signals.objectUnhidden.add(([item, mode]) => {
             if (item instanceof visual.Item) this.unhide(item);
         });
-        signals.objectHidden.add(item => {
+        signals.objectHidden.add(([item, mode]) => {
             if (item instanceof visual.Item) this.hide(item);
         });
         signals.commandEnded.add(() => this.cache.update());

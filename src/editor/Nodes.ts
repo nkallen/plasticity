@@ -77,11 +77,9 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         if (newValue) {
             if (oldValue) return;
             unselectable.delete(k);
-            this.signals.objectSelectable.dispatch(item);
         } else {
             if (!oldValue) return;
             unselectable.add(k);
-            this.signals.objectUnselectable.dispatch(item);
         }
     }
 
@@ -97,11 +95,9 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         if (newValue) {
             if (oldValue) return;
             hidden.add(k);
-            this.signals.objectHidden.dispatch(item);
         } else {
             if (!oldValue) return;
             hidden.delete(k);
-            this.signals.objectUnhidden.dispatch(item);
         }
     }
 
@@ -112,11 +108,9 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         if (newValue) {
             if (oldValue) return;
             invisible.delete(k);
-            this.signals.objectUnhidden.dispatch(item);
         } else {
             if (!oldValue) return;
             invisible.add(k);
-            this.signals.objectHidden.dispatch(item);
         }
     }
 
@@ -125,16 +119,13 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         return !this.invisible.has(k);
     }
 
-    async unhideAll(): Promise<visual.Item[]> {
-        const hidden = []
+    async unhideAll(): Promise<NodeItem[]> {
+        const hidden = [];
         for (const k of this.hidden) {
-            const { tag, id } = Nodes.dekey(k);
-            if (tag === 'Item') hidden.push(this.db.lookupById(id));
+            hidden.push(this.key2item(k));
         }
         this.hidden.clear();
-        const views = hidden.map(h => h.view);
-        for (const view of views) this.signals.objectUnhidden.dispatch(view);
-        return views;
+        return hidden;
     }
 
     setMaterial(item: NodeItem, materialId: number): void {
@@ -237,3 +228,5 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         }
     }
 }
+
+export type HideMode = 'direct' | 'indirect';

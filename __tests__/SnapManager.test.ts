@@ -99,7 +99,7 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
 
-    scene.unhideAll();
+    await scene.unhideAll();
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);

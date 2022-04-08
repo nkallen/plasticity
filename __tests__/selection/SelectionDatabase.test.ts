@@ -8,6 +8,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import { Groups, Group } from '../../src/editor/Group';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { Scene } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionExecutor } from '../../src/selection/ChangeSelectionExecutor';
 import { Selection, SelectionDatabase, SignalLike } from '../../src/selection/SelectionDatabase';
@@ -20,7 +21,7 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let changeSelection: ChangeSelectionExecutor;
-let groups: Groups;
+let scene: Scene;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -28,7 +29,7 @@ beforeEach(() => {
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
     changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
-    groups = new Groups(db, signals);
+    scene = new Scene(db, materials, signals);
 });
 
 
@@ -62,7 +63,7 @@ beforeEach(async () => {
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
 
-    group = groups.create();
+    group = scene.createGroup();
 });
 
 describe(Selection, () => {
@@ -72,6 +73,8 @@ describe(Selection, () => {
         const sigs: SignalLike = {
             objectRemovedFromDatabase: signals.objectRemoved,
             groupRemoved: signals.groupDeleted,
+            objectHidden: signals.objectHidden,
+            objectUnselectable: signals.objectUnselectable,
             objectReplaced: signals.objectReplaced,
             objectAdded: signals.objectSelected,
             objectRemoved: signals.objectDeselected,
@@ -237,4 +240,18 @@ describe(Selection, () => {
         await db.removeItem(curve);
         expect(selection.controlPoints.size).toBe(0);
     });
+
+    test("hiding an object removes it from the selection", async () => {
+        selection.addSolid(solid);
+        expect(selection.solids.size).toBe(1);
+        scene.makeHidden(solid, true);
+        expect(selection.solids.size).toBe(0);
+    })
+
+    test("making an object unselectable removes it from the selection", async () => {
+        selection.addSolid(solid);
+        expect(selection.solids.size).toBe(1);
+        scene.makeSelectable(solid, false);
+        expect(selection.solids.size).toBe(0);
+    })
 });
