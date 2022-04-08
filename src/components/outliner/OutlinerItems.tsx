@@ -129,6 +129,7 @@ export default (editor: Editor) => {
         handleEnter = (e: KeyboardEvent, item: NodeItem) => {
             if (e.code === "Enter") {
                 this.setName(item);
+                this.ref.current.blur();
             }
             e.stopPropagation();
         }
@@ -146,7 +147,6 @@ export default (editor: Editor) => {
                 return;
             }
 
-            console.log(input.value);
             const command = new SetNameCommand(editor, item, input.value);
             editor.enqueue(command, true);
         }
