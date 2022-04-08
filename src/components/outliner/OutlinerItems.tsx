@@ -1,4 +1,4 @@
-import { render } from 'preact';
+import { createRef, render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
 import { Group } from '../../editor/Group';
@@ -47,12 +47,31 @@ export default (editor: Editor) => {
 
         connectedCallback() { this.render() } disconnectedCallback() { }
 
-        render = () => {
+        private readonly ref = createRef();
+
+        render = (editable = false) => {
             const { scene: { nodes } } = editor;
-            const { nodeKey: key, klass, visible, hidden, selectable, isSelected , name} = this;
+            const { nodeKey: key, klass, visible, hidden, selectable, isSelected, name } = this;
             const item = nodes.key2item(key);
 
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
+            const input = !editable
+                ? <input
+                    type="text"
+                    class={`w-full text-xs ${isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-neutral-300 group-hover:text-neutral-100'} h-6 p-0.5 bg-transparent rounded pointer-events-none overflow-hidden overflow-ellipsis whitespace-nowrap`}
+                    ref={this.ref}
+                    autoComplete='no' autocorrect='off' spellCheck={false}
+                    placeholder={klass} value={name}
+                ></input>
+                : <input
+                    type="text"
+                    class={`select-text w-full text-xs h-6 p-0.5 rounded overflow-hidden overflow-ellipsis whitespace-nowrap`}
+                    ref={this.ref}
+                    autoComplete='no' autocorrect='off' spellCheck={false}
+                    placeholder={klass} value={name}
+                    onBlur={e => this.setName(e, item)}
+                ></input>;
+
             const result =
                 <div
                     class={`ml-9 flex gap-1 px-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`margin-left: ${indentSize * indent}px`}
@@ -60,34 +79,33 @@ export default (editor: Editor) => {
                 >
                     {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}
                     <plasticity-icon name={klass.toLowerCase()} class={isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-accent-500 hover:text-neutral-50'}></plasticity-icon>
-                    <div class="py-0.5 flex-1">
-                        <input
-                            type="text"
-                            class={`w-full text-xs ${isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-neutral-300 group-hover:text-neutral-100'} h-6 py-0.5 bg-transparent rounded pointer-events-none overflow-hidden overflow-ellipsis whitespace-nowrap`}
-                            disabled autoComplete='no' autocorrect='off' spellCheck={false}
-                            placeholder={klass} value={name}
-                            onDblClick={e => this.editName(e, item)}
-                        >
-                        </input>
+                    <div
+                        class="py-0.5 flex-1"
+                        onDblClick={e => { if (!editable) this.editName(e, item) }}
+                    >
+                        {input}
                     </div>
-                    <button
-                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
-                        onClick={e => this.setHidden(e, item, !hidden)}
-                    >
-                        <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
-                    </button>
-                    <button
-                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
-                        onClick={e => this.setVisibility(e, item, !visible)}
-                    >
-                        <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
-                    </button>
-                    <button
-                        class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
-                        onClick={e => this.setSelectable(e, item, !selectable)}
-                    >
-                        <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
-                    </button>
+                    {!editable && <>
+                        <button
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            onClick={e => this.setHidden(e, item, !hidden)}
+                        >
+                            <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
+                        </button>
+                        <button
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            onClick={e => this.setVisibility(e, item, !visible)}
+                        >
+                            <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
+                        </button>
+                        <button
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            onClick={e => this.setSelectable(e, item, !selectable)}
+                        >
+                            <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
+                        </button>
+                    </>
+                    }
                 </div>;
             render(result, this);
         }
@@ -116,8 +134,18 @@ export default (editor: Editor) => {
         }
 
         editName = (e: MouseEvent, item: NodeItem) => {
-            const input = e.target! as HTMLInputElement;
-            input.disabled = false;
+            this.render(true);
+            const input = this.ref.current as HTMLInputElement;
+            input.focus();
+            input.select();
+        }
+
+        setName = (e: FocusEvent, item: NodeItem) => {
+            const input = this.ref.current as HTMLInputElement;
+
+            const command = new SetNameCommand(editor, item, input.value);
+            editor.enqueue(command, true);
+            e.stopPropagation();
         }
     }
     customElements.define('plasticity-outliner-item', OutlinerItem);
@@ -203,5 +231,20 @@ class ToggleSelectableCommand extends cmd.CommandLike {
         const { editor: { scene, selection }, item } = this;
         scene.makeSelectable(this.item, this.value);
         if (item instanceof visual.Item) selection.selected.remove(item);
+    }
+}
+
+class SetNameCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly item: NodeItem,
+        private readonly value: string,
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { editor: { scene }, item, value } = this;
+        scene.setName(item, value);
     }
 }

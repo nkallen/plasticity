@@ -24,6 +24,7 @@ export default (editor: Editor) => {
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.historyChanged.add(this.render);
             editor.signals.selectionDelta.add(this.render);
+            editor.signals.objectNamed.add(this.render);
             editor.signals.objectHidden.add(this.render);
             editor.signals.objectUnhidden.add(this.render);
             editor.signals.objectSelectable.add(this.render);
@@ -44,6 +45,7 @@ export default (editor: Editor) => {
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
             editor.signals.selectionDelta.remove(this.render);
+            editor.signals.objectNamed.remove(this.render);
             editor.signals.objectHidden.remove(this.render);
             editor.signals.objectUnhidden.remove(this.render);
             editor.signals.objectSelectable.remove(this.render);

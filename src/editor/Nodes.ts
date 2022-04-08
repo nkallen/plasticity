@@ -56,7 +56,8 @@ export class Nodes implements MementoOriginator<NodeMemento> {
 
     setName(item: NodeItem, name: string) {
         const k = this.item2key(item);
-        return this.node2name.set(k, name);
+        this.node2name.set(k, name);
+        this.signals.objectNamed.dispatch([item, name]);
     }
 
     getName(item: NodeItem): string | undefined {
