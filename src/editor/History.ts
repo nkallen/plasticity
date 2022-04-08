@@ -90,6 +90,7 @@ export class SelectionMemento {
         readonly selectedCurveIds: ReadonlySet<c3d.SimpleName>,
         readonly selectedRegionIds: ReadonlySet<c3d.SimpleName>,
         readonly selectedControlPointIds: ReadonlySet<string>,
+        readonly selectedGroupIds: ReadonlySet<GroupId>,
     ) { }
 }
 

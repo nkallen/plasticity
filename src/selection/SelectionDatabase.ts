@@ -376,6 +376,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             new Set(this.curveIds),
             new Set(this.regionIds),
             new Set(this.controlPointIds),
+            new Set(this.groupIds),
         );
     }
 
@@ -387,6 +388,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         (this.curveIds as Selection['curveIds']) = new Set(m.selectedCurveIds);
         (this.regionIds as Selection['regionIds']) = new Set(m.selectedRegionIds);
         (this.controlPointIds as Selection['controlPointIds']) = new Set(m.selectedControlPointIds);
+        (this.groupIds as Selection['groupIds']) = new Set(m.selectedGroupIds);
 
         this.signals.selectionChanged.dispatch({ selection: this });
     }
