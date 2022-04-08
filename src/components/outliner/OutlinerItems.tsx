@@ -57,6 +57,7 @@ export default (editor: Editor) => {
                     onKeyDown={e => this.handleEnter(e, item)}
                 ></input>;
 
+            const any = hidden || !visible || !selectable;
             const result =
                 <div
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
@@ -72,19 +73,19 @@ export default (editor: Editor) => {
                     </div>
                     {!editable && <>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${hidden ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setHidden(e, item, !hidden)}
                         >
                             <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setVisibility(e, item, !visible)}
                         >
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                         </button>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} group-hover:block hidden`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!selectable ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setSelectable(e, item, !selectable)}
                         >
                             <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
