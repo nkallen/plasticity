@@ -13,39 +13,23 @@ export default (editor: Editor) => {
     const keypress = new SelectionKeypressStrategy(editor.keymaps);
 
     class OutlinerItem extends HTMLElement {
-        private _nodeKey!: NodeKey;
-        get nodeKey() { return this._nodeKey }
-        set nodeKey(nodeKey: NodeKey) { this._nodeKey = nodeKey }
+        get nodeKey() { return this.getAttribute("nodeKey")! }
+        get indent() { return Number(this.getAttribute("indent"))! }
+        get visible() { return Boolean(this.getAttribute("isvisible"))! }
+        get hidden() { return Boolean(this.getAttribute("ishidden"))! }
+        get selectable() { return Boolean(this.getAttribute("selectable"))! }
+        get isSelected() { return Boolean(this.getAttribute("isselected"))! }
+        get name() { return this.getAttribute("name")! }
+        get klass() { return this.getAttribute("klass")! }
 
-        private _indent!: number;
-        get indent() { return this._indent }
-        set indent(indent: number) { this._indent = indent }
+        static get observedAttributes() { return ['name', 'klass', 'isselected', 'selectable', 'ishidden', 'isvisible', 'indent', 'nodeKey'] }
 
-        private _visible!: boolean;
-        get visible() { return this._visible }
-        set visible(visible: boolean) { this._visible = visible }
+        attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+            if (this.isConnected) this.render();
+        }
 
-        private _hidden!: boolean;
-        get hidden() { return this._hidden }
-        set hidden(hidden: boolean) { this._hidden = hidden }
-
-        private _selectable!: boolean;
-        get selectable() { return this._selectable }
-        set selectable(selectable: boolean) { this._selectable = selectable }
-
-        private _isSelected!: boolean;
-        get isSelected() { return this._isSelected }
-        set isSelected(isSelected: boolean) { this._isSelected = isSelected }
-
-        private _name!: string;
-        get name() { return this._name }
-        set name(name: string) { this._name = name }
-
-        private _klass!: string;
-        get klass() { return this._klass }
-        set klass(klass: string) { this._klass = klass }
-
-        connectedCallback() { this.render() } disconnectedCallback() { }
+        connectedCallback() { this.render() }
+        disconnectedCallback() { }
 
         private readonly ref = createRef();
 
@@ -142,7 +126,7 @@ export default (editor: Editor) => {
         }
 
         handleEnter = (e: KeyboardEvent, item: NodeItem) => {
-            if (e.code === "Enter" ) {
+            if (e.code === "Enter") {
                 this.setName(item);
             }
             e.stopPropagation();

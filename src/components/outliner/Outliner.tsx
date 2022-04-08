@@ -77,8 +77,7 @@ export default (editor: Editor) => {
                         const nodeKey = nodes.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
                         const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
-                        const diffKey = `${nodeKey},${name},${item.indent},${visible},${hidden},${selectable},${isSelected}`;
-                        return <plasticity-outliner-item key={diffKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} visible={visible} hidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
+                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const hidden = false;
