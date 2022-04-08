@@ -17,8 +17,7 @@ export class Memento {
     constructor(
         readonly version: number,
         readonly db: GeometryMemento,
-        readonly nodes: NodeMemento,
-        readonly groups: GroupMemento,
+        readonly scene: SceneMemento,
         readonly materials: MaterialMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
@@ -70,6 +69,13 @@ export class GroupMemento {
         readonly cwd: GroupId,
         readonly member2parent: ReadonlyMap<NodeKey, GroupId>,
         readonly group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>,
+    ) { }
+}
+
+export class SceneMemento {
+    constructor(
+        readonly nodes: NodeMemento,
+        readonly groups: GroupMemento,
     ) { }
 }
 
@@ -169,8 +175,7 @@ export class EditorOriginator {
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
-                    this.scene.nodes.saveToMemento(),
-                    this.scene.groups.saveToMemento(),
+                    this.scene.saveToMemento(),
                     this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
@@ -184,8 +189,7 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
-            this.scene.nodes.restoreFromMemento(m.nodes);
-            this.scene.groups.restoreFromMemento(m.groups);
+            this.scene.restoreFromMemento(m.scene);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
             this.snaps.restoreFromMemento(m.snaps);
@@ -238,6 +242,7 @@ type HistoryStackItem = {
     before: Memento,
     after: Memento,
 }
+
 export class History {
     private readonly _undoStack: HistoryStackItem[] = [];
     get undoStack(): readonly HistoryStackItem[] { return this._undoStack }

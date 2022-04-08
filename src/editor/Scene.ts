@@ -1,16 +1,16 @@
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Group, GroupId, Groups } from './Group';
-import { MementoOriginator, NodeMemento } from "./History";
+import { Group, Groups } from './Group';
+import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { NodeItem, Nodes } from "./Nodes";
+import { NodeItem, NodeKey, Nodes } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
-export class Scene {
+export class Scene implements MementoOriginator<SceneMemento> {
     readonly types = new TypeManager(this.signals);
-    readonly nodes = new Nodes(this.db, this.materials, this.signals);
-    readonly groups = new Groups(this.db, this.signals);
+    private readonly nodes = new Nodes(this.db, this.materials, this.signals);
+    private readonly groups = new Groups(this.db, this.signals);
 
     constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
     }
@@ -19,7 +19,7 @@ export class Scene {
         this.nodes.validate();
         this.groups.validate();
     }
-    
+
     debug() {
         this.nodes.debug();
         this.groups.debug();
@@ -56,4 +56,17 @@ export class Scene {
     createGroup() { return this.groups.create() }
     deleteGroup(group: Group) { return this.groups.delete(group) }
     moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
+    key2item(key: NodeKey) { return this.nodes.key2item(key) }
+    item2key(item: NodeItem) { return this.nodes.item2key(item) }
+    get root() { return this.groups.root }
+    list(group: Group) { return this.groups.list(group) }
+
+    saveToMemento(): SceneMemento {
+        return new SceneMemento(this.nodes.saveToMemento(), this.groups.saveToMemento());
+    }
+
+    restoreFromMemento(m: SceneMemento): void {
+        this.nodes.restoreFromMemento(m.nodes);
+        this.groups.restoreFromMemento(m.groups);
+    }
 }

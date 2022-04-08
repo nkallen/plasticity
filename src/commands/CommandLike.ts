@@ -128,6 +128,6 @@ export class UngroupSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { solids, curves } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves];
-        for (const item of selectedItems) this.editor.scene.moveToGroup(item, this.editor.scene.groups.root);
+        for (const item of selectedItems) this.editor.scene.moveToGroup(item, this.editor.scene.root);
     }
 }

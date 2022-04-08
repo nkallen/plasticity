@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { GroupId } from './Group';
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, ViewportMemento } from "./History";
+import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
 import { NodeKey, Nodes } from './Nodes';
 import * as visual from '../visual_model/VisualModel';
 
@@ -70,7 +70,6 @@ export class PlasticityDocument {
                 node2name.set(key, node.name);
             }
         }
-        into.scene.nodes.restoreFromMemento(new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name));
 
         const group2children: Map<GroupId, Set<NodeKey>> = new Map();
         const member2parent: Map<NodeKey, GroupId> = new Map();
@@ -81,7 +80,10 @@ export class PlasticityDocument {
                 member2parent.set(child, i);
             }
         }
-        into.scene.groups.restoreFromMemento(new GroupMemento(json.groups.length, 0, member2parent, group2children));
+        into.scene.restoreFromMemento(new SceneMemento(
+            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name),
+            new GroupMemento(json.groups.length, 0, member2parent, group2children))
+        );
 
         await into.contours.rebuild();
         return new PlasticityDocument(into);
@@ -89,7 +91,7 @@ export class PlasticityDocument {
 
     async serialize(filename: string) {
         const memento = this.originator.saveToMemento();
-        const { db, nodes, groups } = memento;
+        const { db, scene: { nodes, groups } } = memento;
         const c3d = await db.serialize();
         const c3dFilename = `${filename}.c3d`
 

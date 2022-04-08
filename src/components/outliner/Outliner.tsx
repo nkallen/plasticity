@@ -14,7 +14,7 @@ export default (editor: Editor) => {
 
     class Outliner extends HTMLElement {
         private readonly disposable = new CompositeDisposable();
-        private readonly expandedGroups = new Set<GroupId>([editor.scene.groups.root.id]);
+        private readonly expandedGroups = new Set<GroupId>([editor.scene.root.id]);
 
         connectedCallback() {
             this.render();
@@ -55,7 +55,7 @@ export default (editor: Editor) => {
         }
 
         static klass(nodeKey: NodeKey): string {
-            const item = editor.scene.nodes.key2item(nodeKey);
+            const item = editor.scene.key2item(nodeKey);
             if (item instanceof visual.Solid) return "Solid";
             else if (item instanceof visual.SpaceInstance) return "Curve";
             else if (item instanceof Group) return "Group";
@@ -63,8 +63,8 @@ export default (editor: Editor) => {
         }
 
         render = () => {
-            const { scene, scene: { groups, groups: { root }, nodes }, selection: { selected } } = editor;
-            const flattened = flatten(root, groups, this.expandedGroups);
+            const { scene, scene: { root }, selection: { selected } } = editor;
+            const flattened = flatten(root, scene, this.expandedGroups);
             const result = flattened.map((item) => {
                 switch (item.tag) {
                     case 'Group':
@@ -74,7 +74,7 @@ export default (editor: Editor) => {
                         const hidden = scene.isHidden(object);
                         const selectable = scene.isSelectable(object);
                         const isSelected = selected.has(object);
-                        const nodeKey = nodes.item2key(item.object);
+                        const nodeKey = scene.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
                         const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
                         return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>

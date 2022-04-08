@@ -1,19 +1,20 @@
 import * as visual from '../../visual_model/VisualModel';
 import { Group, Groups, GroupId } from '../../editor/Group';
+import { Scene } from '../../editor/Scene';
 
 type FlatOutlineElement = { tag: 'Group'; object: Group; expanded: boolean; indent: number; } | { tag: 'Item'; object: visual.Item; indent: number; } | { tag: 'SolidSection'; indent: number; } | { tag: 'CurveSection'; indent: number; };
 
-export function flatten(group: Group, groups: Groups, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
+export function flatten(group: Group, scene: Scene, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
     // FIXME: this || true is temporary while deciding how this should work
     if (expandedGroups.has(group.id) || true) {
         if (!group.isRoot)
             result.push({ tag: 'Group', expanded: true, object: group, indent });
         const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];
-        for (const child of groups.list(group)) {
+        for (const child of scene.list(group)) {
             switch (child.tag) {
                 case 'Group':
-                    result = result.concat(flatten(child.group, groups, expandedGroups, indent + 1));
+                    result = result.concat(flatten(child.group, scene, expandedGroups, indent + 1));
                     break;
                 case 'Item':
                     if (child.item instanceof visual.Solid)

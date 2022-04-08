@@ -34,9 +34,9 @@ export default (editor: Editor) => {
         private readonly ref = createRef();
 
         render = (editable = false) => {
-            const { scene: { nodes } } = editor;
+            const { scene } = editor;
             const { nodeKey: key, klass, visible, hidden, selectable, isSelected, name } = this;
-            const item = nodes.key2item(key);
+            const item = scene.key2item(key);
 
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
             const input = !editable
