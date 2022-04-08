@@ -1,10 +1,11 @@
 import { CompositeDisposable } from 'event-kit';
-import { createRef, RefObject, render } from 'preact';
+import { render } from 'preact';
 import { ExportCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { Group, GroupId } from '../../editor/Group';
 import { NodeKey } from '../../editor/Nodes';
+import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
 import OutlinerItems, { indentSize } from './OutlinerItems';
 
@@ -14,7 +15,6 @@ export default (editor: Editor) => {
     class Outliner extends HTMLElement {
         private readonly disposable = new CompositeDisposable();
         private readonly expandedGroups = new Set<GroupId>([editor.scene.groups.root.id]);
-        private map: Map<NodeKey, RefObject<any>> = new Map();
 
         connectedCallback() {
             this.render();
@@ -52,12 +52,18 @@ export default (editor: Editor) => {
             this.disposable.dispose();
         }
 
+        static klass(nodeKey: NodeKey): string {
+            const item = editor.scene.nodes.key2item(nodeKey);
+            if (item instanceof visual.Solid) return "Solid";
+            else if (item instanceof visual.SpaceInstance) return "Curve";
+            else if (item instanceof Group) return "Group";
+            throw new Error("Should be unreachable");
+        }
+
         render = () => {
             const { scene, scene: { groups, groups: { root }, nodes }, selection: { selected } } = editor;
             const flattened = flatten(root, groups, this.expandedGroups);
-            const map = new Map<NodeKey, RefObject<any>>();
             const result = flattened.map((item) => {
-                const ref = createRef();
                 switch (item.tag) {
                     case 'Group':
                     case 'Item':
@@ -67,11 +73,10 @@ export default (editor: Editor) => {
                         const selectable = scene.isSelectable(object);
                         const isSelected = selected.has(object);
                         const nodeKey = nodes.item2key(item.object);
-                        const klass = "Solid"
+                        const klass = Outliner.klass(nodeKey);
                         const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
                         const diffKey = `${nodeKey},${name},${item.indent},${visible},${hidden},${selectable},${isSelected}`;
-                        map.set(nodeKey, ref);
-                        return <plasticity-outliner-item key={diffKey} nodeKey={nodeKey} ref={ref} name={name} indent={item.indent} visible={visible} hidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
+                        return <plasticity-outliner-item key={diffKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} visible={visible} hidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const hidden = false;
@@ -89,7 +94,6 @@ export default (editor: Editor) => {
                     }
                 }
             });
-            this.map = map;
             render(<>
                 <div class="px-4 pt-4 pb-3">
                     <h1 class="text-xs font-bold text-neutral-100">Scene</h1>

@@ -41,15 +41,11 @@ export default (editor: Editor) => {
         get name() { return this._name }
         set name(name: string) { this._name = name }
 
-        connectedCallback() { this.render() } disconnectedCallback() { }
+        private _klass!: string;
+        get klass() { return this._klass }
+        set klass(klass: string) { this._klass = klass }
 
-        get klass(): string {
-            const item = editor.scene.nodes.key2item(this.nodeKey);
-            if (item instanceof visual.Solid) return "Solid";
-            else if (item instanceof visual.SpaceInstance) return "Curve";
-            else if (item instanceof Group) return "Group";
-            throw new Error("Should be unreachable");
-        }
+        connectedCallback() { this.render() } disconnectedCallback() { }
 
         render = () => {
             const { scene: { nodes } } = editor;
@@ -70,6 +66,7 @@ export default (editor: Editor) => {
                             class={`w-full text-xs ${isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-neutral-300 group-hover:text-neutral-100'} h-6 py-0.5 bg-transparent rounded pointer-events-none overflow-hidden overflow-ellipsis whitespace-nowrap`}
                             disabled autoComplete='no' autocorrect='off' spellCheck={false}
                             placeholder={klass} value={name}
+                            onDblClick={e => this.editName(e, item)}
                         >
                         </input>
                     </div>
@@ -116,6 +113,11 @@ export default (editor: Editor) => {
             const command = new ToggleSelectableCommand(editor, item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
+        }
+
+        editName = (e: MouseEvent, item: NodeItem) => {
+            const input = e.target! as HTMLInputElement;
+            input.disabled = false;
         }
     }
     customElements.define('plasticity-outliner-item', OutlinerItem);
