@@ -122,8 +122,8 @@ export default (editor: Editor) => {
         editName = (e: MouseEvent, item: NodeItem) => {
             this.render(true);
             const input = this.ref.current as HTMLInputElement;
-            input.focus();
             input.select();
+            input.focus();
         }
 
         handleEnter = (e: KeyboardEvent, item: NodeItem) => {
@@ -141,6 +141,12 @@ export default (editor: Editor) => {
         setName = (item: NodeItem) => {
             const input = this.ref.current as HTMLInputElement;
 
+            if (input.value === this.name) {
+                this.render();
+                return;
+            }
+
+            console.log(input.value);
             const command = new SetNameCommand(editor, item, input.value);
             editor.enqueue(command, true);
         }
