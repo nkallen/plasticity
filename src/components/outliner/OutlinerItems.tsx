@@ -69,7 +69,8 @@ export default (editor: Editor) => {
                     ref={this.ref}
                     autoComplete='no' autocorrect='off' spellCheck={false}
                     placeholder={klass} value={name}
-                    onBlur={e => this.setName(e, item)}
+                    onBlur={e => this.handleBlur(e, item)}
+                    onKeyDown={e => this.handleEnter(e, item)}
                 ></input>;
 
             const result =
@@ -140,12 +141,23 @@ export default (editor: Editor) => {
             input.select();
         }
 
-        setName = (e: FocusEvent, item: NodeItem) => {
+        handleEnter = (e: KeyboardEvent, item: NodeItem) => {
+            if (e.code === "Enter" ) {
+                this.setName(item);
+            }
+            e.stopPropagation();
+        }
+
+        handleBlur = (e: FocusEvent, item: NodeItem) => {
+            this.setName(item);
+            e.stopPropagation();
+        }
+
+        setName = (item: NodeItem) => {
             const input = this.ref.current as HTMLInputElement;
 
             const command = new SetNameCommand(editor, item, input.value);
             editor.enqueue(command, true);
-            e.stopPropagation();
         }
     }
     customElements.define('plasticity-outliner-item', OutlinerItem);
