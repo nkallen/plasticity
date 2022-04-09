@@ -328,7 +328,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private hide(item: visual.Item) {
         const id = item.simpleName;
         const id2snaps = this.snapMapFor(item);
-        const info = id2snaps.get(id)!;
+        const info = id2snaps.get(id);
+        if (info === undefined) return;
         id2snaps.delete(id);
         this.hidden.set(id, info);
     }
@@ -336,7 +337,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private unhide(item: visual.Item) {
         const id = item.simpleName;
         const id2snaps = this.snapMapFor(item);
-        const info = this.hidden.get(id)!;
+        const info = this.hidden.get(id);
+        if (info === undefined) return;
         id2snaps.set(id, info);
         this.hidden.delete(id);
     }

@@ -34,9 +34,8 @@ export default (editor: Editor) => {
         private readonly ref = createRef();
 
         render = (editable = false) => {
-            const { scene } = editor;
-            const { nodeKey: key, klass, visible, hidden, selectable, isSelected, name } = this;
-            const item = scene.key2item(key);
+            const { klass, visible, hidden, selectable, isSelected, name } = this;
+            const item = this.item;
 
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
             const input = !editable
@@ -53,40 +52,40 @@ export default (editor: Editor) => {
                     ref={this.ref}
                     autoComplete='no' autocorrect='off' spellCheck={false}
                     placeholder={klass} value={name}
-                    onBlur={e => this.handleBlur(e, item)}
-                    onKeyDown={e => this.handleEnter(e, item)}
+                    onBlur={e => this.handleBlur(e)}
+                    onKeyDown={e => this.handleEnter(e)}
                 ></input>;
 
             const any = hidden || !visible || !selectable;
             const result =
                 <div
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
-                    onClick={e => this.select(e, item)}
+                    onClick={e => this.select(e)}
                 >
                     {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}
                     <plasticity-icon name={klass.toLowerCase()} class={isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-accent-500 hover:text-neutral-50'}></plasticity-icon>
                     <div
                         class="py-0.5 flex-1"
-                        onDblClick={e => { if (!editable) this.editName(e, item) }}
+                        onDblClick={e => { if (!editable) this.editName(e) }}
                     >
                         {input}
                     </div>
                     {!editable && <>
                         <button
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${hidden ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
-                            onClick={e => this.setHidden(e, item, !hidden)}
+                            onClick={e => this.setHidden(e, !hidden)}
                         >
                             <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
-                            onClick={e => this.setVisibility(e, item, !visible)}
+                            onClick={e => this.setVisibility(e, !visible)}
                         >
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                         </button>
                         <button
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!selectable ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
-                            onClick={e => this.setSelectable(e, item, !selectable)}
+                            onClick={e => this.setSelectable(e, !selectable)}
                         >
                             <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
                         </button>
@@ -96,50 +95,50 @@ export default (editor: Editor) => {
             render(result, this);
         }
 
-        select = (e: MouseEvent, item: NodeItem) => {
-            const command = new OutlinerChangeSelectionCommand(editor, [item], keypress.event2modifier(e));
+        select = (e: MouseEvent) => {
+            const command = new OutlinerChangeSelectionCommand(editor, [this.item], keypress.event2modifier(e));
             editor.enqueue(command, true);
         }
 
-        setVisibility = (e: MouseEvent, item: NodeItem, value: boolean) => {
-            const command = new ToggleVisibilityCommand(editor, item, value);
-            editor.enqueue(command, true);
-            e.stopPropagation();
-        }
-
-        setHidden = (e: MouseEvent, item: NodeItem, value: boolean) => {
-            const command = new ToggleHiddenCommand(editor, item, value);
+        setVisibility = (e: MouseEvent, value: boolean) => {
+            const command = new ToggleVisibilityCommand(editor, this.item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
         }
 
-        setSelectable = (e: MouseEvent, item: NodeItem, value: boolean) => {
-            const command = new ToggleSelectableCommand(editor, item, value);
+        setHidden = (e: MouseEvent, value: boolean) => {
+            const command = new ToggleHiddenCommand(editor, this.item, value);
             editor.enqueue(command, true);
             e.stopPropagation();
         }
 
-        editName = (e: MouseEvent, item: NodeItem) => {
+        setSelectable = (e: MouseEvent, value: boolean) => {
+            const command = new ToggleSelectableCommand(editor, this.item, value);
+            editor.enqueue(command, true);
+            e.stopPropagation();
+        }
+
+        editName = (e: MouseEvent) => {
             this.render(true);
             const input = this.ref.current as HTMLInputElement;
             input.select();
             input.focus();
         }
 
-        handleEnter = (e: KeyboardEvent, item: NodeItem) => {
+        handleEnter = (e: KeyboardEvent) => {
             if (e.code === "Enter") {
-                this.setName(item);
+                this.setName(this.item);
                 this.ref.current.blur();
             }
             e.stopPropagation();
         }
 
-        handleBlur = (e: FocusEvent, item: NodeItem) => {
-            this.setName(item);
+        handleBlur = (e: FocusEvent) => {
+            this.setName(this.item);
             e.stopPropagation();
         }
 
-        setName = (item: NodeItem) => {
+        private setName = (item: NodeItem) => {
             const input = this.ref.current as HTMLInputElement;
 
             if (input.value === this.name) {
@@ -149,6 +148,13 @@ export default (editor: Editor) => {
 
             const command = new SetNameCommand(editor, item, input.value);
             editor.enqueue(command, true);
+        }
+
+        private get item() {
+            const { scene } = editor;
+            const { nodeKey: key } = this;
+            const item = scene.key2item(key);
+            return item;
         }
     }
     customElements.define('plasticity-outliner-item', OutlinerItem);

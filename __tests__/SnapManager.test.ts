@@ -106,6 +106,36 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.geometrySnaps[0].size).toBe(42);
 });
 
+test("hiding is idempotent", async () => {
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
+
+    scene.makeHidden(box, true);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
+
+    scene.makeHidden(box, true);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
+
+    scene.makeHidden(box, false);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
+});
+
 test("adding & removing curve", async () => {
     const makeLine = new CurveFactory(db, materials, signals);
     makeLine.type = c3d.SpaceType.Hermit3D;

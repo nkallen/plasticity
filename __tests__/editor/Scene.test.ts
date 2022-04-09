@@ -44,88 +44,232 @@ beforeEach(() => {
     box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
 
-test("hide & unhide", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(scene.visibleObjects.length).toBe(0);
+let objectHidden: jest.Mock<any>;
+let objectUnhidden: jest.Mock<any>;
+let objectUnselectable: jest.Mock<any>;
+let objectSeletable: jest.Mock<any>;
+beforeEach(() => {
+    objectHidden = jest.fn();
+    objectUnhidden = jest.fn();
+    objectUnselectable = jest.fn();
+    objectSeletable = jest.fn();
+    signals.objectHidden.add(objectHidden);
+    signals.objectUnhidden.add(objectUnhidden);
+    signals.objectUnselectable.add(objectUnselectable);
+    signals.objectSelectable.add(objectSeletable);
+});
 
-    const v = await db.addItem(box) as visual.Solid;
+let v: visual.Solid;
+beforeEach(async () => {
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+
+    v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(1);
+    expect(scene.selectableObjects.length).toBe(1);
+})
 
+test("hide & unhide", async () => {
     scene.makeHidden(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
 
     scene.makeHidden(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(1);
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(1);
+})
+
+test("hide twice doesn't send the same signal twice", async () => {
+    scene.makeHidden(v, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(v, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
 })
 
 test("toggle visibility", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(scene.visibleObjects.length).toBe(0);
-
-    const v = await db.addItem(box) as visual.Solid;
-    expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(scene.visibleObjects.length).toBe(1);
-
     scene.makeVisible(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
 
     scene.makeVisible(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(1);
     expect(scene.visibleObjects.length).toBe(1);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(1);
+})
+
+test("toggle visibility twice doesn't send the same signal twice", async () => {
+    scene.makeVisible(v, false);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeVisible(v, false);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+})
+
+test("hide & makeVisible(false) doesn't send the same signal twice", async () => {
+    scene.makeHidden(v, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeVisible(v, false);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+})
+
+test("unhideAll doesn't send the signal if the item is still invisible", async () => {
+    scene.makeHidden(v, true);
+    scene.makeVisible(v, false);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    await scene.unhideAll();
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+})
+
+test("hiding a transitively invisible item doesn't send a signal; unhiding it neither", async () => {
+    const group = scene.createGroup();
+    scene.moveToGroup(v, group);
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
+
+    scene.makeHidden(group, true);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(v, true);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(v, false);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+})
+
+test("hiding a transitively invisible item doesn't send a signal; unhideAll neither", async () => {
+    const group = scene.createGroup();
+    scene.moveToGroup(v, group);
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
+
+    scene.makeHidden(group, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(v, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    await scene.unhideAll();
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(2);
+})
+
+test("hiding a transitively invisible item doesn't send a signal; unhideAll neither", async () => {
+    const group = scene.createGroup();
+    scene.moveToGroup(v, group);
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
+
+    scene.makeHidden(group, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeHidden(v, true);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    scene.makeVisible(v, false);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(0);
+
+    await scene.unhideAll();
+    expect(scene.selectableObjects.length).toBe(0);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(objectHidden).toBeCalledTimes(2);
+    expect(objectUnhidden).toBeCalledTimes(1);
 })
 
 test("toggle selectable", async () => {
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(scene.selectableObjects.length).toBe(0);
-
-    const v = await db.addItem(box) as visual.Solid;
-    expect(db.lookup(v)).toBeTruthy();
-    expect(db.temporaryObjects.children.length).toBe(0);
-    expect(scene.selectableObjects.length).toBe(1);
-
     scene.makeSelectable(v, false);
-    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
     expect(scene.selectableObjects.length).toBe(0);
 
     scene.makeSelectable(v, true);
-    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(1);
     expect(scene.selectableObjects.length).toBe(1);
 })
 
 test("group visibility", async () => {
     const group = scene.createGroup();
-    expect(scene.visibleObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
     scene.moveToGroup(v, group);
+    expect(scene.selectableObjects.length).toBe(1);
     expect(scene.visibleObjects.length).toBe(1);
     scene.makeHidden(group, true);
+    expect(scene.selectableObjects.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(0);
 });
 
 test("group selectability", async () => {
     const group = scene.createGroup();
-    expect(scene.selectableObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.visibleObjects.length).toBe(1);
+    expect(scene.selectableObjects.length).toBe(1);
     scene.moveToGroup(v, group);
+    expect(scene.visibleObjects.length).toBe(1);
     expect(scene.selectableObjects.length).toBe(1);
     scene.makeSelectable(group, false);
+    expect(scene.visibleObjects.length).toBe(1);
     expect(scene.selectableObjects.length).toBe(0);
 });
 
 test("makeSelectable descent dispatch of signal", async () => {
-    const objectUnselectable = jest.fn(), objectSeletable = jest.fn();
-    signals.objectUnselectable.add(objectUnselectable);
-    signals.objectSelectable.add(objectSeletable);
-
     const group = scene.createGroup();
-    expect(scene.selectableObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.selectableObjects.length).toBe(1);
+    expect(scene.visibleObjects.length).toBe(1);
     scene.moveToGroup(v, group);
 
     scene.makeSelectable(group, false);
@@ -138,13 +282,8 @@ test("makeSelectable descent dispatch of signal", async () => {
 })
 
 test("makeVisible descent dispatch of signal", async () => {
-    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
-    signals.objectHidden.add(objectHidden);
-    signals.objectUnhidden.add(objectUnhidden);
-
     const group = scene.createGroup();
-    expect(scene.selectableObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.selectableObjects.length).toBe(1);
     scene.moveToGroup(v, group);
 
     scene.makeVisible(group, false);
@@ -157,13 +296,8 @@ test("makeVisible descent dispatch of signal", async () => {
 })
 
 test("makeHidden descent dispatch of signal", async () => {
-    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
-    signals.objectHidden.add(objectHidden);
-    signals.objectUnhidden.add(objectUnhidden);
-
     const group = scene.createGroup();
-    expect(scene.selectableObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.selectableObjects.length).toBe(1);
     scene.moveToGroup(v, group);
 
     scene.makeHidden(group, true);
@@ -176,13 +310,8 @@ test("makeHidden descent dispatch of signal", async () => {
 })
 
 test("makeHidden & unhideAll descent dispatch of signal", async () => {
-    const objectHidden = jest.fn(), objectUnhidden = jest.fn();
-    signals.objectHidden.add(objectHidden);
-    signals.objectUnhidden.add(objectUnhidden);
-
     const group = scene.createGroup();
-    expect(scene.selectableObjects.length).toBe(0);
-    const v = await db.addItem(box) as visual.Solid;
+    expect(scene.selectableObjects.length).toBe(1);
     scene.moveToGroup(v, group);
 
     scene.makeHidden(group, true);
@@ -195,6 +324,7 @@ test("makeHidden & unhideAll descent dispatch of signal", async () => {
 })
 
 test("automatics are included in selectable objects", async () => {
+    expect(scene.selectableObjects.length).toBe(1);
     const makeCircle = new CenterCircleFactory(contours, materials, signals);
     let circle: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
     makeCircle.center = new THREE.Vector3(0, -1.1, 0);
@@ -203,17 +333,18 @@ test("automatics are included in selectable objects", async () => {
         circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
     });
     expect(db.findAutomatics().length).toBe(2);
-    expect(scene.selectableObjects.length).toBe(3);
+    expect(scene.selectableObjects.length).toBe(4);
 })
 
 test("automatics are included in selectable objects", async () => {
+    expect(scene.selectableObjects.length).toBe(1);
     const makeCircle = new CenterCircleFactory(contours, materials, signals);
-    let circle: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
+    let circle: visual.SpaceInstance<visual.Curve3D>;
     makeCircle.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle.radius = 1;
     await contours.transaction(async () => {
         circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
     });
     expect(db.findAutomatics().length).toBe(2);
-    expect(scene.visibleObjects.length).toBe(3);
+    expect(scene.visibleObjects.length).toBe(4);
 })

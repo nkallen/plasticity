@@ -61,16 +61,22 @@ export class Groups implements MementoOriginator<GroupMemento> {
     }
 
     moveNodeToGroup(item: NodeItem, into: Group) {
-        const key = item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+        const key = this.keyForItem(item);
         this._moveItemToGroup(key, into);
         this.signals.sceneGraphChanged.dispatch();
     }
 
     groupForNode(item: NodeItem): Group | undefined {
-        const key = item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+        const key = this.keyForItem(item);
         const id = this.member2parent.get(key);
         if (id === undefined) return;
         return new Group(id);
+    }
+
+    parent(item: NodeItem) {
+        const key = this.keyForItem(item);
+        const parentId = this.member2parent.get(key)!;
+        return new Group(parentId);
     }
 
     private _moveItemToGroup(key: NodeKey, into: Group) {
@@ -129,6 +135,10 @@ export class Groups implements MementoOriginator<GroupMemento> {
         return db.lookupId(version)!;
     }
 
+    private keyForItem(item: NodeItem) {
+        return item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+    }
+
     saveToMemento(): GroupMemento {
         return new GroupMemento(
             this.counter,
@@ -174,7 +184,9 @@ function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<Nod
 }
 
 export class Group {
-    constructor(readonly id: GroupId) { }
+    constructor(readonly id: GroupId) { 
+        if (!Number.isSafeInteger(id)) throw new Error("invalid GroupId: " + id);
+    }
     get simpleName() { return this.id }
     get isRoot() { return this.id === 0 }
 }

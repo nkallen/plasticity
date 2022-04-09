@@ -408,9 +408,14 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         for (const id of this.edgeIds) {
             console.assert(this.db.lookupTopologyItemById(id) !== undefined);
         }
+        for (const id of this.curveIds) {
+            console.assert(this.db.lookupItemById(id) !== undefined, "curve is in database", id);
+        }
     }
 
-    debug() { }
+    debug() {
+        
+    }
 }
 
 export interface HasSelectedAndHovered {

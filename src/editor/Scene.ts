@@ -2,11 +2,17 @@ import signals from 'signals';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Group, Groups } from './Group';
+import { Group, GroupId, Groups } from './Group';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
 import { HideMode, NodeItem, NodeKey, Nodes } from "./Nodes";
 import { TypeManager } from "./TypeManager";
+
+type Snapshot = {
+    isIndirectlyHidden: boolean;
+    visibleItems: Set<visual.Item>;
+    visibleGroups: Set<number>;
+};
 
 export class Scene implements MementoOriginator<SceneMemento> {
     readonly types = new TypeManager(this.signals);
@@ -27,84 +33,117 @@ export class Scene implements MementoOriginator<SceneMemento> {
     }
 
     get visibleObjects(): visual.Item[] {
-        const acc = this.computeVisibleObjectsInGroup(this.root, [], false);
-        return acc.concat(this.db.findAutomatics());
+        const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), false);
+        return [...acc].concat(this.db.findAutomatics());
     }
 
-    private computeVisibleObjectsInGroup(start: Group, acc: visual.Item[], checkSelectable: boolean): visual.Item[] {
+    private computeVisibleObjectsInGroup(start: NodeItem, accItem: Set<visual.Item>, accGroup: Set<GroupId>, checkSelectable: boolean): Set<visual.Item> {
         const { nodes, types } = this;
-        this.list(start);
-        for (const listing of this.list(start)) {
-            switch (listing.tag) {
-                case 'Group':
-                    const group = listing.group;
-                    if (nodes.isHidden(group)) continue;
-                    if (!nodes.isVisible(group)) continue;
-                    if (checkSelectable && !nodes.isSelectable(group)) continue;
-                    this.computeVisibleObjectsInGroup(group, acc, checkSelectable);
-                    break;
-                case 'Item':
-                    const view = listing.item;
-                    if (nodes.isHidden(view)) continue;
-                    if (!nodes.isVisible(view)) continue;
-                    if (!types.isEnabled(view)) continue;
-                    if (checkSelectable && !nodes.isSelectable(view)) continue;
-                    acc.push(view);
-                    break;
+        if (start instanceof Group) {
+            if (nodes.isHidden(start)) return accItem;
+            if (!nodes.isVisible(start)) return accItem;
+            if (checkSelectable && !nodes.isSelectable(start)) return accItem;
+            accGroup.add(start.id);
+            for (const listing of this.list(start)) {
+                switch (listing.tag) {
+                    case 'Group':
+                        this.computeVisibleObjectsInGroup(listing.group, accItem, accGroup, checkSelectable);
+                        break;
+                    case 'Item':
+                        this.computeVisibleObjectsInGroup(listing.item, accItem, accGroup, checkSelectable);
+                        break;
+                }
             }
+        } else {
+            if (nodes.isHidden(start)) return accItem;
+            if (!nodes.isVisible(start)) return accItem;
+            if (!types.isEnabled(start)) return accItem;
+            if (checkSelectable && !nodes.isSelectable(start)) return accItem;
+            accItem.add(start);
         }
-        return acc;
+        return accItem;
     }
-
-    // TODO: optimize by memoize
-    private rebuild() { }
 
     get selectableObjects(): visual.Item[] {
-        const acc = this.computeVisibleObjectsInGroup(this.root, [], true);
-        return acc.concat(this.db.findAutomatics());
+        const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), true);
+        return [...acc].concat(this.db.findAutomatics());
     }
 
     makeHidden(node: NodeItem, value: boolean) {
+        if (value === this.isHidden(node)) return;
+        const before = this.snapshot(node, false);
         this.nodes.makeHidden(node, value);
-        this.dispatchDescend(node, 'direct', value ? this.signals.objectHidden : this.signals.objectUnhidden);
-        this.rebuild();
+        const after = this.snapshot(node, false);
+        if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
+        this.processSnapshot(before, after, this.signals.objectHidden, this.signals.objectUnhidden);
     }
 
     makeVisible(node: NodeItem, value: boolean) {
+        if (value === this.isVisible(node)) return;
+        const before = this.snapshot(node, false);
         this.nodes.makeVisible(node, value);
-        this.dispatchDescend(node, 'direct', value ? this.signals.objectUnhidden : this.signals.objectHidden);
-        this.rebuild();
+        const after = this.snapshot(node, false);
+        if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
+        this.processSnapshot(before, after, this.signals.objectHidden, this.signals.objectUnhidden);
     }
 
     async unhideAll(): Promise<NodeItem[]> {
+        const before = this.snapshot(this.groups.root, false);
         const result = await this.nodes.unhideAll();
-        for (const item of result) {
-            this.dispatchDescend(item, 'direct', this.signals.objectUnhidden);
-        }
-        this.rebuild();
+        const after = this.snapshot(this.groups.root, false);
+        this.processSnapshot(before, after, this.signals.objectHidden, this.signals.objectUnhidden);
         return result;
     }
 
-    private dispatchDescend(item: NodeItem, mode: HideMode, signal: signals.Signal<[NodeItem, HideMode]>) {
-        signal.dispatch([item, mode]);
-        if (item instanceof Group) {
-            for (const child of this.list(item)) {
-                const node = child.tag === 'Group' ? child.group : child.item;
-                this.dispatchDescend(node, 'indirect', signal);
-            }
+    makeSelectable(node: NodeItem, value: boolean) {
+        const before = this.snapshot(node, true);
+        this.nodes.makeSelectable(node, value);
+        const after = this.snapshot(node, true);
+        if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
+        this.processSnapshot(before, after, this.signals.objectUnselectable, this.signals.objectSelectable);
+    }
+
+    private snapshot(node: NodeItem, checkSelectable: boolean): Snapshot {
+        const isIndirectlyHidden = this.isIndirectlyHidden(node) || (checkSelectable && !this.isSelectable(node));
+        const visibleItems = new Set<visual.Item>();
+        const visibleGroups = new Set<GroupId>();
+        this.computeVisibleObjectsInGroup(node, visibleItems, visibleGroups, checkSelectable);
+        return { isIndirectlyHidden, visibleItems, visibleGroups };
+    }
+
+    private processSnapshot(before: Snapshot, after: Snapshot, positive: signals.Signal<[NodeItem, HideMode]>, negative: signals.Signal<[NodeItem, HideMode]>) {
+        for (const item of before.visibleItems) {
+            if (after.visibleItems.has(item)) continue;
+            positive.dispatch([item, 'indirect']);
+        }
+        for (const item of after.visibleItems) {
+            if (before.visibleItems.has(item)) continue;
+            negative.dispatch([item, 'indirect']);
+        }
+        for (const groupId of before.visibleGroups) {
+            if (after.visibleGroups.has(groupId)) continue;
+            positive.dispatch([new Group(groupId), 'indirect']);
+        }
+        for (const groupId of after.visibleGroups) {
+            if (before.visibleGroups.has(groupId)) continue;
+            negative.dispatch([new Group(groupId), 'indirect']);
         }
     }
 
-    makeSelectable(node: NodeItem, value: boolean) {
-        this.nodes.makeSelectable(node, value);
-        this.dispatchDescend(node, 'direct', value ? this.signals.objectSelectable : this.signals.objectUnselectable);
-        this.rebuild();
+    private isIndirectlyHidden(node: NodeItem) {
+        if (this.isHidden(node) || !this.isVisible(node)) return true;
+        let parent = this.groups.parent(node);
+        while (!parent.isRoot) {
+            if (this.nodes.isHidden(parent)) return true;
+            parent = this.groups.parent(parent);
+        }
+        return false;
     }
 
-    deleteGroup(group: Group) { this.groups.delete(group); this.rebuild() }
-    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group); this.rebuild() }
-    setMaterial(node: NodeItem, id: number): void { this.nodes.setMaterial(node, id); this.rebuild() }
-    createGroup() { const result = this.groups.create(); this.rebuild(); return result; }
+    deleteGroup(group: Group) { this.groups.delete(group) }
+    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
+    setMaterial(node: NodeItem, id: number): void { this.nodes.setMaterial(node, id) }
+    createGroup() { const result = this.groups.create(); return result; }
 
     get root() { return this.groups.root }
     isHidden(node: NodeItem): boolean { return this.nodes.isHidden(node) }
