@@ -6,7 +6,6 @@
 
 - [ ] opacity of hidden items  
 - [ ] command to show and hide all lines and curves  
-- [ ] in render mode the outliner blows up  
 
 ### Todo
 
@@ -16,6 +15,7 @@
 
 ### Done ✓
 
+- [x] in render mode the outliner blows up  
 - [x] how hid lines curves per group  
 - [x] make hidden + make invisible + make visible errors  
 
