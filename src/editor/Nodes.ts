@@ -139,10 +139,8 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         const { node2material: version2material } = this;
         const k = this.item2key(item);
         const materialId = version2material.get(k);
-        if (materialId === undefined)
-            return undefined;
-        else
-            return this.materials.get(materialId)!;
+        if (materialId === undefined) return undefined;
+        else return this.materials.get(materialId)!;
     }
 
     saveToMemento(): NodeMemento {

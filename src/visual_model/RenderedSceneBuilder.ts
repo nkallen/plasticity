@@ -39,7 +39,7 @@ export class RenderedSceneBuilder {
         const bindings: signals.SignalBinding[] = [];
         bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) =>{
             const material = ancestor !== undefined ? this.scene.getMaterial(ancestor) : undefined;
-            this.highlightItem(view, material)
+            this.highlightItem(view, material ?? defaultPhysicalMaterial)
         }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
