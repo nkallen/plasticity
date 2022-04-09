@@ -139,7 +139,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
         return cancellable;
     }
 
-    tally(selectable: Set<Selectable>): number {
+    private tally(selectable: Set<Selectable>): number {
         let result = 0;
         for (const s of selectable) {
             if (s instanceof visual.Solid) {

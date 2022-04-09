@@ -25,7 +25,6 @@ export class GeometryPicker {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
-
         let intersections = raycaster.intersectObjects(objects, false) as IntersectableWithTopologyItem[];
         if (!isXRay) {
             intersections = findAllVeryCloseTogether(intersections);

@@ -60,7 +60,8 @@ export class Scene implements MementoOriginator<SceneMemento> {
     private rebuild() { }
 
     get selectableObjects(): visual.Item[] {
-        return this.computeVisibleObjectsInGroup(this.root, [], true);
+        const acc = this.computeVisibleObjectsInGroup(this.root, [], true);
+        return acc.concat(this.db.findAutomatics());
     }
 
     makeHidden(node: NodeItem, value: boolean) {

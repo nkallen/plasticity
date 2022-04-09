@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
+import { CenterCircleFactory } from '../../src/commands/circle/CircleFactory';
+import ContourManager from '../../src/editor/curves/ContourManager';
+import { PlanarCurveDatabase } from '../../src/editor/curves/PlanarCurveDatabase';
+import { RegionManager } from '../../src/editor/curves/RegionManager';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -15,6 +19,9 @@ let db: GeometryDatabase;
 let scene: Scene;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
+let contours: ContourManager;
+let curves: PlanarCurveDatabase;
+let regions: RegionManager;
 let box: c3d.Solid;
 
 const points = [
@@ -30,6 +37,9 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    curves = new PlanarCurveDatabase(db, materials, signals);
+    regions = new RegionManager(db, curves);
+    contours = new ContourManager(db, curves, regions, signals);
     scene = new Scene(db, materials, signals);
     box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
@@ -182,4 +192,28 @@ test("makeHidden & unhideAll descent dispatch of signal", async () => {
     await scene.unhideAll();
     expect(objectHidden).toBeCalledTimes(2);
     expect(objectUnhidden).toBeCalledTimes(2);
+})
+
+test("automatics are included in selectable objects", async () => {
+    const makeCircle = new CenterCircleFactory(contours, materials, signals);
+    let circle: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
+    makeCircle.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle.radius = 1;
+    await contours.transaction(async () => {
+        circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    });
+    expect(db.findAutomatics().length).toBe(2);
+    expect(scene.selectableObjects.length).toBe(3);
+})
+
+test("automatics are included in selectable objects", async () => {
+    const makeCircle = new CenterCircleFactory(contours, materials, signals);
+    let circle: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
+    makeCircle.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle.radius = 1;
+    await contours.transaction(async () => {
+        circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    });
+    expect(db.findAutomatics().length).toBe(2);
+    expect(scene.visibleObjects.length).toBe(3);
 })
