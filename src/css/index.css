@@ -86,7 +86,7 @@
 
     plasticity-button-group::before {
         content: "";
-        @apply absolute bottom-0 left-0 w-full h-1 rotate-45 -translate-x-4 bg-accent-400;
+        @apply absolute bottom-0 left-0 w-full h-1 rotate-45 -translate-x-4 bg-neutral-500;
     }
 
     plasticity-dialog>div {

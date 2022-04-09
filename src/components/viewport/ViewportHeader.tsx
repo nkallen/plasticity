@@ -50,7 +50,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`control-point_${uid}`} checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
                                     onClick={e => this.onClick(e, SelectionMode.ControlPoint)}
                                 />
-                                <label for={`control-point_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`control-point_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='control-point'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="selection:mode:set:control-point">Control-Point select</plasticity-tooltip>
                                 </label>
@@ -60,7 +60,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`edge_${uid}`} checked={editor.selection.mode.has(SelectionMode.CurveEdge)}
                                     onClick={e => this.onClick(e, SelectionMode.CurveEdge, SelectionMode.Curve)}
                                 />
-                                <label for={`edge_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`edge_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='edge'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="selection:mode:set:edge">Edge select</plasticity-tooltip>
                                 </label>
@@ -70,7 +70,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`face_${uid}`} checked={editor.selection.mode.has(SelectionMode.Face)}
                                     onClick={e => this.onClick(e, SelectionMode.Face, SelectionMode.Region)}
                                 />
-                                <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`face_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='face'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="selection:mode:set:face">Face select</plasticity-tooltip>
                                 </label>
@@ -80,7 +80,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`solid_${uid}`} checked={editor.selection.mode.has(SelectionMode.Solid)}
                                     onClick={e => this.onClick(e, SelectionMode.Solid)}
                                 />
-                                <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='solid'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="selection:mode:set:solid">Solid select</plasticity-tooltip>
                                 </label>
@@ -89,13 +89,15 @@ export default (editor: Editor) => {
 
                         <ol class="flex flex-row space-x-0.5">
                             <li class="group">
-                                <input type="checkbox" class="hidden absolute peer" id={`ortho_${uid}`} checked={viewport.camera.isPerspectiveCamera} />
+                                <input
+                                    type="checkbox" class="hidden absolute peer" id={`ortho_${uid}`} checked={viewport.camera.isPerspectiveCamera}
+                                    onClick={e => viewport.togglePerspective()}
+                                />
                                 <label
                                     for={`ortho_${uid}`}
-                                    onClick={e => viewport.togglePerspective()}
-                                    class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600"
+                                    class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600"
                                 >
-                                    <plasticity-icon name='ortho'></plasticity-icon>
+                                    <plasticity-icon key={viewport.camera.isOrthographicCamera ? 'orthographic-view' : 'perspective-view'} name={viewport.camera.isOrthographicCamera ? 'orthographic-view' : 'perspective-view'}></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Perspective/Orthographic</plasticity-tooltip>
                                     <plasticity-menu placement="bottom">
                                         <div class="w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
@@ -122,7 +124,7 @@ export default (editor: Editor) => {
                             </li>
 
                             <li class="group">
-                                <label for={`overlays_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`overlays_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <input type="checkbox" class="hidden absolute peer" id={`overlays_${uid}`} checked={this.viewport.showOverlays}
                                         onClick={e => viewport.toggleOverlays()}
                                     />
@@ -135,7 +137,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`xray_${uid}`} checked={viewport.isXRay}
                                     onClick={e => viewport.toggleXRay()}
                                 />
-                                <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`xray_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='xray'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-Ray mode</plasticity-tooltip>
                                 </label>
@@ -145,7 +147,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" class="hidden absolute peer" id={`render-mode_${uid}`} checked={viewport.isRenderMode}
                                     onClick={e => viewport.isRenderMode = !viewport.isRenderMode}
                                 />
-                                <label for={`render-mode_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-accent-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
+                                <label for={`render-mode_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='render-mode'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-render-mode">Toggle render mode</plasticity-tooltip>
                                     <plasticity-menu placement="bottom">
