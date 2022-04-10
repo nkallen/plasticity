@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { GroupId } from './Group';
+import { GroupId } from './Groups';
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
 import { NodeKey, Nodes } from './Nodes';
 import * as visual from '../visual_model/VisualModel';

@@ -1,4 +1,4 @@
-import { Group, GroupId } from '../../editor/Group';
+import { Group, GroupId } from '../../editor/Groups';
 import { Scene, SceneDisplayInfo } from '../../editor/Scene';
 import * as visual from '../../visual_model/VisualModel';
 

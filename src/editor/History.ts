@@ -7,7 +7,7 @@ import ContourManager, { CurveInfo } from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
-import { GroupId } from "./Group";
+import { GroupId } from "./Groups";
 import { NodeKey, Nodes } from "./Nodes";
 import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";

@@ -5,7 +5,7 @@ import { EditorSignals } from './EditorSignals';
 import { MementoOriginator, NodeMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { GeometryDatabase } from './GeometryDatabase';
-import { Group, GroupId } from './Group';
+import { Group, GroupId } from './Groups';
 
 export type NodeDekey = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId }
 export type NodeKey = string;

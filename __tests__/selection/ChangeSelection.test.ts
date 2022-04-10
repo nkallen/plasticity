@@ -8,7 +8,7 @@ import { CrossPointDatabase } from '../../src/editor/curves/CrossPointDatabase';
 import { PlanarCurveDatabase } from '../../src/editor/curves/PlanarCurveDatabase';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Group, Groups } from '../../src/editor/Group';
+import { Group, Groups } from '../../src/editor/Groups';
 import { EditorOriginator } from '../../src/editor/History';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';

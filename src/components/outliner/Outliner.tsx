@@ -3,7 +3,7 @@ import { render } from 'preact';
 import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UngroupSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
-import { Group, GroupId } from '../../editor/Group';
+import { Group, GroupId } from '../../editor/Groups';
 import { NodeKey } from '../../editor/Nodes';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";

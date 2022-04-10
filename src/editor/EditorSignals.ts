@@ -10,7 +10,7 @@ import { SelectionModeSet } from "../selection/SelectionModeSet";
 import * as visual from '../visual_model/VisualModel';
 import { Agent } from "./DatabaseLike";
 import { Replacement } from "./GeometryDatabase";
-import { Group } from "./Group";
+import { Group } from "./Groups";
 import { HideMode, NodeItem } from "./Nodes";
 import { ConstructionPlane } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";

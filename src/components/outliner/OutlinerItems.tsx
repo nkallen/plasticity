@@ -1,7 +1,7 @@
 import { createRef, render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
-import { Group } from '../../editor/Group';
+import { Group } from '../../editor/Groups';
 import { NodeItem, NodeKey } from '../../editor/Nodes';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';

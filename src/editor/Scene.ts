@@ -2,7 +2,7 @@ import signals from 'signals';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Group, GroupId, Groups } from './Group';
+import { Group, GroupId, Groups } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
 import { HideMode, NodeItem, NodeKey, Nodes } from "./Nodes";

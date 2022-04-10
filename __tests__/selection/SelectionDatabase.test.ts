@@ -5,7 +5,7 @@ import LineFactory from '../../src/commands/line/LineFactory';
 import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Groups, Group } from '../../src/editor/Group';
+import { Groups, Group } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Scene } from '../../src/editor/Scene';

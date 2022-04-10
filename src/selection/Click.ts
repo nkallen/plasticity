@@ -5,7 +5,7 @@ import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectio
 import { ModifiesSelection } from "./SelectionDatabase";
 import { SelectionMode, SelectionModeSet } from "./SelectionModeSet";
 import { SelectionExtensionStrategy } from "./SelectionExtensionStrategy";
-import { Group } from "../editor/Group";
+import { Group } from "../editor/Groups";
 
 export class ClickStrategy {
     private readonly extend = new SelectionExtensionStrategy(this.db);

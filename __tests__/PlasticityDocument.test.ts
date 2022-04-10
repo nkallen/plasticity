@@ -8,7 +8,7 @@ import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { Group } from '../src/editor/Group';
+import { Group } from '../src/editor/Groups';
 import { EditorOriginator } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { PlasticityDocument } from '../src/editor/PlasticityDocument';

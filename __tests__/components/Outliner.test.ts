@@ -1,6 +1,6 @@
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Groups } from '../../src/editor/Group';
+import { Groups } from '../../src/editor/Groups';
 import { flatten } from '../../src/components/outliner/FlattenOutline';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';

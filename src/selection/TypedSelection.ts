@@ -1,6 +1,6 @@
 import c3d from '../build/Release/c3d.node';
 import { DatabaseLike } from "../editor/DatabaseLike";
-import { GroupId, Group } from '../editor/Group';
+import { GroupId, Group } from '../editor/Groups';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 

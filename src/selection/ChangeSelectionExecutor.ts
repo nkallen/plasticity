@@ -1,6 +1,6 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
-import { Group } from "../editor/Group";
+import { Group } from "../editor/Groups";
 import { NodeItem } from "../editor/Nodes";
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';

@@ -4,7 +4,7 @@ import c3d from '../../build/Release/c3d.node';
 import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { Replacement } from '../editor/GeometryDatabase';
-import { Group, GroupId } from '../editor/Group';
+import { Group, GroupId } from '../editor/Groups';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { HideMode, NodeItem } from '../editor/Nodes';

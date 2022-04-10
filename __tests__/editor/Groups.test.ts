@@ -3,7 +3,7 @@ import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import FilletFactory from '../../src/commands/fillet/FilletFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Groups } from '../../src/editor/Group';
+import { Groups } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Nodes } from '../../src/editor/Nodes';

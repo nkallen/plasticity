@@ -6,7 +6,7 @@ import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
-import { Group, Groups } from '../../src/editor/Group';
+import { Group, Groups } from '../../src/editor/Groups';
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { SolidCopier } from '../../src/editor/SolidCopier';
