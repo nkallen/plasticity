@@ -212,9 +212,9 @@ jobs:
           brew install astyle
           yarn generate
           yarn run node-gyp configure --arch=arm64
-          yarn electron-rebuild
-      # - name: Publish canary release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     yarn publish
+          yarn electron-rebuild --arch=arm64
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn publish --arch=arm64
