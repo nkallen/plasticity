@@ -123,22 +123,37 @@ export default (editor: Editor) => {
                 case 'center-circle':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M15 15L15.0111 15.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17 17L17.0111 17.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'two-point-circle':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5 6C5.55228 6 6 5.55228 6 5C6 4.44772 5.55228 4 5 4C4.44772 4 4 4.44772 4 5C4 5.55228 4.44772 6 5 6Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19 20C19.5523 20 20 19.5523 20 19C20 18.4477 19.5523 18 19 18C18.4477 18 18 18.4477 18 19C18 19.5523 18.4477 20 19 20Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M15 15L15.0111 15.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M13 13L13.0111 13.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M11 11L11.0111 11.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M9.00001 9L9.01112 9.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M7.00001 7L7.01112 7.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17 17L17.0111 17.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'three-point-circle':
                     return render(
                         <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5 6C5.55228 6 6 5.55228 6 5C6 4.44772 5.55228 4 5 4C4.44772 4 4 4.44772 4 5C4 5.55228 4.44772 6 5 6Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5 20C5.55228 20 6 19.5523 6 19C6 18.4477 5.55228 18 5 18C4.44772 18 4 18.4477 4 19C4 19.5523 4.44772 20 5 20Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19 20C19.5523 20 20 19.5523 20 19C20 18.4477 19.5523 18 19 18C18.4477 18 18 18.4477 18 19C18 19.5523 18.4477 20 19 20Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5.00001 15L5.01112 15.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5.00001 12L5.01112 12.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5.00001 9L5.01112 9.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M15 19.01L15.01 18.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 19.01L12.01 18.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M9 19.01L9.01 18.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'center-point-arc':
                     return render(
