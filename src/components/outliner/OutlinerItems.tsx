@@ -19,10 +19,11 @@ export default (editor: Editor) => {
         get hidden() { return Boolean(this.getAttribute("ishidden"))! }
         get selectable() { return Boolean(this.getAttribute("selectable"))! }
         get isSelected() { return Boolean(this.getAttribute("isselected"))! }
+        get isDisplayed() { return Boolean(this.getAttribute("isdisplayed"))! }
         get name() { return this.getAttribute("name")! }
         get klass() { return this.getAttribute("klass")! }
 
-        static get observedAttributes() { return ['name', 'klass', 'isselected', 'selectable', 'ishidden', 'isvisible', 'indent', 'nodeKey'] }
+        static get observedAttributes() { return ['name', 'klass', 'isselected', 'selectable', 'ishidden', 'isvisible', 'isdisplayed', 'indent', 'nodeKey'] }
 
         attributeChangedCallback(name: string, oldValue: string, newValue: string) {
             if (this.isConnected) this.render();
@@ -34,7 +35,7 @@ export default (editor: Editor) => {
         private readonly ref = createRef();
 
         render = (editable = false) => {
-            const { klass, visible, hidden, selectable, isSelected, name } = this;
+            const { klass, visible, hidden, selectable, isSelected, isDisplayed, name } = this;
             const item = this.item;
 
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
@@ -59,7 +60,7 @@ export default (editor: Editor) => {
             const any = hidden || !visible || !selectable;
             const result =
                 <div
-                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
+                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
                     onClick={e => this.select(e)}
                 >
                     {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}

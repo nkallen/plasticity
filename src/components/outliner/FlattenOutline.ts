@@ -1,41 +1,46 @@
+import { Group, GroupId } from '../../editor/Group';
+import { Scene, SceneDisplayInfo } from '../../editor/Scene';
 import * as visual from '../../visual_model/VisualModel';
-import { Group, Groups, GroupId } from '../../editor/Group';
-import { Scene } from '../../editor/Scene';
 
-type FlatOutlineElement = { tag: 'Group'; object: Group; expanded: boolean; indent: number; } | { tag: 'Item'; object: visual.Item; indent: number; } | { tag: 'SolidSection'; indent: number; } | { tag: 'CurveSection'; indent: number; };
+type FlatOutlineElement =
+    { tag: 'Group'; object: Group; expanded: boolean; indent: number; displayed: boolean } |
+    { tag: 'Item'; object: visual.Item; indent: number; displayed: boolean } |
+    { tag: 'SolidSection'; indent: number; displayed: boolean } |
+    { tag: 'CurveSection'; indent: number; displayed: boolean };
 
-export function flatten(group: Group, scene: Scene, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
+export function flatten(group: Group, scene: Scene, info: SceneDisplayInfo, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
     // FIXME: this || true is temporary while deciding how this should work
     if (expandedGroups.has(group.id) || true) {
         if (!group.isRoot)
-            result.push({ tag: 'Group', expanded: true, object: group, indent });
+            result.push({ tag: 'Group', expanded: true, object: group, indent, displayed: info.visibleGroups.has(group.id) });
         const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];
         for (const child of scene.list(group)) {
             switch (child.tag) {
                 case 'Group':
-                    result = result.concat(flatten(child.group, scene, expandedGroups, indent + 1));
+                    result = result.concat(flatten(child.group, scene, info, expandedGroups, indent + 1));
                     break;
                 case 'Item':
+                    const element = { tag: child.tag, object: child.item, indent, displayed: info.visibleItems.has(child.item) };
                     if (child.item instanceof visual.Solid)
-                        solids.push({ tag: child.tag, object: child.item, indent });
+                        solids.push(element);
                     else if (child.item instanceof visual.SpaceInstance)
-                        curves.push({ tag: child.tag, object: child.item, indent });
+                        curves.push(element);
                     else
                         throw new Error("invalid item: " + child.item.constructor.name);
             }
         }
         if (solids.length > 0) {
-            result.push({ tag: 'SolidSection', indent });
+            result.push({ tag: 'SolidSection', indent, displayed: info.visibleGroups.has(group.id) });
             result = result.concat(solids);
         }
         if (curves.length > 0) {
-            result.push({ tag: 'CurveSection', indent });
+            result.push({ tag: 'CurveSection', indent, displayed: info.visibleGroups.has(group.id) });
             result = result.concat(curves);
         }
     } else {
         if (!group.isRoot)
-            result.push({ tag: 'Group', expanded: false, object: group, indent });
+            result.push({ tag: 'Group', expanded: false, object: group, indent, displayed: true });
     }
     return result;
 }

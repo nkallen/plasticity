@@ -48,15 +48,18 @@ let objectHidden: jest.Mock<any>;
 let objectUnhidden: jest.Mock<any>;
 let objectUnselectable: jest.Mock<any>;
 let objectSeletable: jest.Mock<any>;
+let sceneGraphChanged: jest.Mock<any>;
 beforeEach(() => {
     objectHidden = jest.fn();
     objectUnhidden = jest.fn();
     objectUnselectable = jest.fn();
     objectSeletable = jest.fn();
+    sceneGraphChanged = jest.fn();
     signals.objectHidden.add(objectHidden);
     signals.objectUnhidden.add(objectUnhidden);
     signals.objectUnselectable.add(objectUnselectable);
     signals.objectSelectable.add(objectSeletable);
+    signals.sceneGraphChanged.add(sceneGraphChanged);
 });
 
 let v: visual.Solid;
@@ -68,20 +71,27 @@ beforeEach(async () => {
     expect(db.lookup(v)).toBeTruthy();
     expect(scene.visibleObjects.length).toBe(1);
     expect(scene.selectableObjects.length).toBe(1);
+
+    expect(objectHidden).toBeCalledTimes(0);
+    expect(objectUnhidden).toBeCalledTimes(0);
+    expect(sceneGraphChanged).toBeCalledTimes(0);
 })
 
 test("hide & unhide", async () => {
+    expect(sceneGraphChanged).toBeCalledTimes(0);
     scene.makeHidden(v, true);
     expect(scene.selectableObjects.length).toBe(0);
     expect(scene.visibleObjects.length).toBe(0);
     expect(objectHidden).toBeCalledTimes(1);
     expect(objectUnhidden).toBeCalledTimes(0);
+    expect(sceneGraphChanged).toBeCalledTimes(1);
 
     scene.makeHidden(v, false);
     expect(scene.visibleObjects.length).toBe(1);
     expect(scene.selectableObjects.length).toBe(1);
     expect(objectHidden).toBeCalledTimes(1);
     expect(objectUnhidden).toBeCalledTimes(1);
+    expect(sceneGraphChanged).toBeCalledTimes(2);
 })
 
 test("hide twice doesn't send the same signal twice", async () => {
@@ -104,12 +114,14 @@ test("toggle visibility", async () => {
     expect(scene.visibleObjects.length).toBe(0);
     expect(objectHidden).toBeCalledTimes(1);
     expect(objectUnhidden).toBeCalledTimes(0);
+    expect(sceneGraphChanged).toBeCalledTimes(1);
 
     scene.makeVisible(v, true);
     expect(scene.selectableObjects.length).toBe(1);
     expect(scene.visibleObjects.length).toBe(1);
     expect(objectHidden).toBeCalledTimes(1);
     expect(objectUnhidden).toBeCalledTimes(1);
+    expect(sceneGraphChanged).toBeCalledTimes(2);
 })
 
 test("toggle visibility twice doesn't send the same signal twice", async () => {

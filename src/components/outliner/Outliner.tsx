@@ -24,12 +24,6 @@ export default (editor: Editor) => {
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.historyChanged.add(this.render);
             editor.signals.selectionDelta.add(this.render);
-            editor.signals.objectNamed.add(this.render);
-            editor.signals.objectHidden.add(this.render);
-            editor.signals.objectUnhidden.add(this.render);
-            editor.signals.objectSelectable.add(this.render);
-            editor.signals.objectUnselectable.add(this.render);
-            editor.signals.groupCreated.add(this.expand);
 
             for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand]) {
                 disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
@@ -45,12 +39,6 @@ export default (editor: Editor) => {
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
             editor.signals.selectionDelta.remove(this.render);
-            editor.signals.objectNamed.remove(this.render);
-            editor.signals.objectHidden.remove(this.render);
-            editor.signals.objectUnhidden.remove(this.render);
-            editor.signals.objectSelectable.remove(this.render);
-            editor.signals.objectUnselectable.remove(this.render);
-            editor.signals.groupCreated.add(this.remove);
             this.disposable.dispose();
         }
 
@@ -64,8 +52,9 @@ export default (editor: Editor) => {
 
         render = () => {
             const { scene, scene: { root }, selection: { selected } } = editor;
-            const flattened = flatten(root, scene, this.expandedGroups);
+            const flattened = flatten(root, scene, scene.visibility, this.expandedGroups);
             const result = flattened.map((item) => {
+                const isDisplayed = item.displayed;
                 switch (item.tag) {
                     case 'Group':
                     case 'Item':
@@ -77,12 +66,12 @@ export default (editor: Editor) => {
                         const nodeKey = scene.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
                         const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
-                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isSelected={isSelected}></plasticity-outliner-item>
+                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const hidden = false;
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
-                        return <div class="flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group" style={`margin-left: ${indentSize * item.indent}px`}>
+                        return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group`} style={`margin-left: ${indentSize * item.indent}px`}>
                             <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon>
                             <plasticity-icon name="folder-solids" class="text-neutral-500 group-hover:text-neutral-200"></plasticity-icon>
                             <div class="py-0.5 flex-1">

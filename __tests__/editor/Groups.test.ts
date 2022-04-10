@@ -69,16 +69,17 @@ test("add item to group & delete", () => {
 })
 
 test("add item to group & move", () => {
-    const changed = jest.fn();
-    signals.sceneGraphChanged.add(changed);
+    const changed = jest.fn(), created = jest.fn();
+    signals.groupChanged.add(changed);
+    signals.groupCreated.add(created);
     const g1 = groups.create(), g2 = groups.create();
-    expect(changed).toBeCalledTimes(2);
+    expect(created).toBeCalledTimes(2);
     groups.moveNodeToGroup(box, g1);
     expect(groups.groupForNode(box)).toEqual(g1);
     expect(changed).toBeCalledTimes(3);
     groups.moveNodeToGroup(box, g2);
     expect(groups.groupForNode(box)).toEqual(g2);
-    expect(changed).toBeCalledTimes(4);
+    expect(changed).toBeCalledTimes(6);
 })
 
 test("list", () => {

@@ -40,7 +40,6 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.counter++;
         const group = new Group(id);
         this.signals.groupCreated.dispatch(group);
-        this.signals.sceneGraphChanged.dispatch();
         return group;
     }
 
@@ -56,14 +55,13 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const parent = this.member2parent.get(k)!;
         this.group2children.get(parent)!.delete(k);
         this.member2parent.delete(k)!;
-        this.signals.sceneGraphChanged.dispatch();
         this.signals.groupDeleted.dispatch(group);
     }
 
     moveNodeToGroup(item: NodeItem, into: Group) {
         const key = this.keyForItem(item);
         this._moveItemToGroup(key, into);
-        this.signals.sceneGraphChanged.dispatch();
+        this.signals.groupChanged.dispatch(into);
     }
 
     groupForNode(item: NodeItem): Group | undefined {
@@ -105,13 +103,11 @@ export class Groups implements MementoOriginator<GroupMemento> {
     private addItem(id: c3d.SimpleName, into = this.cwd) {
         const k = Nodes.itemKey(id);
         this.addMembership(k, into);
-        this.signals.sceneGraphChanged.dispatch();
     }
 
     private deleteItem(id: c3d.SimpleName) {
         const k = Nodes.itemKey(id);
         this.deleteMembership(k);
-        this.signals.sceneGraphChanged.dispatch();
     }
 
     private addMembership(key: NodeKey, into = this.cwd) {

@@ -14,6 +14,11 @@ type Snapshot = {
     visibleGroups: Set<number>;
 };
 
+export type SceneDisplayInfo = {
+    visibleItems: Set<visual.Item>;
+    visibleGroups: Set<number>;
+};
+
 export class Scene implements MementoOriginator<SceneMemento> {
     readonly types = new TypeManager(this.signals);
     private readonly nodes = new Nodes(this.db, this.materials, this.signals);
@@ -35,6 +40,12 @@ export class Scene implements MementoOriginator<SceneMemento> {
     get visibleObjects(): visual.Item[] {
         const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), false);
         return [...acc].concat(this.db.findAutomatics());
+    }
+
+    get visibility(): SceneDisplayInfo {
+        const visibleItems = new Set<visual.Item>(), visibleGroups = new Set<GroupId>();
+        this.computeVisibleObjectsInGroup(this.root, visibleItems, visibleGroups, false);
+        return { visibleItems, visibleGroups };
     }
 
     private computeVisibleObjectsInGroup(start: NodeItem, accItem: Set<visual.Item>, accGroup: Set<GroupId>, checkSelectable: boolean): Set<visual.Item> {
@@ -76,6 +87,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         const after = this.snapshot(node, false);
         if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
         this.processSnapshot(before, after, this.signals.objectHidden, this.signals.objectUnhidden);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     makeVisible(node: NodeItem, value: boolean) {
@@ -85,6 +97,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         const after = this.snapshot(node, false);
         if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
         this.processSnapshot(before, after, this.signals.objectHidden, this.signals.objectUnhidden);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     async unhideAll(): Promise<NodeItem[]> {
@@ -101,6 +114,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         const after = this.snapshot(node, true);
         if (before.isIndirectlyHidden === after.isIndirectlyHidden) return;
         this.processSnapshot(before, after, this.signals.objectUnselectable, this.signals.objectSelectable);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     private snapshot(node: NodeItem, checkSelectable: boolean): Snapshot {
@@ -139,11 +153,31 @@ export class Scene implements MementoOriginator<SceneMemento> {
         }
         return false;
     }
+    
+    moveToGroup(node: NodeItem, group: Group) {
+        this.groups.moveNodeToGroup(node, group)
+        this.signals.sceneGraphChanged.dispatch();
+    }
 
-    deleteGroup(group: Group) { this.groups.delete(group) }
-    moveToGroup(node: NodeItem, group: Group) { this.groups.moveNodeToGroup(node, group) }
-    setMaterial(node: NodeItem, id: number): void { this.nodes.setMaterial(node, id) }
-    createGroup() { const result = this.groups.create(); return result; }
+    setMaterial(node: NodeItem, id: number) {
+        this.nodes.setMaterial(node, id)
+    }
+
+    createGroup() {
+        const result = this.groups.create();
+        this.signals.sceneGraphChanged.dispatch();
+        return result;
+    }
+
+    deleteGroup(group: Group) {
+        this.groups.delete(group);
+        this.signals.sceneGraphChanged.dispatch();
+    }
+
+    setName(node: NodeItem, name: string) {
+        this.nodes.setName(node, name);
+        this.signals.sceneGraphChanged.dispatch();
+    }
 
     get root() { return this.groups.root }
     isHidden(node: NodeItem): boolean { return this.nodes.isHidden(node) }
@@ -151,7 +185,6 @@ export class Scene implements MementoOriginator<SceneMemento> {
     isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
     getMaterial(node: NodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
     getName(node: NodeItem): string | undefined { return this.nodes.getName(node) }
-    setName(node: NodeItem, name: string) { this.nodes.setName(node, name) }
     key2item(key: NodeKey) { return this.nodes.key2item(key) }
     item2key(item: NodeItem) { return this.nodes.item2key(item) }
     list(group: Group) { return this.groups.list(group) }
@@ -160,7 +193,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return new SceneMemento(this.nodes.saveToMemento(), this.groups.saveToMemento());
     }
 
-    restoreFromMemento(m: SceneMemento): void {
+    restoreFromMemento(m: SceneMemento) {
         this.nodes.restoreFromMemento(m.nodes);
         this.groups.restoreFromMemento(m.groups);
     }
