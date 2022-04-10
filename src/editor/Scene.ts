@@ -1,11 +1,12 @@
 import signals from 'signals';
+import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Group, GroupId, Groups } from './Groups';
+import { Group, GroupId, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { HideMode, NodeItem, NodeKey, Nodes } from "./Nodes";
+import { HideMode, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 type Snapshot = {
@@ -65,12 +66,17 @@ export class Scene implements MementoOriginator<SceneMemento> {
                         break;
                 }
             }
-        } else {
+        } else if (start instanceof visual.Item) {
             if (nodes.isHidden(start)) return accItem;
             if (!nodes.isVisible(start)) return accItem;
             if (!types.isEnabled(start)) return accItem;
             if (checkSelectable && !nodes.isSelectable(start)) return accItem;
+            const parent = this.parent(start);
+            if (start instanceof visual.Solid && !nodes.isVisible(parent.solids)) return accItem;
+            if (start instanceof visual.SpaceInstance && !nodes.isVisible(parent.curves)) return accItem;
             accItem.add(start);
+        } else if (start instanceof VirtualGroup) {
+            return this.computeVisibleObjectsInGroup(start.parent, accItem, accGroup, checkSelectable);
         }
         return accItem;
     }
@@ -80,7 +86,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return [...acc].concat(this.db.findAutomatics());
     }
 
-    makeHidden(node: NodeItem, value: boolean) {
+    makeHidden(node: RealNodeItem, value: boolean) {
         if (value === this.isHidden(node)) return;
         const before = this.snapshot(node, false);
         this.nodes.makeHidden(node, value);
@@ -125,27 +131,28 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return { isIndirectlyHidden, visibleItems, visibleGroups };
     }
 
-    private processSnapshot(before: Snapshot, after: Snapshot, positive: signals.Signal<[NodeItem, HideMode]>, negative: signals.Signal<[NodeItem, HideMode]>) {
+    private processSnapshot(before: Snapshot, after: Snapshot, hide: signals.Signal<[RealNodeItem, HideMode]>, show: signals.Signal<[RealNodeItem, HideMode]>) {
         for (const item of before.visibleItems) {
             if (after.visibleItems.has(item)) continue;
-            positive.dispatch([item, 'indirect']);
+            hide.dispatch([item, 'indirect']);
         }
         for (const item of after.visibleItems) {
             if (before.visibleItems.has(item)) continue;
-            negative.dispatch([item, 'indirect']);
+            show.dispatch([item, 'indirect']);
         }
         for (const groupId of before.visibleGroups) {
             if (after.visibleGroups.has(groupId)) continue;
-            positive.dispatch([new Group(groupId), 'indirect']);
+            hide.dispatch([new Group(groupId), 'indirect']);
         }
         for (const groupId of after.visibleGroups) {
             if (before.visibleGroups.has(groupId)) continue;
-            negative.dispatch([new Group(groupId), 'indirect']);
+            show.dispatch([new Group(groupId), 'indirect']);
         }
     }
 
     private isIndirectlyHidden(node: NodeItem) {
-        if (this.isHidden(node) || !this.isVisible(node)) return true;
+        if ((node instanceof visual.Item || node instanceof Group) && this.isHidden(node)) return true;
+        if (!this.isVisible(node)) return true;
         let parent = this.groups.parent(node);
         while (!parent.isRoot) {
             if (this.nodes.isHidden(parent)) return true;
@@ -154,16 +161,16 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return false;
     }
 
-    parent(node: NodeItem): Group {
+    parent(node: RealNodeItem): Group {
         return this.groups.parent(node);
     }
     
-    moveToGroup(node: NodeItem, group: Group) {
+    moveToGroup(node: RealNodeItem, group: Group) {
         this.groups.moveNodeToGroup(node, group)
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    setMaterial(node: NodeItem, id: number) {
+    setMaterial(node: RealNodeItem, id: number) {
         this.nodes.setMaterial(node, id)
     }
 
@@ -178,17 +185,17 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    setName(node: NodeItem, name: string) {
+    setName(node: RealNodeItem, name: string) {
         this.nodes.setName(node, name);
         this.signals.sceneGraphChanged.dispatch();
     }
 
     get root() { return this.groups.root }
-    isHidden(node: NodeItem): boolean { return this.nodes.isHidden(node) }
+    isHidden(node: RealNodeItem): boolean { return this.nodes.isHidden(node) }
     isVisible(node: NodeItem): boolean { return this.nodes.isVisible(node) }
     isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
-    getMaterial(node: NodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
-    getName(node: NodeItem): string | undefined { return this.nodes.getName(node) }
+    getMaterial(node: RealNodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
+    getName(node: RealNodeItem): string | undefined { return this.nodes.getName(node) }
     key2item(key: NodeKey) { return this.nodes.key2item(key) }
     item2key(item: NodeItem) { return this.nodes.item2key(item) }
     list(group: Group) { return this.groups.list(group) }

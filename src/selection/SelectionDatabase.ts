@@ -7,7 +7,7 @@ import { Replacement } from '../editor/GeometryDatabase';
 import { Group, GroupId } from '../editor/Groups';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { HideMode, NodeItem } from '../editor/Nodes';
+import { HideMode, NodeItem, RealNodeItem } from '../editor/Nodes';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
@@ -69,8 +69,8 @@ export interface ModifiesSelection extends HasSelection {
 export interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     groupRemoved: signals.Signal<Group>;
-    objectHidden: signals.Signal<[NodeItem, HideMode]>;
-    objectUnselectable: signals.Signal<[NodeItem, HideMode]>;
+    objectHidden: signals.Signal<[RealNodeItem, HideMode]>;
+    objectUnselectable: signals.Signal<[RealNodeItem, HideMode]>;
     objectReplaced: signals.Signal<Replacement>;
     objectAdded: signals.Signal<Selectable>;
     objectRemoved: signals.Signal<Selectable>;

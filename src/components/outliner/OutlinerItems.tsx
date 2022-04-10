@@ -2,7 +2,7 @@ import { createRef, render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
 import { Group } from '../../editor/Groups';
-import { NodeItem } from '../../editor/Nodes';
+import { NodeItem, RealNodeItem } from '../../editor/Nodes';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
@@ -56,12 +56,11 @@ export default (editor: Editor) => {
                     onBlur={e => this.handleBlur(e)}
                     onKeyDown={e => this.handleEnter(e)}
                 ></input>;
-
-            const any = hidden || !visible || !selectable;
+            const anySettingsForThisSpecificItem = hidden || !visible || !selectable;
             const result =
                 <div
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
-                    onClick={e => this.select(e)}
+                    onClick={e => { if (isDisplayed) this.select(e); }}
                 >
                     {item instanceof Group
                         ? <button
@@ -80,19 +79,19 @@ export default (editor: Editor) => {
                     </div>
                     {!editable && <>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${hidden ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${hidden ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setHidden(e, !hidden)}
                         >
                             <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setVisibility(e, !visible)}
                         >
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                         </button>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!selectable ? '' : any ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!selectable ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setSelectable(e, !selectable)}
                         >
                             <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
@@ -152,7 +151,7 @@ export default (editor: Editor) => {
             e.stopPropagation();
         }
 
-        private setName = (item: NodeItem) => {
+        private setName = (item: RealNodeItem) => {
             const input = this.ref.current as HTMLInputElement;
 
             if (input.value === this.name) {
@@ -164,10 +163,11 @@ export default (editor: Editor) => {
             editor.enqueue(command, true);
         }
 
-        get item() {
+        get item(): RealNodeItem {
             const { scene } = editor;
             const { nodeKey: key } = this;
             const item = scene.key2item(key);
+            if (!(item instanceof visual.Item || item instanceof Group)) throw new Error("invalid item: " + item.constructor.name);
             return item;
         }
     }
@@ -228,7 +228,7 @@ class ToggleVisibilityCommand extends cmd.CommandLike {
 class ToggleHiddenCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: NodeItem,
+        private readonly item: RealNodeItem,
         private readonly value: boolean,
     ) {
         super(editor);
@@ -260,7 +260,7 @@ class ToggleSelectableCommand extends cmd.CommandLike {
 class SetNameCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: NodeItem,
+        private readonly item: RealNodeItem,
         private readonly value: string,
     ) {
         super(editor);

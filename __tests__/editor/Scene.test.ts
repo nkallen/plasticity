@@ -335,6 +335,22 @@ test("makeHidden & unhideAll descent dispatch of signal", async () => {
     expect(objectUnhidden).toBeCalledTimes(2);
 })
 
+test("makeVisible Virtual Groups", () => {
+    const group = scene.createGroup();
+    expect(scene.selectableObjects.length).toBe(1);
+    scene.moveToGroup(v, group);
+    expect(objectHidden).toBeCalledTimes(0);
+    expect(objectUnhidden).toBeCalledTimes(0);
+    expect(scene.visibleObjects.length).toBe(1);
+    expect(scene.selectableObjects.length).toBe(1);
+
+    scene.makeVisible(group.solids, false);
+    expect(objectHidden).toBeCalledTimes(1);
+    expect(objectUnhidden).toBeCalledTimes(0);
+    expect(scene.visibleObjects.length).toBe(0);
+    expect(scene.selectableObjects.length).toBe(0);
+})
+
 test("automatics are included in selectable objects", async () => {
     expect(scene.selectableObjects.length).toBe(1);
     const makeCircle = new CenterCircleFactory(contours, materials, signals);

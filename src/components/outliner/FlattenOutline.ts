@@ -5,8 +5,8 @@ import * as visual from '../../visual_model/VisualModel';
 type FlatOutlineElement =
     { tag: 'Group'; object: Group; expanded: boolean; indent: number; displayed: boolean } |
     { tag: 'Item'; object: visual.Item; indent: number; displayed: boolean } |
-    { tag: 'SolidSection'; indent: number; displayed: boolean } |
-    { tag: 'CurveSection'; indent: number; displayed: boolean };
+    { tag: 'SolidSection'; indent: number; displayed: boolean, parentId: GroupId } |
+    { tag: 'CurveSection'; indent: number; displayed: boolean, parentId: GroupId };
 
 export function flatten(group: Group, scene: Scene, info: SceneDisplayInfo, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
@@ -30,11 +30,11 @@ export function flatten(group: Group, scene: Scene, info: SceneDisplayInfo, expa
             }
         }
         if (solids.length > 0) {
-            result.push({ tag: 'SolidSection', indent, displayed: info.visibleGroups.has(group.id) });
+            result.push({ tag: 'SolidSection', indent, displayed: info.visibleGroups.has(group.id), parentId: group.id });
             result = result.concat(solids);
         }
         if (curves.length > 0) {
-            result.push({ tag: 'CurveSection', indent, displayed: info.visibleGroups.has(group.id) });
+            result.push({ tag: 'CurveSection', indent, displayed: info.visibleGroups.has(group.id), parentId: group.id });
             result = result.concat(curves);
         }
     } else {

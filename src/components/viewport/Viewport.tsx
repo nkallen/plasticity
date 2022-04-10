@@ -191,6 +191,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.started = true;
 
         this.editor.signals.selectionChanged.add(this.outlineSelection);
+        this.editor.signals.typeEnabled.add(this.outlineSelection);
+        this.editor.signals.typeDisabled.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.factoryUpdated.add(this.outlineSelection);
         this.editor.signals.factoryCancelled.add(this.outlineSelection);
@@ -227,11 +229,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.disposable.add(new Disposable(() => {
             this.editor.signals.selectionChanged.remove(this.outlineSelection);
+            this.editor.signals.typeEnabled.remove(this.outlineSelection);
+            this.editor.signals.typeDisabled.remove(this.outlineSelection);
             this.editor.signals.historyChanged.remove(this.outlineSelection);
-            this.editor.signals.hoverDelta.remove(this.outlineHover);
             this.editor.signals.factoryUpdated.remove(this.outlineSelection);
             this.editor.signals.factoryCancelled.remove(this.outlineSelection);
             this.editor.signals.factoryCommitted.remove(this.outlineSelection);
+            this.editor.signals.hoverDelta.remove(this.outlineHover);
 
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
             this.editor.signals.objectAdded.remove(this.setNeedsRender);
@@ -242,9 +246,14 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.factoryCancelled.remove(this.setNeedsRender);
             this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
             this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
+            this.editor.signals.quasimodeChanged.remove(this.setNeedsRender);
             this.editor.signals.hoverDelta.remove(this.setNeedsRender);
             this.editor.signals.historyChanged.remove(this.setNeedsRender);
+            this.editor.signals.commandEnded.remove(this.setNeedsRender);
             this.editor.signals.moduleReloaded.remove(this.setNeedsRender);
+            this.editor.signals.typeEnabled.remove(this.setNeedsRender);
+            this.editor.signals.typeDisabled.remove(this.setNeedsRender);
+            this.editor.signals.visibleLayersChanged.remove(this.setNeedsRender);
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);

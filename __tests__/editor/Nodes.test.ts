@@ -3,6 +3,7 @@ import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import FilletFactory from '../../src/commands/fillet/FilletFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Groups } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Nodes } from '../../src/editor/Nodes';
@@ -15,12 +16,14 @@ let db: GeometryDatabase;
 let nodes: Nodes;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
+let groups: Groups;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     nodes = new Nodes(db, materials, signals);
+    groups = new Groups(db, signals);
 })
 
 let box: visual.Solid;
@@ -65,7 +68,6 @@ test('isSelectable & makeSelectable when object changes', async () => {
     nodes.makeSelectable(box, false);
     expect(nodes.isSelectable(box)).toBe(false);
 
-    const makeFillet = new FilletFactory(db, materials, signals);
     const fillet = await filletBox();
     expect(nodes.isSelectable(fillet)).toBe(false);
 })
@@ -102,7 +104,35 @@ test('setName & getName when object changes', async () => {
 
     const fillet = await filletBox();
     expect(nodes.getName(fillet)).toBe("My favorite box");
-})
+});
+
+test('deleting an item deletes the name etc', async () => {
+    expect(nodes.getName(box)).toBe(undefined);
+    nodes.setName(box, "My favorite box");
+    await db.removeItem(box);
+    nodes.validate();
+});
+
+test('deleting a group deletes the name etc', async () => {
+    const group = groups.create();
+    expect(nodes.getName(group)).toBe(undefined);
+    nodes.setName(group, "My favorite group");
+    expect(nodes.getName(group)).toBe("My favorite group");
+    groups.delete(group);
+    expect(nodes.getName(group)).toBe(undefined);
+    nodes.validate();
+});
+
+test('deleting a group deletes the virtual group etc', async () => {
+    const group = groups.create();
+    expect(nodes.isVisible(group.curves)).toBe(true);
+    nodes.makeVisible(group.curves, false);
+    expect(nodes.isVisible(group.curves)).toBe(false);
+    groups.delete(group);
+    expect(nodes.isVisible(group.curves)).toBe(true);
+    nodes.validate();
+});
+
 
 async function filletBox() {
     const makeFillet = new FilletFactory(db, materials, signals);

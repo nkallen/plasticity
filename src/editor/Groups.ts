@@ -3,10 +3,13 @@ import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
 import { GroupMemento, MementoOriginator } from './History';
-import { NodeItem, NodeKey, Nodes } from './Nodes';
+import { NodeItem, NodeKey, Nodes, RealNodeItem } from './Nodes';
 
 export type GroupId = number;
 export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item }
+export type VirtualGroupType = 'Curves' | 'Solids';
+
+const incr = 1;
 
 export class Groups implements MementoOriginator<GroupMemento> {
     private counter = 0;
@@ -37,7 +40,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const parentId = parent !== undefined ? parent.id : 0;
         this.member2parent.set(Nodes.groupKey(id), parentId);
         if (id !== parentId) this.group2children.get(parentId)!.add(Nodes.groupKey(id));
-        this.counter++;
+        this.counter += incr;
         const group = new Group(id);
         this.signals.groupCreated.dispatch(group);
         return group;
@@ -58,13 +61,13 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.signals.groupDeleted.dispatch(group);
     }
 
-    moveNodeToGroup(item: NodeItem, into: Group) {
+    moveNodeToGroup(item: RealNodeItem, into: Group) {
         const key = this.keyForItem(item);
         this._moveItemToGroup(key, into);
         this.signals.groupChanged.dispatch(into);
     }
 
-    groupForNode(item: NodeItem): Group | undefined {
+    groupForNode(item: RealNodeItem): Group | undefined {
         const key = this.keyForItem(item);
         const id = this.member2parent.get(key);
         if (id === undefined) return;
@@ -72,9 +75,13 @@ export class Groups implements MementoOriginator<GroupMemento> {
     }
 
     parent(item: NodeItem) {
-        const key = this.keyForItem(item);
-        const parentId = this.member2parent.get(key)!;
-        return new Group(parentId);
+        if (item instanceof VirtualGroup) {
+            return item.parent;
+        } else {
+            const key = this.keyForItem(item);
+            const parentId = this.member2parent.get(key)!;
+            return new Group(parentId);
+        }
     }
 
     private _moveItemToGroup(key: NodeKey, into: Group) {
@@ -131,7 +138,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         return db.lookupId(version)!;
     }
 
-    private keyForItem(item: NodeItem) {
+    private keyForItem(item: RealNodeItem) {
         return item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
     }
 
@@ -166,7 +173,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         console.groupEnd();
         console.group("group2children");
         console.table([...group2children].map(([group, children]) => ({ group, children: [...children].join(',') })));
-        console.groupEnd();        
+        console.groupEnd();
         console.groupEnd();
     }
 }
@@ -180,10 +187,16 @@ function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<Nod
 }
 
 export class Group {
-    constructor(readonly id: GroupId) { 
+    readonly curves = new VirtualGroup(this, 'Curves');
+    readonly solids = new VirtualGroup(this, 'Solids');
+    
+    constructor(readonly id: GroupId) {
         if (!Number.isSafeInteger(id)) throw new Error("invalid GroupId: " + id);
     }
     get simpleName() { return this.id }
     get isRoot() { return this.id === 0 }
 }
 
+export class VirtualGroup {
+    constructor(readonly parent: Group, readonly type: VirtualGroupType) { }
+}
