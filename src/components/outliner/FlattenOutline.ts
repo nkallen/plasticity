@@ -10,8 +10,7 @@ type FlatOutlineElement =
 
 export function flatten(group: Group, scene: Scene, info: SceneDisplayInfo, expandedGroups: Set<GroupId>, indent = 0): FlatOutlineElement[] {
     let result: FlatOutlineElement[] = [];
-    // FIXME: this || true is temporary while deciding how this should work
-    if (expandedGroups.has(group.id) || true) {
+    if (expandedGroups.has(group.id)) {
         if (!group.isRoot)
             result.push({ tag: 'Group', expanded: true, object: group, indent, displayed: info.visibleGroups.has(group.id) });
         const solids: FlatOutlineElement[] = [], curves: FlatOutlineElement[] = [];

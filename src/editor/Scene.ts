@@ -153,6 +153,10 @@ export class Scene implements MementoOriginator<SceneMemento> {
         }
         return false;
     }
+
+    parent(node: NodeItem): Group {
+        return this.groups.parent(node);
+    }
     
     moveToGroup(node: NodeItem, group: Group) {
         this.groups.moveNodeToGroup(node, group)

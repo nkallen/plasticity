@@ -414,7 +414,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     debug() {
-        
+
     }
 }
 

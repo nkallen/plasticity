@@ -4,13 +4,14 @@ import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselecte
 import { DeleteCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { Group, GroupId } from '../../editor/Groups';
-import { NodeKey } from '../../editor/Nodes';
+import { NodeItem, NodeKey } from '../../editor/Nodes';
+import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
-import OutlinerItems, { indentSize } from './OutlinerItems';
+import OutlinerItem, { indentSize } from './OutlinerItems';
 
 export default (editor: Editor) => {
-    OutlinerItems(editor);
+    OutlinerItem(editor);
 
     class Outliner extends HTMLElement {
         private readonly disposable = new CompositeDisposable();
@@ -23,7 +24,7 @@ export default (editor: Editor) => {
             editor.signals.backupLoaded.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.historyChanged.add(this.render);
-            editor.signals.selectionDelta.add(this.render);
+            editor.signals.selectionDelta.add(this.onSelectionDelta);
 
             for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand]) {
                 disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
@@ -38,8 +39,21 @@ export default (editor: Editor) => {
             editor.signals.backupLoaded.remove(this.render);
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
-            editor.signals.selectionDelta.remove(this.render);
+            editor.signals.selectionDelta.remove(this.onSelectionDelta);
             this.disposable.dispose();
+        }
+
+        private onSelectionDelta = (delta: SelectionDelta) => {
+            const { scene } = editor;
+            for (const item of delta.added) {
+                if (!(item instanceof Group || item instanceof visual.Item)) continue;
+                let parent = scene.parent(item);
+                while (!parent.isRoot) {
+                    this.expandedGroups.add(parent.id);
+                    parent = scene.parent(parent);
+                }
+            }
+            this.render();
         }
 
         static klass(nodeKey: NodeKey): string {
@@ -54,7 +68,7 @@ export default (editor: Editor) => {
             const { scene, scene: { root }, selection: { selected } } = editor;
             const flattened = flatten(root, scene, scene.visibility, this.expandedGroups);
             const result = flattened.map((item) => {
-                const isDisplayed = item.displayed;
+                const { indent, displayed: isDisplayed } = item;
                 switch (item.tag) {
                     case 'Group':
                     case 'Item':
@@ -66,12 +80,12 @@ export default (editor: Editor) => {
                         const nodeKey = scene.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
                         const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
-                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected}></plasticity-outliner-item>
+                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const hidden = false;
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
-                        return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group`} style={`margin-left: ${indentSize * item.indent}px`}>
+                        return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group`} style={`margin-left: ${indentSize * indent}px`}>
                             <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon>
                             <plasticity-icon name="folder-solids" class="text-neutral-500 group-hover:text-neutral-200"></plasticity-icon>
                             <div class="py-0.5 flex-1">
@@ -94,13 +108,11 @@ export default (editor: Editor) => {
             </>, this);
         }
 
-        private expand = (group: Group) => {
-            this.expandedGroups.add(group.id);
-            this.render();
-        }
-
-        private collapse = (group: Group) => {
-            this.expandedGroups.delete(group.id);
+        expand = (e: CustomEvent) => {
+            const target = e.target as EventTarget & { item: NodeItem };
+            const group = target.item;
+            if (this.expandedGroups.has(group.id)) this.expandedGroups.delete(group.id);
+            else this.expandedGroups.add(group.id);
             this.render();
         }
     }

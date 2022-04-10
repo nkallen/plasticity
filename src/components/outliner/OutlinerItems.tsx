@@ -2,7 +2,7 @@ import { createRef, render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
 import { Group } from '../../editor/Groups';
-import { NodeItem, NodeKey } from '../../editor/Nodes';
+import { NodeItem } from '../../editor/Nodes';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
@@ -63,7 +63,14 @@ export default (editor: Editor) => {
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
                     onClick={e => this.select(e)}
                 >
-                    {item instanceof Group ? <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon> : <div class="w-4 h-4"></div>}
+                    {item instanceof Group
+                        ? <button
+                            onClick={e => this.expand(e)}
+                        >
+                            <plasticity-icon name="nav-arrow-down" class="text-neutral-500 hover:text-neutral-300"></plasticity-icon>
+                        </button>
+                        : <div class="w-4 h-4"></div>
+                    }
                     <plasticity-icon name={klass.toLowerCase()} class={isSelected ? 'text-accent-100 hover:text-accent-50' : 'text-accent-500 hover:text-neutral-50'}></plasticity-icon>
                     <div
                         class="py-0.5 flex-1"
@@ -94,6 +101,12 @@ export default (editor: Editor) => {
                     }
                 </div>;
             render(result, this);
+        }
+
+        expand = (e: MouseEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.dispatchEvent(new CustomEvent('expand', { bubbles: true }));
         }
 
         select = (e: MouseEvent) => {
@@ -151,7 +164,7 @@ export default (editor: Editor) => {
             editor.enqueue(command, true);
         }
 
-        private get item() {
+        get item() {
             const { scene } = editor;
             const { nodeKey: key } = this;
             const item = scene.key2item(key);
