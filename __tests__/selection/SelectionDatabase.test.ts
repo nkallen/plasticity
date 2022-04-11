@@ -101,7 +101,6 @@ describe(Selection, () => {
         expect(objectRemoved).toHaveBeenCalledTimes(1);
     });
 
-
     test("add solid twice", async () => {
         const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
         const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
