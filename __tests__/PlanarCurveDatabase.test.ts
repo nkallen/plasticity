@@ -41,6 +41,10 @@ beforeEach(() => {
     makeCurve3 = new CurveFactory(db, materials, signals);
 })
 
+afterEach(() => {
+    curves.validate();
+})
+
 test('adding and deleting a circle', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;

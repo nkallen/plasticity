@@ -59,6 +59,7 @@ export interface DatabaseLike {
     lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
     lookup(object: visual.Item): c3d.Item;
 
+    // TODO: rename lookup by version
     lookupItemById(id: c3d.SimpleName): { view: visual.Item; model: c3d.Item; };
 
     hasTopologyItem(id: string): boolean;

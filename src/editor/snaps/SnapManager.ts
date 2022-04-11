@@ -72,10 +72,16 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.id2snaps.set(visual.Region, new Map());
 
         signals.objectAdded.add(([item, agent]) => {
-            if (agent === 'user') this.add(item);
+            if (agent === 'user') {
+                this.add(item);
+                this.cache.update();
+            }
         });
         signals.objectRemoved.add(([item, agent]) => {
-            if (agent === 'user') this.delete(item);
+            if (agent === 'user') {
+                this.delete(item);
+                this.cache.update();
+            }
         });
         signals.objectReplaced.add(({ from, to }) => {
             this.delete(from);
@@ -88,8 +94,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             if (item instanceof visual.Item) this.hide(item);
         });
         signals.commandEnded.add(() => this.cache.update());
-        signals.objectAdded.add(() => this.cache.update());
-        signals.objectRemoved.add(() => this.cache.update());
         signals.objectReplaced.add(() => this.cache.update());
         signals.historyChanged.add(() => this.cache.update());
     }
@@ -322,6 +326,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private delete(item: visual.Item) {
         const id2snaps = this.snapMapFor(item);
         id2snaps.delete(item.simpleName);
+        this.hidden.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
     }
 
@@ -358,6 +363,14 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     validate() {
+        for (const [, snaps] of this.id2snaps) {
+            for (const id of snaps.keys()) {
+                console.assert(this.db.lookupItemById(id) !== undefined, "item in database", id);
+            }
+        }
+        for (const id of this.hidden.keys()) {
+            console.assert(this.db.lookupItemById(id) !== undefined, "item in database", id);
+        }
     }
 
     debug() {

@@ -9,9 +9,7 @@ import * as visual from "../../visual_model/VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();
-    private readonly id2planarCurve = new Map<c3d.SimpleName, c3d.Curve>();
     private readonly placements = new Set<c3d.Placement3D>();
-    private counter = 0;
 
     constructor(
         private readonly db: DatabaseLike,
@@ -36,7 +34,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
      * startpoints of the next curve (a "joint"), etc. etc.
      */
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const { curve2info, db, id2planarCurve } = this;
+        const { curve2info, db } = this;
 
         const inst = db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
@@ -55,16 +53,13 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
         const allCoplanarCurves = [];
         for (const [simpleName, { planarCurve, placement: existingPlacement }] of curve2info.entries()) {
-            const curve = id2planarCurve.get(planarCurve)!;
             if (isSamePlacement(placement, existingPlacement))
-                allCoplanarCurves.push(curve);
-            planar2instance.set(curve.Id(), simpleName);
+                allCoplanarCurves.push(planarCurve);
+            planar2instance.set(planarCurve.Id(), simpleName);
         }
 
         // Store the planarized curve for future use
-        const counter = this.counter++;
-        id2planarCurve.set(counter, newPlanarCurve);
-        const info = new CurveInfo(counter, placement);
+        const info = new CurveInfo(newPlanarCurve, placement);
         curve2info.set(newCurve.simpleName, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve.simpleName);
         allCoplanarCurves.push(newPlanarCurve);
@@ -276,7 +271,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const coplanarCurves = [];
         for (const candidate of candidates) {
             if (isSamePlacement(placement, candidate.placement)) {
-                coplanarCurves.push(this.id2planarCurve.get(candidate.planarCurve)!);
+                coplanarCurves.push(candidate.planarCurve);
             }
         }
         return coplanarCurves;
@@ -313,17 +308,18 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     saveToMemento(): CurveMemento {
         return new CurveMemento(
             new Map(this.curve2info),
-            new Map(this.id2planarCurve),
             new Set(this.placements));
     }
 
     restoreFromMemento(m: CurveMemento) {
         (this.curve2info as PlanarCurveDatabase['curve2info']) = new Map(m.curve2info);
-        (this.id2planarCurve as PlanarCurveDatabase['id2planarCurve']) = new Map(m.id2planarCurve);
         (this.placements as PlanarCurveDatabase['placements']) = new Set(m.placements);
     }
 
     validate() {
+        for (const [id, info] of this.curve2info) {
+            console.assert(this.db.lookupItemById(id) !== undefined, "curve is in database", id);
+        }
     }
 
     debug() {

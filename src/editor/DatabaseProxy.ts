@@ -68,6 +68,7 @@ export class DatabaseProxy implements DatabaseLike {
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
+        if (id === undefined) console.trace();
         return this.db.lookupItemById(id);
     }
 
@@ -106,11 +107,11 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.pool(solid, size);
     }
 
-    lookupId(version: number): number | undefined {
+    lookupId(version: c3d.SimpleName): number | undefined {
         return this.db.lookupId(version);
     }
     
-    lookupById(name: number): { view: visual.Item; model: c3d.Item; } {
+    lookupById(name: c3d.SimpleName): { view: visual.Item; model: c3d.Item; } {
         return this.db.lookupById(name);
     }
 

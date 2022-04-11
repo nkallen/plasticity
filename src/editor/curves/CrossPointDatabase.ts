@@ -132,7 +132,13 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         id2cross.delete(id);
     }
 
-    validate() { }
+    validate() {
+        console.assert(this.curve2touched.size === this.id2cross.size, "maps should have same size", this.curve2touched, this.id2cross);
+        console.assert(this.id2cross.size === this.id2curve.size, "maps should have same size", this.id2cross, this.id2curve);
+        if (this.curve2touched.size === 0) {
+            console.assert(this._crosses.size === 0, "crosses should have be empty", this._crosses);
+        }
+    }
 
     saveToMemento(): CrossPointMemento {
         return new CrossPointMemento(

@@ -95,7 +95,7 @@ export class CommandExecutor {
             signals.objectDeselected.addOnce(() => selectionChanged = true);
             this.disableViewportSelector(command);
             await contours.transaction(async () => {
-                await copier.caching(async() => {
+                await copier.caching(async () => {
                     await meshCreator.caching(async () => {
                         await command.execute();
                     });
@@ -133,13 +133,15 @@ export class CommandExecutor {
             signals.commandEnded.dispatch(command);
 
             DebugValidate: {
-                originator.validate();
-                console.groupCollapsed(command.title);
-                originator.debug();
-                for (const viewport of this.editor.viewports) {
-                    viewport.validate();
+                if (process.env.NODE_ENV === 'development') {
+                    originator.validate();
+                    console.groupCollapsed(command.title);
+                    originator.debug();
+                    for (const viewport of this.editor.viewports) {
+                        viewport.validate();
+                    }
+                    console.groupEnd();
                 }
-                console.groupEnd();
             }
         }
     }

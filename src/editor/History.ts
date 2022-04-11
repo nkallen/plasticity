@@ -8,7 +8,7 @@ import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
 import { GroupId } from "./Groups";
-import { NodeKey, Nodes } from "./Nodes";
+import { NodeKey } from "./Nodes";
 import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
@@ -144,7 +144,6 @@ export class CrossPointMemento {
 export class CurveMemento {
     constructor(
         readonly curve2info: ReadonlyMap<c3d.SimpleName, CurveInfo>,
-        readonly id2planarCurve: ReadonlyMap<c3d.SimpleName, c3d.Curve>,
         readonly placements: ReadonlySet<c3d.Placement3D>,
     ) { }
 }

@@ -8,7 +8,7 @@ import { NodeItem, NodeKey, RealNodeItem } from '../../editor/Nodes';
 import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
-import OutlinerItem, { indentSize } from './OutlinerItems';
+import OutlinerItem, { indentSize, ToggleVisibilityCommand } from './OutlinerItems';
 
 export default (editor: Editor) => {
     OutlinerItem(editor);
@@ -95,7 +95,7 @@ export default (editor: Editor) => {
                             </div>
                             <button
                                 class="py-0.5 rounded group text-neutral-300 group-hover:visible invisible hover:text-neutral-100"
-                                onClick={e => this.makeVisible(e, virtual, !visible)}
+                                onClick={e => this.setVisibility(e, virtual, !visible)}
                             >
                                 <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                             </button>
@@ -121,10 +121,10 @@ export default (editor: Editor) => {
             this.render();
         }
 
-        makeVisible = (e: MouseEvent, virtual: VirtualGroup, value: boolean) => {
-            editor.scene.makeVisible(virtual, value);
-            if (value) editor.signals.typeEnabled.dispatch();
-            else editor.signals.typeDisabled.dispatch();
+        setVisibility = async (e: MouseEvent, virtual: VirtualGroup, value: boolean) => {
+            const command = new ToggleVisibilityCommand(editor, virtual, value);
+            editor.enqueue(command, true);
+            e.stopPropagation();
         }
     }
     customElements.define('plasticity-outliner', Outliner);

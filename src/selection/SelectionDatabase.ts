@@ -7,7 +7,7 @@ import { Replacement } from '../editor/GeometryDatabase';
 import { Group, GroupId } from '../editor/Groups';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { HideMode, NodeItem, RealNodeItem } from '../editor/Nodes';
+import { HideMode, RealNodeItem } from '../editor/Nodes';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
@@ -402,14 +402,26 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         for (const id of this.solidIds) {
             console.assert(this.db.lookupItemById(id) !== undefined, "solid is in database", id);
         }
-        for (const id of this.faceIds) {
+        for (const id of this.edgeIds) {
             console.assert(this.db.lookupTopologyItemById(id) !== undefined);
         }
-        for (const id of this.edgeIds) {
+        for (const id of this.faceIds) {
             console.assert(this.db.lookupTopologyItemById(id) !== undefined);
         }
         for (const id of this.curveIds) {
             console.assert(this.db.lookupItemById(id) !== undefined, "curve is in database", id);
+        }
+        for (const id of this.regionIds) {
+            console.assert(this.db.lookupItemById(id) !== undefined, "region is in database", id);
+        }
+        for (const id of this.controlPointIds) {
+            console.assert(this.db.lookupControlPointById(id) !== undefined, "control point is in database", id);
+        }
+        for (const id of this.groupIds) {
+            console.assert(this.groups.lookupById(id) !== undefined, "group is in database", id);
+        }
+        for (const id of this.parentsWithSelectedChildren.keys()) {
+            console.assert(this.db.lookupById(id) !== undefined, "parent is in database", id);
         }
     }
 

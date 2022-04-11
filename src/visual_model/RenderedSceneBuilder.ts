@@ -37,16 +37,13 @@ export class RenderedSceneBuilder {
         private readonly signals: EditorSignals,
     ) {
         const bindings: signals.SignalBinding[] = [];
-        bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) =>{
+        bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) => {
             const material = ancestor !== undefined ? this.scene.getMaterial(ancestor) : undefined;
             this.highlightItem(view, material ?? defaultPhysicalMaterial)
         }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
-        bindings.push(signals.objectAdded.add(this.highlight));
-        bindings.push(signals.objectRemoved.add(this.highlight));
-        bindings.push(signals.objectReplaced.add(this.highlight));
-        bindings.push(signals.modifiersLoaded.add(this.highlight));
+        bindings.push(signals.backupLoaded.add(this.highlight));
         bindings.push(signals.historyChanged.add(this.highlight));
         bindings.push(signals.quasimodeChanged.add(this.highlight));
         bindings.push(signals.hoverDelta.add(({ added, removed }) => {

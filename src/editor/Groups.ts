@@ -9,8 +9,6 @@ export type GroupId = number;
 export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item }
 export type VirtualGroupType = 'Curves' | 'Solids';
 
-const incr = 1;
-
 export class Groups implements MementoOriginator<GroupMemento> {
     private counter = 0;
 
@@ -40,7 +38,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         const parentId = parent !== undefined ? parent.id : 0;
         this.member2parent.set(Nodes.groupKey(id), parentId);
         if (id !== parentId) this.group2children.get(parentId)!.add(Nodes.groupKey(id));
-        this.counter += incr;
+        this.counter++;
         const group = new Group(id);
         this.signals.groupCreated.dispatch(group);
         return group;
@@ -189,7 +187,7 @@ function copyGroup2Children(group2children: ReadonlyMap<GroupId, ReadonlySet<Nod
 export class Group {
     readonly curves = new VirtualGroup(this, 'Curves');
     readonly solids = new VirtualGroup(this, 'Solids');
-    
+
     constructor(readonly id: GroupId) {
         if (!Number.isSafeInteger(id)) throw new Error("invalid GroupId: " + id);
     }

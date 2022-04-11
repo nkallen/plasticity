@@ -5,13 +5,12 @@ import LineFactory from '../../src/commands/line/LineFactory';
 import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Groups, Group } from '../../src/editor/Groups';
+import { Group } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Scene } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
-import { ChangeSelectionExecutor } from '../../src/selection/ChangeSelectionExecutor';
-import { Selection, SelectionDatabase, SignalLike } from '../../src/selection/SelectionDatabase';
+import { Selection, SignalLike } from '../../src/selection/SelectionDatabase';
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -19,19 +18,14 @@ import '../matchers';
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let selectionDb: SelectionDatabase;
-let changeSelection: ChangeSelectionExecutor;
 let scene: Scene;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    selectionDb = new SelectionDatabase(db, materials, signals);
-    changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
     scene = new Scene(db, materials, signals);
 });
-
 
 export let solid: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
@@ -83,6 +77,11 @@ describe(Selection, () => {
         selection = new Selection(db, sigs);
     });
 
+
+    afterEach(() => {
+        selection.validate();
+    })
+
     test("add & remove solid", async () => {
         const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
         const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
@@ -101,6 +100,7 @@ describe(Selection, () => {
         expect(objectAdded).toHaveBeenCalledTimes(1);
         expect(objectRemoved).toHaveBeenCalledTimes(1);
     });
+
 
     test("add solid twice", async () => {
         const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
@@ -137,6 +137,27 @@ describe(Selection, () => {
         expect(objectRemoved).toHaveBeenCalledTimes(1);
     });
 
+    test("add & remove face", async () => {
+        const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
+        const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
+
+        const face = solid.faces.get(0);
+
+        selection.addFace(face);
+        expect(selection.faces.first).toBe(face);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+
+        selection.removeFace(face);
+        expect(selection.faces.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(1);
+
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+
     test("add face twice", async () => {
         const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
         const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
@@ -162,6 +183,46 @@ describe(Selection, () => {
         expect(objectAdded).toHaveBeenCalledTimes(1);
         expect(objectRemoved).toHaveBeenCalledTimes(1);
 
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+
+    test("add face & remove solid", async () => {
+        const face = solid.faces.get(0);
+        selection.addFace(face);
+        expect(selection.faces.first).toBe(face);
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+        await db.removeItem(solid);
+        expect(selection.faces.first).toBe(undefined);
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+
+    test("add edge & remove solid", async () => {
+        const edge = solid.edges.get(0);
+        selection.addEdge(edge);
+        expect(selection.edges.first).toBe(edge);
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+        await db.removeItem(solid);
+        expect(selection.edges.first).toBe(undefined);
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+
+    test("add face & hide solid", async () => {
+        const face = solid.faces.get(0);
+        selection.addFace(face);
+        expect(selection.faces.first).toBe(face);
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+        scene.makeHidden(solid, true);
+        expect(selection.faces.first).toBe(undefined);
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+
+    test("add edge & hide solid", async () => {
+        const edge = solid.edges.get(0);
+        selection.addEdge(edge);
+        expect(selection.edges.first).toBe(edge);
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+        scene.makeHidden(solid, true);
+        expect(selection.edges.first).toBe(undefined);
         expect(selection.hasSelectedChildren(solid)).toBe(false);
     });
 

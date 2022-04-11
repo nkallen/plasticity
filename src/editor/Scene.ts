@@ -38,6 +38,10 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.groups.debug();
     }
 
+    rebuild() {
+        this.signals.sceneGraphChanged.dispatch();
+    }
+
     get visibleObjects(): visual.Item[] {
         const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), false);
         return [...acc].concat(this.db.findAutomatics());

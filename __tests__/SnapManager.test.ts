@@ -2,6 +2,7 @@ import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import CurveFactory from "../src/commands/curve/CurveFactory";
+import FilletFactory from "../src/commands/fillet/FilletFactory";
 import { MoveFactory } from "../src/commands/translate/TranslateFactory";
 import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
@@ -44,6 +45,10 @@ beforeEach(() => {
     } as unknown as THREE.Raycaster;
 })
 
+afterEach(() => {
+    snaps.validate();
+})
+
 test("initial state", () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
@@ -68,6 +73,56 @@ test("adding & removing solid", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(0);
+});
+
+test("adding and editing a solid", async () => {
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+    snaps.validate();
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
+
+    const makeFillet = new FilletFactory(db, materials, signals);
+    makeFillet.solid = box;
+    makeFillet.edges = [box.edges.get(0)];
+    makeFillet.distance = 0.1;
+    const fillet = await makeFillet.commit() as visual.Solid;
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(58);
+    snaps.validate();
+})
+
+test("adding & hiding & removing solid", async () => {
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
+
+    scene.makeHidden(box, true);
+    snaps.validate();
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
+
+    db.removeItem(box);
 });
 
 test("adding & hiding & unhiding solid", async () => {
@@ -216,7 +271,8 @@ describe('undo', () => {
     })
 
     test('it works', async () => {
-        const memento = snaps.saveToMemento();
+        const snaps_memento = snaps.saveToMemento();
+        const db_memento = db.saveToMemento();
         const before = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
         expect(before.length).toBe(42);
 
@@ -229,7 +285,8 @@ describe('undo', () => {
         expect(after.length).toBe(42);
         expect(after).not.toEqual(before);
 
-        snaps.restoreFromMemento(memento);
+        db.restoreFromMemento(db_memento);
+        snaps.restoreFromMemento(snaps_memento);
         const afterUndo = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
         expect(afterUndo.length).toBe(42);
         expect(afterUndo).toEqual(before);

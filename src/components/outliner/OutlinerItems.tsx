@@ -210,7 +210,7 @@ class OutlinerChangeSelectionCommand extends cmd.CommandLike {
     }
 }
 
-class ToggleVisibilityCommand extends cmd.CommandLike {
+export class ToggleVisibilityCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly item: NodeItem,
@@ -221,7 +221,6 @@ class ToggleVisibilityCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         this.editor.scene.makeVisible(this.item, this.value);
-        if (this.item instanceof visual.Item) this.editor.selection.selected.remove(this.item);
     }
 }
 
@@ -237,7 +236,6 @@ class ToggleHiddenCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { editor: { scene, selection }, item } = this;
         scene.makeHidden(this.item, this.value);
-        if (item instanceof visual.Item) selection.selected.remove(item);
     }
 }
 
