@@ -23,6 +23,7 @@ export default (editor: Editor) => {
 
             editor.signals.backupLoaded.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
+            editor.signals.commandEnded.add(this.render);
             editor.signals.historyChanged.add(this.render);
             editor.signals.selectionDelta.add(this.onSelectionDelta);
 
@@ -39,6 +40,7 @@ export default (editor: Editor) => {
             editor.signals.backupLoaded.remove(this.render);
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
+            editor.signals.commandEnded.remove(this.render);
             editor.signals.selectionDelta.remove(this.onSelectionDelta);
             this.disposable.dispose();
         }
