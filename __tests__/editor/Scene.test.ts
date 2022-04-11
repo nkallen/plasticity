@@ -376,3 +376,13 @@ test("automatics are included in selectable objects", async () => {
     expect(db.findAutomatics().length).toBe(2);
     expect(scene.visibleObjects.length).toBe(4);
 })
+
+test("getMaterial walk=true", () => {
+    const material = new THREE.Material();
+    const materialId = materials.add("name", material);
+    const group = scene.createGroup();
+    scene.moveToGroup(v, group);
+    scene.setMaterial(group, materialId);
+    expect(scene.getMaterial(v)).toBe(undefined);
+    expect(scene.getMaterial(v, true)).toBe(material);
+})

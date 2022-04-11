@@ -38,7 +38,7 @@ export class RenderedSceneBuilder {
     ) {
         const bindings: signals.SignalBinding[] = [];
         bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) => {
-            const material = ancestor !== undefined ? this.scene.getMaterial(ancestor) : undefined;
+            const material = ancestor !== undefined ? this.scene.getMaterial(ancestor, true) : undefined;
             this.highlightItem(view, material ?? defaultPhysicalMaterial)
         }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
@@ -269,7 +269,7 @@ export class RenderedSceneBuilder {
             hovered_phantom.forEach(s => s.materialIndex = 3);
             facegroup.mesh.material = this._mode === 'normal'
                 ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-                : [face_hovered, face_highlighted, override ?? this.scene.getMaterial(solid) ?? defaultPhysicalMaterial, face_hovered_phantom];
+                : [face_hovered, face_highlighted, override ?? this.scene.getMaterial(solid, true) ?? defaultPhysicalMaterial, face_hovered_phantom];
             facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
         }
     }

@@ -43,8 +43,14 @@ export class FakeMaterials implements MaterialDatabase {
         return hover
     }
 
-    add(name: string, m: THREE.Material): number { return 1 }
-    get(id: number) { return mesh }
+    private readonly material = new Map<number, THREE.Material>();
+    private counter = 0;
+    add(name: string, m: THREE.Material): number {
+        this.material.set(this.counter, m);
+        return this.counter++;
+    }
+
+    get(id: number) { return this.material.get(id)! }
 
     setResolution(_size: THREE.Vector2) { }
 

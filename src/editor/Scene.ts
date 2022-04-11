@@ -168,7 +168,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
     parent(node: RealNodeItem): Group {
         return this.groups.parent(node);
     }
-    
+
     moveToGroup(node: RealNodeItem, group: Group) {
         this.groups.moveNodeToGroup(node, group)
         this.signals.sceneGraphChanged.dispatch();
@@ -198,13 +198,24 @@ export class Scene implements MementoOriginator<SceneMemento> {
     isHidden(node: RealNodeItem): boolean { return this.nodes.isHidden(node) }
     isVisible(node: NodeItem): boolean { return this.nodes.isVisible(node) }
     isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
-    getMaterial(node: RealNodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
     getName(node: RealNodeItem): string | undefined { return this.nodes.getName(node) }
     key2item(key: NodeKey): NodeItem { return this.nodes.key2item(key) }
     item2key(item: NodeItem): string { return this.nodes.item2key(item) }
 
     list(group: Group): GroupListing[] { return this.groups.list(group) }
     walk(group: Group): GroupListing[] { return this.groups.walk(group) }
+
+    getMaterial(node: RealNodeItem, walk = false): THREE.Material | undefined {
+        const thisMaterial = this.nodes.getMaterial(node);
+        if (!walk || thisMaterial) return thisMaterial;
+        let parent = this.parent(node);
+        while (!parent.isRoot) {
+            const mat = this.nodes.getMaterial(parent);
+            if (mat !== undefined) return mat;
+            parent = this.parent(parent);
+        }
+        return undefined;
+    }
 
     saveToMemento(): SceneMemento {
         return new SceneMemento(this.nodes.saveToMemento(), this.groups.saveToMemento());

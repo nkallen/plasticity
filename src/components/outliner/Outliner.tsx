@@ -1,7 +1,7 @@
 import { CompositeDisposable } from 'event-kit';
 import { render } from 'preact';
 import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UngroupSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
-import { DeleteCommand } from '../../commands/GeometryCommands';
+import { DeleteCommand, SetMaterialCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { Group, GroupId, VirtualGroup } from '../../editor/Groups';
 import { NodeItem, NodeKey, RealNodeItem } from '../../editor/Nodes';
@@ -27,7 +27,7 @@ export default (editor: Editor) => {
             editor.signals.commandEnded.add(this.render);
             editor.signals.historyChanged.add(this.render);
 
-            for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand]) {
+            for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand, SetMaterialCommand]) {
                 disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
                     const command = new Command(editor);
                     command.agent = 'user';
