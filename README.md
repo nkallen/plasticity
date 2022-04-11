@@ -19,7 +19,7 @@ Plasticity is COMMERCIAL SOFTWARE. It will cost money to buy when it reaches 1.0
 
 The code in this repository is licensed under the LGPL. To goal is to allow users to inspect the source and (in the future) allow users to make their own modifications and/or develop plugins.
 
-HOWEVER, it dynamically links with a commercial software software that I have licensed for $$$$$$$$. That license imposes many restrictions on how the app can be distributed and what functionality is available to end users. Please do not redistribute the binary.
+HOWEVER, it dynamically links with a commercial software that I have licensed for $$$$$$$$. That license imposes many restrictions on how the app can be distributed and what functionality is available to end users. Please do not redistribute the binary.
 
 #### FAQ
 
