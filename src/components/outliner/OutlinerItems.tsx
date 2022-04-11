@@ -61,6 +61,7 @@ export default (editor: Editor) => {
                 <div
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
                     onClick={e => { if (isDisplayed) this.select(e); }}
+                    onPointerOver={e => { if (isDisplayed) this.hover(e) }}
                 >
                     {item instanceof Group
                         ? <button
@@ -111,6 +112,10 @@ export default (editor: Editor) => {
         select = (e: MouseEvent) => {
             const command = new OutlinerChangeSelectionCommand(editor, [this.item], keypress.event2modifier(e));
             editor.enqueue(command, true);
+        }
+
+        hover = (e: MouseEvent) => {
+            editor.changeSelection.onOutlinerHover([this.item], keypress.event2modifier(e));
         }
 
         setVisibility = (e: MouseEvent, value: boolean) => {

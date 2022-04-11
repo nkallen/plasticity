@@ -8,7 +8,7 @@ import { CrossPointDatabase } from '../../src/editor/curves/CrossPointDatabase';
 import { PlanarCurveDatabase } from '../../src/editor/curves/PlanarCurveDatabase';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Group, Groups } from '../../src/editor/Groups';
+import { Group } from '../../src/editor/Groups';
 import { EditorOriginator } from '../../src/editor/History';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
@@ -28,7 +28,6 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let changeSelection: ChangeSelectionExecutor;
-let groups: Groups;
 let originator: EditorOriginator;
 let scene: Scene;
 let snaps: SnapManager;
@@ -47,7 +46,6 @@ beforeEach(() => {
     snaps = new SnapManager(db, scene, crosses, signals);
     curves = new PlanarCurveDatabase(db, materials, signals);
     originator = new EditorOriginator(db, scene, materials, selectionDb.selected, snaps, crosses, curves, contours, []);
-    groups = scene.groups;
 });
 
 let solid: visual.Solid;
@@ -80,7 +78,7 @@ beforeEach(async () => {
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
 
-    group = groups.create();
+    group = scene.createGroup();
 });
 
 describe('onClick', () => {
@@ -610,12 +608,39 @@ describe('onPointerMove', () => {
     });
 })
 
+describe('Outliner', () => {
+    test('onOutlinerSelect', () => {
+        const selected = jest.fn(), deselected = jest.fn(), delta = jest.fn();
+        signals.objectSelected.add(selected);
+        signals.objectDeselected.add(deselected);
+        signals.selectionDelta.add(delta);
 
-describe('onOutlinerSelect', () => {
-    test('groups', () => {
         expect(selectionDb.selected.groups.size).toBe(0);
+        expect(selected).toBeCalledTimes(0);
+        expect(deselected).toBeCalledTimes(0);
+        expect(delta).toBeCalledTimes(0);
+
         changeSelection.onOutlinerSelect([group], ChangeSelectionModifier.Add);
+
         expect(selectionDb.selected.groups.size).toBe(1);
+        expect(selected).toBeCalledTimes(1);
+        expect(deselected).toBeCalledTimes(0);
+        expect(delta).toBeCalledTimes(1);
+    })
+
+    test('onOutlinerHover', () => {
+        const selected = jest.fn(), deselected = jest.fn(), delta = jest.fn();
+        signals.hoverDelta.add(delta);
+
+        expect(selectionDb.hovered.groups.size).toBe(0);
+        expect(selected).toBeCalledTimes(0);
+        expect(deselected).toBeCalledTimes(0);
+        expect(delta).toBeCalledTimes(0);
+
+        changeSelection.onOutlinerHover([group], ChangeSelectionModifier.Add);
+
+        expect(selectionDb.hovered.groups.size).toBe(1);
+        expect(delta).toBeCalledTimes(1);
     })
 });
 

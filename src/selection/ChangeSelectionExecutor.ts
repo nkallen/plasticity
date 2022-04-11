@@ -35,8 +35,9 @@ export class ChangeSelectionExecutor {
         this.onHover = this.wrapFunction(this.onHover);
         this.onBoxHover = this.wrapFunction(this.onBoxHover);
         this.onBoxSelect = this.wrapFunction(this.onBoxSelect);
-        this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
+        this.onOutlinerHover = this.wrapFunction(this.onOutlinerHover);
         this.onOutlinerSelect = this.wrapFunction(this.onOutlinerSelect);
+        this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
         this.onConvert = this.wrapFunction(this.onConvert);
     }
 
@@ -102,18 +103,31 @@ export class ChangeSelectionExecutor {
         this.clickStrategy.box(new Set(topologyItems), modifier, ChangeSelectionOption.None);
     }
 
+    onOutlinerHover(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier) {
+        const intersectables = this.getIntersectables(items);
+        this.hoverStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
+    }
+
     onOutlinerSelect(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier) {
+        const intersectables = this.getIntersectables(items);
+        this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
+    }
+
+    private getIntersectables(items: Iterable<NodeItem>) {
         const intersectables = [];
         for (const item of items) {
             let intersectable: Intersectable | visual.Solid | Group;
-            if (item instanceof visual.Solid) intersectable = item;
-            else if (item instanceof visual.SpaceInstance || item instanceof visual.PlaneInstance) intersectable = item.underlying;
-            else if (item instanceof Group) intersectable = item;
-            else throw new Error("Invalid condition");
+            if (item instanceof visual.Solid)
+                intersectable = item;
+            else if (item instanceof visual.SpaceInstance || item instanceof visual.PlaneInstance)
+                intersectable = item.underlying;
+            else if (item instanceof Group)
+                intersectable = item;
+            else
+                throw new Error("Invalid condition");
             intersectables.push(intersectable);
         }
-
-        this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
+        return intersectables;
     }
 
     onConvert(mode: SelectionMode, modifier: ChangeSelectionModifier) {
