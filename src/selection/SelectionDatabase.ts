@@ -421,7 +421,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             console.assert(this.groups.lookupById(id) !== undefined, "group is in database", id);
         }
         for (const id of this.parentsWithSelectedChildren.keys()) {
-            console.assert(this.db.lookupById(id) !== undefined, "parent is in database", id);
+            console.assert(this.db.lookupItemById(id) !== undefined, "parent is in database", id);
         }
     }
 
