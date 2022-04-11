@@ -3,7 +3,7 @@ import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Group, GroupId, Groups, VirtualGroup } from './Groups';
+import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
 import { HideMode, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
@@ -200,9 +200,11 @@ export class Scene implements MementoOriginator<SceneMemento> {
     isSelectable(node: NodeItem): boolean { return this.nodes.isSelectable(node) }
     getMaterial(node: RealNodeItem): THREE.Material | undefined { return this.nodes.getMaterial(node) }
     getName(node: RealNodeItem): string | undefined { return this.nodes.getName(node) }
-    key2item(key: NodeKey) { return this.nodes.key2item(key) }
-    item2key(item: NodeItem) { return this.nodes.item2key(item) }
-    list(group: Group) { return this.groups.list(group) }
+    key2item(key: NodeKey): NodeItem { return this.nodes.key2item(key) }
+    item2key(item: NodeItem): string { return this.nodes.item2key(item) }
+
+    list(group: Group): GroupListing[] { return this.groups.list(group) }
+    walk(group: Group): GroupListing[] { return this.groups.walk(group) }
 
     saveToMemento(): SceneMemento {
         return new SceneMemento(this.nodes.saveToMemento(), this.groups.saveToMemento());

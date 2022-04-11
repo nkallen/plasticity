@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import * as THREE from "three";
+import * as THREE from 'three';
 import { ObjectPicker } from "../../src/command/ObjectPicker";
 import { Quasimode } from "../../src/command/Quasimode";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
@@ -9,6 +9,7 @@ import FilletFactory from "../../src/commands/fillet/FilletFactory";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Scene } from "../../src/editor/Scene";
 import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from "../../src/selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../../src/selection/SelectionDatabase";
 import { SelectionMode } from "../../src/selection/SelectionModeSet";
@@ -19,12 +20,13 @@ import '../matchers';
 let db: GeometryDatabase;
 let editor: Editor;
 let viewport: Viewport;
+let scene: Scene;
 
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-
+    scene = editor.scene;
     db = editor._db;
 })
 
@@ -39,7 +41,7 @@ beforeEach(() => {
     objectPicker.min = 1; objectPicker.max = Number.MAX_SAFE_INTEGER;
     selection = objectPicker.selection;
     selection.mode.set(SelectionMode.Curve);
-    changeSelection = new ChangeSelectionExecutor(selection, db, selection.signals);
+    changeSelection = new ChangeSelectionExecutor(selection, db, scene, selection.signals);
 })
 
 let item: visual.SpaceInstance<visual.Curve3D>;

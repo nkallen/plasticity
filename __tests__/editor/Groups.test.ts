@@ -97,6 +97,18 @@ test("list when object changes", async () => {
     expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: fillet }]);
 })
 
+test("walk", () => {
+    const g1 = groups.create();
+    const g2 = groups.create();
+    groups.moveNodeToGroup(g2, g1);
+    groups.moveNodeToGroup(box, g2);
+    expect(groups.walk(groups.root)).toEqual([
+        { tag: 'Group', group: g1 },
+        { tag: 'Group', group: g2 },
+        { tag: 'Item', item: box }
+    ]);
+})
+
 async function filletBox() {
     const makeFillet = new FilletFactory(db, materials, signals);
     makeFillet.solid = box;

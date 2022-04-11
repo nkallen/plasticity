@@ -2,7 +2,6 @@ import KeymapManager from "atom-keymap-plasticity";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Scene } from "./Scene";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
 import { GizmoMaterialDatabase } from "../command/GizmoMaterials";
@@ -32,6 +31,7 @@ import LayerManager from "./LayerManager";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import { PlaneDatabase } from "./PlaneDatabase";
+import { Scene } from "./Scene";
 import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
 import { TextureLoader } from "./TextureLoader";
@@ -69,7 +69,7 @@ export class Editor {
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
-    readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.signals);
+    readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.scene, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this._db, this.scene, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
     readonly history = new History(this.originator, this.signals);

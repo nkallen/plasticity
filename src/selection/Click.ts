@@ -1,5 +1,6 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { Group } from "../editor/Groups";
+import { Scene } from "../editor/Scene";
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectionExecutor";
@@ -12,6 +13,7 @@ export class ClickStrategy {
 
     constructor(
         protected readonly db: DatabaseLike,
+        protected readonly scene: Scene,
         protected readonly mode: SelectionModeSet,
         protected readonly selected: ModifiesSelection,
         protected readonly hovered: ModifiesSelection,
@@ -197,7 +199,21 @@ export class ClickStrategy {
                 if (!this.mode.has(SelectionMode.Region)) continue;
                 changedRegions.add(object.parentItem);
             } else if (object instanceof Group) {
-                changedGroups.add(object);
+                if (ChangeSelectionOption.Extend & option) {
+                    for (const listing of this.scene.walk(object)) {
+                        switch (listing.tag) {
+                            case 'Item':
+                                const item = listing.item;
+                                if (item instanceof Solid) {
+                                    changedSolids.add(item);
+                                } else if (item instanceof SpaceInstance) {
+                                    changedCurves.add(item)
+                                }
+                        }
+                    }
+                } else {
+                    changedGroups.add(object);
+                }
             }
         }
 

@@ -9,6 +9,7 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { Group, Groups } from '../../src/editor/Groups';
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { Scene } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionModifier, ChangeSelectionOption } from "../../src/selection/ChangeSelectionExecutor";
 import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
@@ -25,6 +26,7 @@ let selectionDb: SelectionDatabase;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let groups: Groups;
+let scene: Scene;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -32,7 +34,8 @@ beforeEach(() => {
     modes = new SelectionModeSet(SelectionModeAll, signals);
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
-    click = new ClickStrategy(db, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
+    scene = new Scene(db, materials, signals);
+    click = new ClickStrategy(db, scene, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
     groups = new Groups(db, signals);
 })
 
@@ -483,7 +486,7 @@ describe(HoverStrategy, () => {
     let hover: HoverStrategy;
 
     beforeEach(() => {
-        hover = new HoverStrategy(db, modes, selectionDb.selected, selectionDb.hovered, selectionDb.hovered);
+        hover = new HoverStrategy(db, scene, modes, selectionDb.selected, selectionDb.hovered, selectionDb.hovered);
     });
 
     describe('box', () => {

@@ -105,6 +105,21 @@ export class Groups implements MementoOriginator<GroupMemento> {
         return result;
     }
 
+    walk(group: Group): GroupListing[] {
+        const result: GroupListing[] = [];
+        let work = this.list(group);
+        while (work.length > 0) {
+            const child = work.pop()!;
+            result.push(child);
+            switch (child.tag) {
+                case 'Group':
+                    work = work.concat(this.list(child.group));
+                    break;
+            }
+        }
+        return result;
+    }
+    
     private addItem(id: c3d.SimpleName, into = this.cwd) {
         const k = Nodes.itemKey(id);
         this.addMembership(k, into);

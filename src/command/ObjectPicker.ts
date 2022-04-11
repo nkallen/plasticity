@@ -34,8 +34,8 @@ interface EditorLike {
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
-    private readonly nonempty = new NonemptyClickStrategy(this.editor.db, this.selection.mode, this.selection.selected, this.selection.hovered, this.selection.selected);
-    private readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.selection.signals, this.prohibitions, this.nonempty);
+    private readonly nonempty = new NonemptyClickStrategy(this.editor.db, this.editor.scene, this.selection.mode, this.selection.selected, this.selection.hovered, this.selection.selected);
+    private readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.editor.scene, this.selection.signals, this.prohibitions, this.nonempty);
 
     constructor(
         viewport: Viewport,

@@ -75,7 +75,7 @@ describe('useTemporary', () => {
         signals.hoverDelta.add(hoverDelta);
 
         temp.mode.set(SelectionMode.Solid);
-        const changeSelection = new ChangeSelectionExecutor(temp, db, temp.signals);
+        const changeSelection = new ChangeSelectionExecutor(temp, db, scene, temp.signals);
         changeSelection.onBoxHover(new Set([solid]), ChangeSelectionModifier.Replace);
         expect(hoverDelta).toHaveBeenCalledTimes(1);
 

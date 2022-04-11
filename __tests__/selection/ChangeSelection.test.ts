@@ -40,7 +40,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
-    changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
+    changeSelection = new ChangeSelectionExecutor(selectionDb, db, scene, signals);
     scene = new Scene(db, materials, signals);
     crosses = new CrossPointDatabase();
     snaps = new SnapManager(db, scene, crosses, signals);
@@ -620,7 +620,7 @@ describe('Outliner', () => {
         expect(deselected).toBeCalledTimes(0);
         expect(delta).toBeCalledTimes(0);
 
-        changeSelection.onOutlinerSelect([group], ChangeSelectionModifier.Add);
+        changeSelection.onOutlinerSelect([group], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
 
         expect(selectionDb.selected.groups.size).toBe(1);
         expect(selected).toBeCalledTimes(1);
@@ -637,7 +637,7 @@ describe('Outliner', () => {
         expect(deselected).toBeCalledTimes(0);
         expect(delta).toBeCalledTimes(0);
 
-        changeSelection.onOutlinerHover([group], ChangeSelectionModifier.Add);
+        changeSelection.onOutlinerHover([group], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
 
         expect(selectionDb.hovered.groups.size).toBe(1);
         expect(delta).toBeCalledTimes(1);
@@ -707,7 +707,7 @@ describe(SelectionDatabase, () => {
 
 describe('prohibit', () => {
     test('selectionmode=object, clicking on a face of a prohibited solid will not select the object', () => {
-        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, scene, signals, new Set([solid]));
 
         const face = solid.faces.get(0);
         const intersections = [];
@@ -722,7 +722,7 @@ describe('prohibit', () => {
     });
 
     test('selectionmode=face, clicking on a face of a prohibited solid will not select the face', () => {
-        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, scene, signals, new Set([solid]));
         selectionDb.mode.set(SelectionMode.Face);
 
         const face = solid.faces.get(0);
@@ -738,7 +738,7 @@ describe('prohibit', () => {
     });
 
     test('selectionmode=object, box selecting a face of a prohibited solid will not select the object', () => {
-        changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals, new Set([solid]));
+        changeSelection = new ChangeSelectionExecutor(selectionDb, db, scene, signals, new Set([solid]));
 
         const face = solid.faces.get(0);
         const intersections = new Set([face]);

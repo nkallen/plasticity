@@ -23,9 +23,9 @@ export default (editor: Editor) => {
 
             editor.signals.backupLoaded.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
+            editor.signals.selectionDelta.add(this.onSelectionDelta);
             editor.signals.commandEnded.add(this.render);
             editor.signals.historyChanged.add(this.render);
-            editor.signals.selectionDelta.add(this.onSelectionDelta);
 
             for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand]) {
                 disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
@@ -55,7 +55,6 @@ export default (editor: Editor) => {
                     parent = scene.parent(parent);
                 }
             }
-            this.render();
         }
 
         static klass(nodeKey: NodeKey): string {
@@ -81,7 +80,7 @@ export default (editor: Editor) => {
                         const isSelected = selected.has(object);
                         const nodeKey = scene.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
-                        const name = scene.getName(object) ?? `${klass} ${item instanceof Group ? item.id : editor.db.lookupId(object.simpleName)}`;
+                        const name = scene.getName(object) ?? `${klass} ${object instanceof Group ? object.id : editor.db.lookupId(object.simpleName)}`;
                         return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {

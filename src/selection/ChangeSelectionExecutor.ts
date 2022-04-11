@@ -2,6 +2,7 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { Group } from "../editor/Groups";
 import { NodeItem } from "../editor/Nodes";
+import { Scene } from "../editor/Scene";
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
@@ -26,10 +27,11 @@ export class ChangeSelectionExecutor {
     constructor(
         private readonly selection: HasSelectedAndHovered,
         private readonly db: DatabaseLike,
+        private readonly scene: Scene,
         private readonly signals: EditorSignals,
         private readonly prohibitions: ReadonlySet<Selectable> = new Set(),
-        private readonly clickStrategy = new ClickStrategy(db, selection.mode, selection.selected, selection.hovered, selection.selected),
-        private readonly hoverStrategy = new HoverStrategy(db, selection.mode, selection.selected, selection.hovered, selection.hovered)
+        private readonly clickStrategy = new ClickStrategy(db, scene, selection.mode, selection.selected, selection.hovered, selection.selected),
+        private readonly hoverStrategy = new HoverStrategy(db, scene, selection.mode, selection.selected, selection.hovered, selection.hovered)
     ) {
         this.onClick = this.wrapFunction(this.onClick);
         this.onHover = this.wrapFunction(this.onHover);
@@ -103,14 +105,14 @@ export class ChangeSelectionExecutor {
         this.clickStrategy.box(new Set(topologyItems), modifier, ChangeSelectionOption.None);
     }
 
-    onOutlinerHover(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier) {
+    onOutlinerHover(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
         const intersectables = this.getIntersectables(items);
-        this.hoverStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
+        this.hoverStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode | option);
     }
 
-    onOutlinerSelect(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier) {
+    onOutlinerSelect(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
         const intersectables = this.getIntersectables(items);
-        this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode);
+        this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode | option);
     }
 
     private getIntersectables(items: Iterable<NodeItem>) {

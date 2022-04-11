@@ -3,7 +3,7 @@ import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
 import { Group } from '../../editor/Groups';
 import { NodeItem, RealNodeItem } from '../../editor/Nodes';
-import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
+import { ChangeSelectionModifier, ChangeSelectionOption } from '../../selection/ChangeSelectionExecutor';
 import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
 
@@ -61,7 +61,7 @@ export default (editor: Editor) => {
                 <div
                     class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
                     onClick={e => { if (isDisplayed) this.select(e); }}
-                    onPointerOver={e => { if (isDisplayed) this.hover(e) }}
+                    onPointerMove={e => { if (isDisplayed) this.hover(e) }}
                 >
                     {item instanceof Group
                         ? <button
@@ -110,12 +110,12 @@ export default (editor: Editor) => {
         }
 
         select = (e: MouseEvent) => {
-            const command = new OutlinerChangeSelectionCommand(editor, [this.item], keypress.event2modifier(e));
+            const command = new OutlinerChangeSelectionCommand(editor, [this.item], keypress.event2modifier(e), keypress.event2option(e));
             editor.enqueue(command, true);
         }
 
         hover = (e: MouseEvent) => {
-            editor.changeSelection.onOutlinerHover([this.item], keypress.event2modifier(e));
+            editor.changeSelection.onOutlinerHover([this.item], keypress.event2modifier(e), keypress.event2option(e));
         }
 
         setVisibility = (e: MouseEvent, value: boolean) => {
@@ -204,14 +204,15 @@ class OutlinerChangeSelectionCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly items: readonly NodeItem[],
-        private readonly modifier: ChangeSelectionModifier
+        private readonly modifier: ChangeSelectionModifier,
+        private readonly option: ChangeSelectionOption
     ) {
         super(editor);
     }
 
     async execute(): Promise<void> {
         const { items } = this;
-        this.editor.changeSelection.onOutlinerSelect(items, this.modifier);
+        this.editor.changeSelection.onOutlinerSelect(items, this.modifier, this.option);
     }
 }
 
