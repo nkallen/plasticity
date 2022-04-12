@@ -583,6 +583,12 @@ export default (editor: Editor) => {
                             <path d="M16.918 14.5737C16.5184 14.324 16 14.6113 16 15.0825V17.9175C16 18.3887 16.5184 18.676 16.918 18.4263L19.1859 17.0088C19.5619 16.7738 19.5619 16.2262 19.1859 15.9912L16.918 14.5737Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M2 10V3.6C2 3.26863 2.26863 3 2.6 3H8.77805C8.92127 3 9.05977 3.05124 9.16852 3.14445L12.3315 5.85555C12.4402 5.94876 12.5787 6 12.722 6H21.4C21.7314 6 22 6.26863 22 6.6V9M2 10V18.4C2 18.7314 2.26863 19 2.6 19H10M2 10H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
+                case 'add-circled-outline':
+                    return render(
+                        <svg width="24" height="24" class="w-4 h-4 stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 12H12M16 12H12M12 12V8M12 12V16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>, this);
                 default:
                     console.warn(`${this.name} is missing icon`);
             }

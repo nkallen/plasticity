@@ -83,18 +83,21 @@ export default (editor: Editor) => {
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${hidden ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setHidden(e, !hidden)}
                         >
+                            <plasticity-tooltip placement="top" command="command:hide-selected">Hide in viewport</plasticity-tooltip>
                             <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setVisibility(e, !visible)}
                         >
+                            <plasticity-tooltip placement="top">Disable in viewport</plasticity-tooltip>
                             <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                         </button>
                         <button
                             class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!selectable ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setSelectable(e, !selectable)}
                         >
+                            <plasticity-tooltip placement="top">Disable selection in viewport</plasticity-tooltip>
                             <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
                         </button>
                     </>

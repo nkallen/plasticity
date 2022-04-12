@@ -99,6 +99,7 @@ export default (editor: Editor) => {
                                 class="py-0.5 rounded group text-neutral-300 group-hover:visible invisible hover:text-neutral-100"
                                 onClick={e => this.setVisibility(e, virtual, !visible)}
                             >
+                                <plasticity-tooltip placement="top">Disable in viewport</plasticity-tooltip>
                                 <plasticity-icon key={visible} name={visible ? 'light-bulb-on' : 'light-bulb-off'}></plasticity-icon>
                             </button>
                         </div>
@@ -106,8 +107,15 @@ export default (editor: Editor) => {
                 }
             });
             render(<>
-                <div class="px-4 pt-4 pb-3">
+                <div class="flex justify-between px-4 pt-4 pb-3">
                     <h1 class="text-xs font-bold text-neutral-100">Scene</h1>
+                    <button
+                        class="py-0.5 rounded group text-neutral-300 hover:text-neutral-100"
+                        onClick={this.createGroup}
+                    >
+                        <plasticity-icon name='add-circled-outline'></plasticity-icon>
+                        <plasticity-tooltip placement="top" command="command:group-selected">Create group (of selected items)</plasticity-tooltip>
+                    </button>
                 </div>
                 <div class="pl-3 pr-4">
                     {result}
@@ -125,8 +133,13 @@ export default (editor: Editor) => {
 
         setVisibility = async (e: MouseEvent, virtual: VirtualGroup, value: boolean) => {
             const command = new ToggleVisibilityCommand(editor, virtual, value);
-            editor.enqueue(command, true);
+            editor.enqueue(command);
             e.stopPropagation();
+        }
+
+        createGroup = (e: MouseEvent) => {
+            const command = new GroupSelectedCommand(editor);
+            editor.enqueue(command);
         }
     }
     customElements.define('plasticity-outliner', Outliner);
