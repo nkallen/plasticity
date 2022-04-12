@@ -50,9 +50,10 @@ export default (editor: Editor) => {
             for (const item of delta.added) {
                 if (!(item instanceof Group || item instanceof visual.Item)) continue;
                 let parent = scene.parent(item);
+                if (parent === undefined) return;
                 while (!parent.isRoot) {
                     this.expandedGroups.add(parent.id);
-                    parent = scene.parent(parent);
+                    parent = scene.parent(parent)!;
                 }
             }
         }

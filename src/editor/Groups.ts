@@ -72,12 +72,15 @@ export class Groups implements MementoOriginator<GroupMemento> {
         return new Group(id);
     }
 
-    parent(item: NodeItem) {
+    // NOTE: most visual.Item belong to a group. The exception being "automatics",
+    // like automatically generated regions.
+    parent(item: NodeItem): Group | undefined {
         if (item instanceof VirtualGroup) {
             return item.parent;
         } else {
             const key = this.keyForItem(item);
-            const parentId = this.member2parent.get(key)!;
+            const parentId = this.member2parent.get(key);
+            if (parentId === undefined) return undefined;
             return new Group(parentId);
         }
     }
@@ -119,7 +122,7 @@ export class Groups implements MementoOriginator<GroupMemento> {
         }
         return result;
     }
-    
+
     private addItem(id: c3d.SimpleName, into = this.cwd) {
         const k = Nodes.itemKey(id);
         this.addMembership(k, into);

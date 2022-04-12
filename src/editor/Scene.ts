@@ -75,7 +75,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
             if (!nodes.isVisible(start)) return accItem;
             if (!types.isEnabled(start)) return accItem;
             if (checkSelectable && !nodes.isSelectable(start)) return accItem;
-            const parent = this.parent(start);
+            const parent = this.parent(start)!;
             if (start instanceof visual.Solid && !nodes.isVisible(parent.solids)) return accItem;
             if (start instanceof visual.SpaceInstance && !nodes.isVisible(parent.curves)) return accItem;
             accItem.add(start);
@@ -158,14 +158,15 @@ export class Scene implements MementoOriginator<SceneMemento> {
         if ((node instanceof visual.Item || node instanceof Group) && this.isHidden(node)) return true;
         if (!this.isVisible(node)) return true;
         let parent = this.groups.parent(node);
+        if (parent === undefined) return false;
         while (!parent.isRoot) {
             if (this.nodes.isHidden(parent)) return true;
-            parent = this.groups.parent(parent);
+            parent = this.groups.parent(parent)!;
         }
         return false;
     }
 
-    parent(node: RealNodeItem): Group {
+    parent(node: RealNodeItem): Group | undefined {
         return this.groups.parent(node);
     }
 
@@ -209,10 +210,11 @@ export class Scene implements MementoOriginator<SceneMemento> {
         const thisMaterial = this.nodes.getMaterial(node);
         if (!walk || thisMaterial) return thisMaterial;
         let parent = this.parent(node);
+        if (parent === undefined) return undefined;
         while (!parent.isRoot) {
             const mat = this.nodes.getMaterial(parent);
             if (mat !== undefined) return mat;
-            parent = this.parent(parent);
+            parent = this.parent(parent)!;
         }
         return undefined;
     }
