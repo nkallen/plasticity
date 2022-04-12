@@ -143,11 +143,16 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         return hidden;
     }
 
-    setMaterial(item: RealNodeItem, materialId: number): void {
+    setMaterial(item: RealNodeItem, materialId: number | undefined): void {
         const { node2material } = this;
         const k = this.item2key(item);
-        node2material.set(k, materialId);
-        this.signals.itemMaterialChanged.dispatch(item);
+        if (materialId === undefined) {
+            node2material.delete(k);
+            this.signals.itemMaterialChanged.dispatch(item);
+        } else {
+            node2material.set(k, materialId);
+            this.signals.itemMaterialChanged.dispatch(item);
+        }
     }
 
     getMaterial(item: RealNodeItem): THREE.Material & { color: THREE.ColorRepresentation } | undefined {

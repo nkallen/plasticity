@@ -1,8 +1,7 @@
-import * as cmd from "../../command/Command";
-import { MaterialDialog } from "./MaterialDialog";
 import * as THREE from "three";
-import { GeometryFactory } from "../../command/GeometryFactory";
+import * as cmd from "../../command/Command";
 import { defaultPhysicalMaterial } from "../../visual_model/RenderedSceneBuilder";
+import { MaterialDialog } from "./MaterialDialog";
 
 export interface MaterialParams {
     color: THREE.Color;
@@ -22,7 +21,7 @@ export interface MaterialParams {
 
 export class SetMaterialCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        const { editor: { db, scene, selection: { selected }, materials, signals } } = this;
+        const { editor: { scene, selection: { selected }, materials, signals } } = this;
         const node = selected.solids.first ?? selected.groups.first;
         let material = scene.getMaterial(node) as THREE.MeshPhysicalMaterial;
         if (material === undefined) {
@@ -38,5 +37,13 @@ export class SetMaterialCommand extends cmd.CommandLike {
 
         await this.finished;
 
+    }
+}
+
+export class RemoveMaterialCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const { editor: { scene, selection: { selected }, materials, signals } } = this;
+        const node = selected.solids.first ?? selected.groups.first;
+        scene.setMaterial(node, undefined);
     }
 }

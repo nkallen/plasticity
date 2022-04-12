@@ -1,5 +1,4 @@
 import signals from 'signals';
-import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
@@ -175,7 +174,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    setMaterial(node: RealNodeItem, id: number) {
+    setMaterial(node: RealNodeItem, id: number | undefined) {
         this.nodes.setMaterial(node, id)
     }
 

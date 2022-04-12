@@ -272,6 +272,7 @@ export default {
         "backspace": "command:delete",
 
         "m": "command:set-material",
+        "alt-m": "command:remove-material",
 
         "alt-q": "command:rebuild",
         "shift-d": "command:duplicate",
