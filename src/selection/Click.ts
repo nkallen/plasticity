@@ -64,8 +64,11 @@ export class ClickStrategy {
     solid(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
         if (!this.mode.has(SelectionMode.Solid) || (ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
+        const parentGroup = this.scene.parent(parentItem);
 
-        if (this.selected.solids.has(parentItem)) {
+        if (parentGroup !== undefined && option & ChangeSelectionOption.Extend) {
+            return this.selectGroup(parentGroup, modifier, option);
+        } else if (this.selected.solids.has(parentItem)) {
             return this.modify(modifier,
                 () => false,
                 () => {
@@ -83,6 +86,44 @@ export class ClickStrategy {
             );
         }
         return false;
+    }
+
+    private selectGroup(parentGroup: Group, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+        return this.modify(modifier,
+            () => {
+                for (const listing of this.scene.walk(parentGroup)) {
+                    switch (listing.tag) {
+                        case 'Item':
+                            const item = listing.item;
+                            if (item instanceof Solid) {
+                                if (!this.mode.has(SelectionMode.Solid) || (ChangeSelectionOption.IgnoreMode & option)) continue;
+                                this.writeable.deselectChildren(item);
+                                this.writeable.addSolid(item);
+                            } else if (item instanceof SpaceInstance) {
+                                if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) continue;
+                                this.writeable.deselectChildren(item);
+                                this.writeable.addCurve(item);
+                            }
+                    }
+                }
+                return true;
+            },
+            () => {
+                for (const listing of this.scene.walk(parentGroup)) {
+                    switch (listing.tag) {
+                        case 'Item':
+                            const item = listing.item;
+                            if (item instanceof Solid) {
+                                if (!this.mode.has(SelectionMode.Solid) || (ChangeSelectionOption.IgnoreMode & option)) continue;
+                                this.writeable.removeSolid(item);
+                            } else if (item instanceof SpaceInstance) {
+                                if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) continue;
+                                this.writeable.removeCurve(item);
+                            }
+                    }
+                }
+                return true;
+            })
     }
 
     topologicalItem(object: TopologyItem, intersections: ReadonlySet<Intersectable>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
@@ -152,7 +193,9 @@ export class ClickStrategy {
         const changedPoints = new Set<ControlPoint>();
         const changedGroups = new Set<Group>();
 
-        for (const object of set) {
+        const work = [...set];
+        while (work.length > 0) {
+            const object = work.pop()!;
             if (object instanceof Solid) {
                 if (!this.mode.has(SelectionMode.Solid) && !(ChangeSelectionOption.IgnoreMode & option)) continue;
                 if (parentsVisited.has(object)) continue;
@@ -187,9 +230,11 @@ export class ClickStrategy {
                 changedCurves.add(object.parentItem);
                 parentsVisited.add(parentItem);
             } else if (object instanceof ControlPoint) {
+                if (!this.mode.has(SelectionMode.ControlPoint)) continue;
                 const parentItem = object.parentItem;
                 if (parentsVisited.has(parentItem)) continue;
-                if (!this.mode.has(SelectionMode.ControlPoint)) continue;
+                if (this.mode.has(SelectionMode.Curve) && !this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) continue;
+
                 if (modifier === ChangeSelectionModifier.Add && this.selected.controlPoints.has(object)) continue;
                 if (modifier === ChangeSelectionModifier.Remove && !this.selected.controlPoints.has(object)) continue;
 
@@ -205,9 +250,9 @@ export class ClickStrategy {
                             case 'Item':
                                 const item = listing.item;
                                 if (item instanceof Solid) {
-                                    changedSolids.add(item);
+                                    work.push(item);
                                 } else if (item instanceof SpaceInstance) {
-                                    changedCurves.add(item)
+                                    work.push(item.underlying);
                                 }
                         }
                     }

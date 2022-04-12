@@ -61,7 +61,7 @@ export interface ModifiesSelection extends HasSelection {
     removeGroup(group: Group): void;
     addGroup(group: Group): void;
 
-    deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
+    deselectChildren(solidOrCurve: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
 
     removeAll(): void;
 }

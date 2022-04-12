@@ -6,7 +6,7 @@ import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
-import { Group, Groups } from '../../src/editor/Groups';
+import { Group } from '../../src/editor/Groups';
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Scene } from '../../src/editor/Scene';
@@ -25,7 +25,6 @@ let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
-let groups: Groups;
 let scene: Scene;
 
 beforeEach(() => {
@@ -36,7 +35,6 @@ beforeEach(() => {
     selectionDb = new SelectionDatabase(db, materials, signals);
     scene = new Scene(db, materials, signals);
     click = new ClickStrategy(db, scene, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
-    groups = new Groups(db, signals);
 })
 
 let solid1: visual.Solid;
@@ -75,7 +73,7 @@ beforeEach(async () => {
     const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
     region = regions[0];
 
-    group = groups.create();
+    group = scene.createGroup();
 });
 
 describe(visual.Curve3D, () => {
@@ -152,6 +150,37 @@ describe(visual.Solid, () => {
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.None)).toBe(true);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
+    })
+
+    test('when option=extend, selects the group items the solid belongs to', () => {
+        scene.moveToGroup(solid1, group);
+        scene.moveToGroup(circle, group);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.Extend)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.curves.size).toBe(1);
+    })
+
+    test('when option=extend, mode=solid, selects the solid group items the solid belongs to', () => {
+        scene.moveToGroup(solid1, group);
+        scene.moveToGroup(circle, group);
+        modes.set(SelectionMode.Solid);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace, ChangeSelectionOption.Extend)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.curves.size).toBe(0);
+    })
+
+    test('when modifier=remove, option=extend, selects the group items the solid belongs to', () => {
+        scene.moveToGroup(solid1, group);
+        scene.moveToGroup(circle, group);
+
+        modes.set(SelectionMode.Solid);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Add, ChangeSelectionOption.None)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
+
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Remove, ChangeSelectionOption.Extend)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(0);
+        expect(selectionDb.selected.curves.size).toBe(0);
     })
 });
 
@@ -447,6 +476,12 @@ describe('box', () => {
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     })
 
+    test('selecting a curve and its control point simultaneously in the opposite order', () => {
+        click.box(new Set([curve.underlying.points.get(0), curve.underlying]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        expect(selectionDb.selected.curves.size).toBe(1);
+        expect(selectionDb.selected.controlPoints.size).toBe(0);
+    })
+
     test('selecting a curve and then its control point', () => {
         click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
@@ -460,6 +495,25 @@ describe('box', () => {
         expect(selectionDb.selected.groups.size).toBe(1);
         click.box(new Set([group]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.groups.size).toBe(0);
+    })
+
+    test("selecting a group with extend", () => {
+        scene.moveToGroup(solid1, group);
+        scene.moveToGroup(circle, group);
+        click.box(new Set([group]), ChangeSelectionModifier.Add, ChangeSelectionOption.Extend);
+        expect(selectionDb.selected.groups.size).toBe(0);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.curves.size).toBe(1);
+    })
+
+    test("selecting a group with extend with a specific mode", () => {
+        scene.moveToGroup(solid1, group);
+        scene.moveToGroup(circle, group);
+        modes.set(SelectionMode.Solid);
+        click.box(new Set([group]), ChangeSelectionModifier.Add, ChangeSelectionOption.Extend);
+        expect(selectionDb.selected.groups.size).toBe(0);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.curves.size).toBe(0);
     })
 })
 
