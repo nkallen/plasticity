@@ -4,7 +4,7 @@ import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselecte
 import { DeleteCommand, SetMaterialCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { Group, GroupId, VirtualGroup } from '../../editor/Groups';
-import { NodeItem, NodeKey, RealNodeItem } from '../../editor/Nodes';
+import { NodeKey, RealNodeItem } from '../../editor/Nodes';
 import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
@@ -88,7 +88,7 @@ export default (editor: Editor) => {
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
                         const virtual = new VirtualGroup(new Group(item.parentId), item.tag === 'CurveSection' ? 'Curves' : 'Solids');
                         const visible = scene.isVisible(virtual);
-                        const isDisplayed = visible;
+                        const isDisplayed = item.displayed;
                         return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group`} style={`margin-left: ${indentSize * indent}px`}>
                             <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon>
                             <plasticity-icon name="folder-solids" class="text-neutral-500 group-hover:text-neutral-200"></plasticity-icon>
