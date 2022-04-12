@@ -252,7 +252,7 @@ export class RenderedSceneBuilder {
     protected highlightFaces(solid: visual.Solid, override?: THREE.Material) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const particularMaterial = this.scene.getMaterial(solid, true);
+        const particularMaterial = override !== undefined ? undefined : this.scene.getMaterial(solid, true);
         for (const lod of [solid.lod.high, solid.lod.low]) {
             const facegroup = lod.faces;
             let hovered: visual.GeometryGroup[] = [];
