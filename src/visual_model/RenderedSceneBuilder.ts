@@ -10,9 +10,11 @@ import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/ConfigFiles";
 import * as visual from '../visual_model/VisualModel';
+import basic_side from '../img/matcap/basic_side.exr';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
-type Mode = 'normal' | 'rendered';
+type Mode = { tag: 'normal', material: THREE.Material } | { tag: 'rendered', material: THREE.Material };
+export type MaterialMode = 'matcap' | 'colored-matcap' | 'colored-silhouette' | 'black-silhouette';
 
 export class RenderedSceneBuilder {
     private readonly disposable = new CompositeDisposable();
@@ -20,11 +22,15 @@ export class RenderedSceneBuilder {
 
     private state: State = { tag: 'none' };
 
-    private _mode: Mode = 'normal';
-    get mode() { return this._mode }
-    set mode(mode: Mode) {
+    private _mode: Mode = { tag: 'normal', material: face_unhighlighted_matcap };
+    get mode(): Readonly<Mode> { return this._mode }
+    set mode(mode: Mode | Mode['tag']) {
         if (this._mode === mode) return;
-        this._mode = mode;
+        if (typeof mode === 'string') {
+            this._mode = { tag: mode, material: this._mode.material }
+        } else {
+            this._mode = mode;
+        }
         this.highlight();
     }
 
@@ -246,6 +252,7 @@ export class RenderedSceneBuilder {
     protected highlightFaces(solid: visual.Solid, override?: THREE.Material) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
+        const particularMaterial = this.scene.getMaterial(solid, true);
         for (const lod of [solid.lod.high, solid.lod.low]) {
             const facegroup = lod.faces;
             let hovered: visual.GeometryGroup[] = [];
@@ -267,9 +274,17 @@ export class RenderedSceneBuilder {
             selected.forEach(s => s.materialIndex = 1);
             unselected.forEach(s => s.materialIndex = 2);
             hovered_phantom.forEach(s => s.materialIndex = 3);
-            facegroup.mesh.material = this._mode === 'normal'
-                ? [face_hovered, face_highlighted, face_unhighlighted, face_hovered_phantom]
-                : [face_hovered, face_highlighted, override ?? this.scene.getMaterial(solid, true) ?? defaultPhysicalMaterial, face_hovered_phantom];
+            if (this.mode.tag === 'normal') {
+                let material = this.mode.material;
+                if ((material === face_unhighlighted_colored_matcap || material === face_unhighlighted_colored_silhouette) && particularMaterial !== undefined) {
+                    const colored = material.clone() as THREE.Material & { color: THREE.Color };
+                    colored.color.set(particularMaterial.color);
+                    material = colored;
+                }
+                facegroup.mesh.material = [face_hovered, face_highlighted, material, face_hovered_phantom]
+            } else {
+                facegroup.mesh.material = [face_hovered, face_highlighted, override ?? particularMaterial ?? defaultPhysicalMaterial, face_hovered_phantom];
+            }
             facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
         }
     }
@@ -305,7 +320,7 @@ export class RenderedSceneBuilder {
     }
 
     private setTheme(theme: Theme) {
-        face_unhighlighted.color.setStyle(theme.colors.matcap).convertSRGBToLinear();
+        face_unhighlighted_matcap.color.setStyle(theme.colors.matcap).convertSRGBToLinear();
         face_highlighted.color.setStyle(theme.colors.yellow[200]).convertSRGBToLinear();
         face_hovered.color.setStyle(theme.colors.yellow[500]).convertSRGBToLinear();
         line_unselected.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
@@ -314,10 +329,34 @@ export class RenderedSceneBuilder {
         region_unhighlighted.color.setStyle(theme.colors.blue[400]).convertSRGBToLinear();
     }
 
-    setMatcap(name: string) {
+    async setMatcap(name: string): Promise<THREE.Texture> {
         const { texture, loaded } = this.textures.get(name);
-        face_unhighlighted.matcap = texture;
+        face_unhighlighted_matcap.matcap = texture;
+        const mode = this._mode;
+        if (mode.tag === 'normal' && mode.material !== face_unhighlighted_matcap) {
+            mode.material = face_unhighlighted_matcap;
+            this.highlight();
+        }
         return loaded;
+    }
+
+    async setMaterialMode(mmode: MaterialMode) {
+        const mode = this._mode;
+        switch (mode.tag) {
+            case 'normal':
+                switch (mmode) {
+                    case 'matcap': mode.material = face_unhighlighted_matcap; break;
+                    case 'black-silhouette': mode.material = face_unhighlighted_black_silhouette; break;
+                    case 'colored-silhouette': mode.material = face_unhighlighted_colored_silhouette; break;
+                    case 'colored-matcap':
+                        mode.material = face_unhighlighted_colored_matcap;
+                        const { texture, loaded } = this.textures.get(basic_side);
+                        face_unhighlighted_colored_matcap.matcap = texture;
+                        await loaded;
+                        break;
+                }
+                this.highlight();
+        }
     }
 }
 
@@ -334,11 +373,29 @@ line_selected.depthFunc = THREE.AlwaysDepth;
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
 
-export const face_unhighlighted = new THREE.MeshMatcapMaterial();
-face_unhighlighted.fog = false;
-face_unhighlighted.polygonOffset = true;
-face_unhighlighted.polygonOffsetFactor = 1;
-face_unhighlighted.polygonOffsetUnits = 2;
+export const face_unhighlighted_matcap = new THREE.MeshMatcapMaterial();
+face_unhighlighted_matcap.fog = false;
+face_unhighlighted_matcap.polygonOffset = true;
+face_unhighlighted_matcap.polygonOffsetFactor = 1;
+face_unhighlighted_matcap.polygonOffsetUnits = 2;
+
+export const face_unhighlighted_black_silhouette = new THREE.MeshBasicMaterial();
+face_unhighlighted_black_silhouette.color = new THREE.Color(0x0);
+face_unhighlighted_black_silhouette.polygonOffset = true;
+face_unhighlighted_black_silhouette.polygonOffsetFactor = 1;
+face_unhighlighted_black_silhouette.polygonOffsetUnits = 2;
+
+export const face_unhighlighted_colored_silhouette = new THREE.MeshBasicMaterial();
+face_unhighlighted_colored_silhouette.color = new THREE.Color(0xffffff);
+face_unhighlighted_colored_silhouette.polygonOffset = true;
+face_unhighlighted_colored_silhouette.polygonOffsetFactor = 1;
+face_unhighlighted_colored_silhouette.polygonOffsetUnits = 2;
+
+export const face_unhighlighted_colored_matcap = new THREE.MeshMatcapMaterial();
+face_unhighlighted_matcap.fog = false;
+face_unhighlighted_matcap.polygonOffset = true;
+face_unhighlighted_matcap.polygonOffsetFactor = 1;
+face_unhighlighted_matcap.polygonOffsetUnits = 2;
 
 const face_highlighted = new THREE.MeshBasicMaterial();
 face_highlighted.fog = false;

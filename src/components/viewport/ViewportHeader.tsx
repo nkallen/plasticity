@@ -10,6 +10,9 @@ import reflection_check_horizontal from '../../img/matcap/reflection_check_horiz
 import reflection_check_horizontal_png from '../../img/matcap/reflection_check_horizontal.png';
 import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.exr';
 import reflection_check_vertical_png from '../../img/matcap/reflection_check_vertical.png';
+import black_silhouette_png from '../../img/matcap/black_silhouette.png';
+import color_silhouette_png from '../../img/matcap/color_silhouette.png';
+import color_matcap_png from '../../img/matcap/color_matcap.png';
 import { SelectionMode } from '../../selection/SelectionModeSet';
 import { ViewportElement } from './Viewport';
 
@@ -154,14 +157,23 @@ export default (editor: Editor) => {
                                         <div class="min-w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
                                             <ul>
                                                 {!viewport.isRenderMode &&
-                                                    <li>
-                                                        <div class="flex flex-row space-x-1">
-                                                            <img src={ceramic_dark_png} class="block w-16 rounded-l" onClick={e => viewport.matcap = ceramic_dark} />
-                                                            <img src={metal_carpaint_png} class="block w-16" onClick={e => viewport.matcap = metal_carpaint} />
-                                                            <img src={reflection_check_horizontal_png} class="block w-16" onClick={e => viewport.matcap = reflection_check_horizontal} />
-                                                            <img src={reflection_check_vertical_png} class="block w-16 rounded-r" onClick={e => viewport.matcap = reflection_check_vertical} />
-                                                        </div>
-                                                    </li>
+                                                    <>
+                                                        <li>
+                                                            <div class="flex flex-row space-x-1">
+                                                                <img src={ceramic_dark_png} class="block w-16 rounded-l" onClick={e => viewport.matcap = ceramic_dark} />
+                                                                <img src={metal_carpaint_png} class="block w-16" onClick={e => viewport.matcap = metal_carpaint} />
+                                                                <img src={reflection_check_horizontal_png} class="block w-16" onClick={e => viewport.matcap = reflection_check_horizontal} />
+                                                                <img src={reflection_check_vertical_png} class="block w-16 rounded-r" onClick={e => viewport.matcap = reflection_check_vertical} />
+                                                            </div>
+                                                        </li>
+                                                        <li>
+                                                            <div class="flex flex-row space-x-1">
+                                                            <img src={color_matcap_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-matcap'} />
+                                                            <img src={black_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'black-silhouette'} />
+                                                            <img src={color_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-silhouette'} />
+                                                            </div>
+                                                        </li>
+                                                    </>
                                                 }
 
                                                 <li>

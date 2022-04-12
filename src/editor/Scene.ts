@@ -206,7 +206,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
     list(group: Group): GroupListing[] { return this.groups.list(group) }
     walk(group: Group): GroupListing[] { return this.groups.walk(group) }
 
-    getMaterial(node: RealNodeItem, walk = false): THREE.Material | undefined {
+    getMaterial(node: RealNodeItem, walk = false): THREE.Material & { color: THREE.ColorRepresentation } | undefined {
         const thisMaterial = this.nodes.getMaterial(node);
         if (!walk || thisMaterial) return thisMaterial;
         let parent = this.parent(node);

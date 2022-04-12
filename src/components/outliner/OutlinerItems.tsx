@@ -88,7 +88,7 @@ export default (editor: Editor) => {
                             <plasticity-icon key={!hidden} name={!hidden ? 'eye' : 'eye-off'}></plasticity-icon>
                         </button>
                         <button
-                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`} ${!visible ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
+                            class={`px-1 rounded group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-  neutral-300 hover:text-neutral-100`} ${!visible ? '' : anySettingsForThisSpecificItem ? `group-hover:visible invisible` : `group-hover:block hidden`}`}
                             onClick={e => this.setVisibility(e, !visible)}
                         >
                             <plasticity-tooltip placement="top">Disable in viewport</plasticity-tooltip>

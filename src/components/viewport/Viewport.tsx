@@ -18,7 +18,7 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/ConfigFiles";
 import { Helper, Helpers } from "../../util/Helpers";
-import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
+import { MaterialMode, RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
 import { ConstructionPlaneGenerator } from "./ConstructionPlaneGenerator";
@@ -515,7 +515,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         });
     }
 
-    get isRenderMode() { return this.editor.highlighter.mode === 'rendered' }
+    set material(mode: MaterialMode) {
+        this.editor.highlighter.setMaterialMode(mode).then(() => {
+            this.setNeedsRender();
+        })
+    }
+
+    get isRenderMode() { return this.editor.highlighter.mode.tag === 'rendered' }
     set isRenderMode(isRenderMode: boolean) {
         if (this.isRenderMode === isRenderMode) return;
         this.editor.highlighter.mode = isRenderMode ? 'rendered' : 'normal';

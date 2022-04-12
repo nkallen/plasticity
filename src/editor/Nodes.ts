@@ -150,7 +150,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         this.signals.itemMaterialChanged.dispatch(item);
     }
 
-    getMaterial(item: RealNodeItem): THREE.Material | undefined {
+    getMaterial(item: RealNodeItem): THREE.Material & { color: THREE.ColorRepresentation } | undefined {
         const { node2material: version2material } = this;
         const k = this.item2key(item);
         const materialId = version2material.get(k);

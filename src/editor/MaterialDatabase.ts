@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
-import { face_unhighlighted, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
+import { face_unhighlighted_matcap, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
 import { MaterialMemento, MementoOriginator } from "./History";
@@ -17,7 +17,7 @@ export default interface MaterialDatabase extends MementoOriginator<MaterialMeme
     mesh(): THREE.Material;
 
     add(name: string, material: THREE.Material): number;
-    get(id: number): THREE.Material;
+    get(id: number): THREE.Material & { color: THREE.ColorRepresentation };
 }
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
@@ -32,7 +32,7 @@ const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
 
 const surface = region_unhighlighted;
 
-const mesh = face_unhighlighted;
+const mesh = face_unhighlighted_matcap;
 
 const region = region_unhighlighted;
 
@@ -85,7 +85,7 @@ export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginato
         return id;
     }
 
-    get(id: number): THREE.Material {
+    get(id: number): THREE.Material & { color: THREE.ColorRepresentation } {
         return this.materials.get(id)!.material;
     }
 
