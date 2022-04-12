@@ -22,8 +22,9 @@ export default (editor: Editor) => {
         get isDisplayed() { return Boolean(this.getAttribute("isdisplayed"))! }
         get name() { return this.getAttribute("name")! }
         get klass() { return this.getAttribute("klass")! }
+        get color() { return this.getAttribute("color") ?? undefined }
 
-        static get observedAttributes() { return ['name', 'klass', 'isselected', 'selectable', 'ishidden', 'isvisible', 'isdisplayed', 'indent', 'nodeKey'] }
+        static get observedAttributes() { return ['name', 'klass', 'isselected', 'selectable', 'ishidden', 'isvisible', 'isdisplayed', 'indent', 'nodeKey', 'color'] }
 
         attributeChangedCallback(name: string, oldValue: string, newValue: string) {
             if (this.isConnected) this.render();
@@ -35,7 +36,7 @@ export default (editor: Editor) => {
         private readonly ref = createRef();
 
         render = (editable = false) => {
-            const { klass, visible, hidden, selectable, isSelected, isDisplayed, name } = this;
+            const { klass, visible, hidden, selectable, isSelected, isDisplayed, name, color } = this;
             const item = this.item;
 
             const indent = item instanceof Group ? this.indent - 1 : this.indent + 1;
@@ -59,7 +60,7 @@ export default (editor: Editor) => {
             const anySettingsForThisSpecificItem = hidden || !visible || !selectable;
             const result =
                 <div
-                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${indentSize * indent}px`}
+                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${4 + indentSize * indent}px`}
                     onClick={e => { if (isDisplayed) this.select(e); }}
                     onPointerMove={e => { if (isDisplayed) this.hover(e) }}
                 >
@@ -99,6 +100,11 @@ export default (editor: Editor) => {
                         >
                             <plasticity-tooltip placement="top">Disable selection in viewport</plasticity-tooltip>
                             <plasticity-icon key={selectable} name={selectable ? 'no-lock' : 'lock'}></plasticity-icon>
+                        </button>
+                        <button
+                            style={color === undefined ? "" : `background-color: #${color}`}
+                            class={`w-2 h-2 px-1 rounded-full group ${isSelected ? 'text-accent-300 hover:text-accent-100' : `text-neutral-300 hover:text-neutral-100`}`}
+                        >
                         </button>
                     </>
                     }

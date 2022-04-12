@@ -9,6 +9,7 @@ import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
 import OutlinerItem, { indentSize, ToggleVisibilityCommand } from './OutlinerItems';
+import * as THREE from 'three';
 
 export default (editor: Editor) => {
     OutlinerItem(editor);
@@ -81,15 +82,17 @@ export default (editor: Editor) => {
                         const isSelected = selected.has(object);
                         const nodeKey = scene.item2key(item.object);
                         const klass = Outliner.klass(nodeKey);
+                        const mat = scene.getMaterial(object);
+                        const color = getColor(mat);
                         const name = scene.getName(object) ?? `${klass} ${object instanceof Group ? object.id : editor.db.lookupId(object.simpleName)}`;
-                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand}></plasticity-outliner-item>
+                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
                         const virtual = new VirtualGroup(new Group(item.parentId), item.tag === 'CurveSection' ? 'Curves' : 'Solids');
                         const visible = scene.isVisible(virtual);
                         const isDisplayed = item.displayed;
-                        return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 h-8 pr-3 py-2 overflow-hidden items-center rounded-md group`} style={`margin-left: ${indentSize * indent}px`}>
+                        return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 pl-1 pr-3 overflow-hidden items-center rounded-md group`} style={`padding-left: ${4 + indentSize * indent}px`}>
                             <plasticity-icon name="nav-arrow-down" class="text-neutral-500"></plasticity-icon>
                             <plasticity-icon name="folder-solids" class="text-neutral-500 group-hover:text-neutral-200"></plasticity-icon>
                             <div class="py-0.5 flex-1">
@@ -107,7 +110,7 @@ export default (editor: Editor) => {
                 }
             });
             render(<>
-                <div class="flex justify-between px-4 pt-4 pb-3">
+                <div class="flex justify-between pl-4 pt-4 pb-3 pr-5">
                     <h1 class="text-xs font-bold text-neutral-100">Scene</h1>
                     <button
                         class="py-0.5 rounded group text-neutral-300 hover:text-neutral-100"
@@ -117,7 +120,7 @@ export default (editor: Editor) => {
                         <plasticity-tooltip placement="top" command="command:group-selected">Create group (of selected items)</plasticity-tooltip>
                     </button>
                 </div>
-                <div class="pl-3 pr-4">
+                <div class="pl-3 pr-3">
                     {result}
                 </div>
             </>, this);
@@ -143,4 +146,11 @@ export default (editor: Editor) => {
         }
     }
     customElements.define('plasticity-outliner', Outliner);
+}
+
+function getColor(material: THREE.Material | undefined): string | undefined {
+    if (material instanceof THREE.MeshStandardMaterial) return material.color.getHexString();
+    if (material instanceof THREE.MeshBasicMaterial) return material.color.getHexString();
+    if (material instanceof THREE.MeshLambertMaterial) return material.color.getHexString();
+    return undefined;
 }
