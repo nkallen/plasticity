@@ -1,19 +1,20 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import signals from "signals";
 import * as THREE from "three";
+import { ColorRepresentation } from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
 import { Scene } from "../editor/Scene";
 import { TextureLoader } from "../editor/TextureLoader";
+import basic_side from '../img/matcap/basic_side.exr';
 import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/ConfigFiles";
 import * as visual from '../visual_model/VisualModel';
-import basic_side from '../img/matcap/basic_side.exr';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
-type Mode = { tag: 'normal', material: THREE.Material } | { tag: 'rendered', material: THREE.Material };
+type Mode = { tag: 'normal', material: THREE.Material & { color: ColorRepresentation } } | { tag: 'rendered', material: THREE.Material & { color: ColorRepresentation } };
 export type MaterialMode = 'matcap' | 'colored-matcap' | 'colored-silhouette' | 'black-silhouette';
 
 export class RenderedSceneBuilder {
@@ -44,8 +45,9 @@ export class RenderedSceneBuilder {
     ) {
         const bindings: signals.SignalBinding[] = [];
         bindings.push(signals.temporaryObjectAdded.add(({ view, ancestor }) => {
-            const material = ancestor !== undefined ? this.scene.getMaterial(ancestor, true) : undefined;
-            this.highlightItem(view, material ?? defaultPhysicalMaterial)
+            let material = ancestor !== undefined ? this.scene.getMaterial(ancestor, true) : undefined;
+            material ??= this.mode.tag === 'rendered' ? defaultPhysicalMaterial : this.mode.material;
+            this.highlightItem(view, material);
         }));
         bindings.push(signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution)));
         bindings.push(signals.commandEnded.add(this.highlight));
@@ -151,7 +153,7 @@ export class RenderedSceneBuilder {
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
-    highlightItem = (item: visual.Item, override?: THREE.Material) => {
+    highlightItem = (item: visual.Item, override?: THREE.Material & { color: ColorRepresentation }) => {
         if (item instanceof visual.Solid) {
             this.highlightSolid(item, override);
         } else if (item instanceof visual.SpaceInstance) {
@@ -163,7 +165,7 @@ export class RenderedSceneBuilder {
         item.updateMatrixWorld();
     }
 
-    private highlightSolid(solid: visual.Solid, override?: THREE.Material) {
+    private highlightSolid(solid: visual.Solid, override?: THREE.Material & { color: ColorRepresentation }) {
         this.highlightFaces(solid, override);
         this.highlightEdges(solid);
         solid.layers.set(visual.Layers.Solid);
@@ -249,10 +251,10 @@ export class RenderedSceneBuilder {
         }
     }
 
-    protected highlightFaces(solid: visual.Solid, override?: THREE.Material) {
+    protected highlightFaces(solid: visual.Solid, override?: THREE.Material & { color: ColorRepresentation }) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const particularMaterial = override !== undefined ? undefined : this.scene.getMaterial(solid, true);
+        const particularMaterial = override ?? this.scene.getMaterial(solid, true);
         for (const lod of [solid.lod.high, solid.lod.low]) {
             const facegroup = lod.faces;
             let hovered: visual.GeometryGroup[] = [];

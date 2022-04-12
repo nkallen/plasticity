@@ -27,7 +27,9 @@ export class SetMaterialCommand extends cmd.CommandLike {
         if (material === undefined) {
             material = defaultPhysicalMaterial.clone();
             const id = materials.add("New material", material);
-            scene.setMaterial(node, id);
+            for (const solid of [...selected.solids, ...selected.groups]) {
+                scene.setMaterial(solid, id);
+            }
         }
 
         const dialog = new MaterialDialog(material, signals);
