@@ -53,7 +53,7 @@ export class PlasticityDocument {
             });
             materials.set(i, { name, material });
         }
-        into.materials.restoreFromMemento(new MaterialMemento(materials));
+        into.materials.restoreFromMemento(new MaterialMemento(json.materials.length, materials));
 
         console.time("load backup");
         const items = await into.db.deserialize(c3d);

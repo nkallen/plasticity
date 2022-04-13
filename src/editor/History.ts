@@ -81,6 +81,7 @@ export class SceneMemento {
 
 export class MaterialMemento {
     constructor(
+        readonly counter: number,
         readonly materials: ReadonlyMap<number, { name: string, material: THREE.MeshPhysicalMaterial }>
     ) { }
 }

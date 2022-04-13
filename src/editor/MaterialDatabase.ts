@@ -94,10 +94,11 @@ export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginato
 
     saveToMemento(): MaterialMemento {
         // TODO: deep copy
-        return new MaterialMemento(new Map(this.materials));
+        return new MaterialMemento(this.counter, new Map(this.materials));
     }
 
     restoreFromMemento(m: MaterialMemento): void {
+        (this.counter as BasicMaterialDatabase['counter']) = m.counter;
         (this.materials as BasicMaterialDatabase['materials']) = new Map(m.materials);
     }
 
