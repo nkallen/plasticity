@@ -87,6 +87,7 @@ export class ConfigFiles {
                             "alt-mouse1": "orbit:pan",
                             "alt-mouse2": "orbit:dolly"
                         }
+                        break;
                     case 'moi':
                         parsed['orbit-controls'] = {
                             "mouse2": "orbit:rotate",
@@ -94,6 +95,7 @@ export class ConfigFiles {
                             "shift-mouse2": "orbit:pan",
                             "alt-mouse2": "orbit:dolly",
                         }
+                        break;
                 }
                 fs.writeFileSync(ConfigFiles.userKeymapPath, json5.stringify(parsed, null, 4));
             } catch (e) {
