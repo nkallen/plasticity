@@ -4,8 +4,6 @@
 
 ### Backlog
 
-- [ ] command to show and hide all lines and curves  
-
 ### Todo
 
 

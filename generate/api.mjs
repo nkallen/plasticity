@@ -2017,6 +2017,7 @@ export default {
                 "MbResultType Segment(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
                 "MbResultType RegularPolygon(const MbCartPoint & centre, const MbCartPoint & point, size_t vertexCount, bool describe, MbCurve *& result)",
                 "MbResultType NurbsCopy(const MbCurve & curve, MbCurve *& result )",
+                "MbCurve * DuplicateCurve(const MbCurve & curve, VERSION version = Math::DefaultMathVersion())",
             ]
 
         },
@@ -2081,7 +2082,7 @@ export default {
                     progInd: isRaw,
                     return: { name: "graph" }
                 },
-                "bool RemoveContourGaps(MbContour &	contour, double	accuracy, bool canInsert, bool canReplace)",
+                "bool RemoveContourGaps(MbContour & contour, double accuracy, bool canInsert, bool canReplace)",
             ]
         },
         CurveEnvelope: {

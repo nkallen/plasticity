@@ -16,7 +16,22 @@ export class RegionManager {
 
             const coplanarCurves = this.curves.findWithSamePlacement(placement);
 
-            const { contours } = c3d.ContourGraph.OuterContoursBuilder(coplanarCurves);
+            // NOTE: per c3d documentation, contours need to be turned into segments before calling
+            // OuterContoursBuilder
+            const decontour: c3d.Curve[] = [];
+            for (const curve of coplanarCurves) {
+                if (curve.IsA() === c3d.PlaneType.Contour) {
+                    const contour = curve.Cast<c3d.Contour>(c3d.PlaneType.Contour);
+                    for (let i = 0, l = contour.GetSegmentsCount(); i < l; i++) {
+                        const segment = contour.GetSegment(i)!;
+                        decontour.push(segment)
+                    }
+                } else {
+                    decontour.push(curve);
+                }
+            }
+
+            const { contours } = c3d.ContourGraph.OuterContoursBuilder(decontour);
 
             const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
             for (const region of regions) {
