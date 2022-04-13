@@ -38,6 +38,7 @@ test('basic move and click', async () => {
     const move = new MouseEvent('pointermove', { clientX: 50, clientY: 50 });
     domElement.dispatchEvent(move);
     domElement.dispatchEvent(new MouseEvent('pointerdown'));
+    domElement.dispatchEvent(new MouseEvent('pointerup'));
     const { point } = await promise;
     expect(point).toApproximatelyEqual(new THREE.Vector3());
 });
@@ -57,6 +58,7 @@ test('execute with callback and preresult', async () => {
     const move = new MouseEvent('pointermove', { clientX: 50, clientY: 50 });
     domElement.dispatchEvent(move);
     domElement.dispatchEvent(new MouseEvent('pointerdown'));
+    domElement.dispatchEvent(new MouseEvent('pointerup'));
 
     promise.finish();
 });

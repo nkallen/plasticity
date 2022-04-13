@@ -627,13 +627,16 @@ export class OrbitControls extends THREE.EventDispatcher {
     private readonly dollyStart = new THREE.Vector2();
     private readonly dollyEnd = new THREE.Vector2();
     private readonly dollyDelta = new THREE.Vector2();
+    private readonly up = new THREE.Vector2(-1, -1);
     private handleMouseMoveDolly(event: PointerEvent) {
-        const { dollyStart, dollyEnd, dollyDelta } = this;
+        const { dollyStart, dollyEnd, dollyDelta, up } = this;
 
         dollyEnd.set(event.clientX, event.clientY);
         dollyDelta.subVectors(dollyEnd, dollyStart);
+        const sign = up.dot(dollyDelta);
+        const scale = this.zoomScale;
 
-        this.dolly(Math.sign(dollyDelta.y) > 0 ? 1 / this.zoomScale : this.zoomScale);
+        this.dolly(sign > 0 ? 1 / scale : scale);
 
         dollyStart.copy(dollyEnd);
         this.update();
