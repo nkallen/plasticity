@@ -126,7 +126,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint?: c3d.Placement3D, st
         rotatedY.Rotate(Y, Math.PI / 2);
         return planarizeLine(curve3d, rotatedY);
     } else if (curve3d.IsPlanar()) {
-        const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
+        const { curve2d, placement } = curve3d.GetPlaneCurve(false);
         const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
         return { curve: dup, placement };
     }

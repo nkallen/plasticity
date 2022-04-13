@@ -142,10 +142,13 @@ export default class ContourManager extends DatabaseProxy {
     }
 
     async rebuild() {
-        const curves = this.db.find(visual.SpaceInstance);
-        await this.transaction(async () => {
-            for (const curve of curves) this.addCurve(curve.view);
-        });
+        switch (this.state.tag) {
+            case 'none':
+                throw new Error("must call in transaction");
+            case 'transaction':
+                const curves = this.db.find(visual.SpaceInstance);
+                for (const curve of curves) this.addCurve(curve.view);
+        }
     }
 
     private placementsAffectedByTransaction(dirty: CurveSet, placements: Set<c3d.Placement3D>) {

@@ -80,7 +80,7 @@ export class HideUnselectedCommand extends cmd.CommandLike {
 
 export class InvertHiddenCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        const {scene, db} = this.editor;
+        const { scene, db } = this.editor;
         for (const { view } of db.findAll()) {
             scene.makeHidden(view, !scene.isHidden(view));
         }
@@ -112,6 +112,14 @@ export class ExportCommand extends cmd.CommandLike {
     }
 
     shouldAddToHistory(_: boolean) { return false }
+}
+
+export class ImportCommand extends cmd.CommandLike {
+    filePaths!: string[];
+
+    async execute(): Promise<void> {
+        await this.editor.importer.open(this.filePaths);
+    }
 }
 
 export class GroupSelectedCommand extends cmd.CommandLike {

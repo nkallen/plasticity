@@ -15,6 +15,7 @@ import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import { Scene } from "../editor/Scene";
+import { ImporterExporter } from "../editor/ImporterExporter";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -57,6 +58,7 @@ export interface EditorLike {
     keymaps: AtomKeymap.KeymapManager,
     highlighter: RenderedSceneBuilder,
     scene: Scene,
+    importer: ImporterExporter,
 }
 
 export default abstract class Command extends CancellableRegistor {

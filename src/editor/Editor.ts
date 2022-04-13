@@ -6,6 +6,7 @@ import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
 import { GizmoMaterialDatabase } from "../command/GizmoMaterials";
 import { SelectionCommandManager } from "../command/SelectionCommandManager";
+import { ExportCommand, ImportCommand } from "../commands/CommandLike";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
@@ -77,7 +78,7 @@ export class Editor {
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
-    readonly importer = new ImporterExporter(this);
+    readonly importer = new ImporterExporter(this._db, this.contours);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
 
@@ -133,7 +134,9 @@ export class Editor {
                 { name: 'C3D files', extensions: ['c3d'] }
             ]
         });
-        this.importer.open(filePaths);
+        const command = new ImportCommand(this);
+        command.filePaths = filePaths;
+        this.enqueue(command);
     }
 
     async export() {
@@ -148,7 +151,13 @@ export class Editor {
         });
         if (canceled) return;
         const memento = this._db.saveToMemento().model;
-        this.importer.export(memento, filePath!);
+        if (/\.obj$/.test(filePath!)) {
+            const command = new ExportCommand(this);
+            command.filePath = filePath!;
+            this.enqueue(command);
+        } else {
+            this.importer.export(memento, filePath!);
+        }
     }
 
     private async undo() {

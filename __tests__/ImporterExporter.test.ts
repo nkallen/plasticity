@@ -24,7 +24,7 @@ beforeEach(() => {
     db = editor._db;
     materials = editor.materials;
     signals = editor.signals;
-    importer = new ImporterExporter(editor);
+    importer = new ImporterExporter(editor._db, editor.contours);
 });
 
 test("export & import c3d", async () => {
@@ -41,6 +41,8 @@ test("export & import c3d", async () => {
     const filePath = path.join(dir, 'export.c3d');
     await importer.export(model, filePath);
 
-    await importer.open([filePath]);
+    await editor.contours.transaction(() => 
+        importer.open([filePath])
+    );
     expect(db.items.length).toBe(1);
 })
