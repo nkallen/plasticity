@@ -337,6 +337,7 @@ export function mergeBufferAttributes(attributes: Float32Array[]) {
     const array = new Float32Array(arrayLength);
     let offset = 0;
     for (const attribute of attributes) {
+        if (attribute.length == 0) continue;
         array.set(attribute, offset);
         offset += attribute.length;
     }
