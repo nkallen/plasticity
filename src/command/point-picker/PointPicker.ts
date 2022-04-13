@@ -198,7 +198,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
-                const onPointerDown = (e: PointerEvent) => {
+                const onPointerUp = (e: PointerEvent) => {
                     if (e.button != 0) return;
                     if (isNavigating) return;
 
@@ -241,11 +241,11 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 disposables.add(d, f);
 
                 domElement.addEventListener('pointermove', onPointerMove);
-                domElement.addEventListener('pointerdown', onPointerDown);
+                domElement.addEventListener('pointerup', onPointerUp);
                 document.addEventListener('keydown', onKeyDown);
                 document.addEventListener('keyup', onKeyUp);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
+                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerUp)));
                 disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
             }
