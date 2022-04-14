@@ -60,7 +60,7 @@ export default (editor: Editor) => {
             const anySettingsForThisSpecificItem = hidden || !visible || !selectable;
             const result =
                 <div
-                    class={`flex gap-1 pr-3 overflow-hidden items-center rounded-md group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600'}`} style={`padding-left: ${4 + indentSize * indent}px`}
+                    class={`flex gap-1 pr-3 overflow-hidden items-center group ${isDisplayed ? '' : 'opacity-50'}  ${isSelected ? 'bg-accent-600 hover:bg-accent-500' : 'hover:bg-neutral-600 hover:rounded'}`} style={`padding-left: ${4 + indentSize * indent}px`}
                     onClick={e => { if (isDisplayed) this.select(e); }}
                     onPointerMove={e => { if (isDisplayed) this.hover(e) }}
                 >

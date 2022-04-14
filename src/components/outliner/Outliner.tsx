@@ -70,7 +70,31 @@ export default (editor: Editor) => {
         render = () => {
             const { scene, scene: { root }, selection: { selected } } = editor;
             const flattened = flatten(root, scene, scene.visibility, this.expandedGroups);
-            const result = flattened.map((item) => {
+
+
+            const firstSelected = new Set<number>(), lastSelected = new Set<number>();
+            FindContiguousBlocksOfSelectedItems: {
+                let prevSelected = false;
+                for (const [i, item] of flattened.entries()) {
+                    let isSelected = false;
+                    switch (item.tag) {
+                        case 'Group':
+                        case 'Item':
+                            const object = item.object;
+                            isSelected = selected.has(object);
+                            break;
+                        case 'CurveSection':
+                        case 'SolidSection':
+                            isSelected = false;
+                    }
+                    if (!prevSelected && isSelected) firstSelected.add(i);
+                    if (i > 0 && prevSelected && !isSelected) lastSelected.add(i - 1);
+                    prevSelected = isSelected;
+                }
+                if (prevSelected) lastSelected.add(flattened.length - 1);
+            }
+
+            const result = flattened.map((item, i) => {
                 const { indent, displayed: isDisplayed } = item;
                 switch (item.tag) {
                     case 'Group':
@@ -85,7 +109,10 @@ export default (editor: Editor) => {
                         const mat = scene.getMaterial(object);
                         const color = getColor(mat);
                         const name = scene.getName(object) ?? `${klass} ${object instanceof Group ? object.id : editor.db.lookupId(object.simpleName)}`;
-                        return <plasticity-outliner-item key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}></plasticity-outliner-item>
+                        return <plasticity-outliner-item
+                            class={`block ${firstSelected.has(i) ? 'rounded-t' : ''}  ${lastSelected.has(i) ? 'rounded-b' : ''} overflow-clip`}
+                            key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}
+                        ></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
                         const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
