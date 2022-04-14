@@ -100,6 +100,9 @@ module.exports = {
             minHeight: (theme) => ({
                 ...theme(`spacing`),
             }),
+            spacing: {
+                'icon': '18px',
+            }
         }
     },
     plugins: [],
