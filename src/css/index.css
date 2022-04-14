@@ -77,7 +77,7 @@
     }
 
     .select-box.intersects {
-        @apply border border-dashed border-supporting-600 bg-supporting-500 opacity-30;
+        @apply border border-dashed border-supporting-600 bg-supporting-400 opacity-30;
     }
 
     plasticity-button-group {
