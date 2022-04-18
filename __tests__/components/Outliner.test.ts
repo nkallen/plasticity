@@ -1,14 +1,12 @@
+import { flatten } from '../../src/components/outliner/FlattenOutline';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
-import { Groups } from '../../src/editor/Groups';
-import { flatten } from '../../src/components/outliner/FlattenOutline';
-import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Nodes } from '../../src/editor/Nodes';
+import { Scene, SceneDisplayInfo } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
-import { Scene, SceneDisplayInfo } from '../../src/editor/Scene';
 
 let db: GeometryDatabase;
 let nodes: Nodes;

@@ -8,6 +8,11 @@ import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 
+export interface EditCylinderParams {
+    radius: number;
+    height: number;
+}
+
 interface CylinderFactoryLike extends GeometryFactory {
     p0: THREE.Vector3;
     p1: THREE.Vector3;
@@ -42,11 +47,6 @@ export default class CylinderFactory extends GeometryFactory implements Cylinder
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, this.names);
         return sphere;
     }
-}
-
-export interface EditCylinderParams {
-    radius: number;
-    height: number;
 }
 
 export class EditableCylinderFactory extends GeometryFactory implements CylinderFactoryLike, EditCylinderParams {

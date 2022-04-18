@@ -6,6 +6,10 @@ import * as visual from "../../visual_model/VisualModel";
 
 export enum Mode { Horizontal, Vertical }
 
+export interface EditCircleParams {
+    radius: number;
+}
+
 export class CenterCircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
@@ -89,10 +93,6 @@ export class ThreePointCircleFactory extends GeometryFactory {
         const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, true);
         return point2point(circle.GetCentre());
     }
-}
-
-export interface EditCircleParams {
-    radius: number;
 }
 
 export class EditCircleFactory extends GeometryFactory implements EditCircleParams {

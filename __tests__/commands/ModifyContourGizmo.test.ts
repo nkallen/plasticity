@@ -3,16 +3,15 @@
  */
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { ModifyContourFactory } from "../../src/commands/modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "../../src/commands/modify_contour/ModifyContourGizmo";
-import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import { CancellablePromise } from "../../src/util/Cancellable";
+import { CancellablePromise } from "../../src/util/CancellablePromise";
 import { inst2curve, normalizeCurve } from "../../src/util/Conversion";
 import { Helpers } from "../../src/util/Helpers";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -30,7 +29,7 @@ beforeEach(() => {
     editor = new Editor();
     materials = editor.materials;
     signals = editor.signals;
-    db = editor.db;
+    db = editor._db;
     gizmos = editor.gizmos;
     helpers = editor.helpers;
 })

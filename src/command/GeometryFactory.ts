@@ -55,9 +55,6 @@ export type GeometryFactoryCache = Map<string, Promise<c3d.Item | c3d.Item[]>>;
  * end up in a coherent state. We could queue everything to do this, which would be simple but slow. Instead,
  * after every `await` check if the state has changed and if so perform whatever cleanup is necessary.
  * 
- * Finally, in the case of (temporary) failure, if the subclass implements a key() method, we store the last successful
- * value and try to return to that state whenever the user is done requesting updates. This works best
- * when a user exceeds some max value, (like a max fillet radius).
  */
 
 export abstract class AbstractGeometryFactory extends CancellableRegisterable {

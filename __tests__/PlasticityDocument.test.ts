@@ -138,19 +138,19 @@ describe(PlasticityDocument, () => {
         expect(db.items.length).toBe(0);
         expect(() => scene.getName(box1)).toThrow();
         expect(() => scene.getName(box2)).toThrow();
-        expect(() => scene.groups.list(group)).toThrow();
+        expect(() => scene.list(group)).toThrow();
 
         await PlasticityDocument.load(json, c3d, originator);
         expect(db.items.length).toBe(2);
 
-        const root = scene.groups.root;
+        const root = scene.root;
         const g1 = new Group(1);
-        const rootChildren = scene.groups.list(root);
+        const rootChildren = scene.list(root);
         expect(rootChildren.length).toBe(2);
         expect(rootChildren[0]).toEqual({ item: db.items[1].view, tag: "Item" });
         expect(rootChildren[1]).toEqual({ group: g1, tag: "Group" });
 
-        const groupChildren = scene.groups.list(g1);
+        const groupChildren = scene.list(g1);
         expect(groupChildren.length).toBe(1);
         expect(groupChildren[0]).toEqual({ item: db.items[0].view, tag: "Item" });
     });
