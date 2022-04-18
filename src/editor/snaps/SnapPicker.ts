@@ -2,17 +2,16 @@ import * as THREE from "three";
 import { Viewport } from "../../components/viewport/Viewport";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
-import { DatabaseLike } from "../DatabaseLike";
-import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
-import { CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "./Snaps";
+import { Scene } from "../Scene";
 import { AxisSnap, axisSnapMaterial } from "./AxisSnap";
+import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PlaneSnap } from "./PlaneSnap";
 import { PointSnap } from "./PointSnap";
 import { Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
-import { Scene } from "../Scene";
+import { CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "./Snaps";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under

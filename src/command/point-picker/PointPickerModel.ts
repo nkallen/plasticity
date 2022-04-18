@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import CommandRegistry from '../../components/atom/CommandRegistry';
 import { CrossPoint, CrossPointDatabase } from '../../editor/curves/CrossPointDatabase';
 import { DatabaseLike } from "../../editor/DatabaseLike";

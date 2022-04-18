@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { Viewport } from "../../components/viewport/Viewport";
-import { DatabaseLike } from "../DatabaseLike";
+import { Scene } from "../Scene";
+import { GizmoSnapPickerStrategy } from "./GizmoSnapPickerStrategy";
 import { PointSnap } from "./PointSnap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
-import { GizmoSnapPickerStrategy } from "./GizmoSnapPickerStrategy";
-import { SnapPicker, RaycasterParams, defaultIntersectParams, defaultNearbyParams, SnapResult } from "./SnapPicker";
-import { Scene } from "../Scene";
+import { defaultIntersectParams, defaultNearbyParams, RaycasterParams, SnapPicker, SnapResult } from "./SnapPicker";
 
 
 export class GizmoSnapPicker {

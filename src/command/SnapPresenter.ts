@@ -1,7 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
-import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import { Scene } from '../editor/Scene';
 import { ConstructionPlane } from "../editor/snaps/ConstructionPlaneSnap";

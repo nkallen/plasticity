@@ -3,13 +3,12 @@ import { Viewport } from "../../components/viewport/Viewport";
 import { RaycastableTopologyItem } from "../../visual_model/Intersectable";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
-import { DatabaseLike } from "../DatabaseLike";
-import { FaceSnap } from "./Snaps";
+import { Scene } from "../Scene";
 import { PointSnap } from "./PointSnap";
 import { Snap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { RaycasterParams, SnapResult } from "./SnapPicker";
-import { Scene } from "../Scene";
+import { FaceSnap } from "./Snaps";
 
 const defaultIntersectParams: RaycasterParams = {
     Line: { threshold: 0.1 },

@@ -1,4 +1,3 @@
-import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import * as gizmo from "../../command/AbstractGizmo";
 import { GizmoLike } from "../../command/AbstractGizmo";

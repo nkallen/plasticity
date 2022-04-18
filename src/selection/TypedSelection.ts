@@ -1,4 +1,4 @@
-import c3d from '../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { GroupId, Group } from '../editor/Groups';
 import { GConstructor } from '../util/Util';

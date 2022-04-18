@@ -2,7 +2,6 @@ import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
 import { PointPickerModel } from "../../command/point-picker/PointPickerModel";
 import { Viewport } from "../../components/viewport/Viewport";
-import { DatabaseLike } from "../DatabaseLike";
 import { Scene } from "../Scene";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PointPickerSnapPickerStrategy } from "./PointPickerSnapPickerStrategy";

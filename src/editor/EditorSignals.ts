@@ -1,5 +1,5 @@
 import signals from "signals";
-import c3d from '../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
 import { PointPickerModel } from "../command/point-picker/PointPickerModel";

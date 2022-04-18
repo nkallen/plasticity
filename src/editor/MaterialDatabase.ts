@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
 import { face_unhighlighted_matcap, region_unhighlighted } from "../visual_model/RenderedSceneBuilder";
 import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
@@ -22,9 +22,9 @@ export default interface MaterialDatabase extends MementoOriginator<MaterialMeme
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
 
-const line = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
+const line = new LineMaterial({ color: 0x0, linewidth: 1.4 });
 
-const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.3, dashed: true, dashScale: 100, dashSize: 100, gapSize: 100 });
+const line_dashed = new LineMaterial({ color: 0x0, linewidth: 0.3, dashed: true, dashScale: 100, dashSize: 100, gapSize: 100 });
 line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
 

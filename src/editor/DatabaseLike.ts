@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import * as visual from '../visual_model/VisualModel';
 import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
 import { SolidCopierPool } from './SolidCopier';

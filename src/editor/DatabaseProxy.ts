@@ -1,4 +1,4 @@
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { GConstructor } from "../util/Util";
 import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./DatabaseLike";
 import * as visual from "../visual_model/VisualModel";
