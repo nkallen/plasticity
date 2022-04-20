@@ -1,11 +1,13 @@
 import c3d from '../../../build/Release/c3d.node';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, polyline2contour, vec2vec } from '../../util/Conversion';
-import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
+import { Curve2dId, Transaction, Trim } from './ContourManager';
 import { EditorSignals } from '../EditorSignals';
 import { DatabaseLike } from "../DatabaseLike";
 import { CurveMemento, MementoOriginator } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import * as visual from "../../visual_model/VisualModel";
+import { PointOnCurve } from './CrossPointDatabase';
+
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();
@@ -327,3 +329,20 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     }
 }
 
+export class CurveInfo {
+    readonly touched = new Set<c3d.SimpleName>();
+    fragments = new Array<Promise<c3d.SimpleName>>();
+    readonly joints = new Joints();
+    constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
+}
+
+export class Joint {
+    constructor(
+        readonly on1: PointOnCurve,
+        readonly on2: PointOnCurve
+    ) { }
+}
+
+class Joints {
+    constructor(public start?: Joint, public stop?: Joint) { }
+}

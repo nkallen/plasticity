@@ -1,15 +1,7 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { point2point } from '../../util/Conversion';
 import { CrossPointMemento, MementoOriginator } from '../History';
-import { PointOnCurve, Transaction } from './ContourManager';
-
-export class CrossPoint {
-    constructor(
-        readonly position: THREE.Vector3,
-        readonly on1: PointOnCurve,
-        readonly on2: PointOnCurve
-    ) { }
-}
+import { Transaction } from './ContourManager';
 
 export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> {
     private readonly curve2touched = new Map<c3d.SimpleName, ReadonlySet<c3d.SimpleName>>();
@@ -157,4 +149,26 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
     }
 
     debug(): void { }
+}
+
+
+export class PointOnCurve {
+    constructor(
+        readonly id: c3d.SimpleName,
+        readonly t: number,
+        readonly tmin: number,
+        readonly tmax: number
+    ) { }
+
+    get isTmin() { return this.t === this.tmin }
+    get isTmax() { return this.t === this.tmax }
+}
+
+
+export class CrossPoint {
+    constructor(
+        readonly position: THREE.Vector3,
+        readonly on1: PointOnCurve,
+        readonly on2: PointOnCurve
+    ) { }
 }

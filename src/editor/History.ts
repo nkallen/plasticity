@@ -3,7 +3,7 @@ import * as c3d from '../kernel/kernel';
 import { ProxyCamera } from '../components/viewport/ProxyCamera';
 import { RefCounter } from '../util/Util';
 import * as visual from "../visual_model/VisualModel";
-import ContourManager, { CurveInfo } from './curves/ContourManager';
+import ContourManager from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
@@ -12,6 +12,7 @@ import { NodeKey } from "./Nodes";
 import { Scene } from "./Scene";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
+import { CurveInfo } from "./curves/PlanarCurveDatabase";
 
 export class Memento {
     constructor(

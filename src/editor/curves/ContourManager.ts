@@ -1,4 +1,4 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { DatabaseProxy } from '../DatabaseProxy';
 import { GeometryDatabase } from '../GeometryDatabase';
 import * as visual from "../../visual_model/VisualModel";
@@ -19,13 +19,6 @@ import { EditorSignals } from '../EditorSignals';
  * efficient, of course. But equally importantly, you have to worry about cases where removing one curve "dirties" the
  * intersections of another curve, and if that curve is also deleted in parallel, everything goes wrong.
  */
-
-export class CurveInfo {
-    readonly touched = new Set<c3d.SimpleName>();
-    fragments = new Array<Promise<c3d.SimpleName>>();
-    readonly joints = new Joints();
-    constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
-}
 
 export type Curve2dId = bigint;
 export type Trim = { trimmed: c3d.Curve, start: number, stop: number };
@@ -157,27 +150,4 @@ export default class ContourManager extends DatabaseProxy {
             if (info !== undefined) placements.add(info.placement);
         }
     }
-}
-
-export class PointOnCurve {
-    constructor(
-        readonly id: c3d.SimpleName,
-        readonly t: number,
-        readonly tmin: number,
-        readonly tmax: number
-    ) { }
-
-    get isTmin() { return this.t === this.tmin }
-    get isTmax() { return this.t === this.tmax }
-}
-
-export class Joint {
-    constructor(
-        readonly on1: PointOnCurve,
-        readonly on2: PointOnCurve
-    ) { }
-}
-
-class Joints {
-    constructor(public start?: Joint, public stop?: Joint) { }
 }
