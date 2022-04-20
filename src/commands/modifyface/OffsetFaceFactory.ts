@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { delegate } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';

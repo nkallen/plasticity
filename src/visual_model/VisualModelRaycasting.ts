@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { RaycasterParams } from "../editor/snaps/SnapPicker";
 import { point2point, vec2vec } from '../util/Conversion';
 import { RaycastableTopologyItem } from "./Intersectable";

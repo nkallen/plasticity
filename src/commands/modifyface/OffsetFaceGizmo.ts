@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { AbstractAxisGizmo, AngleGizmo, AxisHelper, CompositeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, sphereGeometry } from "../../command/MiniGizmos";

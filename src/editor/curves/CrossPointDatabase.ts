@@ -53,7 +53,7 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         return newCrosses;
     }
 
-    calculate(name: c3d.SimpleName, curve: c3d.Curve3D): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
+    private calculate(name: c3d.SimpleName, curve: c3d.Curve3D): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
         const { allCurves } = this;
         const touched = new Set<c3d.SimpleName>();
 

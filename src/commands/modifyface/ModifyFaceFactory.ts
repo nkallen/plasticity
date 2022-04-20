@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
