@@ -110,7 +110,6 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<T> {
             this.quaternion.identity();
             super.update(camera);
             this.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
-            this.updateMatrixWorld();
         } else {
             super.update(camera);
         }
@@ -478,7 +477,6 @@ export class DistanceGizmo extends AbstractAxisGizmo {
         shaft.scale.y = shaftLength;
         tip.position.set(0, shaftLength, 0);
         knob.position.copy(tip.position);
-        tip.updateMatrixWorld(); shaft.updateMatrixWorld();
     }
 }
 
@@ -688,9 +686,11 @@ export class NumberHelper extends THREE.Object3D implements GizmoHelper<number>,
     interrupt() { this.onEnd() }
 }
 
-export class AxisHelper extends THREE.Line implements GizmoHelper<any>, CancellableRegisterable {
-    constructor(material: THREE.LineBasicMaterial, stateless = false) {
-        super(axisGeometry, material);
+export class AxisHelper extends Helper implements GizmoHelper<any>, CancellableRegisterable {
+    private readonly line = new THREE.Line(axisGeometry, this.material);
+
+    constructor(private readonly material: THREE.LineBasicMaterial, stateless = false) {
+        super();
         this.visible = stateless;
     }
     onStart(viewport: Viewport, position: THREE.Vector2) {

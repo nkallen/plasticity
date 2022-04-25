@@ -51,7 +51,6 @@ export abstract class Helper extends THREE.Object3D {
         } else throw new Error("invalid camera type");
         factor *= 1 / 11;
         object.scale.multiplyScalar(factor);
-        object.updateMatrixWorld();
         return factor;
     }
 }
@@ -83,11 +82,11 @@ export class Helpers {
             new THREE.Color(styles.colors.blue[600]).convertSRGBToLinear());
     }
 
-    add(...objects: THREE.Object3D[]) {
+    add(...objects: Helper[]) {
         this.scene.add(...objects);
     }
 
-    remove(...objects: THREE.Object3D[]) {
+    remove(...objects: Helper[]) {
         this.scene.remove(...objects);
     }
 

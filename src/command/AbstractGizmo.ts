@@ -149,6 +149,13 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
 
                 const trigger = this.trigger.register(this, viewport, addEventHandlers);
                 disposables.add(trigger);
+
+                // Replay last move event to trigger a hover IF the gizmo appears right under the cursor
+                if (viewport.lastPointerEvent !== undefined) {
+                    stateMachine.update(viewport, viewport.lastPointerEvent);
+                    stateMachine.pointerHover();
+                }
+
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const dispose = () => {
@@ -328,6 +335,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
         this._viewport = viewport;
         this.camera = camera;
         this.gizmo.update(camera);
+        this.gizmo.updateMatrixWorld();
         this.cameraPlane.position.copy(this.gizmo.position);
         this.cameraPlane.quaternion.copy(camera.quaternion);
         this.cameraPlane.updateMatrixWorld();

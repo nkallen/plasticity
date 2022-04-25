@@ -182,6 +182,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.scene.background = this.backgroundColor;
         this.scene.autoUpdate = false;
+        this.helpersScene.autoUpdate = false;
         this.multiplexer.push(this.points, this.selector);
     }
 
@@ -298,9 +299,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const resolution = new THREE.Vector2(domElement.offsetWidth, domElement.offsetHeight);
             signals.renderPrepared.dispatch({ camera, resolution });
-            helpersScene.traverse(child => { if (child instanceof Helper) child.update(camera) });
+            helpersScene.traverse(child => { if (child instanceof Helper) child.update(camera); child.updateMatrixWorld() });
             // FIXME: this is inefficient
-            scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
+            scene.traverse(child => { if (child instanceof Helper) child.update(camera); child.updateMatrixWorld() });
 
             camera.layers = this.editor.layers.visible as THREE.Layers;
             composer.render();
