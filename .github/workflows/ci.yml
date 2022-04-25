@@ -68,6 +68,7 @@ jobs:
           curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
           "@
   linux:
+    needs: windows
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -120,6 +121,7 @@ jobs:
           sudo snap install snapcraft --classic
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
   mac-intel:
+    needs: windows
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -171,6 +173,7 @@ jobs:
         run: |
           yarn publish
   mac-arm:
+    needs: windows
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
