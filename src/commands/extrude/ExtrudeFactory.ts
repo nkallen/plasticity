@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { delegate, derive } from "../../command/FactoryBuilder";
 import { NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
@@ -7,8 +7,7 @@ import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversi
 import * as visual from '../../visual_model/VisualModel';
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanFactory } from "../boolean/PossiblyBooleanFactory";
-import { SweptParams } from "../evolution/RevolutionFactory";
-import { SweepFactory } from "../evolution/SweepFactory";
+import { SweepFactory, SweptParams } from "../evolution/SweepFactory";
 
 export interface ExtrudeParams extends SweptParams {
     distance1: number;

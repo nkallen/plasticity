@@ -1,10 +1,8 @@
 import c3d from '../../../build/Release/c3d.node';
 import { derive } from "../../command/FactoryBuilder";
-import { GeometryDatabase } from '../../editor/GeometryDatabase';
 import { composeMainName, unit } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { SweptParams } from "./RevolutionFactory";
-import { SweepFactory } from "./SweepFactory";
+import { SweepFactory, SweptParams } from "./SweepFactory";
 
 export interface EvolutionParams extends SweptParams {
     mode: Mode;

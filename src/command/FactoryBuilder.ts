@@ -1,6 +1,6 @@
 import { GeometryFactory } from './GeometryFactory';
 import * as visual from '../visual_model/VisualModel';
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { inst2curve } from '../util/Conversion';
 import { SolidCopierPool } from '../editor/SolidCopier';
 

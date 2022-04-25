@@ -20,8 +20,6 @@ import { EditorSignals } from '../EditorSignals';
  * intersections of another curve, and if that curve is also deleted in parallel, everything goes wrong.
  */
 
-export type Curve2dId = bigint;
-export type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 export type Transaction = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
 type CurveSet = Set<c3d.SimpleName>;
 type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }

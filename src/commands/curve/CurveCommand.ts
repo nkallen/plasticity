@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/point-picker/PointPicker";
 import { PointSnap } from "../../editor/snaps/PointSnap";

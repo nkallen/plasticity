@@ -1,9 +1,14 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { composeMainName, normalizePlacement, point2point } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { SweptParams } from "./RevolutionFactory";
+
+export interface SweptParams {
+    thickness: number;
+    thickness1: number;
+    thickness2: number;
+}
 
 export abstract class SweepFactory extends GeometryFactory implements SweptParams {
     thickness1 = 0;

@@ -1,11 +1,9 @@
-import c3d from '../../../build/Release/c3d.node';
-import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, polyline2contour, vec2vec } from '../../util/Conversion';
-import { Curve2dId, Transaction, Trim } from './ContourManager';
-import { EditorSignals } from '../EditorSignals';
+import * as c3d from '../../kernel/kernel';
+import { curve3d2curve2d, isSamePlacement, normalizePlacement, polyline2contour } from '../../util/Conversion';
+import * as visual from "../../visual_model/VisualModel";
 import { DatabaseLike } from "../DatabaseLike";
 import { CurveMemento, MementoOriginator } from '../History';
-import MaterialDatabase from '../MaterialDatabase';
-import * as visual from "../../visual_model/VisualModel";
+import { Transaction } from './ContourManager';
 import { PointOnCurve } from './CrossPointDatabase';
 
 
@@ -15,8 +13,6 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals
     ) {
         const origin = new c3d.CartPoint3D(0, 0, 0);
         const X = new c3d.Vector3D(1, 0, 0);
@@ -74,10 +70,11 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const promises = [];
         while (curvesToProcess.size > 0) {
             const [id, current] = curvesToProcess.entries().next().value as [bigint, c3d.Curve];
+            curvesToProcess.delete(id);
             const name = planar2instance.get(id)!;
             const { view } = db.lookupItemById(name);
+            if (visited.has(id)) continue;
             visited.add(id);
-            curvesToProcess.delete(id);
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allCoplanarCurves, true);
 
@@ -143,9 +140,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
                 }
                 start = stop;
 
-                if (!visited.has(otherId)) {
-                    curvesToProcess.set(otherId, other);
-                }
+                curvesToProcess.set(otherId, other);
             }
 
             promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, trims, placement));
@@ -346,3 +341,6 @@ export class Joint {
 class Joints {
     constructor(public start?: Joint, public stop?: Joint) { }
 }
+
+export type Curve2dId = bigint;
+export type Trim = { trimmed: c3d.Curve, start: number, stop: number };

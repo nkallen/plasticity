@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point, unit, vec2vec } from '../../util/Conversion';
-import { SweepFactory } from "./SweepFactory";
+import { SweepFactory, SweptParams } from "./SweepFactory";
 
 export interface RevolutionParams extends SweptParams {
     origin: THREE.Vector3;
@@ -14,12 +14,6 @@ export interface RevolutionParams extends SweptParams {
 }
 
 export enum Shape { Torus = 0, Sphere = 1 }
-
-export interface SweptParams {
-    thickness: number;
-    thickness1: number;
-    thickness2: number;
-}
 
 export class RevolutionFactory extends SweepFactory implements RevolutionParams {
     origin!: THREE.Vector3;

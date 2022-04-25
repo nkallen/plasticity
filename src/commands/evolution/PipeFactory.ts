@@ -5,9 +5,9 @@ import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import { MaterialOverride } from "../../editor/DatabaseLike";
 import { composeMainName, inst2curve, point2point, toArray, unit, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { BooleanFactory, MultiBooleanFactory, phantom_blue, phantom_green, phantom_red } from '../boolean/BooleanFactory';
+import { MultiBooleanFactory, phantom_blue, phantom_green, phantom_red } from '../boolean/BooleanFactory';
 import { PossiblyBooleanFactory } from '../boolean/PossiblyBooleanFactory';
-import { SweptParams } from "./RevolutionFactory";
+import { SweptParams } from "./SweepFactory";
 
 export interface PipeParams extends SweptParams {
     sectionSize: number;

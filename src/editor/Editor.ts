@@ -54,7 +54,7 @@ export class Editor {
     readonly meshCreator = new DoCacheMeshCreator(new ParallelMeshCreator(), this.copier);
     readonly _db = new GeometryDatabase(this.meshCreator, this.copier, this.materials, this.signals);
 
-    readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
+    readonly curves = new PlanarCurveDatabase(this._db);
     readonly regions = new RegionManager(this._db, this.curves);
     readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
     readonly db = this.contours as DatabaseLike;

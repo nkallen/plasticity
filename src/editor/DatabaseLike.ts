@@ -27,7 +27,8 @@ export interface MaterialOverride {
 }
 
 export interface DatabaseLike {
-    get version(): number; addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    get version(): number;
+    addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;

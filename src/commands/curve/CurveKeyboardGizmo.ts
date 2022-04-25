@@ -1,5 +1,5 @@
 import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 
 const commands = new Array<string>();
 const map: Record<string, number> = {
