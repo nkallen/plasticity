@@ -44,7 +44,7 @@ beforeEach(() => {
     scene = new Scene(db, materials, signals);
     crosses = new CrossPointDatabase();
     snaps = new SnapManager(db, scene, crosses, signals);
-    curves = new PlanarCurveDatabase(db, materials, signals);
+    curves = new PlanarCurveDatabase(db);
     originator = new EditorOriginator(db, scene, materials, selectionDb.selected, snaps, crosses, curves, contours, []);
 });
 

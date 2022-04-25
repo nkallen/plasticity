@@ -35,7 +35,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     scene = new Scene(db, materials, signals);
-    curves = new PlanarCurveDatabase(db, materials, signals);
+    curves = new PlanarCurveDatabase(db);
     regions = new RegionManager(db, curves);
     contours = new ContourManager(db, curves, regions, signals);
 })

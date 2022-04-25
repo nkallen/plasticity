@@ -21,7 +21,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    curves = new PlanarCurveDatabase(db, materials, signals);
+    curves = new PlanarCurveDatabase(db);
     regions = new RegionManager(db, curves);
 });
 
