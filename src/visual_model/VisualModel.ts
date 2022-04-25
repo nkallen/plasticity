@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { deunit } from "../util/Conversion";
 import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
 import { BetterRaycastingPoints } from "./VisualModelRaycasting";
@@ -297,10 +297,15 @@ export class CurveEdge extends Edge {
         this.layers.set(Layers.CurveEdge);
     }
 
-    slice(kind: 'line' | 'line2' = 'line2') {
+    slice(): LineSegments2;
+    slice(kind: 'line'): THREE.Line;
+    slice(kind: 'line2'): LineSegments2;
+    slice(kind: 'line' | 'line2' = 'line2'): LineSegments2 | THREE.Line {
         if (kind == 'line') return this.parentItem.edges.slice([this], kind);
         else return this.parentItem.edges.slice([this], kind);
     }
+
+    get uuid() { return this.simpleName }
 
     dispose() { }
 }
@@ -345,6 +350,7 @@ export class Face extends TopologyItem {
     static simpleName(parentId: c3d.SimpleName, index: number) {
         return `face,${parentId},${index}`;
     }
+    get uuid() { return this.simpleName }
 
     constructor(readonly group: Readonly<GeometryGroup>, readonly grid: c3d.Grid, userData: { simpleName: string, index: number }) {
         super(userData.simpleName, userData.index);

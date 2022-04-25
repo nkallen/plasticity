@@ -16,12 +16,14 @@ declare module './VisualModel' {
     interface Face {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
+        getBoundingBox(): THREE.Box3;
     }
 
     interface CurveEdge {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
         boundingSphere?: THREE.Sphere;
+        getBoundingBox(): THREE.Box3;
     }
 
     interface CurveSegment {
@@ -78,6 +80,16 @@ Solids: {
         const cube = grid.GetCube();
         const { pmin, pmax } = cube;
         this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
+    }
+
+    Face.prototype.getBoundingBox = function () {
+        if (this.boundingBox === undefined) this.computeBoundingBox();
+        const bbox = this.boundingBox!.clone();
+
+        const parent = this.parent as FaceGroup;
+        const { matrixWorld } = parent.mesh;
+        bbox.applyMatrix4(matrixWorld);
+        return bbox;
     }
 
     Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -171,6 +183,16 @@ Solids: {
         }
     }
 
+    CurveEdge.prototype.getBoundingBox = function() {
+        if (this.boundingBox === undefined) this.computeBoundingBox();
+        const bbox = this.boundingBox!.clone();
+
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const line = parent.line;
+        bbox.applyMatrix4(line.matrixWorld);
+        return bbox;
+    }
+
     CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const parent = this.parent as CurveGroup<CurveEdge>;
         const line = parent.line;
@@ -204,7 +226,7 @@ Solids: {
         raycaster.intersectObject(_lineSegments, false, is);
 
         for (const i of is) {
-            intersects.push({ 
+            intersects.push({
                 ...i,
                 object: raycastableTopologyItem,
                 // @ts-expect-error

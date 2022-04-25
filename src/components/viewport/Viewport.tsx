@@ -568,8 +568,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     focus() {
-        const { solids, curves, regions, controlPoints } = this.editor.selection.selected;
-        this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints], this.editor.scene.visibleObjects);
+        const { solids, curves, regions, controlPoints, faces, edges } = this.editor.selection.selected;
+        this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints, ...edges, ...faces], this.editor.scene.visibleObjects);
     }
 
     validate() {

@@ -127,7 +127,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     private readonly sphere = new THREE.Sphere();
     private readonly size = new THREE.Vector3();
     private lastFingerprint = "";
-    focus(targets: THREE.Object3D[], everything: THREE.Object3D[]) {
+    focus(targets: FocusableObject[], everything: THREE.Object3D[]) {
         if (this.fingerprint(targets) == this.lastFingerprint) {
             this.lastFingerprint = this._focus(everything);
         } else {
@@ -135,10 +135,13 @@ export class OrbitControls extends THREE.EventDispatcher {
         }
     }
 
-    private _focus(targets: THREE.Object3D[]) {
+    private _focus(targets: FocusableObject[]) {
         const { box, object, target, spherical, minZoom, maxZoom, sphere } = this;
         box.makeEmpty();
-        for (const target of targets) box.expandByObject(target);
+        for (const target of targets) {
+            if (target instanceof THREE.Object3D) box.expandByObject(target);
+            else box.union(target.getBoundingBox())
+        }
         if (box.isEmpty()) {
             this.reset();
             return "";
@@ -162,7 +165,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         return this.fingerprint(targets);
     }
 
-    private fingerprint(targets: THREE.Object3D[]) {
+    private fingerprint(targets: { uuid: string }[]) {
         const uuids = targets.map(t => t.uuid).join(',');
         const target = this.target.toArray().join(',');
         const offset = this.panOffset.toArray().join(',');
@@ -654,3 +657,5 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.update();
     }
 }
+
+export type FocusableObject = THREE.Object3D | { uuid: string, getBoundingBox(): THREE.Box3 }
