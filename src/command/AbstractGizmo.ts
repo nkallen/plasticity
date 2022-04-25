@@ -86,6 +86,8 @@ export abstract class AbstractGizmo<I> extends Helper implements Executable<I, v
     abstract onInterrupt(cb: (i: I) => void): void;
     onDeactivate() { }
     onActivate() { }
+    onEnabled() { }
+    onDisabled() { }
 
     execute(cb: (i: I) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
@@ -288,7 +290,13 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
         if (isActive) this.gizmo.onActivate();
         else this.gizmo.onDeactivate();
     }
-    isEnabled = true;
+    private _isEnabled = true;
+    get isEnabled() { return this._isEnabled }
+    set isEnabled(isEnabled: boolean) {
+        this._isEnabled = isEnabled;
+        if (isEnabled) this.gizmo.onEnabled();
+        else this.gizmo.onDisabled();
+    }
 
     state: State = { tag: 'none' };
     event!: MouseEvent;

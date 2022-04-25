@@ -5,7 +5,7 @@ import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
 export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<P, void> {
-    private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
+    private readonly gizmos: [AbstractGizmo<any>, (a: any) => void, boolean][] = [];
 
     constructor(protected readonly params: P, protected readonly editor: EditorLike) {
         super();
@@ -23,12 +23,13 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<P, v
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         const cancellables = [];
-        for (const [gizmo, miniCallback] of this.gizmos) {
+        for (const [gizmo, miniCallback, isEnabled] of this.gizmos) {
             const executingGizmo = gizmo.execute((x: any) => {
                 miniCallback(x);
                 compositeCallback(this.params);
             }, mode);
             cancellables.push(executingGizmo);
+            if (!isEnabled) gizmo.stateMachine!.isEnabled = isEnabled;
         }
 
         const all = CancellablePromise.all(cancellables);
@@ -36,8 +37,8 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<P, v
         return all;
     }
 
-    addGizmo<T>(gizmo: AbstractGizmo<T>, cb: (t: T) => void) {
-        this.gizmos.push([gizmo, cb]);
+    addGizmo<T>(gizmo: AbstractGizmo<T>, cb: (t: T) => void, isEnabled = true) {
+        this.gizmos.push([gizmo, cb, isEnabled]);
         gizmo.addEventListener('start', () => this.deactivateGizmosExcept(gizmo));
         gizmo.addEventListener('end', () => this.activateGizmos());
     }

@@ -35,7 +35,6 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         main.position.copy(point);
         stretchFillet.position.copy(point);
         stretchChamfer.position.copy(point);
-        angle.visible = false;
 
         main.relativeScale.setScalar(0.8);
         angle.relativeScale.setScalar(0.5);
@@ -62,26 +61,26 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
                 stretchFillet.value = length;
                 stretchChamfer.value = -length;
             }
-            this.angle.stateMachine!.isEnabled = this.showAngle;
+            angle.stateMachine!.isEnabled = this.shouldShowAngle;
         });
 
         this.addGizmo(stretchFillet, length => {
             params.distance = length;
             main.value = length;
             stretchChamfer.value = -length;
-            this.angle.stateMachine!.isEnabled = this.showAngle;
+            angle.stateMachine!.isEnabled = this.shouldShowAngle;
         });
 
         this.addGizmo(stretchChamfer, length => {
             params.distance = length;
             main.value = length;
             stretchFillet.value = -length;
-            this.angle.stateMachine!.isEnabled = this.showAngle;
+            angle.stateMachine!.isEnabled = this.shouldShowAngle;
         });
 
         this.addGizmo(angle, angle => {
             params.distance2 = params.distance1 * Math.tan(angle);
-        });
+        }, false);
 
         return super.execute(cb, Mode.Persistent);
     }
@@ -102,7 +101,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         }
     }
 
-    get showAngle() {
+    get shouldShowAngle(): boolean {
         return Math.abs(this.params.distance1) + Math.abs(this.params.distance2) > 0
     }
 
@@ -207,6 +206,9 @@ class FilletAngleGizmo extends AngleGizmo {
     }
 
     get shouldRescaleOnZoom() { return false }
+
+    onEnabled() { this.visible = true }
+    onDisabled() { this.visible = false }
 }
 
 class FilletStretchGizmo extends AbstractAxialScaleGizmo {
