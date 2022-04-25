@@ -107,13 +107,15 @@ export class ExportFactory extends GeometryFactory {
 
         const scene = new THREE.Scene();
         for (const object of objects) {
-            const geometries = [];
+            const geometries: THREE.BufferGeometry[] = [];
             for (const child of object.children) {
                 const line = child as THREE.LineSegments;
-                const geometry = line.userData.geometry;
+                const geometry = line.userData.geometry as THREE.BufferGeometry;
+                if (geometry.attributes.position.array.length === 0) continue;
                 geometries.push(geometry);
             }
             const merged = BufferGeometryUtils.mergeBufferGeometries(geometries);
+            merged.scale(deunit(1), deunit(1), deunit(1));
             const mesh = new THREE.Mesh(merged);
             mesh.scale.setScalar(deunit(1));
             scene.add(mesh);
