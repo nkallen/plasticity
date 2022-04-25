@@ -74,15 +74,21 @@ function findAllVeryCloseTogether<T extends THREE.Intersection>(intersections: T
     return result;
 }
 
-function sort(i1: IntersectableWithTopologyItem & Unprojected, i2: IntersectableWithTopologyItem & Unprojected) {
+function sort(i1: IntersectableWithTopologyItem & Unprojected, i2: IntersectableWithTopologyItem & Unprojected): number {
     const o1 = i1.object, o2 = i2.object;
     const t1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem : o1;
     const t2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem : o2;
     const p1 = t1.priority, p2 = t2.priority;
-    if (p1 === p2) {
+    if (Math.trunc(p1) === Math.trunc(p2)) {
         if (t1 instanceof CurveEdge && t2 instanceof CurveEdge) {
             return i1.dist2d - i2.dist2d;
-        } else return 0;
+        } else {
+            const delta = i1.distance - i2.distance;
+            if (Math.abs(delta) < 10e-5) {
+                if (p1 != p2) return p1 - p2;
+                else return delta;
+            } else return delta;
+        }
     } else return p1 - p2;
 }
 
@@ -97,7 +103,7 @@ ControlPoint.prototype.priority = 1;
 Curve3D.prototype.priority = 2;
 CurveEdge.prototype.priority = 3;
 Region.prototype.priority = 4;
-Face.prototype.priority = 5;
+Face.prototype.priority = 4.1;
 
 function raycastable2intersectable(sorted: THREE.Intersection<intersectable.Raycastable>[]): intersectable.Intersection[] {
     const result = [];
