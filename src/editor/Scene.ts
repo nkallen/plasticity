@@ -7,7 +7,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { HideMode, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
+import { HideMode, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 /**
@@ -235,7 +235,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return this.nodeDekey2GroupListing(members);
     }
 
-    private nodeDekey2GroupListing(members: import("/Users/nickkallen/Documents/plasticity/src/editor/Nodes").NodeDekey[]) {
+    private nodeDekey2GroupListing(members: NodeDekey[]) {
         const result = [];
         for (const { tag, id } of members) {
             switch (tag) {
