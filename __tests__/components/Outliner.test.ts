@@ -3,6 +3,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { Empties } from '../../src/editor/Empties';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import { Groups } from '../../src/editor/Groups';
+import { Images } from '../../src/editor/Images';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Nodes } from '../../src/editor/Nodes';
 import { Scene, SceneDisplayInfo } from '../../src/editor/Scene';
@@ -17,15 +18,17 @@ let signals: EditorSignals;
 let scene: Scene;
 let groups: Groups;
 let empties: Empties;
+let images: Images;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     groups = new Groups(signals);
-    empties = new Empties(signals);
+    images = new Images();
+    empties = new Empties(images, signals);
     nodes = new Nodes(db, groups, empties, materials, signals);
-    scene = new Scene(db, materials, signals);
+    scene = new Scene(db, empties, materials, signals);
 })
 
 const info: SceneDisplayInfo = { visibleItems: new Set(), visibleGroups: new Set() }

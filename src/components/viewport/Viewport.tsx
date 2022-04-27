@@ -204,6 +204,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.objectAdded.add(this.setNeedsRender);
         this.editor.signals.objectRemoved.add(this.setNeedsRender);
         this.editor.signals.objectReplaced.add(this.setNeedsRender);
+        this.editor.signals.emptyAdded.add(this.setNeedsRender);
+        this.editor.signals.emptyRemoved.add(this.setNeedsRender);
         this.editor.signals.itemMaterialChanged.add(this.setNeedsRender);
         this.editor.signals.factoryUpdated.add(this.setNeedsRender);
         this.editor.signals.factoryCancelled.add(this.setNeedsRender);
@@ -242,6 +244,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.objectAdded.remove(this.setNeedsRender);
             this.editor.signals.objectRemoved.remove(this.setNeedsRender);
             this.editor.signals.objectReplaced.remove(this.setNeedsRender);
+            this.editor.signals.emptyAdded.remove(this.setNeedsRender);
+            this.editor.signals.emptyRemoved.remove(this.setNeedsRender);    
             this.editor.signals.itemMaterialChanged.remove(this.setNeedsRender);
             this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
             this.editor.signals.factoryCancelled.remove(this.setNeedsRender);

@@ -6,7 +6,9 @@ import FilletFactory from "../src/commands/fillet/FilletFactory";
 import { MoveFactory } from "../src/commands/translate/TranslateFactory";
 import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
+import { Empties } from "../src/editor/Empties";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import { Images } from "../src/editor/Images";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../src/editor/MeshCreator";
 import { Scene } from "../src/editor/Scene";
@@ -27,12 +29,16 @@ let raycaster: THREE.Raycaster;
 let camera: THREE.Camera;
 let bbox: THREE.Box3;
 let types: TypeManager;
+let images: Images;
+let empties: Empties;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    scene = new Scene(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
     camera = new THREE.PerspectiveCamera();
     types = scene.types;
     snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);

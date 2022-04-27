@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { CenterCircleFactory } from '../src/commands/circle/CircleFactory';
 import { EditorSignals } from '../src/editor/EditorSignals';
+import { Empties } from '../src/editor/Empties';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import { Images } from '../src/editor/Images';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { Scene } from '../src/editor/Scene';
@@ -25,7 +27,8 @@ let scene: Scene;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selection: SelectionDatabase;
-
+let empties: Empties;
+let images: Images;
 let solid: visual.Solid;
 let highlighter: RenderedSceneBuilder;
 
@@ -33,7 +36,9 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    scene = new Scene(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
     selection = new SelectionDatabase(db, materials, signals);
     highlighter = new RenderedSceneBuilder(db, scene, new TextureLoader(), selection, theme, signals);
 

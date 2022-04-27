@@ -5,6 +5,7 @@ import ContourManager from '../../src/editor/curves/ContourManager';
 import { PlanarCurveDatabase } from '../../src/editor/curves/PlanarCurveDatabase';
 import { RegionManager } from '../../src/editor/curves/RegionManager';
 import { EditorSignals } from '../../src/editor/EditorSignals';
+import { Empties } from '../../src/editor/Empties';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
@@ -23,6 +24,7 @@ let contours: ContourManager;
 let curves: PlanarCurveDatabase;
 let regions: RegionManager;
 let box: c3d.Solid;
+let empties: Empties;
 
 const points = [
     new THREE.Vector3(0, 0, 0),
@@ -37,10 +39,11 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
+    empties = new Empties(signals);
     curves = new PlanarCurveDatabase(db);
     regions = new RegionManager(db, curves);
     contours = new ContourManager(db, curves, regions, signals);
-    scene = new Scene(db, materials, signals);
+    scene = new Scene(db, empties, materials, signals);
     box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
 

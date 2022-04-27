@@ -10,8 +10,10 @@ import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
 import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
 import { Editor } from '../src/editor/Editor';
 import { EditorSignals } from '../src/editor/EditorSignals';
+import { Empties } from '../src/editor/Empties';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { EditorOriginator, History } from '../src/editor/History';
+import { Images } from '../src/editor/Images';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../src/editor/MeshCreator';
 import { Scene } from '../src/editor/Scene';
@@ -37,6 +39,8 @@ describe(EditorOriginator, () => {
     let viewports: Viewport[];
     let scene: Scene;
     let history: History;
+    let images: Images;
+    let empties: Empties;
 
     beforeEach(() => {
         const editor = new Editor();
@@ -53,7 +57,10 @@ describe(EditorOriginator, () => {
         contours = editor.contours;
         viewports = [MakeViewport(editor)];
         scene = editor.scene;
-        originator = new EditorOriginator(db, scene, materials, selected, snaps, crosses, curves, contours, viewports);
+        originator = editor.originator;
+        images = editor.images;
+        empties = editor.empties;
+        originator = new EditorOriginator(db, empties, scene, materials, selected, snaps, crosses, curves, contours, viewports, images);
     });
 
     let box1: visual.Solid;
@@ -79,7 +86,7 @@ describe(EditorOriginator, () => {
         const memento = originator.saveToMemento();
 
         db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-        originator = new EditorOriginator(db, scene, materials, selected, snaps, crosses, curves, contours, viewports);
+        originator = new EditorOriginator(db, empties, scene, materials, selected, snaps, crosses, curves, contours, viewports, images);
 
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);

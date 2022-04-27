@@ -9,10 +9,15 @@ import { Group, GroupId, Groups, VirtualGroup, VirtualGroupType } from './Groups
 import { MementoOriginator, NodeMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 
-export type NodeDekey = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId } | { tag: 'VirtualGroup', id: GroupId, type: VirtualGroupType } | { tag: 'Empty', id: EmptyId }
+export type NodeDekey =
+    { tag: 'Item', id: c3d.SimpleName } |
+    { tag: 'Group', id: GroupId } |
+    { tag: 'VirtualGroup', id: GroupId, type: VirtualGroupType } |
+    { tag: 'Empty', id: EmptyId };
 export type NodeKey = string;
 export type NodeItem = visual.Item | Group | VirtualGroup | Empty;
 export type RealNodeItem = visual.Item | Group | Empty;
+export type Transform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
 
 export class Nodes implements MementoOriginator<NodeMemento> {
     static key(member: NodeDekey): NodeKey {
@@ -44,6 +49,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     private readonly invisible = new Set<NodeKey>();
     private readonly unselectable = new Set<NodeKey>();
     private readonly node2name = new Map<NodeKey, string>();
+    private readonly node2transform = new Map<NodeKey, Transform>();
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -175,6 +181,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
             new Set(this.invisible),
             new Set(this.unselectable),
             new Map(this.node2name),
+            new Map(this.node2transform),
         );
     }
 
@@ -184,6 +191,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         (this.invisible as Nodes['invisible']) = new Set(m.invisible);
         (this.unselectable as Nodes['unselectable']) = new Set(m.unselectable);
         (this.node2name as Nodes['node2name']) = new Map(m.node2name);
+        (this.node2transform as Nodes['node2transform']) = new Map(m.node2transform);
     }
 
     validate() {

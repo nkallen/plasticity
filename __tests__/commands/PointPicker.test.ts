@@ -8,7 +8,9 @@ import CurveFactory from "../../src/commands/curve/CurveFactory";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
+import { Empties } from "../../src/editor/Empties";
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Images } from "../../src/editor/Images";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { Scene } from "../../src/editor/Scene";
@@ -37,12 +39,16 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let presenter: SnapIndicator;
 let snaps: SnapManager;
+let empties: Empties;
+let images: Images;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    scene = new Scene(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapIndicator(gizmos);
     const crosses = new CrossPointDatabase();

@@ -2,15 +2,21 @@ import * as fs from 'fs';
 import c3d from '../../build/Release/c3d.node';
 import ContourManager from './curves/ContourManager';
 import { Empties } from './Empties';
+import { Images } from "./Images";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { PlaneDatabase } from './PlaneDatabase';
 import { ConstructionPlane } from './snaps/ConstructionPlaneSnap';
 
 export class ImporterExporter {
-    constructor(private readonly db: GeometryDatabase, private readonly empties: Empties, private readonly contours: ContourManager) { }
+    constructor(
+        private readonly db: GeometryDatabase,
+        private readonly empties: Empties,
+        private readonly images: Images,
+        private readonly contours: ContourManager
+    ) { }
 
     async open(filePaths: string[], cplane?: ConstructionPlane) {
-        const { db, contours, empties } = this;
+        const { db, contours, empties, images } = this;
         for (const filePath of filePaths) {
             if (/\.c3d$/.test(filePath)) {
                 const data = await fs.promises.readFile(filePath);
@@ -19,7 +25,8 @@ export class ImporterExporter {
             } else if (/\.png$/.test(filePath)) {
                 if (cplane === undefined) cplane = PlaneDatabase.XY;
                 const data = await fs.promises.readFile(filePath);
-                empties.addImage(filePath, data, cplane);
+                await images.add(filePath, data);
+                empties.addImage(filePath);
             } else {
                 const { result, model } = await c3d.Conversion.ImportFromFile_async(filePath);
                 if (result !== c3d.ConvResType.Success) {

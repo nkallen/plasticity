@@ -21,11 +21,15 @@ import { OrRestriction } from "../src/editor/snaps/Snap";
 import { PlaneSnap } from "../src/editor/snaps/PlaneSnap";
 import { PointSnap } from "../src/editor/snaps/PointSnap";
 import { Scene } from "../src/editor/Scene";
+import { Images } from "../src/editor/Images";
+import { Empties } from "../src/editor/Empties";
 
 let db: GeometryDatabase;
 let scene: Scene;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
+let images: Images;
+let empties: Empties;
 let signals: EditorSignals;
 let intersect: jest.Mock<any, any>;
 let raycaster: THREE.Raycaster;
@@ -36,7 +40,9 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    scene = new Scene(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
     snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);

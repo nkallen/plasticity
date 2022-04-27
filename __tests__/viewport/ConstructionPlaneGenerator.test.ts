@@ -4,7 +4,9 @@ import { ConstructionPlaneGenerator } from "../../src/components/viewport/Constr
 import { Orientation } from "../../src/components/viewport/ViewportNavigator";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from "../../src/editor/EditorSignals";
+import { Empties } from "../../src/editor/Empties";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
+import { Images } from "../../src/editor/Images";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ParallelMeshCreator } from "../../src/editor/MeshCreator";
 import { PlaneDatabase } from "../../src/editor/PlaneDatabase";
@@ -22,12 +24,16 @@ let scene: Scene;
 let materials: MaterialDatabase;
 let planes: PlaneDatabase;
 let snaps: SnapManager;
+let images: Images;
+let empties: Empties;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    scene = new Scene(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
     planes = new PlaneDatabase(signals);
     snaps = new SnapManager(db, scene, new CrossPointDatabase(), signals);
 })

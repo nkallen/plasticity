@@ -1,14 +1,14 @@
 import * as THREE from "three";
-import { Delay } from "../util/SequentialExecutor";
+import { assertUnreachable } from "../util/Util";
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
-import { ConstructionPlane } from "./snaps/ConstructionPlaneSnap";
-import buffer from 'buffer';
+import { EmptyMemento, MementoOriginator } from "./History";
+import { Images } from "./Images";
+import { EmptyJSON } from "./PlasticityDocument";
 
 export type EmptyId = number;
 
-export type EmptyInfo = { tag: 'Image', transform: Transform, path: string }
-export type Transform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 }
+export type EmptyInfo = { tag: 'Image', path: string }
 
 export abstract class Empty extends visual.SpaceItem {
     constructor(readonly simpleName: EmptyId) {
@@ -16,14 +16,14 @@ export abstract class Empty extends visual.SpaceItem {
     }
 }
 
-
 export class ImageEmpty extends Empty {
     private readonly mesh: THREE.Mesh;
 
     constructor(simpleName: EmptyId, texture: THREE.Texture) {
         super(simpleName);
         const aspect = texture.image.width / texture.image.height;
-        const geometry = new THREE.PlaneGeometry(aspect, 1, 1, 1);
+        const fac = 5;
+        const geometry = new THREE.PlaneGeometry(fac * aspect, fac, 1, 1);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         this.mesh = new THREE.Mesh(geometry, material);
         this.add(this.mesh);
@@ -36,40 +36,65 @@ export class ImageEmpty extends Empty {
     }
 }
 
-export class Empties {
+export class Empties implements MementoOriginator<EmptyMemento>{
     private counter: EmptyId = 0;
-    private readonly id2info = new Map<EmptyId, EmptyInfo>();
+    private readonly id2info = new Map<EmptyId, Readonly<EmptyInfo>>();
     private readonly id2empty = new Map<EmptyId, Empty>();
 
-    constructor(private readonly signals: EditorSignals) { }
+    constructor(
+        private readonly images: Images,
+        private readonly signals: EditorSignals
+    ) { }
 
-    async addImage(filePath: string, data: Buffer, cplane: ConstructionPlane) {
+    addImage(filePath: string): ImageEmpty {
         const id = this.counter++;
-        const transform = { position: new THREE.Vector3(), quaternion: cplane.orientation.clone(), scale: new THREE.Vector3() };
-        const info = { tag: 'Image', path: filePath, transform } as EmptyInfo;
-
-        const delay = new Delay<THREE.Texture>();
-        const manager = new THREE.LoadingManager();
-        const objectURLs: string[] = [];
-        const blob = new Blob([data]);
-        manager.setURLModifier(url => {
-            url = URL.createObjectURL(blob);
-            objectURLs.push(url);
-            return url;
-        });
-        new THREE.TextureLoader(manager).load(filePath, texture => {
-            for (const url of objectURLs)
-                URL.revokeObjectURL(url);
-            delay.resolve(texture);
-        });
-        const texture = await delay.promise;
+        const info = { tag: 'Image', path: filePath } as EmptyInfo;
+        const texture = this.images.get(filePath);
+        if (texture === undefined) throw new Error("invalid precondition: " + filePath);
         const empty = new ImageEmpty(id, texture);
         this.id2empty.set(id, empty);
         this.id2info.set(id, info);
         this.signals.emptyAdded.dispatch(empty);
+        return empty;
     }
 
     lookupById(id: EmptyId): Empty {
         return this.id2empty.get(id)!;
     }
+
+    get items(): Empty[] {
+        return [...this.id2empty.values()];
+    }
+
+    removeItem(empty: Empty) {
+        this.id2info.delete(empty.simpleName);
+        this.id2empty.delete(empty.simpleName);
+        empty.dispose();
+    }
+
+    saveToMemento(): EmptyMemento {
+        return new EmptyMemento(
+            new Map(this.id2info),
+            new Map(this.id2empty),
+        );
+    }
+
+    restoreFromMemento(m: EmptyMemento) {
+        (this.id2info as Empties['id2info']) = new Map(m.id2info);
+        (this.id2empty as Empties['id2empty']) = new Map(m.id2empty);
+    }
+
+    async deserialize(jsons: EmptyJSON[]) {
+        for (const json of jsons) {
+            switch (json.type) {
+                case 'Image':
+                    this.addImage(json.image!);
+                    break;
+                default: assertUnreachable(json.type);
+            }
+        }
+    }
+
+    validate() { }
+    debug() { }
 }

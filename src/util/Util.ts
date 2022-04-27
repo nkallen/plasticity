@@ -10,7 +10,7 @@ export type CreateMutable<Type> = {
     -readonly [Property in keyof Type]: Type[Property];
 };
 
-export function assertUnreachable(_x: never): never {
+export function assertUnreachable(x: never): never {
     throw new Error("Didn't expect to get here");
 }
 

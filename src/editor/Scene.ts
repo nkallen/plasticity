@@ -24,11 +24,15 @@ import { TypeManager } from "./TypeManager";
 export class Scene implements MementoOriginator<SceneMemento> {
     readonly types = new TypeManager(this.signals);
     private readonly groups = new Groups(this.signals);
-    readonly empties = new Empties(this.signals);
     private readonly nodes = new Nodes(this.db, this.groups, this.empties, this.materials, this.signals);
     cwd: Group;
 
-    constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
+    constructor(
+        private readonly db: GeometryDatabase,
+        private readonly empties: Empties,
+        private readonly materials: MaterialDatabase,
+        private readonly signals: EditorSignals
+    ) {
         this.cwd = this.root;
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') this.addItem(item);

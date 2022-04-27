@@ -13,7 +13,7 @@ declare module './VisualModel' {
     interface Region extends Boxcastable { }
     interface ControlPointGroup extends Boxcastable { }
     interface ControlPoint extends Boxcastable { }
-    interface Empty extends Boxcastable { }
+    // interface Empty extends Boxcastable { }
     interface SpaceItem extends Boxcastable { }
 }
 

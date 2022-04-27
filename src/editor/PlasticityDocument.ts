@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
-import { EmptyId } from './Empties';
+import { Empty, EmptyId, EmptyInfo } from './Empties';
 import { GroupId } from './Groups';
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
+import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, EmptyMemento, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
 import { NodeKey, Nodes } from './Nodes';
 
 export class PlasticityDocument {
@@ -72,6 +73,14 @@ export class PlasticityDocument {
             }
         }
 
+        const buffers = await Promise.all(json.images.map(info => fs.promises.readFile(info.uri)));
+        const images = buffers.map((buf, i) =>
+            into.images.add(json.images[i].uri, buf)
+        );
+        await Promise.all(images);
+
+        into.empties.deserialize(json.empties);
+
         const group2children: Map<GroupId, Set<NodeKey>> = new Map();
         const member2parent: Map<NodeKey, GroupId> = new Map();
         for (const [i, group] of json.groups.entries()) {
@@ -83,7 +92,7 @@ export class PlasticityDocument {
         }
         into.scene.restoreFromMemento(new SceneMemento(
             0,
-            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name),
+            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name, new Map()),
             new GroupMemento(json.groups.length, member2parent, group2children))
         );
 
@@ -93,7 +102,8 @@ export class PlasticityDocument {
 
     async serialize(filename: string) {
         const memento = this.originator.saveToMemento();
-        const { db, scene: { nodes, groups } } = memento;
+        const { db, empties, scene: { nodes, groups } } = memento;
+        const { images } = this.originator;
         const c3d = await db.serialize();
         const c3dFilename = `${filename}.c3d`
 
@@ -121,10 +131,16 @@ export class PlasticityDocument {
             allNodes.push({ 'group': j++, key });
             node2position.set(key, i++);
         }
+        j = 0;
+        for (const id of [...empties.id2info.keys()]) {
+            const key = Nodes.emptyKey(id);
+            allNodes.push({ 'empty': j++, key });
+            node2position.set(key, i++);
+        }
 
         const json = {
             asset: {
-                version: 1.1
+                version: 1.2,
             },
             db: {
                 uri: c3dFilename,
@@ -147,7 +163,7 @@ export class PlasticityDocument {
                 } as ViewportJSON
             )),
             nodes: allNodes.map(nodeInfo => {
-                const { key, item, group } = nodeInfo;
+                const { key, item, group, empty } = nodeInfo;
                 const materialId = nodes.node2material.get(key);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
                 const name = nodes.node2name.get(key);
@@ -155,7 +171,9 @@ export class PlasticityDocument {
                 const node = {} as NodeJSON;
                 if (tag === 'Item') node.item = item;
                 else if (tag === 'Group') node.group = group;
-                // else if (tag === 'Empty') node.empty = empty;
+                else if (tag === 'Empty') node.empty = empty;
+                else if (tag === 'VirtualGroup') throw new Error('invalid condition');
+                else assertUnreachable(tag);
                 if (material !== undefined) node.material = material;
                 if (name !== undefined) node.name = name;
                 return node;
@@ -165,6 +183,18 @@ export class PlasticityDocument {
                     children: [...children].map(child => node2position.get(child)!),
                 } as GroupJSON
             }),
+            empties: [...empties.id2info].map(([id, info]) => {
+                const empty = {} as EmptyJSON;
+                empty.type = info.tag;
+                switch (info.tag) {
+                    case 'Image':
+                        empty.image = info.path;
+                        break;
+                    default: assertUnreachable(info.tag);
+                }
+                return empty;
+            }),
+            images: [...images.paths].map((p) => { return { uri: p } as ImageJSON }),
             materials: [...memento.materials.materials.values()].map(mat => {
                 const { name, material } = mat;
                 return {
@@ -227,6 +257,15 @@ interface GroupJSON {
     children: number[]
 }
 
+export interface EmptyJSON {
+    type: EmptyInfo['tag'];
+    image?: string;
+}
+
+export interface ImageJSON {
+    uri: string;
+}
+
 interface GeometryDatabaseJSON {
     uri: string;
 }
@@ -237,6 +276,10 @@ interface NodeJSON {
     empty?: EmptyId;
     material: number;
     name: string;
+
+    translation?: [number, number, number];
+    rotation?: [number, number, number, number];
+    scale?: [number, number, number];
 }
 
 interface MaterialJSON {
@@ -263,6 +306,8 @@ interface PlasticityJSON {
     materials: MaterialJSON[];
     nodes: NodeJSON[];
     groups: GroupJSON[];
+    empties: EmptyJSON[];
+    images: ImageJSON[];
 }
 
 function keyForNode(node: NodeJSON, items: visual.Item[]): NodeKey {

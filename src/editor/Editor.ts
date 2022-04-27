@@ -25,6 +25,8 @@ import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { RegionManager } from "./curves/RegionManager";
 import { DatabaseLike } from "./DatabaseLike";
 import { EditorSignals } from "./EditorSignals";
+import { Empties } from "./Empties";
+import { Images } from "./Images";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import { ImporterExporter } from "./ImporterExporter";
@@ -58,13 +60,15 @@ export class Editor {
     readonly regions = new RegionManager(this._db, this.curves);
     readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
     readonly db = this.contours as DatabaseLike;
+    readonly images = new Images();
+    readonly empties = new Empties(this.images, this.signals);
 
     readonly selection = new SelectionDatabase(this._db, this.materials, this.signals);
 
     readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
-    readonly scene = new Scene(this._db, this.materials, this.signals);
+    readonly scene = new Scene(this._db, this.empties, this.materials, this.signals);
     readonly snaps = new SnapManager(this.db, this.scene, this.crosses, this.signals);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
@@ -72,13 +76,13 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.scene, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this._db, this.scene, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports);
+    readonly originator = new EditorOriginator(this._db, this.empties, this.scene, this.materials, this.selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.viewports, this.images);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
-    readonly importer = new ImporterExporter(this._db, this.scene.empties, this.contours);
+    readonly importer = new ImporterExporter(this._db, this.empties, this.images, this.contours);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
 

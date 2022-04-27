@@ -1,23 +1,26 @@
 import * as THREE from "three";
-import * as c3d from '../kernel/kernel';
 import { ProxyCamera } from '../components/viewport/ProxyCamera';
+import * as c3d from '../kernel/kernel';
 import { RefCounter } from '../util/Util';
 import * as visual from "../visual_model/VisualModel";
 import ContourManager from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
+import { CurveInfo } from "./curves/PlanarCurveDatabase";
 import { ControlPointData, TopologyData } from "./DatabaseLike";
 import { EditorSignals } from './EditorSignals';
+import { Empty, EmptyId, EmptyInfo } from "./Empties";
+import { Images } from "./Images";
 import { GroupId } from "./Groups";
-import { NodeKey } from "./Nodes";
-import { Scene } from "./Scene";
+import { NodeKey, Transform } from "./Nodes";
+import { EmptyJSON } from "./PlasticityDocument";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
-import { CurveInfo } from "./curves/PlanarCurveDatabase";
 
 export class Memento {
     constructor(
         readonly version: number,
         readonly db: GeometryMemento,
+        readonly empties: EmptyMemento,
         readonly scene: SceneMemento,
         readonly materials: MaterialMemento,
         readonly selection: SelectionMemento,
@@ -61,6 +64,7 @@ export class NodeMemento {
         readonly invisible: ReadonlySet<NodeKey>,
         readonly unselectable: ReadonlySet<NodeKey>,
         readonly node2name: ReadonlyMap<NodeKey, string>,
+        readonly node2transform: ReadonlyMap<NodeKey, Transform>,
     ) { }
 }
 
@@ -77,6 +81,13 @@ export class SceneMemento {
         readonly cwd: GroupId,
         readonly nodes: NodeMemento,
         readonly groups: GroupMemento,
+    ) { }
+}
+
+export class EmptyMemento {
+    constructor(
+        readonly id2info: ReadonlyMap<EmptyId, Readonly<EmptyInfo>>,
+        readonly id2empty: ReadonlyMap<EmptyId, Empty>,
     ) { }
 }
 
@@ -159,8 +170,9 @@ export class EditorOriginator {
     private version = 0;
 
     constructor(
-        readonly db: MementoOriginator<GeometryMemento> & Serializble,
-        readonly scene: Scene,
+        readonly db: MementoOriginator<GeometryMemento> & Serializable,
+        readonly empties: MementoOriginator<EmptyMemento> & { deserialize(foo: EmptyJSON[]): void},
+        readonly scene: MementoOriginator<SceneMemento>,
         readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
@@ -168,6 +180,7 @@ export class EditorOriginator {
         readonly curves: MementoOriginator<CurveMemento>,
         readonly contours: ContourManager,
         readonly viewports: MementoOriginator<ViewportMemento>[],
+        readonly images: Images,
     ) { }
 
     saveToMemento(): Memento {
@@ -176,6 +189,7 @@ export class EditorOriginator {
                 return new Memento(
                     this.version++,
                     this.db.saveToMemento(),
+                    this.empties.saveToMemento(),
                     this.scene.saveToMemento(),
                     this.materials.saveToMemento(),
                     this.selection.saveToMemento(),
@@ -190,6 +204,7 @@ export class EditorOriginator {
     restoreFromMemento(m: Memento) {
         OrderIsImportant: {
             this.db.restoreFromMemento(m.db);
+            this.empties.restoreFromMemento(m.empties);
             this.scene.restoreFromMemento(m.scene);
             this.selection.restoreFromMemento(m.selection);
             this.crosses.restoreFromMemento(m.crosses);
@@ -233,7 +248,7 @@ export interface MementoOriginator<T> {
     debug(): void;
 }
 
-export interface Serializble {
+export interface Serializable {
     serialize(): Promise<Buffer>;
     deserialize(data: Buffer): Promise<visual.Item[]>;
 }
