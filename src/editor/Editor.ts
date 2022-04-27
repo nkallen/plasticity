@@ -78,7 +78,7 @@ export class Editor {
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
-    readonly importer = new ImporterExporter(this._db, this.contours);
+    readonly importer = new ImporterExporter(this._db, this.scene.empties, this.contours);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
 
@@ -127,11 +127,12 @@ export class Editor {
         const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
             properties: ['openFile', 'multiSelections'],
             filters: [
-                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat'] },
+                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },
-                { name: 'C3D files', extensions: ['c3d'] }
+                { name: 'C3D files', extensions: ['c3d'] },
+                { name: 'Image files', extensions: ['png'] }
             ]
         });
         const command = new ImportCommand(this);

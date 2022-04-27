@@ -7,6 +7,7 @@ import * as THREE from "three";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from "../src/editor/EditorSignals";
+import { Empties } from '../src/editor/Empties';
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { ImporterExporter } from "../src/editor/ImporterExporter";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
@@ -18,13 +19,15 @@ let editor: Editor;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
+let empties: Empties;
 
 beforeEach(() => {
     editor = new Editor();
     db = editor._db;
     materials = editor.materials;
     signals = editor.signals;
-    importer = new ImporterExporter(editor._db, editor.contours);
+    empties = new Empties(signals);
+    importer = new ImporterExporter(editor._db, empties, editor.contours);
 });
 
 test("export & import c3d", async () => {
@@ -41,7 +44,7 @@ test("export & import c3d", async () => {
     const filePath = path.join(dir, 'export.c3d');
     await importer.export(model, filePath);
 
-    await editor.contours.transaction(() => 
+    await editor.contours.transaction(() =>
         importer.open([filePath])
     );
     expect(db.items.length).toBe(1);

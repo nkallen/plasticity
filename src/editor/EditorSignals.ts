@@ -15,11 +15,14 @@ import { HideMode, NodeItem, RealNodeItem } from "./Nodes";
 import { ConstructionPlane } from "./snaps/ConstructionPlaneSnap";
 import { Snap } from "./snaps/Snap";
 import { DisablableType } from "./TypeManager";
+import { Empty } from "./Empties";
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectReplaced: signals.Signal<Replacement> = new signals.Signal();
+    emptyAdded: signals.Signal<Empty> = new signals.Signal();
+    emptyRemoved: signals.Signal<Empty> = new signals.Signal();
     objectNamed: signals.Signal<[RealNodeItem, string]> = new signals.Signal();
     objectHidden: signals.Signal<[RealNodeItem, HideMode]> = new signals.Signal();
     objectUnhidden: signals.Signal<[RealNodeItem, HideMode]> = new signals.Signal();

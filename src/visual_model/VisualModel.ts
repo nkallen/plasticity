@@ -24,6 +24,11 @@ import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
     abstract dispose(): void;
+
+    private readonly identity = new THREE.Matrix4();
+    get isTemporaryOptimization() {
+        return !this.matrixWorld.equals(this.identity);
+    }
 }
 
 export abstract class PlaneItem extends THREE.Object3D {
@@ -34,11 +39,6 @@ export abstract class PlaneItem extends THREE.Object3D {
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
     get simpleName(): c3d.SimpleName { return this.userData.simpleName }
-
-    private readonly identity = new THREE.Matrix4();
-    get isTemporaryOptimization() {
-        return !this.matrixWorld.equals(this.identity);
-    }
 }
 
 class SolidLOD extends THREE.LOD {

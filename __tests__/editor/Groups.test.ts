@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import FilletFactory from '../../src/commands/fillet/FilletFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
+import { Empties } from '../../src/editor/Empties';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import { Groups } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -17,13 +18,15 @@ let nodes: Nodes;
 let groups: Groups;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
+let empties: Empties;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    nodes = new Nodes(db, materials, signals);
-    groups = new Groups(db, signals);
+    groups = new Groups(signals);
+    empties = new Empties(signals);
+    nodes = new Nodes(db, groups, empties, materials, signals);
 })
 
 afterEach(() => {
@@ -32,9 +35,9 @@ afterEach(() => {
 
 test("create & delete", () => {
     expect(groups.all.length).toBe(1);
-    const id = groups.create();
+    const group = groups.create();
     expect(groups.all.length).toBe(2);
-    groups.delete(id);
+    groups.delete(group);
     expect(groups.all.length).toBe(1);
 })
 
@@ -47,23 +50,24 @@ beforeEach(async () => {
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     box = await makeBox.commit() as visual.Solid;
+    groups.addMembership(nodes.item2key(box), groups.root);
 })
 
 test("add item to group", () => {
     const g1 = groups.create();
-    expect(groups.groupForNode(box)).toEqual(groups.root);
-    groups.moveNodeToGroup(box, g1);
-    expect(groups.groupForNode(box)).toEqual(g1);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(groups.root);
+    groups.moveNodeToGroup(nodes.item2key(box), g1);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(g1);
 })
 
 test("add item to group & delete", () => {
     const deleted = jest.fn();
     signals.groupDeleted.add(deleted);
     const g1 = groups.create();
-    groups.moveNodeToGroup(box, g1);
-    expect(groups.groupForNode(box)).toEqual(g1);
+    groups.moveNodeToGroup(nodes.item2key(box), g1);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(g1);
     groups.delete(g1);
-    expect(groups.groupForNode(box)).toEqual(groups.root);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(groups.root);
     expect(deleted).toBeCalledTimes(1);
     groups.validate();
 })
@@ -74,46 +78,31 @@ test("add item to group & move", () => {
     signals.groupCreated.add(created);
     const g1 = groups.create(), g2 = groups.create();
     expect(created).toBeCalledTimes(2);
-    groups.moveNodeToGroup(box, g1);
-    expect(groups.groupForNode(box)).toEqual(g1);
+    groups.moveNodeToGroup(nodes.item2key(box), g1);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(g1);
     expect(changed).toBeCalledTimes(3);
-    groups.moveNodeToGroup(box, g2);
-    expect(groups.groupForNode(box)).toEqual(g2);
+    groups.moveNodeToGroup(nodes.item2key(box), g2);
+    expect(groups.groupForNode(nodes.item2key(box))).toEqual(g2);
     expect(changed).toBeCalledTimes(6);
 })
 
 test("list", () => {
     const g1 = groups.create();
     expect(groups.list(g1)).toEqual([]);
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }, { tag: 'Group', group: g1 }]);
-    groups.moveNodeToGroup(box, g1);
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Group', group: g1 }]);
-    expect(groups.list(g1)).toEqual([{ tag: 'Item', item: box }]);
-})
-
-test("list when object changes", async () => {
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: box }]);
-    const fillet = await filletBox();
-    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', item: fillet }]);
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Item', id: box.simpleName }, { tag: 'Group', id: g1.id }]);
+    groups.moveNodeToGroup(nodes.item2key(box), g1);
+    expect(groups.list(groups.root)).toEqual([{ tag: 'Group', id: g1.id }]);
+    expect(groups.list(g1)).toEqual([{ tag: 'Item', id: box.simpleName }]);
 })
 
 test("walk", () => {
     const g1 = groups.create();
     const g2 = groups.create();
-    groups.moveNodeToGroup(g2, g1);
-    groups.moveNodeToGroup(box, g2);
+    groups.moveNodeToGroup(nodes.item2key(g2), g1);
+    groups.moveNodeToGroup(nodes.item2key(box), g2);
     expect(groups.walk(groups.root)).toEqual([
-        { tag: 'Group', group: g1 },
-        { tag: 'Group', group: g2 },
-        { tag: 'Item', item: box }
+        { tag: 'Group', id: g1.id },
+        { tag: 'Group', id: g2.id },
+        { tag: 'Item', id: box.simpleName }
     ]);
 })
-
-async function filletBox() {
-    const makeFillet = new FilletFactory(db, materials, signals);
-    makeFillet.solid = box;
-    makeFillet.edges = [box.edges.get(0)];
-    makeFillet.distance = 0.1;
-    const fillet = await makeFillet.commit() as visual.Solid;
-    return fillet;
-}

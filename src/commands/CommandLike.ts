@@ -118,7 +118,7 @@ export class ImportCommand extends cmd.CommandLike {
     filePaths!: string[];
 
     async execute(): Promise<void> {
-        await this.editor.importer.open(this.filePaths);
+        await this.editor.importer.open(this.filePaths, this.editor.activeViewport?.constructionPlane);
     }
 }
 

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import FilletFactory from '../../src/commands/fillet/FilletFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
+import { Empties } from '../../src/editor/Empties';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import { Groups } from '../../src/editor/Groups';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -17,13 +18,19 @@ let nodes: Nodes;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let groups: Groups;
+let empties: Empties;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    nodes = new Nodes(db, materials, signals);
-    groups = new Groups(db, signals);
+    groups = new Groups(signals);
+    empties = new Empties(signals);
+    nodes = new Nodes(db, groups, empties, materials, signals);
+})
+
+afterEach(() => {
+    nodes.validate();
 })
 
 let box: visual.Solid;
@@ -35,7 +42,11 @@ beforeEach(async () => {
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     box = await makeBox.commit() as visual.Solid;
+    groups.addMembership(nodes.item2key(box), groups.root);
+})
 
+afterEach(() => {
+    nodes.validate();
 })
 
 test('isHidden & makeSelectable', () => {
@@ -110,7 +121,13 @@ test('deleting an item deletes the name etc', async () => {
     expect(nodes.getName(box)).toBe(undefined);
     nodes.setName(box, "My favorite box");
     await db.removeItem(box);
-    nodes.validate();
+});
+
+test('deleting an item deletes the membership', async () => {
+    expect(nodes.getName(box)).toBe(undefined);
+    const prekey = nodes.item2key(box);
+    await db.removeItem(box);
+    expect(groups.groupForNode(prekey)).toBe(undefined);
 });
 
 test('deleting a group deletes the name etc', async () => {
@@ -120,7 +137,6 @@ test('deleting a group deletes the name etc', async () => {
     expect(nodes.getName(group)).toBe("My favorite group");
     groups.delete(group);
     expect(nodes.getName(group)).toBe(undefined);
-    nodes.validate();
 });
 
 test('deleting a group deletes the virtual group etc', async () => {
@@ -130,7 +146,6 @@ test('deleting a group deletes the virtual group etc', async () => {
     expect(nodes.isVisible(group.curves)).toBe(false);
     groups.delete(group);
     expect(nodes.isVisible(group.curves)).toBe(true);
-    nodes.validate();
 });
 
 

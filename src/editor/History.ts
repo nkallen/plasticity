@@ -67,7 +67,6 @@ export class NodeMemento {
 export class GroupMemento {
     constructor(
         readonly counter: number,
-        readonly cwd: GroupId,
         readonly member2parent: ReadonlyMap<NodeKey, GroupId>,
         readonly group2children: ReadonlyMap<GroupId, ReadonlySet<NodeKey>>,
     ) { }
@@ -75,6 +74,7 @@ export class GroupMemento {
 
 export class SceneMemento {
     constructor(
+        readonly cwd: GroupId,
         readonly nodes: NodeMemento,
         readonly groups: GroupMemento,
     ) { }

@@ -5,12 +5,14 @@ import { ColorRepresentation } from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
+import { Empty } from "../editor/Empties";
 import { Scene } from "../editor/Scene";
 import { TextureLoader } from "../editor/TextureLoader";
 import basic_side from '../img/matcap/basic_side.exr';
 import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/ConfigFiles";
+import { assertUnreachable } from "../util/Util";
 import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
@@ -153,15 +155,18 @@ export class RenderedSceneBuilder {
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
-    highlightItem = (item: visual.Item, override?: THREE.Material & { color: ColorRepresentation }) => {
+    highlightItem = (item: visual.SpaceItem, override?: THREE.Material & { color: ColorRepresentation }) => {
         if (item instanceof visual.Solid) {
             this.highlightSolid(item, override);
         } else if (item instanceof visual.SpaceInstance) {
             this.highlightSpaceInstance(item);
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
-        } else
-            throw new Error("invalid type: " + item.constructor.name);
+        } else if (item instanceof Empty) {
+
+        } else {
+            // throw new Error("invalid type: " + item.constructor.name);
+        }
         item.updateMatrixWorld();
     }
 

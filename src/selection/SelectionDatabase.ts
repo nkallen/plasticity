@@ -3,6 +3,7 @@ import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
 import { Agent, DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Empty } from '../editor/Empties';
 import { Replacement } from '../editor/GeometryDatabase';
 import { Group, GroupId } from '../editor/Groups';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
@@ -173,7 +174,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         }
     }
 
-    private objectDeleted(item: visual.Item | Group) {
+    private objectDeleted(item: visual.Item | Group | Empty) {
         if (item instanceof visual.Solid) {
             this.removeSolid(item);
             this.deselectChildren(item);
@@ -184,6 +185,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             this.removeRegion(item);
         } else if (item instanceof Group) {
             this.removeGroup(item);
+        } else if (item instanceof Empty) {
+
         } else throw new Error("invalid precondition");
     }
 

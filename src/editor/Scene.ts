@@ -1,6 +1,8 @@
 import signals from 'signals';
+import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
+import { Empties, Empty } from './Empties';
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
@@ -8,23 +10,30 @@ import MaterialDatabase from "./MaterialDatabase";
 import { HideMode, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
-type Snapshot = {
-    isIndirectlyHidden: boolean;
-    visibleItems: Set<visual.Item>;
-    visibleGroups: Set<number>;
-};
-
-export type SceneDisplayInfo = {
-    visibleItems: Set<visual.Item>;
-    visibleGroups: Set<number>;
-};
+/**
+ * The Scene (not to be confused with THREE.Scene) is a collection of all the visible/selectable objects in the
+ * Plasticity universe. It coordinates the GeometryDatabase (NURBS solids and curves) and the Empties database (image planes)
+ * with the Nodes (visibility/selectablility modifiers) and Groups (organization) stuff.
+ * 
+ * A Node is EITHER an NURBS item OR an Empty OR a Group. Nodes can be visible/hidden and have group membership relationships.
+ * 
+ * In the current implementation, the Nodes and Groups objects are relatively dumb collections, and the Scene is responsible
+ * for keeping them up-to-date when objects are deleted and so forth.
+ */
 
 export class Scene implements MementoOriginator<SceneMemento> {
     readonly types = new TypeManager(this.signals);
-    private readonly nodes = new Nodes(this.db, this.materials, this.signals);
-    private readonly groups = new Groups(this.db, this.signals);
+    private readonly groups = new Groups(this.signals);
+    readonly empties = new Empties(this.signals);
+    private readonly nodes = new Nodes(this.db, this.groups, this.empties, this.materials, this.signals);
+    cwd: Group;
 
     constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
+        this.cwd = this.root;
+        signals.objectAdded.add(([item, agent]) => {
+            if (agent === 'user') this.addItem(item);
+        });
+        signals.emptyAdded.add(item => this.addItem(item));
     }
 
     validate() {
@@ -41,7 +50,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    get visibleObjects(): visual.Item[] {
+    get visibleObjects(): visual.SpaceItem[] {
         const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), false);
         return [...acc].concat(this.db.findAutomatics());
     }
@@ -52,7 +61,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return { visibleItems, visibleGroups };
     }
 
-    private computeVisibleObjectsInGroup(start: NodeItem, accItem: Set<visual.Item>, accGroup: Set<GroupId>, checkSelectable: boolean): Set<visual.Item> {
+    private computeVisibleObjectsInGroup(start: NodeItem, accItem: Set<visual.SpaceItem>, accGroup: Set<GroupId>, checkSelectable: boolean): Set<visual.SpaceItem> {
         const { nodes, types } = this;
         if (start instanceof Group) {
             if (nodes.isHidden(start)) return accItem;
@@ -60,13 +69,18 @@ export class Scene implements MementoOriginator<SceneMemento> {
             if (checkSelectable && !nodes.isSelectable(start)) return accItem;
             accGroup.add(start.id);
             for (const listing of this.list(start)) {
-                switch (listing.tag) {
+                const tag = listing.tag;
+                switch (tag) {
                     case 'Group':
                         this.computeVisibleObjectsInGroup(listing.group, accItem, accGroup, checkSelectable);
                         break;
                     case 'Item':
                         this.computeVisibleObjectsInGroup(listing.item, accItem, accGroup, checkSelectable);
                         break;
+                    case 'Empty':
+                        this.computeVisibleObjectsInGroup(listing.empty, accItem, accGroup, checkSelectable);
+                        break;
+                    default: assertUnreachable(tag);
                 }
             }
         } else if (start instanceof visual.Item) {
@@ -80,11 +94,16 @@ export class Scene implements MementoOriginator<SceneMemento> {
             accItem.add(start);
         } else if (start instanceof VirtualGroup) {
             return this.computeVisibleObjectsInGroup(start.parent, accItem, accGroup, checkSelectable);
-        }
+        } else if (start instanceof Empty) {
+            if (nodes.isHidden(start)) return accItem;
+            if (!nodes.isVisible(start)) return accItem;
+            if (checkSelectable && !nodes.isSelectable(start)) return accItem;
+            accItem.add(start);
+        } else assertUnreachable(start);
         return accItem;
     }
 
-    get selectableObjects(): visual.Item[] {
+    get selectableObjects(): visual.SpaceItem[] {
         const acc = this.computeVisibleObjectsInGroup(this.root, new Set(), new Set(), true);
         return [...acc].concat(this.db.findAutomatics());
     }
@@ -156,21 +175,21 @@ export class Scene implements MementoOriginator<SceneMemento> {
     private isIndirectlyHidden(node: NodeItem) {
         if ((node instanceof visual.Item || node instanceof Group) && this.isHidden(node)) return true;
         if (!this.isVisible(node)) return true;
-        let parent = this.groups.parent(node);
+        let parent = this.groups.parent(this.item2key(node));
         if (parent === undefined) return false;
         while (!parent.isRoot) {
             if (this.nodes.isHidden(parent)) return true;
-            parent = this.groups.parent(parent)!;
+            parent = this.groups.parent(this.item2key(parent))!;
         }
         return false;
     }
 
     parent(node: RealNodeItem): Group | undefined {
-        return this.groups.parent(node);
+        return this.groups.parent(this.item2key(node));
     }
 
     moveToGroup(node: RealNodeItem, group: Group) {
-        this.groups.moveNodeToGroup(node, group)
+        this.groups.moveNodeToGroup(this.item2key(node), group)
         this.signals.sceneGraphChanged.dispatch();
     }
 
@@ -202,8 +221,41 @@ export class Scene implements MementoOriginator<SceneMemento> {
     key2item(key: NodeKey): NodeItem { return this.nodes.key2item(key) }
     item2key(item: NodeItem): string { return this.nodes.item2key(item) }
 
-    list(group: Group): GroupListing[] { return this.groups.list(group) }
-    walk(group: Group): GroupListing[] { return this.groups.walk(group) }
+    list(group: Group = this.root): GroupListing[] {
+        const members = this.groups.list(group);
+        return this.nodeDekey2GroupListing(members);
+    }
+
+    walk(group: Group): GroupListing[] {
+        const members = this.groups.walk(group);
+        return this.nodeDekey2GroupListing(members);
+    }
+
+    private nodeDekey2GroupListing(members: import("/Users/nickkallen/Documents/plasticity/src/editor/Nodes").NodeDekey[]) {
+        const result = [];
+        for (const { tag, id } of members) {
+            switch (tag) {
+                case 'Group':
+                    result.push({ tag, group: this.groups.lookupById(id) });
+                    break;
+                case 'Item':
+                    result.push({ tag, item: this.db.lookupById(id).view });
+                    break;
+                case 'Empty':
+                    result.push({ tag, empty: this.empties.lookupById(id) });
+                    break;
+                case 'VirtualGroup':
+                    break;
+                default: assertUnreachable(tag);
+            }
+        }
+        return result;
+    }
+
+    private addItem(item: NodeItem, into = this.cwd) {
+        const k = this.nodes.item2key(item);
+        this.groups.addMembership(k, into);
+    }
 
     getMaterial(node: RealNodeItem, walk = false): THREE.Material & { color: THREE.ColorRepresentation } | undefined {
         const thisMaterial = this.nodes.getMaterial(node);
@@ -219,11 +271,26 @@ export class Scene implements MementoOriginator<SceneMemento> {
     }
 
     saveToMemento(): SceneMemento {
-        return new SceneMemento(this.nodes.saveToMemento(), this.groups.saveToMemento());
+        return new SceneMemento(
+            this.cwd.id,
+            this.nodes.saveToMemento(),
+            this.groups.saveToMemento());
     }
 
     restoreFromMemento(m: SceneMemento) {
         this.nodes.restoreFromMemento(m.nodes);
+        (this.cwd as Scene['cwd']) = new Group(m.cwd);
         this.groups.restoreFromMemento(m.groups);
     }
 }
+
+type Snapshot = {
+    isIndirectlyHidden: boolean;
+    visibleItems: Set<visual.Item>;
+    visibleGroups: Set<number>;
+};
+
+export type SceneDisplayInfo = {
+    visibleItems: Set<visual.Item>;
+    visibleGroups: Set<number>;
+};

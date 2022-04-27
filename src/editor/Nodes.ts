@@ -3,21 +3,23 @@ import * as c3d from '../kernel/kernel';
 import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
+import { Empties, Empty, EmptyId } from './Empties';
 import { GeometryDatabase } from './GeometryDatabase';
-import { Group, GroupId, VirtualGroup, VirtualGroupType } from './Groups';
+import { Group, GroupId, Groups, VirtualGroup, VirtualGroupType } from './Groups';
 import { MementoOriginator, NodeMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 
-export type NodeDekey = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId } | { tag: 'VirtualGroup', id: GroupId, type: VirtualGroupType, }
+export type NodeDekey = { tag: 'Item', id: c3d.SimpleName } | { tag: 'Group', id: GroupId } | { tag: 'VirtualGroup', id: GroupId, type: VirtualGroupType } | { tag: 'Empty', id: EmptyId }
 export type NodeKey = string;
-export type NodeItem = visual.Item | Group | VirtualGroup;
-export type RealNodeItem = visual.Item | Group;
+export type NodeItem = visual.Item | Group | VirtualGroup | Empty;
+export type RealNodeItem = visual.Item | Group | Empty;
 
 export class Nodes implements MementoOriginator<NodeMemento> {
     static key(member: NodeDekey): NodeKey {
         switch (member.tag) {
             case 'Item':
             case 'Group':
+            case 'Empty':
                 return `${member.tag},${member.id}`;
             case 'VirtualGroup':
                 return `${member.tag},${member.id},${member.type}`;
@@ -26,14 +28,15 @@ export class Nodes implements MementoOriginator<NodeMemento> {
 
     static itemKey(id: c3d.SimpleName): NodeKey { return this.key({ tag: 'Item', id }) }
     static groupKey(id: GroupId): NodeKey { return this.key({ tag: 'Group', id }) }
+    static emptyKey(id: EmptyId): NodeKey { return this.key({ tag: 'Empty', id }) }
 
     static dekey(k: NodeKey): NodeDekey {
         const split = k.split(',');
-        const tag = split[0];
+        const tag = split[0] as NodeDekey['tag'];
         const id = Number(split[1]);
-        if (tag === 'Item' || tag === 'Group') return { tag, id };
+        if (tag === 'Item' || tag === 'Group' || tag === 'Empty') return { tag, id };
         else if (tag === 'VirtualGroup') return { tag, id, type: split[2] as VirtualGroupType }
-        else throw new Error("Invalid key " + k);
+        else assertUnreachable(tag);
     }
 
     private readonly node2material = new Map<NodeKey, number>();
@@ -42,19 +45,19 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     private readonly unselectable = new Set<NodeKey>();
     private readonly node2name = new Map<NodeKey, string>();
 
-    constructor(private readonly db: GeometryDatabase, private readonly materials: MaterialDatabase, private readonly signals: EditorSignals) {
-        signals.objectAdded.add(([item, agent]) => {
-            if (agent === 'user') this.addItem(item);
-        });
+    constructor(
+        private readonly db: GeometryDatabase,
+        private readonly groups: Groups,
+        private readonly empties: Empties,
+        private readonly materials: MaterialDatabase,
+        private readonly signals: EditorSignals
+    ) {
         signals.objectRemoved.add(([item, agent]) => {
             if (agent === 'user') this.deleteItem(item);
         });
-        signals.groupDeleted.add(group => {
-            this.deleteItem(group);
-        });
+        signals.emptyRemoved.add(item => this.deleteItem(item));
+        signals.groupDeleted.add(group => this.deleteItem(group));
     }
-
-    private addItem(item: NodeItem) { }
 
     private deleteItem(item: NodeItem) {
         const k = this.item2key(item);
@@ -64,8 +67,10 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         this.node2name.delete(k);
         this.unselectable.delete(k);
         if (item instanceof Group) {
-            this.deleteItem(new VirtualGroup(item, 'Curves'));
-            this.deleteItem(new VirtualGroup(item, 'Solids'));
+            this.deleteItem(item.curves);
+            this.deleteItem(item.solids);
+        } else if (item instanceof visual.Item || item instanceof Empty) {
+            this.groups.deleteMembership(k);
         }
     }
 
@@ -135,12 +140,12 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     async unhideAll(): Promise<NodeItem[]> {
-        const hidden = [];
+        const previouslyHidden = [];
         for (const k of this.hidden) {
-            hidden.push(this.key2item(k));
+            previouslyHidden.push(this.key2item(k));
         }
         this.hidden.clear();
-        return hidden;
+        return previouslyHidden;
     }
 
     setMaterial(item: RealNodeItem, materialId: number | undefined): void {
@@ -242,6 +247,8 @@ export class Nodes implements MementoOriginator<NodeMemento> {
             return Nodes.key({ tag: 'Group', id: item.id });
         else if (item instanceof VirtualGroup)
             return Nodes.key({ tag: 'VirtualGroup', id: item.parent.id, type: item.type });
+        else if (item instanceof Empty)
+            return Nodes.key({ tag: 'Empty', id: item.simpleName });
         else assertUnreachable(item);
     }
 
@@ -251,9 +258,11 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         if (tag === 'Item') {
             return this.db.lookupById(id).view;
         } else if (tag === 'Group') {
-            return new Group(id);
+            return this.groups.lookupById(id);
         } else if (tag === 'VirtualGroup') {
-            return new VirtualGroup(new Group(id), dekey.type);
+            return new VirtualGroup(this.groups.lookupById(id), dekey.type);
+        } else if (tag === 'Empty') {
+            return this.empties.lookupById(id);
         } else assertUnreachable(tag);
     }
 }

@@ -1,31 +1,22 @@
-import * as c3d from '../kernel/kernel';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from './EditorSignals';
-import { GeometryDatabase } from './GeometryDatabase';
+import { Empty } from './Empties';
 import { GroupMemento, MementoOriginator } from './History';
-import { NodeItem, NodeKey, Nodes, RealNodeItem } from './Nodes';
+import { NodeDekey, NodeKey, Nodes } from './Nodes';
 
 export type GroupId = number;
-export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item }
+export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item } | { tag: 'Empty', empty: Empty }
 export type VirtualGroupType = 'Curves' | 'Solids';
 
 export class Groups implements MementoOriginator<GroupMemento> {
-    private counter = 0;
+    private counter: GroupId = 0;
 
     private readonly member2parent = new Map<NodeKey, GroupId>();
     private readonly group2children = new Map<GroupId, Set<NodeKey>>();
     readonly root: Group; // always 0
-    cwd: Group;
 
-    constructor(private readonly db: GeometryDatabase, private readonly signals: EditorSignals) {
+    constructor(private readonly signals: EditorSignals) {
         this.root = this.create(); // the root is its own parent
-        this.cwd = this.root;
-        signals.objectAdded.add(([item, agent]) => {
-            if (agent === 'user') this.addItem(this.item2id(item));
-        });
-        signals.objectRemoved.add(([item, agent]) => {
-            if (agent === 'user') this.deleteItem(this.item2id(item));
-        });
     }
 
     get all() {
@@ -59,14 +50,12 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.signals.groupDeleted.dispatch(group);
     }
 
-    moveNodeToGroup(item: RealNodeItem, into: Group) {
-        const key = this.keyForItem(item);
+    moveNodeToGroup(key: NodeKey, into: Group) {
         this._moveItemToGroup(key, into);
         this.signals.groupChanged.dispatch(into);
     }
 
-    groupForNode(item: RealNodeItem): Group | undefined {
-        const key = this.keyForItem(item);
+    groupForNode(key: NodeKey): Group | undefined {
         const id = this.member2parent.get(key);
         if (id === undefined) return;
         return new Group(id);
@@ -74,73 +63,55 @@ export class Groups implements MementoOriginator<GroupMemento> {
 
     // NOTE: most visual.Item belong to a group. The exception being "automatics",
     // like automatically generated regions.
-    parent(item: NodeItem): Group | undefined {
-        if (item instanceof VirtualGroup) {
-            return item.parent;
+    parent(key: NodeKey): Group | undefined {
+        const { tag, id } = Nodes.dekey(key)
+        if (tag === 'VirtualGroup') {
+            return this.lookupById(id);
         } else {
-            const key = this.keyForItem(item);
             const parentId = this.member2parent.get(key);
             if (parentId === undefined) return undefined;
             return new Group(parentId);
         }
     }
 
-    private _moveItemToGroup(key: NodeKey, into: Group) {
-        this.deleteMembership(key);
-        this.addMembership(key, into);
-    }
-
-    list(group: Group): GroupListing[] {
-        const { group2children, db } = this;
+    list(group: Group): NodeDekey[] {
+        const { group2children } = this;
         const memberKeys = group2children.get(group.id) as ReadonlySet<NodeKey>;
         if (memberKeys === undefined) throw new Error(`Group ${group.id} has no child set`);
         const result = [];
         for (const key of memberKeys) {
-            const { tag, id } = Nodes.dekey(key);
-            switch (tag) {
-                case 'Group':
-                    result.push({ tag, group: new Group(id) });
-                    break;
-                case 'Item':
-                    result.push({ tag, item: db.lookupById(id).view })
-            }
+            result.push(Nodes.dekey(key));
         }
         return result;
     }
 
-    walk(group: Group): GroupListing[] {
-        const result: GroupListing[] = [];
+    walk(group: Group): NodeDekey[] {
+        const result: NodeDekey[] = [];
         let work = this.list(group);
         while (work.length > 0) {
             const child = work.pop()!;
             result.push(child);
             switch (child.tag) {
                 case 'Group':
-                    work = work.concat(this.list(child.group));
+                    work = work.concat(this.list(new Group(child.id)));
                     break;
             }
         }
         return result;
     }
 
-    private addItem(id: c3d.SimpleName, into = this.cwd) {
-        const k = Nodes.itemKey(id);
-        this.addMembership(k, into);
+    lookupById(id: GroupId): Group {
+        return new Group(id);
     }
 
-    private deleteItem(id: c3d.SimpleName) {
-        const k = Nodes.itemKey(id);
-        this.deleteMembership(k);
-    }
-
-    private addMembership(key: NodeKey, into = this.cwd) {
+    addMembership(key: NodeKey, into: Group) {
         const { group2children, member2parent } = this;
         group2children.get(into.id)!.add(key);
         member2parent.set(key, into.id);
         this.signals.groupChanged.dispatch(into);
     }
 
-    private deleteMembership(key: NodeKey) {
+    deleteMembership(key: NodeKey) {
         const { group2children, member2parent } = this;
         const groupId = member2parent.get(key)!;
         member2parent.delete(key);
@@ -148,27 +119,20 @@ export class Groups implements MementoOriginator<GroupMemento> {
         this.signals.groupChanged.dispatch(new Group(groupId));
     }
 
-    private item2id(item: visual.Item): c3d.SimpleName {
-        const { db } = this;
-        const version = item.simpleName;
-        return db.lookupId(version)!;
-    }
-
-    private keyForItem(item: RealNodeItem) {
-        return item instanceof visual.Item ? Nodes.itemKey(this.item2id(item)) : Nodes.groupKey(item.id);
+    private _moveItemToGroup(key: NodeKey, into: Group) {
+        this.deleteMembership(key);
+        this.addMembership(key, into);
     }
 
     saveToMemento(): GroupMemento {
         return new GroupMemento(
             this.counter,
-            this.cwd.id,
             new Map(this.member2parent),
             copyGroup2Children(this.group2children),
         )
     }
     restoreFromMemento(m: GroupMemento) {
         (this.counter as Groups['counter']) = m.counter;
-        (this.cwd as Groups['cwd']) = new Group(m.cwd);
         (this.member2parent as Groups['member2parent']) = new Map(m.member2parent);
         (this.group2children as Groups['group2children']) = copyGroup2Children(m.group2children);
     }

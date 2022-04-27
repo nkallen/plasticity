@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import * as visual from '../visual_model/VisualModel';
+import { EmptyId } from './Empties';
 import { GroupId } from './Groups';
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
 import { NodeKey, Nodes } from './Nodes';
-import * as visual from '../visual_model/VisualModel';
 
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
@@ -53,7 +54,7 @@ export class PlasticityDocument {
             });
             materials.set(i, { name, material });
         }
-        into.materials.restoreFromMemento(new MaterialMemento(json.materials.length,materials));
+        into.materials.restoreFromMemento(new MaterialMemento(json.materials.length, materials));
 
         console.time("load backup");
         const items = await into.db.deserialize(c3d);
@@ -81,8 +82,9 @@ export class PlasticityDocument {
             }
         }
         into.scene.restoreFromMemento(new SceneMemento(
+            0,
             new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name),
-            new GroupMemento(json.groups.length, 0, member2parent, group2children))
+            new GroupMemento(json.groups.length, member2parent, group2children))
         );
 
         await into.contours.transaction(() => into.contours.rebuild());
@@ -152,7 +154,8 @@ export class PlasticityDocument {
                 const { tag } = Nodes.dekey(key);
                 const node = {} as NodeJSON;
                 if (tag === 'Item') node.item = item;
-                else node.group = group;
+                else if (tag === 'Group') node.group = group;
+                // else if (tag === 'Empty') node.empty = empty;
                 if (material !== undefined) node.material = material;
                 if (name !== undefined) node.name = name;
                 return node;
@@ -231,6 +234,7 @@ interface GeometryDatabaseJSON {
 interface NodeJSON {
     item?: c3d.SimpleName;
     group?: GroupId;
+    empty?: EmptyId;
     material: number;
     name: string;
 }
@@ -262,5 +266,8 @@ interface PlasticityJSON {
 }
 
 function keyForNode(node: NodeJSON, items: visual.Item[]): NodeKey {
-    return node.item !== undefined ? Nodes.itemKey(items[node.item].simpleName) : Nodes.groupKey(node.group!);
+    if (node.item !== undefined) return Nodes.itemKey(items[node.item].simpleName)
+    else if (node.group !== undefined) return Nodes.groupKey(node.group!);
+    else if (node.empty !== undefined) return Nodes.emptyKey(node.empty!);
+    else throw new Error("invalid node");
 }

@@ -13,6 +13,8 @@ declare module './VisualModel' {
     interface Region extends Boxcastable { }
     interface ControlPointGroup extends Boxcastable { }
     interface ControlPoint extends Boxcastable { }
+    interface Empty extends Boxcastable { }
+    interface SpaceItem extends Boxcastable { }
 }
 
 Solids: {
@@ -410,7 +412,7 @@ Curves: {
         for (let i = start; i < end; i++) {
             _line.start.fromBufferAttribute(instanceStart, i);
             _line.end.fromBufferAttribute(instanceEnd, i);
-            
+
             if (_frustum.containsPoint(_line.start)) return true;
             if (_frustum.containsPoint(_line.end)) return true;
             if (_frustum.intersectsLine(_line)) return true;
