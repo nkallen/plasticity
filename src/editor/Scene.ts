@@ -103,6 +103,8 @@ export class Scene implements MementoOriginator<SceneMemento> {
             if (nodes.isHidden(start)) return accItem;
             if (!nodes.isVisible(start)) return accItem;
             if (checkSelectable && !nodes.isSelectable(start)) return accItem;
+            const parent = this.parent(start)!;
+            if (!nodes.isVisible(parent.empties)) return accItem;
             accItem.add(start);
         } else assertUnreachable(start);
         return accItem;
@@ -178,7 +180,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
     }
 
     private isIndirectlyHidden(node: NodeItem) {
-        if ((node instanceof visual.Item || node instanceof Group) && this.isHidden(node)) return true;
+        if ((node instanceof visual.Item || node instanceof Group || node instanceof Empty)&& this.isHidden(node)) return true;
         if (!this.isVisible(node)) return true;
         let parent = this.groups.parent(this.item2key(node));
         if (parent === undefined) return false;

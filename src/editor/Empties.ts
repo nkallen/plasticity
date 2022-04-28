@@ -25,7 +25,7 @@ export class ImageEmpty extends Empty {
         const aspect = texture.image.width / texture.image.height;
         const fac = 5;
         const geometry = new THREE.PlaneGeometry(fac * aspect, fac, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         this.plane = new THREE.Mesh(geometry, material);
         this.add(this.plane);
     }

@@ -6,7 +6,7 @@ import * as visual from '../visual_model/VisualModel';
 import { Empty, EmptyId, EmptyInfo } from './Empties';
 import { GroupId } from './Groups';
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, EmptyMemento, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
-import { NodeKey, Nodes } from './Nodes';
+import { NodeKey, Nodes, NodeTransform } from './Nodes';
 
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
@@ -63,6 +63,7 @@ export class PlasticityDocument {
 
         const node2material = new Map<NodeKey, number>();
         const node2name = new Map<NodeKey, string>();
+        const node2transform = new Map<NodeKey, NodeTransform>();
         for (const [i, node] of json.nodes.entries()) {
             const key = keyForNode(node, items);
             if (node.material !== undefined) {
@@ -70,6 +71,12 @@ export class PlasticityDocument {
             }
             if (node.name !== undefined) {
                 node2name.set(key, node.name);
+            }
+            if (node.translation !== undefined && node.rotation !== undefined && node.scale !== undefined) {
+                const position = new THREE.Vector3().fromArray(node.translation);
+                const quaternion = new THREE.Quaternion().fromArray(node.rotation);
+                const scale = new THREE.Vector3().fromArray(node.scale);
+                node2transform.set(key, { position, quaternion, scale });
             }
         }
 
@@ -92,7 +99,7 @@ export class PlasticityDocument {
         }
         into.scene.restoreFromMemento(new SceneMemento(
             0,
-            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name, new Map()),
+            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name, node2transform),
             new GroupMemento(json.groups.length, member2parent, group2children))
         );
 
@@ -167,6 +174,7 @@ export class PlasticityDocument {
                 const materialId = nodes.node2material.get(key);
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
                 const name = nodes.node2name.get(key);
+                const transform = nodes.node2transform.get(key);
                 const { tag } = Nodes.dekey(key);
                 const node = {} as NodeJSON;
                 if (tag === 'Item') node.item = item;
@@ -176,6 +184,11 @@ export class PlasticityDocument {
                 else assertUnreachable(tag);
                 if (material !== undefined) node.material = material;
                 if (name !== undefined) node.name = name;
+                if (transform !== undefined) {
+                    node.translation = transform.position.toArray();
+                    node.rotation = transform.quaternion.toArray() as [number, number, number, number];
+                    node.scale = transform.scale.toArray();
+                }
                 return node;
             }),
             groups: [...groups.group2children].map(([gid, children]) => {
