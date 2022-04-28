@@ -39,7 +39,8 @@ beforeEach(async () => {
     images = new Images();
     empties = new Empties(images, signals);
     scene = new Scene(db, empties, materials, signals);
-    selection = new SelectionDatabase(db, materials, signals);
+    
+    selection = new SelectionDatabase(db, scene, materials, signals);
     highlighter = new RenderedSceneBuilder(db, scene, new TextureLoader(), selection, theme, signals);
 
     const makeBox = new ThreePointBoxFactory(db, materials, signals);

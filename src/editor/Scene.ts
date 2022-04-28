@@ -168,11 +168,11 @@ export class Scene implements MementoOriginator<SceneMemento> {
         }
         for (const groupId of before.visibleGroups) {
             if (after.visibleGroups.has(groupId)) continue;
-            hide.dispatch([new Group(groupId), 'indirect']);
+            hide.dispatch([this.lookupGroupById(groupId), 'indirect']);
         }
         for (const groupId of after.visibleGroups) {
             if (before.visibleGroups.has(groupId)) continue;
-            show.dispatch([new Group(groupId), 'indirect']);
+            show.dispatch([this.lookupGroupById(groupId), 'indirect']);
         }
     }
 
@@ -201,10 +201,14 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.nodes.setMaterial(node, id)
     }
 
-    createGroup() {
+    createGroup(): Group {
         const result = this.groups.create();
         this.signals.sceneGraphChanged.dispatch();
         return result;
+    }
+
+    lookupGroupById(id: GroupId): Group {
+        return this.groups.lookupById(id);
     }
 
     deleteGroup(group: Group) {
@@ -283,7 +287,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
 
     restoreFromMemento(m: SceneMemento) {
         this.nodes.restoreFromMemento(m.nodes);
-        (this.cwd as Scene['cwd']) = new Group(m.cwd);
+        (this.cwd as Scene['cwd']) = this.lookupGroupById(m.cwd);
         this.groups.restoreFromMemento(m.groups);
     }
 }

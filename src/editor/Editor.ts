@@ -62,13 +62,13 @@ export class Editor {
     readonly db = this.contours as DatabaseLike;
     readonly images = new Images();
     readonly empties = new Empties(this.images, this.signals);
+    readonly scene = new Scene(this._db, this.empties, this.materials, this.signals);
 
-    readonly selection = new SelectionDatabase(this._db, this.materials, this.signals);
+    readonly selection = new SelectionDatabase(this._db, this.scene, this.materials, this.signals);
 
     readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
-    readonly scene = new Scene(this._db, this.empties, this.materials, this.signals);
     readonly snaps = new SnapManager(this.db, this.scene, this.crosses, this.signals);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null

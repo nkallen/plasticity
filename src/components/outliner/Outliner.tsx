@@ -95,8 +95,8 @@ export default (editor: Editor) => {
             }
 
             const result = flattened.map((item, i) => {
-                const { indent, displayed: isDisplayed } = item;
-                switch (item.tag) {
+                const { indent, displayed: isDisplayed, tag } = item;
+                switch (tag) {
                     case 'Group':
                     case 'Item':
                         const object = item.object;
@@ -111,12 +111,13 @@ export default (editor: Editor) => {
                         const name = scene.getName(object) ?? `${klass} ${object instanceof Group ? object.id : editor.db.lookupId(object.simpleName)}`;
                         return <plasticity-outliner-item
                             class={`block ${firstSelected.has(i) ? 'rounded-t' : ''}  ${lastSelected.has(i) ? 'rounded-b' : ''} overflow-clip`}
-                            key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={item.indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}
+                            key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}
                         ></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection': {
-                        const name = item.tag === 'SolidSection' ? 'Solids' : 'Curves';
-                        const virtual = new VirtualGroup(new Group(item.parentId), item.tag === 'CurveSection' ? 'Curves' : 'Solids');
+                        const name = tag === 'SolidSection' ? 'Solids' : 'Curves';
+                        const group = scene.lookupGroupById(item.parentId);
+                        const virtual = tag === 'CurveSection' ? group.curves : group.solids;
                         const visible = scene.isVisible(virtual);
                         const isDisplayed = item.displayed;
                         return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 pl-1 pr-3 overflow-hidden items-center rounded-md group`} style={`padding-left: ${4 + indentSize * indent}px`}>

@@ -80,7 +80,7 @@ describe(Selection, () => {
             objectRemoved: signals.objectDeselected,
             selectionChanged: signals.selectionChanged
         };
-        selection = new Selection(db, sigs);
+        selection = new Selection(db, scene, sigs);
     });
 
 

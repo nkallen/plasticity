@@ -9,6 +9,7 @@ import { Group, GroupId } from '../editor/Groups';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { HideMode, RealNodeItem } from '../editor/Nodes';
+import { Scene } from '../editor/Scene';
 import { Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
@@ -94,6 +95,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
 
     constructor(
         readonly db: DatabaseLike,
+        readonly scene: Scene,
         readonly signals: SignalLike
     ) {
         signals.objectRemovedFromDatabase.add(([item,]) => this.objectDeleted(item));
@@ -340,7 +342,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         }
         for (const id of this.groupIds) {
             this.groupIds.delete(id);
-            this.signals.objectRemoved.dispatch(new Group(id));
+            this.signals.objectRemoved.dispatch(this.scene.lookupGroupById(id));
         }
         this.parentsWithSelectedChildren.clear();
     }
@@ -466,11 +468,12 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         objectRemoved: this.signals.objectUnhovered,
         selectionChanged: this.signals.selectionChanged
     }
-    readonly selected = new Selection(this.db, this.selectedSignals);
-    readonly hovered = new Selection(this.db, this.hoveredSignals);;
+    readonly selected = new Selection(this.db, this.scene, this.selectedSignals);
+    readonly hovered = new Selection(this.db, this.scene, this.hoveredSignals);;
 
     constructor(
         private readonly db: DatabaseLike,
+        private readonly scene: Scene,
         private readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
         readonly mode = new SelectionModeSet(SelectionModeAll, signals),
@@ -486,7 +489,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
 
     makeTemporary(): SelectionDatabase {
         const signals = new EditorSignals();
-        return new SelectionDatabase(this.db, this.materials, signals, new SelectionModeSet([], signals))
+        return new SelectionDatabase(this.db, this.scene, this.materials, signals, new SelectionModeSet([], signals))
     }
 
     copy(that: HasSelectedAndHovered, ...modes: SelectionMode[]) {

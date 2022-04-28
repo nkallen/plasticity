@@ -36,10 +36,10 @@ beforeEach(() => {
     signals = new EditorSignals();
     modes = new SelectionModeSet(SelectionModeAll, signals);
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    selectionDb = new SelectionDatabase(db, materials, signals);
+    scene = new Scene(db, empties, materials, signals);
+    selectionDb = new SelectionDatabase(db, scene, materials, signals);
     images = new Images();
     empties = new Empties(images, signals);
-    scene = new Scene(db, empties, materials, signals);
     click = new ClickStrategy(db, scene, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
 })
 

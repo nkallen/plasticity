@@ -4,9 +4,12 @@ import { CenterCircleFactory } from '../../src/commands/circle/CircleFactory';
 import LineFactory from '../../src/commands/line/LineFactory';
 import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
+import { Empties } from '../../src/editor/Empties';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { Images } from '../../src/editor/Images';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
+import { Scene } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionModifier } from '../../src/selection/ChangeSelectionExecutor';
 import { SelectionConversionStrategy } from '../../src/selection/CommandRegistrar';
@@ -21,12 +24,18 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionDb: SelectionDatabase;
 let selected: Selection;
+let scene: Scene;
+let empties: Empties;
+let images: Images;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    selectionDb = new SelectionDatabase(db, materials, signals);
+    images = new Images();
+    empties = new Empties(images, signals);
+    scene = new Scene(db, empties, materials, signals);
+    selectionDb = new SelectionDatabase(db, scene, materials, signals);
     selected = selectionDb.selected;
 });
 
