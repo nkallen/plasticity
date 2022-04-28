@@ -1,14 +1,18 @@
-import * as c3d from '../kernel/kernel';
 import { DatabaseLike } from "../editor/DatabaseLike";
-import { GroupId, Group } from '../editor/Groups';
+import { Empty, EmptyId } from '../editor/Empties';
+import { Group, GroupId } from '../editor/Groups';
+import { Scene } from '../editor/Scene';
+import * as c3d from '../kernel/kernel';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
+import { Selectable } from './SelectionDatabase';
 
-export abstract class TypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint | Group, S extends c3d.SimpleName | string | GroupId> {
+export abstract class TypedSelection<T extends Selectable, S extends c3d.SimpleName | string | GroupId> {
     size: number;
 
     constructor(
         protected readonly db: DatabaseLike,
+        protected readonly scene: Scene,
         readonly ids: ReadonlySet<S>
     ) {
         this.size = ids.size;
@@ -55,7 +59,7 @@ export class ItemSelection<T extends visual.Item> extends TypedSelection<T, c3d.
     }
 }
 
-export class TopologyItemSelection<T extends visual.TopologyItem> extends TypedSelection<T, string> {
+export class TopologyItemSelection<T extends visual.Face | visual.CurveEdge> extends TypedSelection<T, string> {
     lookupById(id: string) {
         const views = [...this.db.lookupTopologyItemById(id).views];
         return views[views.length - 1] as T;
@@ -69,7 +73,13 @@ export class ControlPointSelection extends TypedSelection<visual.ControlPoint, s
 
 export class GroupSelection extends TypedSelection<Group, GroupId> {
     lookupById(id: GroupId) {
-        return new Group(id);
+        return this.scene.lookupGroupById(id);
+    }
+}
+
+export class EmptySelection extends TypedSelection<Empty, EmptyId> {
+    lookupById(id: EmptyId) {
+        return this.scene.lookupEmptyById(id);
     }
 }
 

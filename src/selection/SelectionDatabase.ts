@@ -13,9 +13,9 @@ import { Scene } from '../editor/Scene';
 import { assertUnreachable, Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
-import { ControlPointSelection, GroupSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
+import { ControlPointSelection, EmptySelection, GroupSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
 
-export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint | Group;
+export type Selectable = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | visual.Face | visual.CurveEdge | visual.ControlPoint | Group | Empty;
 
 export interface HasSelection {
     readonly solids: ItemSelection<visual.Solid>;
@@ -25,6 +25,7 @@ export interface HasSelection {
     readonly curves: ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
     readonly controlPoints: ControlPointSelection;
     readonly groups: GroupSelection;
+    readonly empties: EmptySelection;
     has(item: visual.Item): boolean;
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): boolean;
 
@@ -63,6 +64,9 @@ export interface ModifiesSelection extends HasSelection {
     removeGroup(group: Group): void;
     addGroup(group: Group): void;
 
+    removeEmpty(empty: Empty): void;
+    addEmpty(empty: Empty): void;
+
     deselectChildren(solidOrCurve: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
 
     removeAll(): void;
@@ -71,6 +75,7 @@ export interface ModifiesSelection extends HasSelection {
 export interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     groupRemoved: signals.Signal<Group>;
+    emptyRemoved: signals.Signal<Empty>;
     objectHidden: signals.Signal<[RealNodeItem, HideMode]>;
     objectUnselectable: signals.Signal<[RealNodeItem, HideMode]>;
     objectReplaced: signals.Signal<Replacement>;
@@ -87,6 +92,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     readonly curveIds = new Set<c3d.SimpleName>();
     readonly controlPointIds = new Set<string>();
     readonly groupIds = new Set<GroupId>();
+    readonly emptyIds = new Set<GroupId>();
 
     // selectedChildren is the set of solids that have actively selected topological items;
     // It's used in selection logic -- you can't select a solid if its face is already selected, for instance;
@@ -100,18 +106,20 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     ) {
         signals.objectRemovedFromDatabase.add(([item,]) => this.objectDeleted(item));
         signals.groupRemoved.add(group => this.objectDeleted(group));
+        signals.emptyRemoved.add(empty => this.objectDeleted(empty));
         signals.objectHidden.add(([item, mode]) => this.objectDeleted(item));
         signals.objectUnselectable.add(([item, mode]) => this.objectDeleted(item));
         signals.objectReplaced.add(({ from }) => this.objectDeleted(from));
     }
 
-    get solids() { return new ItemSelection<visual.Solid>(this.db, this.solidIds) }
-    get edges() { return new TopologyItemSelection<visual.CurveEdge>(this.db, this.edgeIds) }
-    get faces() { return new TopologyItemSelection<visual.Face>(this.db, this.faceIds) }
-    get regions() { return new ItemSelection<visual.PlaneInstance<visual.Region>>(this.db, this.regionIds) }
-    get curves() { return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.curveIds) }
-    get controlPoints() { return new ControlPointSelection(this.db, this.controlPointIds) }
-    get groups() { return new GroupSelection(this.db, this.groupIds) }
+    get solids() { return new ItemSelection<visual.Solid>(this.db, this.scene, this.solidIds) }
+    get edges() { return new TopologyItemSelection<visual.CurveEdge>(this.db, this.scene, this.edgeIds) }
+    get faces() { return new TopologyItemSelection<visual.Face>(this.db, this.scene, this.faceIds) }
+    get regions() { return new ItemSelection<visual.PlaneInstance<visual.Region>>(this.db, this.scene, this.regionIds) }
+    get curves() { return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.scene, this.curveIds) }
+    get controlPoints() { return new ControlPointSelection(this.db, this.scene, this.controlPointIds) }
+    get groups() { return new GroupSelection(this.db, this.scene, this.groupIds) }
+    get empties() { return new EmptySelection(this.db, this.scene, this.emptyIds) }
 
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.has(solid.simpleName)
@@ -121,7 +129,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
     }
 
-    has(item: RealNodeItem) {
+    has(item: Selectable) {
         if (item instanceof visual.Solid) {
             return this.solids.has(item);
         } else if (item instanceof visual.SpaceInstance) {
@@ -131,7 +139,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         } else if (item instanceof Group) {
             return this.groups.has(item);
         } else if (item instanceof Empty) {
-            return false;
+            return this.empties.has(item);
         } else throw new Error("not supported yet");
     }
 
@@ -152,7 +160,9 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.addControlPoint(item);
             } else if (item instanceof Group) {
                 this.addGroup(item);
-            } else throw new Error("invalid type: " + item.constructor.name);
+            } else if (item instanceof Empty) {
+                this.addEmpty(item);
+            } else assertUnreachable(item);
         }
     }
 
@@ -174,11 +184,13 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
                 this.removeControlPoint(selectable);
             } else if (selectable instanceof Group) {
                 this.removeGroup(selectable);
-            }
+            } else if (selectable instanceof Empty) {
+                this.removeEmpty(selectable);
+            } else assertUnreachable(selectable);
         }
     }
 
-    private objectDeleted(item: visual.Item | Group | Empty) {
+    private objectDeleted(item: visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | Empty) {
         if (item instanceof visual.Solid) {
             this.removeSolid(item);
             this.deselectChildren(item);
@@ -190,8 +202,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         } else if (item instanceof Group) {
             this.removeGroup(item);
         } else if (item instanceof Empty) {
-
-        } else throw new Error("invalid precondition");
+            this.removeEmpty(item);
+        } else assertUnreachable(item);
     }
 
     removeFace(object: visual.Face) {
@@ -307,7 +319,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     removeGroup(group: Group) {
-        const id = group.id;
+        const id = group.simpleName;
         if (!this.groupIds.has(id)) return;
 
         this.groupIds.delete(group.simpleName);
@@ -320,6 +332,22 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
 
         this.groupIds.add(id);
         this.signals.objectAdded.dispatch(group);
+    }
+
+    removeEmpty(empty: Empty) {
+        const id = empty.simpleName;
+        if (!this.emptyIds.has(id)) return;
+
+        this.emptyIds.delete(empty.simpleName);
+        this.signals.objectRemoved.dispatch(empty);
+    }
+
+    addEmpty(empty: Empty) {
+        const id = empty.simpleName;
+        if (this.emptyIds.has(id)) return;
+
+        this.emptyIds.add(id);
+        this.signals.objectAdded.dispatch(empty);
     }
 
     removeAll(): void {
@@ -345,6 +373,10 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         for (const id of this.groupIds) {
             this.groupIds.delete(id);
             this.signals.objectRemoved.dispatch(this.scene.lookupGroupById(id));
+        }
+        for (const id of this.emptyIds) {
+            this.emptyIds.delete(id);
+            this.signals.objectRemoved.dispatch(this.scene.lookupEmptyById(id));
         }
         this.parentsWithSelectedChildren.clear();
     }
@@ -389,6 +421,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             new Set(this.regionIds),
             new Set(this.controlPointIds),
             new Set(this.groupIds),
+            new Set(this.emptyIds),
         );
     }
 
@@ -401,6 +434,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         (this.regionIds as Selection['regionIds']) = new Set(m.selectedRegionIds);
         (this.controlPointIds as Selection['controlPointIds']) = new Set(m.selectedControlPointIds);
         (this.groupIds as Selection['groupIds']) = new Set(m.selectedGroupIds);
+        (this.emptyIds as Selection['emptyIds']) = new Set(m.selectedEmptyIds);
 
         this.signals.selectionChanged.dispatch({ selection: this });
     }
@@ -426,6 +460,9 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         }
         for (const id of this.groupIds) {
             console.assert(this.groups.lookupById(id) !== undefined, "group is in database", id);
+        }
+        for (const id of this.emptyIds) {
+            console.assert(this.empties.lookupById(id) !== undefined, "empty is in database", id);
         }
         for (const id of this.parentsWithSelectedChildren.keys()) {
             console.assert(this.db.lookupItemById(id) !== undefined, "parent is in database", id);
@@ -455,6 +492,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         objectHidden: this.signals.objectHidden,
         objectUnselectable: this.signals.objectUnselectable,
         groupRemoved: this.signals.groupDeleted,
+        emptyRemoved: this.signals.emptyRemoved,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectSelected,
         objectRemoved: this.signals.objectDeselected,
@@ -465,6 +503,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         objectHidden: this.signals.objectHidden,
         objectUnselectable: this.signals.objectUnselectable,
         groupRemoved: this.signals.groupDeleted,
+        emptyRemoved: this.signals.emptyRemoved,
         objectReplaced: this.signals.objectReplaced,
         objectAdded: this.signals.objectHovered,
         objectRemoved: this.signals.objectUnhovered,

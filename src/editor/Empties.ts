@@ -58,6 +58,13 @@ export class Empties implements MementoOriginator<EmptyMemento>{
         return empty;
     }
 
+    delete(empty: Empty) {
+        const id = empty.simpleName;
+        this.id2empty.delete(id);
+        this.id2info.delete(id);
+        this.signals.emptyRemoved.dispatch(empty);
+    }
+
     lookupById(id: EmptyId): Empty {
         return this.id2empty.get(id)!;
     }

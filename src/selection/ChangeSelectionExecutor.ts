@@ -144,7 +144,7 @@ export class ChangeSelectionExecutor {
             for (const intersectable of select) {
                 if (intersectable instanceof visual.Solid) {
                     if (!prohibitions.has(intersectable)) continue;
-                } else if (intersectable instanceof visual.TopologyItem) {
+                } else if (intersectable instanceof visual.Face || intersectable instanceof visual.CurveEdge) {
                     if (!prohibitions.has(intersectable.parentItem) && !prohibitions.has(intersectable)) continue;
                 } else if (intersectable instanceof visual.ControlPoint) {
                     if (prohibitions.has(intersectable)) continue;

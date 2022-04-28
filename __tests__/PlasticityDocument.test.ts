@@ -162,7 +162,7 @@ describe(PlasticityDocument, () => {
         expect(groupChildren[0]).toEqual({ item: db.items[0].view, tag: "Item" });
     });
 
-    test.only("serialize & deserialize empties", async () => {
+    test("serialize & deserialize empties", async () => {
         const img = document.createElement("img");
         URL.createObjectURL = jest.fn().mockImplementation(() => 'data:1234');
         URL.revokeObjectURL = jest.fn();

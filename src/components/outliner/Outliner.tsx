@@ -112,7 +112,8 @@ export default (editor: Editor) => {
                         const klass = Outliner.klass(nodeKey);
                         const mat = scene.getMaterial(object);
                         const color = getColor(mat);
-                        const name = scene.getName(object) ?? `${klass} ${object instanceof Group ? object.id : editor.db.lookupId(object.simpleName)}`;
+                        const id = object instanceof Group || object instanceof Empty ? object.simpleName : editor.db.lookupId(object.simpleName);
+                        const name = scene.getName(object) ?? `${klass} ${id}`;
                         return <plasticity-outliner-item
                             class={`block ${firstSelected.has(i) ? 'rounded-t' : ''}  ${lastSelected.has(i) ? 'rounded-b' : ''} overflow-clip`}
                             key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}

@@ -7,7 +7,6 @@
 - [ ] Empty transform  
 - [ ] Empty boxcasting  
 - [ ] Empty raycasting  
-- [ ] Empty in outline  
 
 ### Todo
 
@@ -17,6 +16,7 @@
 
 ### Done ✓
 
+- [x] Empty in outline  
 - [x] opacity of hidden items  
 - [x] in render mode the outliner blows up  
 - [x] how hid lines curves per group  

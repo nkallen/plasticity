@@ -2,7 +2,7 @@ import signals from 'signals';
 import { assertUnreachable } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
-import { Empties, Empty } from './Empties';
+import { Empties, Empty, EmptyId } from './Empties';
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
@@ -212,8 +212,17 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return this.groups.lookupById(id);
     }
 
+    lookupEmptyById(id: EmptyId): Empty {
+        return this.empties.lookupById(id);
+    }
+
     deleteGroup(group: Group) {
         this.groups.delete(group);
+        this.signals.sceneGraphChanged.dispatch();
+    }
+
+    deleteEmpty(empty: Empty) {
+        this.empties.delete(empty);
         this.signals.sceneGraphChanged.dispatch();
     }
 

@@ -14,7 +14,7 @@ export interface TemporaryObject {
     hide(): void;
 }
 
-export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
+export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.CurveEdge> };
 export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
 
 export interface MaterialOverride {
