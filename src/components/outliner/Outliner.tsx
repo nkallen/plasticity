@@ -10,6 +10,8 @@ import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
 import OutlinerItem, { indentSize, ToggleVisibilityCommand } from './OutlinerItems';
 import * as THREE from 'three';
+import { assertUnreachable } from '../../util/Util';
+import { Empty } from '../../editor/Empties';
 
 export default (editor: Editor) => {
     OutlinerItem(editor);
@@ -64,6 +66,7 @@ export default (editor: Editor) => {
             if (item instanceof visual.Solid) return "Solid";
             else if (item instanceof visual.SpaceInstance) return "Curve";
             else if (item instanceof Group) return "Group";
+            else if (item instanceof Empty) return "Empty";
             throw new Error("Should be unreachable");
         }
 
@@ -98,6 +101,7 @@ export default (editor: Editor) => {
                 const { indent, displayed: isDisplayed, tag } = item;
                 switch (tag) {
                     case 'Group':
+                    case 'Empty':
                     case 'Item':
                         const object = item.object;
                         const visible = scene.isVisible(object);
@@ -114,10 +118,17 @@ export default (editor: Editor) => {
                             key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}
                         ></plasticity-outliner-item>
                     case 'SolidSection':
-                    case 'CurveSection': {
-                        const name = tag === 'SolidSection' ? 'Solids' : 'Curves';
+                    case 'CurveSection':
+                    case 'EmptySection': {
                         const group = scene.lookupGroupById(item.parentId);
-                        const virtual = tag === 'CurveSection' ? group.curves : group.solids;
+                        let name: string;
+                        let virtual: VirtualGroup;
+                        switch (tag) {
+                            case 'CurveSection': name = 'Curves'; virtual = group.curves; break;
+                            case 'SolidSection': name = 'Solids'; virtual = group.solids; break;
+                            case 'EmptySection': name = 'Empties'; virtual = group.empties; break;
+                            default: assertUnreachable(tag);
+                        }
                         const visible = scene.isVisible(virtual);
                         const isDisplayed = item.displayed;
                         return <div class={`${isDisplayed ? '' : 'opacity-50'} flex gap-1 pl-1 pr-3 overflow-hidden items-center rounded-md group`} style={`padding-left: ${4 + indentSize * indent}px`}>

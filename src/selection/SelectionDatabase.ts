@@ -10,7 +10,7 @@ import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { HideMode, RealNodeItem } from '../editor/Nodes';
 import { Scene } from '../editor/Scene';
-import { Redisposable, RefCounter } from '../util/Util';
+import { assertUnreachable, Redisposable, RefCounter } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from './SelectionModeSet';
 import { ControlPointSelection, GroupSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
@@ -121,7 +121,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
     }
 
-    has(item: visual.Item | Group) {
+    has(item: RealNodeItem) {
         if (item instanceof visual.Solid) {
             return this.solids.has(item);
         } else if (item instanceof visual.SpaceInstance) {
@@ -130,6 +130,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             return this.regions.has(item);
         } else if (item instanceof Group) {
             return this.groups.has(item);
+        } else if (item instanceof Empty) {
+            return false;
         } else throw new Error("not supported yet");
     }
 

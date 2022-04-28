@@ -17,6 +17,7 @@ export type NodeDekey =
 export type NodeKey = string;
 export type NodeItem = visual.Item | Group | VirtualGroup | Empty;
 export type RealNodeItem = visual.Item | Group | Empty;
+export type LeafNodeItem = visual.Item | Empty;
 export type Transform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
 
 export class Nodes implements MementoOriginator<NodeMemento> {
@@ -75,6 +76,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         if (item instanceof Group) {
             this.deleteItem(item.curves);
             this.deleteItem(item.solids);
+            this.deleteItem(item.empties);
         } else if (item instanceof visual.Item || item instanceof Empty) {
             this.groups.deleteMembership(k);
         }

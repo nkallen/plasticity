@@ -7,7 +7,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { HideMode, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
+import { HideMode, LeafNodeItem, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 /**
@@ -95,6 +95,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
             const parent = this.parent(start)!;
             if (start instanceof visual.Solid && !nodes.isVisible(parent.solids)) return accItem;
             if (start instanceof visual.SpaceInstance && !nodes.isVisible(parent.curves)) return accItem;
+            if (start instanceof Empty && !nodes.isVisible(parent.empties)) return accItem;
             accItem.add(start);
         } else if (start instanceof VirtualGroup) {
             return this.computeVisibleObjectsInGroup(start.parent, accItem, accGroup, checkSelectable);
@@ -151,7 +152,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
 
     private snapshot(node: NodeItem, checkSelectable: boolean): Snapshot {
         const isIndirectlyHidden = this.isIndirectlyHidden(node) || (checkSelectable && !this.isSelectable(node));
-        const visibleItems = new Set<visual.Item>();
+        const visibleItems = new Set<LeafNodeItem>();
         const visibleGroups = new Set<GroupId>();
         this.computeVisibleObjectsInGroup(node, visibleItems, visibleGroups, checkSelectable);
         return { isIndirectlyHidden, visibleItems, visibleGroups };
@@ -294,11 +295,11 @@ export class Scene implements MementoOriginator<SceneMemento> {
 
 type Snapshot = {
     isIndirectlyHidden: boolean;
-    visibleItems: Set<visual.Item>;
+    visibleItems: Set<LeafNodeItem>;
     visibleGroups: Set<number>;
 };
 
 export type SceneDisplayInfo = {
-    visibleItems: Set<visual.Item>;
+    visibleItems: Set<LeafNodeItem>;
     visibleGroups: Set<number>;
 };

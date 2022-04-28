@@ -1,6 +1,7 @@
 import { createRef, render } from 'preact';
 import * as cmd from "../../command/Command";
 import { Editor } from '../../editor/Editor';
+import { Empty } from '../../editor/Empties';
 import { Group } from '../../editor/Groups';
 import { NodeItem, RealNodeItem } from '../../editor/Nodes';
 import { ChangeSelectionModifier, ChangeSelectionOption } from '../../selection/ChangeSelectionExecutor';
@@ -181,7 +182,7 @@ export default (editor: Editor) => {
             const { scene } = editor;
             const { nodeKey: key } = this;
             const item = scene.key2item(key);
-            if (!(item instanceof visual.Item || item instanceof Group)) throw new Error("invalid item: " + item.constructor.name);
+            if (!(item instanceof visual.Item || item instanceof Group || item instanceof Empty)) throw new Error("invalid item: " + item.constructor.name);
             return item;
         }
     }
