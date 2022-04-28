@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { ImageEmpty } from "../editor/Empties";
 import { Boxcastable, Boxcaster } from "../selection/Boxcaster";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
@@ -13,7 +14,7 @@ declare module './VisualModel' {
     interface Region extends Boxcastable { }
     interface ControlPointGroup extends Boxcastable { }
     interface ControlPoint extends Boxcastable { }
-    // interface Empty extends Boxcastable { }
+    interface ImageEmpty extends Boxcastable { }
     interface SpaceItem extends Boxcastable { }
 }
 
@@ -77,46 +78,18 @@ Solids: {
 
     FaceGroup.prototype.containsGeometry = function (boxcaster: Boxcaster) {
         const { matrixWorld, geometry } = this.mesh;
-        const { drawRange } = geometry;
-        const index = geometry.index!;
-
-        const position = geometry.attributes.position;
-
-        _frustum.copy(boxcaster.frustum);
-        _inverseMatrix.copy(matrixWorld).invert();
-        _frustum.applyMatrix4(_inverseMatrix);
-
+        const { drawRange, index } = geometry;
         const start = drawRange.start;
-        const end = Math.min(index.count, drawRange.start + drawRange.count);
-
-        for (let i = start; i < end; i++) {
-            const j = index.getX(i);
-            _v.fromBufferAttribute(position, j);
-            if (!_frustum.containsPoint(_v)) return false;
-        }
-        return true;
+        const end = Math.min(index!.count, drawRange.start + drawRange.count);
+        return containsGeometry(boxcaster, geometry, matrixWorld, start, end);
     }
 
     FaceGroup.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
         const { matrixWorld, geometry } = this.mesh;
-        const { drawRange } = geometry;
-        const index = geometry.index!;
-
-        const position = geometry.attributes.position;
-
-        _frustum.copy(boxcaster.frustum);
-        _inverseMatrix.copy(matrixWorld).invert();
-        _frustum.applyMatrix4(_inverseMatrix);
-
+        const { drawRange, index } = geometry;
         const start = drawRange.start;
-        const end = Math.min(index.count, drawRange.start + drawRange.count);
-
-        for (let i = start; i < end; i++) {
-            const j = index.getX(i);
-            _v.fromBufferAttribute(position, j);
-            if (_frustum.containsPoint(_v)) return true;
-        }
-        return false;
+        const end = Math.min(index!.count, drawRange.start + drawRange.count);
+        return intersectsGeometry(boxcaster, geometry, matrixWorld, start, end);
     }
 
     Face.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -148,66 +121,20 @@ Solids: {
         const parent = this.parent as FaceGroup;
         const { matrixWorld, geometry } = parent.mesh;
         const { group } = this;
-        const { drawRange } = geometry;
-        const index = geometry.index!;
-
-        const position = geometry.attributes.position;
-
-        _frustum.copy(boxcaster.frustum);
-        _inverseMatrix.copy(matrixWorld).invert();
-        _frustum.applyMatrix4(_inverseMatrix);
-
+        const { drawRange, index } = geometry;
         const start = Math.max(group.start, drawRange.start);
-        const end = Math.min(index.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
-
-        for (let i = start; i < end; i++) {
-            const j = index.getX(i);
-            _v.fromBufferAttribute(position, j);
-            if (!_frustum.containsPoint(_v)) return false;
-        }
-        return true;
+        const end = Math.min(index!.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
+        return containsGeometry(boxcaster, geometry, matrixWorld, start, end);
     }
 
     Face.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
         const parent = this.parent as FaceGroup;
         const { matrixWorld, geometry } = parent.mesh;
         const { group } = this;
-        const { drawRange } = geometry;
-        const index = geometry.index!;
-
-        const position = geometry.attributes.position;
-
-        _frustum.copy(boxcaster.frustum);
-        _inverseMatrix.copy(matrixWorld).invert();
-        _frustum.applyMatrix4(_inverseMatrix);
-
+        const { drawRange, index } = geometry;
         const start = Math.max(group.start, drawRange.start);
-        const end = Math.min(index.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
-
-        for (let i = start; i < end; i += 3) {
-            const a = index.getX(i + 0);
-            const b = index.getX(i + 1);
-            const c = index.getX(i + 2);
-            _v.fromBufferAttribute(position, a);
-            if (_frustum.containsPoint(_v)) return true;
-            _v.fromBufferAttribute(position, b);
-            if (_frustum.containsPoint(_v)) return true;
-            _v.fromBufferAttribute(position, c);
-            if (_frustum.containsPoint(_v)) return true;
-
-            _line.start.fromBufferAttribute(position, a);
-            _line.end.fromBufferAttribute(position, b);
-            if (_frustum.intersectsLine(_line)) return true;
-
-            _line.start.fromBufferAttribute(position, a);
-            _line.end.fromBufferAttribute(position, c);
-            if (_frustum.intersectsLine(_line)) return true;
-
-            _line.start.fromBufferAttribute(position, b);
-            _line.end.fromBufferAttribute(position, c);
-            if (_frustum.intersectsLine(_line)) return true;
-        }
-        return false;
+        const end = Math.min(index!.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
+        return intersectsGeometry(boxcaster, geometry, matrixWorld, start, end);
     }
 
     CurveGroup.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -555,6 +482,101 @@ Regions: {
         }
         return false;
     }
+}
+
+Empties: {
+    ImageEmpty.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            selects.push(this);
+        } else if (type == 'intersected') {
+            boxcaster.selectGeometry(this, selects);
+        }
+    }
+
+    ImageEmpty.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.plane;
+
+        if (geometry.boundingBox === null) geometry.computeBoundingBox();
+        _box.copy(geometry.boundingBox!);
+        _box.applyMatrix4(matrixWorld);
+        _frustum.copy(boxcaster.frustum);
+
+        if (_frustum.containsBox(_box)) {
+            return 'contained';
+        } else if (_frustum.intersectsBox(_box)) {
+            return 'intersected';
+        } else {
+            return 'not-intersected';
+        }
+    }
+
+    ImageEmpty.prototype.containsGeometry = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.plane;
+        const { drawRange, index } = geometry;
+        const start = drawRange.start;
+        const end = Math.min(index!.count, drawRange.start + drawRange.count);
+        return containsGeometry(boxcaster, geometry, matrixWorld, start, end);
+    }
+
+    ImageEmpty.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.plane;
+        const { drawRange, index } = geometry;
+        const start = drawRange.start;
+        const end = Math.min(index!.count, drawRange.start + drawRange.count);
+        return intersectsGeometry(boxcaster, geometry, matrixWorld, start, end);
+    }
+}
+
+function intersectsGeometry(boxcaster: Boxcaster, geometry: THREE.BufferGeometry, matrixWorld: THREE.Matrix4, start: number, end: number) {
+    const index = geometry.index!;
+    const position = geometry.attributes.position;
+
+    _frustum.copy(boxcaster.frustum);
+    _inverseMatrix.copy(matrixWorld).invert();
+    _frustum.applyMatrix4(_inverseMatrix);
+
+
+    for (let i = start; i < end; i += 3) {
+        const a = index.getX(i + 0);
+        const b = index.getX(i + 1);
+        const c = index.getX(i + 2);
+        _v.fromBufferAttribute(position, a);
+        if (_frustum.containsPoint(_v)) return true;
+        _v.fromBufferAttribute(position, b);
+        if (_frustum.containsPoint(_v)) return true;
+        _v.fromBufferAttribute(position, c);
+        if (_frustum.containsPoint(_v)) return true;
+
+        _line.start.fromBufferAttribute(position, a);
+        _line.end.fromBufferAttribute(position, b);
+        if (_frustum.intersectsLine(_line)) return true;
+
+        _line.start.fromBufferAttribute(position, a);
+        _line.end.fromBufferAttribute(position, c);
+        if (_frustum.intersectsLine(_line)) return true;
+
+        _line.start.fromBufferAttribute(position, b);
+        _line.end.fromBufferAttribute(position, c);
+        if (_frustum.intersectsLine(_line)) return true;
+    }
+    return false;
+}
+
+function containsGeometry(boxcaster: Boxcaster, geometry: THREE.BufferGeometry, matrixWorld: THREE.Matrix4, start: number, end: number) {
+    const index = geometry.index!;
+
+    const position = geometry.attributes.position;
+
+    _frustum.copy(boxcaster.frustum);
+    _inverseMatrix.copy(matrixWorld).invert();
+    _frustum.applyMatrix4(_inverseMatrix);
+
+    for (let i = start; i < end; i++) {
+        const j = index.getX(i);
+        _v.fromBufferAttribute(position, j);
+        if (!_frustum.containsPoint(_v)) return false;
+    }
+    return true;
 }
 
 export class FastFrustum extends THREE.Frustum {
