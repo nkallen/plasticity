@@ -18,7 +18,7 @@ export type NodeKey = string;
 export type NodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | VirtualGroup | Empty;
 export type RealNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | Empty;
 export type LeafNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Empty;
-export type Transform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
+export type NodeTransform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
 
 export class Nodes implements MementoOriginator<NodeMemento> {
     static key(member: NodeDekey): NodeKey {
@@ -50,7 +50,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     private readonly invisible = new Set<NodeKey>();
     private readonly unselectable = new Set<NodeKey>();
     private readonly node2name = new Map<NodeKey, string>();
-    private readonly node2transform = new Map<NodeKey, Transform>();
+    private readonly node2transform = new Map<NodeKey, NodeTransform>();
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -86,6 +86,11 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         const k = this.item2key(item);
         this.node2name.set(k, name);
         this.signals.objectNamed.dispatch([item, name]);
+    }
+
+    setTransform(item: RealNodeItem, transform: NodeTransform) {
+        const k = this.item2key(item);
+        this.node2transform.set(k, transform);
     }
 
     getName(item: RealNodeItem): string | undefined {
@@ -169,11 +174,17 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     getMaterial(item: RealNodeItem): THREE.Material & { color: THREE.ColorRepresentation } | undefined {
-        const { node2material: version2material } = this;
+        const { node2material } = this;
         const k = this.item2key(item);
-        const materialId = version2material.get(k);
+        const materialId = node2material.get(k);
         if (materialId === undefined) return undefined;
         else return this.materials.get(materialId)!;
+    }
+
+    getTransform(item: RealNodeItem): NodeTransform | undefined {
+        const { node2transform } = this;
+        const k = this.item2key(item);
+        return node2transform.get(k);
     }
 
     saveToMemento(): NodeMemento {

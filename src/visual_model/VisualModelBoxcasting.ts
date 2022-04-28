@@ -327,7 +327,6 @@ Curves: {
 
         const instanceStart = geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
         const instanceEnd = geometry.attributes.instanceEnd; // camera forward is negative
-        const array = instanceStart.data.array as Float32Array;
 
         _frustum.copy(boxcaster.frustum);
         _inverseMatrix.copy(matrixWorld).invert();

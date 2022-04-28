@@ -12,7 +12,6 @@ import basic_side from '../img/matcap/basic_side.exr';
 import ceramicDark from '../img/matcap/ceramic_dark.exr';
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionDatabase";
 import { Theme } from "../startup/ConfigFiles";
-import { assertUnreachable } from "../util/Util";
 import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
@@ -155,17 +154,17 @@ export class RenderedSceneBuilder {
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
-    highlightItem = (item: visual.SpaceItem, override?: THREE.Material & { color: ColorRepresentation }) => {
+    highlightItem = (item: visual.SpaceItem, materialOverride?: THREE.Material & { color: ColorRepresentation }) => {
         if (item instanceof visual.Solid) {
-            this.highlightSolid(item, override);
+            this.highlightSolid(item, materialOverride);
         } else if (item instanceof visual.SpaceInstance) {
             this.highlightSpaceInstance(item);
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
         } else if (item instanceof Empty) {
-
+            this.highlightEmpty(item);
         } else {
-            // throw new Error("invalid type: " + item.constructor.name);
+            throw new Error("invalid type: " + item.constructor.name);
         }
         item.updateMatrixWorld();
     }
@@ -174,6 +173,16 @@ export class RenderedSceneBuilder {
         this.highlightFaces(solid, override);
         this.highlightEdges(solid);
         solid.layers.set(visual.Layers.Solid);
+    }
+
+    private highlightEmpty(empty: Empty) {
+        const transform = this.scene.getTransform(empty, true);
+        if (transform !== undefined) {
+            empty.position.copy(transform.position);
+            empty.quaternion.copy(transform.quaternion);
+            empty.scale.copy(transform.scale);
+        }
+        empty.layers.set(visual.Layers.Empty);
     }
 
     private highlightRegion(item: visual.PlaneInstance<visual.Region>) {

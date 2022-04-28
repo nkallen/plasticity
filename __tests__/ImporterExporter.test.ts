@@ -12,6 +12,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { Images } from '../src/editor/Images';
 import { ImporterExporter } from "../src/editor/ImporterExporter";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
+import { Scene } from '../src/editor/Scene';
 import * as visual from '../src/visual_model/VisualModel';
 import './matchers';
 
@@ -22,6 +23,7 @@ let materials: MaterialDatabase;
 let signals: EditorSignals;
 let empties: Empties;
 let images: Images;
+let scene: Scene;
 
 beforeEach(() => {
     editor = new Editor();
@@ -30,7 +32,8 @@ beforeEach(() => {
     signals = editor.signals;
     images = editor.images;
     empties = new Empties(images, signals);
-    importer = new ImporterExporter(editor._db, empties, images, editor.contours);
+    const scene = new Scene(db, empties, materials, signals);
+    importer = new ImporterExporter(editor._db, empties, scene, images, editor.contours);
 });
 
 test("export & import c3d", async () => {

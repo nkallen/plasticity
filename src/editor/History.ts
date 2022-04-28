@@ -11,7 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { Empty, EmptyId, EmptyInfo } from "./Empties";
 import { Images } from "./Images";
 import { GroupId } from "./Groups";
-import { NodeKey, Transform } from "./Nodes";
+import { NodeKey, NodeTransform } from "./Nodes";
 import { EmptyJSON } from "./PlasticityDocument";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
@@ -64,7 +64,7 @@ export class NodeMemento {
         readonly invisible: ReadonlySet<NodeKey>,
         readonly unselectable: ReadonlySet<NodeKey>,
         readonly node2name: ReadonlyMap<NodeKey, string>,
-        readonly node2transform: ReadonlyMap<NodeKey, Transform>,
+        readonly node2transform: ReadonlyMap<NodeKey, NodeTransform>,
     ) { }
 }
 

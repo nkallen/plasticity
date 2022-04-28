@@ -82,7 +82,7 @@ export class Editor {
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
-    readonly importer = new ImporterExporter(this._db, this.empties, this.images, this.contours);
+    readonly importer = new ImporterExporter(this._db, this.empties, this.scene, this.images, this.contours);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
 

@@ -4,9 +4,8 @@
 
 ### Backlog
 
+- [ ] Opacity of nodes  
 - [ ] Empty transform  
-- [ ] Empty boxcasting  
-- [ ] Empty raycasting  
 
 ### Todo
 
@@ -16,6 +15,8 @@
 
 ### Done ✓
 
+- [x] Empty raycasting  
+- [x] Empty boxcasting  
 - [x] Empty in outline  
 - [x] opacity of hidden items  
 - [x] in render mode the outliner blows up  
