@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ControlPoint, Curve3D, Layers, Region, TopologyItem } from "../visual_model/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, Layers, Region, TopologyItem } from "../visual_model/VisualModel";
 
 // It's important to conceptually distinguish intersectable objects from selectable objects
 // Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)
@@ -20,7 +20,7 @@ export class RaycastableTopologyItem extends THREE.Object3D {
 }
 
 export type Raycastable = Curve3D | RaycastableTopologyItem | ControlPoint | Region;
-export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
+export type Intersectable = Curve3D | Face | CurveEdge | ControlPoint | Region;
 
 export interface Intersection {
     object: Intersectable;

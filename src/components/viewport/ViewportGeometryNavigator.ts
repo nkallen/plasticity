@@ -10,7 +10,7 @@ import { ViewportNavigatorExecutor } from "./ViewportNavigator";
 
 export type NavigationTarget =
     { tag: 'orientation', cplane: ConstructionPlaneSnap }
-    | { tag: 'face', targets: Set<visual.TopologyItem>, cplane: FaceConstructionPlaneSnap }
+    | { tag: 'face', targets: Set<visual.Face | visual.CurveEdge>, cplane: FaceConstructionPlaneSnap }
     | { tag: 'region', target: visual.PlaneInstance<visual.Region>, cplane: ConstructionPlaneSnap }
     | { tag: 'cplane', cplane: ConstructionPlaneSnap | FaceConstructionPlaneSnap }
 

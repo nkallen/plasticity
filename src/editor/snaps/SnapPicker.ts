@@ -98,7 +98,7 @@ export class SnapPicker {
             let snap: Snap;
             if (object instanceof visual.Region) {
                 continue; // FIXME:
-            } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D) {
+            } else if (object instanceof visual.Face || object instanceof visual.CurveEdge || object instanceof visual.Curve3D) {
                 snap = snaps.lookup(object);
             } else if (object instanceof visual.ControlPoint) {
                 continue; // FIXME:

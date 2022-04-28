@@ -35,7 +35,7 @@ export class Model {
 
         const model = db.lookup(solid);
         const name = creator.GetYourNameMaker();
-        const result: visual.TopologyItem[] = [];
+        const result: (visual.Face | visual.CurveEdge)[] = [];
 
         for (const topo of model.GetItems()) {
             if (name.IsChild(topo)) {
@@ -185,7 +185,7 @@ export default (editor: Editor) => {
 export class CreatorChangeSelectionCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly topologyItems: visual.TopologyItem[],
+        private readonly topologyItems: (visual.Face | visual.CurveEdge)[],
         private readonly modifier: ChangeSelectionModifier
     ) {
         super(editor);

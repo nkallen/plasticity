@@ -1,6 +1,8 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
+import { Empty } from "../editor/Empties";
 import { Group } from "../editor/Groups";
 import { Scene } from "../editor/Scene";
+import { assertUnreachable } from "../util/Util";
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ChangeSelectionModifier, ChangeSelectionOption } from "./ChangeSelectionExecutor";
@@ -179,7 +181,7 @@ export class ClickStrategy {
             });
     }
 
-    box(set: ReadonlySet<Intersectable | Solid | Group>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+    box(set: ReadonlySet<Intersectable | Solid | Group | Empty>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
         const { hovered } = this;
         hovered.removeAll();
 
@@ -192,6 +194,7 @@ export class ClickStrategy {
         const changedRegions = new Set<PlaneInstance<Region>>();
         const changedPoints = new Set<ControlPoint>();
         const changedGroups = new Set<Group>();
+        const changedEmpties = new Set<Empty>();
 
         const work = [...set];
         while (work.length > 0) {
@@ -259,7 +262,9 @@ export class ClickStrategy {
                 } else {
                     changedGroups.add(object);
                 }
-            }
+            } else if (object instanceof Empty) {
+                changedEmpties.add(object);
+            } else assertUnreachable(object);
         }
 
         this.modify(modifier,
@@ -273,6 +278,7 @@ export class ClickStrategy {
                 for (const region of changedRegions) this.writeable.addRegion(region);
                 for (const point of changedPoints) this.writeable.addControlPoint(point);
                 for (const group of changedGroups) this.writeable.addGroup(group);
+                for (const empty of changedEmpties) this.writeable.addEmpty(empty);
             },
             () => {
                 for (const solid of changedSolids) this.writeable.removeSolid(solid);
@@ -282,6 +288,7 @@ export class ClickStrategy {
                 for (const region of changedRegions) this.writeable.removeRegion(region);
                 for (const point of changedPoints) this.writeable.removeControlPoint(point);
                 for (const group of changedGroups) this.writeable.removeGroup(group);
+                for (const empty of changedEmpties) this.writeable.removeEmpty(empty);
             });
     }
 

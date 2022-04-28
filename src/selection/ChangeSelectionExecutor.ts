@@ -1,8 +1,10 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
+import { Empty } from "../editor/Empties";
 import { Group } from "../editor/Groups";
-import { NodeItem } from "../editor/Nodes";
+import { RealNodeItem } from "../editor/Nodes";
 import { Scene } from "../editor/Scene";
+import { assertUnreachable } from "../util/Util";
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
@@ -101,32 +103,33 @@ export class ChangeSelectionExecutor {
         this.clickStrategy.box(this.filterProhibited(select), modifier, ChangeSelectionOption.None);
     }
 
-    onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
+    onCreatorSelect(topologyItems: (visual.Face | visual.CurveEdge)[], modifier: ChangeSelectionModifier) {
         this.clickStrategy.box(new Set(topologyItems), modifier, ChangeSelectionOption.None);
     }
 
-    onOutlinerHover(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+    onOutlinerHover(items: Iterable<RealNodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
         const intersectables = this.getIntersectables(items);
         this.hoverStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode | option);
     }
 
-    onOutlinerSelect(items: Iterable<NodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+    onOutlinerSelect(items: Iterable<RealNodeItem>, modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
         const intersectables = this.getIntersectables(items);
         this.clickStrategy.box(new Set(intersectables), modifier, ChangeSelectionOption.IgnoreMode | option);
     }
 
-    private getIntersectables(items: Iterable<NodeItem>) {
+    private getIntersectables(items: Iterable<RealNodeItem>) {
         const intersectables = [];
         for (const item of items) {
-            let intersectable: Intersectable | visual.Solid | Group;
+            let intersectable: Intersectable | visual.Solid | Group | Empty;
             if (item instanceof visual.Solid)
                 intersectable = item;
             else if (item instanceof visual.SpaceInstance || item instanceof visual.PlaneInstance)
                 intersectable = item.underlying;
             else if (item instanceof Group)
                 intersectable = item;
-            else
-                throw new Error("Invalid condition");
+            else if (item instanceof Empty)
+                intersectable = item;
+            else assertUnreachable(item);
             intersectables.push(intersectable);
         }
         return intersectables;

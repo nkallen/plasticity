@@ -213,7 +213,7 @@ export default (editor: Editor) => {
 class OutlinerChangeSelectionCommand extends cmd.CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly items: readonly NodeItem[],
+        private readonly items: readonly RealNodeItem[],
         private readonly modifier: ChangeSelectionModifier,
         private readonly option: ChangeSelectionOption
     ) {

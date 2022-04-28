@@ -5,7 +5,7 @@ import LineFactory from "../../src/commands/line/LineFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from "../../src/editor/EditorSignals";
-import { Empties } from '../../src/editor/Empties';
+import { Empties, Empty } from '../../src/editor/Empties';
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { Group } from '../../src/editor/Groups';
 import { Images } from '../../src/editor/Images';
@@ -18,6 +18,7 @@ import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { SelectionMode, SelectionModeAll, SelectionModeSet } from '../../src/selection/SelectionModeSet';
 import * as visual from '../../src/visual_model/VisualModel';
+import { FakeImages } from '../../__mocks__/FakeImages';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
@@ -38,7 +39,7 @@ beforeEach(() => {
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
     scene = new Scene(db, empties, materials, signals);
     selectionDb = new SelectionDatabase(db, scene, materials, signals);
-    images = new Images();
+    images = new FakeImages();
     empties = new Empties(images, signals);
     click = new ClickStrategy(db, scene, modes, selectionDb.selected, selectionDb.hovered, selectionDb.selected);
 })
@@ -49,6 +50,7 @@ let circle: visual.SpaceInstance<visual.Curve3D>;
 let curve: visual.SpaceInstance<visual.Curve3D>;
 let region: visual.PlaneInstance<visual.Region>;
 let group: Group;
+let empty: Empty;
 
 beforeEach(async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
@@ -80,6 +82,8 @@ beforeEach(async () => {
     region = regions[0];
 
     group = scene.createGroup();
+    images.add('foo', Buffer.from(''));
+    empty = empties.addImage('foo');
 });
 
 describe(visual.Curve3D, () => {
@@ -494,6 +498,13 @@ describe('box', () => {
         click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
+    })
+
+    test("selecting an empty", () => {
+        click.box(new Set([empty]), ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        expect(selectionDb.selected.empties.size).toBe(1);
+        click.box(new Set([empty]), ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
+        expect(selectionDb.selected.empties.size).toBe(0);
     })
 
     test("selecting a group", () => {

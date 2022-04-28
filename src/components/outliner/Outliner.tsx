@@ -80,15 +80,20 @@ export default (editor: Editor) => {
                 let prevSelected = false;
                 for (const [i, item] of flattened.entries()) {
                     let isSelected = false;
-                    switch (item.tag) {
+                    const tag = item.tag;
+                    switch (tag) {
                         case 'Group':
                         case 'Item':
+                        case 'Empty':
                             const object = item.object;
                             isSelected = selected.has(object);
                             break;
                         case 'CurveSection':
                         case 'SolidSection':
+                        case 'EmptySection':
                             isSelected = false;
+                            break;
+                        default: assertUnreachable(tag);
                     }
                     if (!prevSelected && isSelected) firstSelected.add(i);
                     if (i > 0 && prevSelected && !isSelected) lastSelected.add(i - 1);

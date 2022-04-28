@@ -15,9 +15,9 @@ export type NodeDekey =
     { tag: 'VirtualGroup', id: GroupId, type: VirtualGroupType } |
     { tag: 'Empty', id: EmptyId };
 export type NodeKey = string;
-export type NodeItem = visual.Item | Group | VirtualGroup | Empty;
-export type RealNodeItem = visual.Item | Group | Empty;
-export type LeafNodeItem = visual.Item | Empty;
+export type NodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | VirtualGroup | Empty;
+export type RealNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | Empty;
+export type LeafNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Empty;
 export type Transform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
 
 export class Nodes implements MementoOriginator<NodeMemento> {
