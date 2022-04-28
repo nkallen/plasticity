@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import * as cmd from "../../command/Command";
 import { ConstructionPlane, ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";

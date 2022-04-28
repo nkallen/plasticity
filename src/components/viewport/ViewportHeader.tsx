@@ -2,17 +2,17 @@ import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 import { PlaneDatabase } from '../../editor/PlaneDatabase';
 import { ConstructionPlaneSnap } from '../../editor/snaps/ConstructionPlaneSnap';
+import black_silhouette_png from '../../img/matcap/black_silhouette.png';
 import ceramic_dark from '../../img/matcap/ceramic_dark.exr';
 import ceramic_dark_png from '../../img/matcap/ceramic_dark.png';
+import color_matcap_png from '../../img/matcap/color_matcap.png';
+import color_silhouette_png from '../../img/matcap/color_silhouette.png';
 import metal_carpaint from '../../img/matcap/metal_carpaint.exr';
 import metal_carpaint_png from '../../img/matcap/metal_carpaint.png';
 import reflection_check_horizontal from '../../img/matcap/reflection_check_horizontal.exr';
 import reflection_check_horizontal_png from '../../img/matcap/reflection_check_horizontal.png';
 import reflection_check_vertical from '../../img/matcap/reflection_check_vertical.exr';
 import reflection_check_vertical_png from '../../img/matcap/reflection_check_vertical.png';
-import black_silhouette_png from '../../img/matcap/black_silhouette.png';
-import color_silhouette_png from '../../img/matcap/color_silhouette.png';
-import color_matcap_png from '../../img/matcap/color_matcap.png';
 import { SelectionMode } from '../../selection/SelectionModeSet';
 import { ViewportElement } from './Viewport';
 
@@ -81,7 +81,7 @@ export default (editor: Editor) => {
 
                             <li class="group">
                                 <input type="checkbox" class="hidden absolute peer" id={`solid_${uid}`} checked={editor.selection.mode.has(SelectionMode.Solid)}
-                                    onClick={e => this.onClick(e, SelectionMode.Solid)}
+                                    onClick={e => this.onClick(e, SelectionMode.Solid, SelectionMode.Empty)}
                                 />
                                 <label for={`solid_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
                                     <plasticity-icon name='solid'></plasticity-icon>

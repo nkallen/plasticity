@@ -6,8 +6,12 @@ import * as intersectable from "./Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from "./VisualModel";
 
 type IntersectableWithTopologyItem = THREE.Intersection<intersectable.Raycastable> & {
-    topologyItem: visual.TopologyItem;
+    topologyItem?: visual.TopologyItem;
 };
+
+type Unprojectable = THREE.Intersection<intersectable.Raycastable> & {
+    pointOnLine?: THREE.Vector3;
+}
 
 type Unprojected = { dist2d: number };
 
@@ -25,21 +29,21 @@ export class GeometryPicker {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
-        let intersections = raycaster.intersectObjects(objects, false) as IntersectableWithTopologyItem[];
+        let intersections = raycaster.intersectObjects(objects, false) as Unprojectable[];
         if (!isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }
         const unprojected = this.unproject(intersections);
-        const sorted = unprojected.sort(sort) as THREE.Intersection<intersectable.Raycastable>[];
+        const sorted = unprojected.sort(sort);
         return raycastable2intersectable(sorted);
     }
 
-    unproject(intersections: IntersectableWithTopologyItem[]): (IntersectableWithTopologyItem & Unprojected)[] {
+    unproject<T extends Unprojectable>(intersections: T[]): (T & Unprojected)[] {
         const camera = this.raycaster.camera;
         for (const intersection of intersections) {
             let projected;
-            if ('pointOnLine' in intersection) {
-                const point = intersection['pointOnLine'] as THREE.Vector3;
+            if (intersection.pointOnLine !== undefined) {
+                const point = intersection.pointOnLine;
                 projected = point.clone().project(camera);
             } else {
                 const point = intersection.point;
@@ -48,7 +52,7 @@ export class GeometryPicker {
             const dist2d = this.normalizedScreenPoint.distanceTo(projected as unknown as THREE.Vector2);
             (intersection as any).dist2d = dist2d;
         }
-        return intersections as (IntersectableWithTopologyItem & Unprojected)[];
+        return intersections as (T & Unprojected)[];
     }
 
     private viewport!: Viewport;
@@ -76,8 +80,8 @@ function findAllVeryCloseTogether<T extends THREE.Intersection>(intersections: T
 
 function sort(i1: IntersectableWithTopologyItem & Unprojected, i2: IntersectableWithTopologyItem & Unprojected): number {
     const o1 = i1.object, o2 = i2.object;
-    const t1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem : o1;
-    const t2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem : o2;
+    const t1 = o1 instanceof intersectable.RaycastableTopologyItem ? i1.topologyItem! : o1;
+    const t2 = o2 instanceof intersectable.RaycastableTopologyItem ? i2.topologyItem! : o2;
     const p1 = t1.priority, p2 = t2.priority;
     if (Math.trunc(p1) === Math.trunc(p2)) {
         if (t1 instanceof CurveEdge && t2 instanceof CurveEdge) {

@@ -75,6 +75,12 @@ export default class LayerManager {
             if (!mode.has(SelectionMode.CurveEdge)) _intersectable.disable(visual.Layers.CurveEdge);
         }
 
+        if (mode.has(SelectionMode.Empty)) {
+            _intersectable.enable(visual.Layers.Empty);
+        } else {
+            _intersectable.disable(visual.Layers.Empty);
+        }
+
         if (mode.has(SelectionMode.Face)) {
             _intersectable.enable(visual.Layers.Face);
         }

@@ -62,6 +62,19 @@ export class ClickStrategy {
             });
     }
 
+    empty(object: Empty, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (!this.mode.has(SelectionMode.Empty) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
+
+        return this.modify(modifier,
+            () => {
+                this.writeable.addEmpty(object);
+                return true;
+            },
+            () => {
+                this.writeable.removeEmpty(object);
+                return true;
+            });
+    }
 
     solid(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
         if (!this.mode.has(SelectionMode.Solid) || (ChangeSelectionOption.IgnoreMode & option)) return false;

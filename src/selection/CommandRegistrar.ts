@@ -23,7 +23,7 @@ export class SelectionCommandRegistrar {
             'selection:mode:set:control-point': () => selection.mode.set(SelectionMode.ControlPoint),
             'selection:mode:set:edge': () => selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:mode:set:face': () => selection.mode.set(SelectionMode.Face, SelectionMode.Region),
-            'selection:mode:set:solid': () => selection.mode.set(SelectionMode.Solid),
+            'selection:mode:set:solid': () => selection.mode.set(SelectionMode.Solid, SelectionMode.Empty),
             'selection:mode:set:all': () => selection.mode.set(...SelectionModeAll),
 
             'selection:mode:toggle:control-point': () => selection.mode.toggle(SelectionMode.ControlPoint),

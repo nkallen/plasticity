@@ -6,19 +6,20 @@ import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
+import { Scene } from '../editor/Scene';
 import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta } from '../selection/ChangeSelectionExecutor';
 import { NonemptyClickStrategy } from '../selection/Click';
 import { HasSelectedAndHovered, HasSelection, Selectable } from '../selection/SelectionDatabase';
 import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
-import { ControlPointSelection, CurveSelection, EdgeSelection, FaceSelection, RegionSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
+import { SelectionMode } from '../selection/SelectionModeSet';
+import { ControlPointSelection, CurveSelection, EdgeSelection, EmptySelection, FaceSelection, RegionSelection, SolidSelection, TypedSelection } from '../selection/TypedSelection';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
-import { Raycastable, Intersection, Intersectable } from '../visual_model/Intersectable';
+import { assertUnreachable } from '../util/Util';
+import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import { RenderedSceneBuilder } from '../visual_model/RenderedSceneBuilder';
-import { Executable } from './Quasimode';
 import * as visual from '../visual_model/VisualModel';
-import { SelectionMode } from '../selection/SelectionModeSet';
-import { Scene } from '../editor/Scene';
+import { Executable } from './Quasimode';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -69,7 +70,14 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 }
 
-type CancelableSelectionArray = CancellablePromise<FaceSelection> | CancellablePromise<EdgeSelection> | CancellablePromise<SolidSelection> | CancellablePromise<CurveSelection> | CancellablePromise<ControlPointSelection> | CancellablePromise<EdgeSelection | FaceSelection | RegionSelection | SolidSelection | CurveSelection | ControlPointSelection>
+type CancelableSelectionArray =
+    CancellablePromise<FaceSelection> |
+    CancellablePromise<EdgeSelection> |
+    CancellablePromise<SolidSelection> |
+    CancellablePromise<CurveSelection> |
+    CancellablePromise<ControlPointSelection> |
+    CancellablePromise<EdgeSelection | FaceSelection | RegionSelection | SolidSelection | CurveSelection | ControlPointSelection> |
+    CancellablePromise<EmptySelection>
 
 export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     readonly selection: HasSelectedAndHovered;
@@ -167,6 +175,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     private get(mode: SelectionMode.Region, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<RegionSelection>;
     private get(mode: SelectionMode.CurveEdge, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<EdgeSelection>;
     private get(mode: SelectionMode.Solid, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<SolidSelection>;
+    private get(mode: SelectionMode.Empty, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<EmptySelection>;
     private get(mode: SelectionMode.Curve, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<CurveSelection>;
     private get(mode: SelectionMode.ControlPoint, min?: number, max?: number, shouldMutate?: boolean): CancellablePromise<ControlPointSelection>;
     private get(mode: SelectionMode, min = 1, max = min, shouldRemove = true): CancelableSelectionArray {
@@ -183,6 +192,8 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             case SelectionMode.Solid: collection = mode2collection(SelectionMode.Solid, this.selection.selected); break;
             case SelectionMode.Curve: collection = mode2collection(SelectionMode.Curve, this.selection.selected); break;
             case SelectionMode.ControlPoint: collection = mode2collection(SelectionMode.ControlPoint, this.selection.selected); break;
+            case SelectionMode.Empty: collection = mode2collection(SelectionMode.Empty, this.selection.selected); break;
+            default: assertUnreachable(mode);
         }
 
         if (collection.size >= min) {
@@ -197,8 +208,10 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
                 case SelectionMode.Region: return CancellablePromise.resolve(mode2collection(SelectionMode.Region, result.selected));
                 case SelectionMode.CurveEdge: return CancellablePromise.resolve(mode2collection(SelectionMode.CurveEdge, result.selected));
                 case SelectionMode.Solid: return CancellablePromise.resolve(mode2collection(SelectionMode.Solid, result.selected));
+                case SelectionMode.Empty: return CancellablePromise.resolve(mode2collection(SelectionMode.Empty, result.selected));
                 case SelectionMode.Curve: return CancellablePromise.resolve(mode2collection(SelectionMode.Curve, result.selected));
                 case SelectionMode.ControlPoint: return CancellablePromise.resolve(mode2collection(SelectionMode.ControlPoint, result.selected));
+                default: assertUnreachable(mode);
             }
         }
 
@@ -217,8 +230,10 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
                 case SelectionMode.Region: result = mode2collection(SelectionMode.Region, selected); break;
                 case SelectionMode.CurveEdge: result = mode2collection(SelectionMode.CurveEdge, selected); break;
                 case SelectionMode.Solid: result = mode2collection(SelectionMode.Solid, selected); break;
+                case SelectionMode.Empty: result = mode2collection(SelectionMode.Empty, selected); break;
                 case SelectionMode.Curve: result = mode2collection(SelectionMode.Curve, selected); break;
                 case SelectionMode.ControlPoint: result = mode2collection(SelectionMode.ControlPoint, selected); break;
+                default: assertUnreachable(mode);
             }
             return result;
         }) as CancelableSelectionArray;
@@ -228,6 +243,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     slice(mode: SelectionMode.Region, min?: number, max?: number): CancellablePromise<RegionSelection>;
     slice(mode: SelectionMode.CurveEdge, min?: number, max?: number): CancellablePromise<EdgeSelection>;
     slice(mode: SelectionMode.Solid, min?: number, max?: number): CancellablePromise<SolidSelection>;
+    slice(mode: SelectionMode.Empty, min?: number, max?: number): CancellablePromise<EmptySelection>;
     slice(mode: SelectionMode.Curve, min?: number, max?: number): CancellablePromise<CurveSelection>;
     slice(mode: SelectionMode.ControlPoint, min?: number, max?: number): CancellablePromise<ControlPointSelection>;
     slice(mode: SelectionMode, min = 1, max = min): CancelableSelectionArray {
@@ -236,8 +252,10 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             case SelectionMode.Region: return this.get(mode, min, max, false);
             case SelectionMode.CurveEdge: return this.get(mode, min, max, false);
             case SelectionMode.Solid: return this.get(mode, min, max, false);
+            case SelectionMode.Empty: return this.get(mode, min, max, false);
             case SelectionMode.Curve: return this.get(mode, min, max, false);
             case SelectionMode.ControlPoint: return this.get(mode, min, max, false);
+            default: assertUnreachable(mode);
         }
     }
 
@@ -245,6 +263,7 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
     shift(mode: SelectionMode.Region, min?: number, max?: number): CancellablePromise<RegionSelection>;
     shift(mode: SelectionMode.CurveEdge, min?: number, max?: number): CancellablePromise<EdgeSelection>;
     shift(mode: SelectionMode.Solid, min?: number, max?: number): CancellablePromise<SolidSelection>;
+    shift(mode: SelectionMode.Empty, min?: number, max?: number): CancellablePromise<EmptySelection>;
     shift(mode: SelectionMode.Curve, min?: number, max?: number): CancellablePromise<CurveSelection>;
     shift(mode: SelectionMode.ControlPoint, min?: number, max?: number): CancellablePromise<ControlPointSelection>;
     shift(mode: SelectionMode, min = 1, max = min): CancelableSelectionArray {
@@ -253,8 +272,10 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
             case SelectionMode.Region: return this.get(mode, min, max, true);
             case SelectionMode.CurveEdge: return this.get(mode, min, max, true);
             case SelectionMode.Solid: return this.get(mode, min, max, true);
+            case SelectionMode.Empty: return this.get(mode, min, max, true);
             case SelectionMode.Curve: return this.get(mode, min, max, true);
             case SelectionMode.ControlPoint: return this.get(mode, min, max, true);
+            default: assertUnreachable(mode);
         }
     }
 
@@ -270,6 +291,7 @@ function mode2collection(mode: SelectionMode.CurveEdge, selected: HasSelection):
 function mode2collection(mode: SelectionMode.Curve, selected: HasSelection): CurveSelection;
 function mode2collection(mode: SelectionMode.ControlPoint, selected: HasSelection): ControlPointSelection;
 function mode2collection(mode: SelectionMode.Solid, selected: HasSelection): SolidSelection;
+function mode2collection(mode: SelectionMode.Empty, selected: HasSelection): EmptySelection;
 function mode2collection(mode: SelectionMode, selected: HasSelection): TypedSelection<any, any> {
     let collection;
     switch (mode) {
@@ -279,6 +301,8 @@ function mode2collection(mode: SelectionMode, selected: HasSelection): TypedSele
         case SelectionMode.Solid: collection = selected.solids; break;
         case SelectionMode.Curve: collection = selected.curves; break;
         case SelectionMode.ControlPoint: collection = selected.controlPoints; break;
+        case SelectionMode.Empty: collection = selected.empties; break;
+        default: assertUnreachable(mode);
     }
     return collection;
 }

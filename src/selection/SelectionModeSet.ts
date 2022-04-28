@@ -1,10 +1,10 @@
 import { EditorSignals } from '../editor/EditorSignals';
 
 export enum SelectionMode {
-    CurveEdge, Face, Region, Solid, Curve, ControlPoint
+    CurveEdge, Face, Region, Solid, Empty, Curve, ControlPoint
 }
 
-export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Region, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
+export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Region, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint, SelectionMode.Empty];
 
 
 export class SelectionModeSet extends Set<SelectionMode> {

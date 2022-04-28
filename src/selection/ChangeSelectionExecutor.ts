@@ -1,6 +1,6 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
-import { Empty } from "../editor/Empties";
+import { Empty, ImageEmpty } from "../editor/Empties";
 import { Group } from "../editor/Groups";
 import { RealNodeItem } from "../editor/Nodes";
 import { Scene } from "../editor/Scene";
@@ -56,7 +56,8 @@ export class ChangeSelectionExecutor {
         const objects = new Set(intersections.map(i => i.object));
         for (const intersection of intersections) {
             const object = intersection.object;
-            if (prohibitions.has(object.parentItem)) continue;
+            const prohibitable = object instanceof ImageEmpty ? object : object.parentItem;
+            if (prohibitions.has(prohibitable)) continue;
 
             if (object instanceof Face || object instanceof CurveEdge) {
                 if (prohibitions.has(object)) continue;
@@ -71,9 +72,10 @@ export class ChangeSelectionExecutor {
                 if (prohibitions.has(object)) continue;
 
                 if (strategy.controlPoint(object, modifier, option)) return intersection;
+            } else if (object instanceof Empty) {
+                if (strategy.empty(object, modifier, option)) return intersection;
             } else {
-                console.error(object);
-                throw new Error("Invalid precondition");
+                assertUnreachable(object);
             }
         }
 

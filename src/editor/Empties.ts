@@ -13,11 +13,12 @@ export type EmptyInfo = { tag: 'Image', path: string }
 export abstract class Empty extends visual.SpaceItem {
     constructor(readonly simpleName: EmptyId) {
         super();
+        this.layers.set(visual.Layers.Empty);
     }
 }
 
 export class ImageEmpty extends Empty {
-    private readonly mesh: THREE.Mesh;
+    readonly plane: THREE.Mesh;
 
     constructor(simpleName: EmptyId, texture: THREE.Texture) {
         super(simpleName);
@@ -25,12 +26,12 @@ export class ImageEmpty extends Empty {
         const fac = 5;
         const geometry = new THREE.PlaneGeometry(fac * aspect, fac, 1, 1);
         const material = new THREE.MeshBasicMaterial({ map: texture });
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.add(this.mesh);
+        this.plane = new THREE.Mesh(geometry, material);
+        this.add(this.plane);
     }
 
     dispose() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial;
+        const material = this.plane.material as THREE.MeshLambertMaterial;
         material.dispose();
         material.map!.dispose();
     }

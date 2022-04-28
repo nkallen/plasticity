@@ -541,6 +541,8 @@ export enum Layers {
     Region,
     Surface,
 
+    Empty,
+
     ControlPoint,
     Face,
     CurveEdge,

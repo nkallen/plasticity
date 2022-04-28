@@ -7,6 +7,7 @@ import { RaycasterParams } from "../editor/snaps/SnapPicker";
 import { point2point, vec2vec } from '../util/Conversion';
 import { RaycastableTopologyItem } from "./Intersectable";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
+import { ImageEmpty } from "../editor/Empties";
 
 declare module './VisualModel' {
     interface TopologyItem {
@@ -291,6 +292,18 @@ Regions: {
         raycaster.intersectObject(this.mesh, false, is);
         for (const i of is) {
             intersects.push({ ...i, object: this, })
+        }
+    }
+}
+
+Empties: {
+    ImageEmpty.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const child: THREE.Intersection[] = [];
+        raycaster.intersectObject(this.plane, false, child);
+        if (child.length > 0) {
+            const intersection = child[0];
+            intersection.object = this;
+            intersects.push(intersection);
         }
     }
 }
