@@ -12,7 +12,7 @@ import { ScaleDialog } from "../translate/ScaleDialog";
 import { ScaleGizmo } from "../translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "../translate/ScaleKeyboardGizmo";
 import { choosePivot, onKeyPress } from "../translate/TranslateCommand";
-import { MoveFactoryLike, RotateFactoryLike } from '../translate/TranslateFactory';
+import { MoveFactoryLike, RotateFactoryLike } from '../translate/TranslateItemFactory';
 import { ModifyContourFactory } from "./ModifyContourFactory";
 import { ModifyContourGizmo } from "./ModifyContourGizmo";
 import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./ModifyContourPointFactory";

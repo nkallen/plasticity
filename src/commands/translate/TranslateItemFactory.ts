@@ -4,13 +4,9 @@ import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { TemporaryObject } from "../../editor/DatabaseLike";
+import { identityMatrix, X } from "../../util/Constants";
 
-const identityMatrix = new THREE.Matrix4();
-export const X = new THREE.Vector3(1, 0, 0);
-export const Y = new THREE.Vector3(0, 1, 0);
-export const Z = new THREE.Vector3(0, 0, 1);
-
-export abstract class TranslateFactory extends GeometryFactory {
+abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
     private models!: c3d.Item[];
 
@@ -52,13 +48,7 @@ export abstract class TranslateFactory extends GeometryFactory {
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
-                item.matrixAutoUpdate = false;
-                item.matrix.copy(mat);
-                item.matrix.decompose(item.position, item.quaternion, item.scale);
-                item.updateMatrixWorld(true);
-
-                const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
-                return [temp] as TemporaryObject[];
+                return translateTemporary(item, mat);
             }, () => this.doOriginalUpdate(abortEarly, item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
@@ -132,7 +122,7 @@ export abstract class TranslateFactory extends GeometryFactory {
 
 export interface MoveParams {
     move: THREE.Vector3;
-    pivot: THREE.Vector3; // FIXME remove pivot for move
+    pivot: THREE.Vector3; // FIXME: remove pivot for move
 }
 
 export interface MoveFactoryLike extends GeometryFactory, MoveParams {
@@ -140,7 +130,7 @@ export interface MoveFactoryLike extends GeometryFactory, MoveParams {
     get items(): THREE.Object3D[];
 }
 
-export class MoveFactory extends TranslateFactory implements MoveFactoryLike {
+export class MoveItemFactory extends TranslateFactory implements MoveFactoryLike {
     move = new THREE.Vector3();
     pivot!: THREE.Vector3;
 
@@ -184,23 +174,7 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
-                if (angle === 0) {
-                    item.position.set(0, 0, 0);
-                    item.quaternion.set(0, 0, 0, 1);
-                    item.updateMatrixWorld();
-                    const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
-                    return [temp] as TemporaryObject[];
-                }
-
-                item.position.set(0, 0, 0);
-                item.position.sub(point);
-                item.position.applyAxisAngle(axis, angle);
-                item.position.add(point);
-                item.quaternion.setFromAxisAngle(axis, angle);
-                item.updateMatrixWorld();
-
-                const temp = { underlying: item, show() { }, hide() {}, cancel() { } };
-                return [temp] as TemporaryObject[];
+                return rotateTemporary(item, point, axis, angle);
             }, () => this.doOriginalUpdate(abortEarly, item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
@@ -301,6 +275,36 @@ export class FreestyleScaleFactory extends TranslateFactory implements Freestyle
     protected get transform(): c3d.TransformValues {
         throw new Error("Method not implemented.");
     }
+}
+
+function translateTemporary(item: THREE.Object3D, mat: THREE.Matrix4) {
+    item.matrixAutoUpdate = false;
+    item.matrix.copy(mat);
+    item.matrix.decompose(item.position, item.quaternion, item.scale);
+    item.updateMatrixWorld(true);
+
+    const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
+    return [temp] as TemporaryObject[];
+}
+
+function rotateTemporary(item: THREE.Object3D, point: THREE.Vector3, axis: THREE.Vector3, angle: number) {
+    if (angle === 0) {
+        item.position.set(0, 0, 0);
+        item.quaternion.set(0, 0, 0, 1);
+        item.updateMatrixWorld();
+        const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
+        return [temp] as TemporaryObject[];
+    }
+
+    item.position.set(0, 0, 0);
+    item.position.sub(point);
+    item.position.applyAxisAngle(axis, angle);
+    item.position.add(point);
+    item.quaternion.setFromAxisAngle(axis, angle);
+    item.updateMatrixWorld();
+
+    const temp = { underlying: item, show() { }, hide() {}, cancel() { } };
+    return [temp] as TemporaryObject[];
 }
 
 const mesh_blue = new THREE.MeshBasicMaterial();

@@ -3,7 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import FilletFactory from "../src/commands/fillet/FilletFactory";
-import { MoveFactory } from "../src/commands/translate/TranslateFactory";
+import { MoveItemFactory } from "../src/commands/translate/TranslateItemFactory";
 import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { Empties } from "../src/editor/Empties";
@@ -282,7 +282,7 @@ describe('undo', () => {
         const before = [...snaps.all.geometrySnaps].map(set => [...set].map(p => p.position)).flat();
         expect(before.length).toBe(42);
 
-        const move = new MoveFactory(db, materials, signals);
+        const move = new MoveItemFactory(db, materials, signals);
         move.items = [box];
         move.move = new THREE.Vector3(1, 1, 1);
         await move.commit();

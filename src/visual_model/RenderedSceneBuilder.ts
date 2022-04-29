@@ -177,11 +177,9 @@ export class RenderedSceneBuilder {
 
     private highlightEmpty(empty: Empty) {
         const transform = this.scene.getTransform(empty, true);
-        if (transform !== undefined) {
-            empty.position.copy(transform.position);
-            empty.quaternion.copy(transform.quaternion);
-            empty.scale.copy(transform.scale);
-        }
+        empty.position.copy(transform.position);
+        empty.quaternion.copy(transform.quaternion);
+        empty.scale.copy(transform.scale);
         empty.layers.set(visual.Layers.Empty);
     }
 

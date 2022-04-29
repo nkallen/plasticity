@@ -7,7 +7,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { HideMode, LeafNodeItem, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem, NodeTransform } from "./Nodes";
+import { HideMode, LeafNodeItem, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem, NodeTransform, ReadonlyNodeTransform, NodeIdentityTransform } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 /**
@@ -294,8 +294,9 @@ export class Scene implements MementoOriginator<SceneMemento> {
         return undefined;
     }
 
-    getTransform(node: RealNodeItem, walk = false): NodeTransform | undefined {
-        const thisTransform = this.nodes.getTransform(node);
+    getTransform(node: RealNodeItem, walk = false): ReadonlyNodeTransform {
+        let thisTransform = this.nodes.getTransform(node);
+        if (thisTransform === undefined) thisTransform = NodeIdentityTransform;
         return thisTransform;
     }
 

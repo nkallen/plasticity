@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { ProjectCurveFactory, ProjectingBasicScaleFactory, ProjectingFreestyleScaleFactory } from "../../src/commands/translate/ProjectCurveFactory";
-import { BasicScaleFactory, FreestyleScaleFactory } from '../../src/commands/translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory } from '../../src/commands/translate/TranslateItemFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';

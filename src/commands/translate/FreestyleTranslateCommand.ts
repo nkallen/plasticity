@@ -15,7 +15,7 @@ import { RotateDialog } from "./RotateDialog";
 import { RotateGizmo } from './RotateGizmo';
 import { ScaleDialog } from "./ScaleDialog";
 import { MoveItemCommand, RotateCommand, ScaleCommand, Y, Z } from "./TranslateCommand";
-import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './TranslateFactory';
+import { FreestyleScaleFactoryLike, MoveItemFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './TranslateItemFactory';
 
 export abstract class AbstractFreestyleMoveCommand extends Command {
     async execute(): Promise<void> {
@@ -180,7 +180,7 @@ export abstract class AbstractFreestyleRotateCommand extends Command {
 }
 
 export class FreestyleMoveItemCommand extends AbstractFreestyleMoveCommand {
-    protected async makeFactory(): Promise<MoveFactory> {
+    protected async makeFactory(): Promise<MoveItemFactory> {
         const { editor } = this;
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
@@ -190,7 +190,7 @@ export class FreestyleMoveItemCommand extends AbstractFreestyleMoveCommand {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const move = new MoveItemFactory(editor.db, editor.materials, editor.signals).resource(this);
         move.pivot = centroid;
         move.items = objects;
         return move;

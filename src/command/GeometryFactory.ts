@@ -4,13 +4,10 @@ import { Measure } from "../components/stats/Measure";
 import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { CancellableRegisterable } from "../util/CancellableRegisterable";
-import { State as CancellableRegisterableState } from "../util/CancellableRegistor";
 import { toArray } from "../util/Conversion";
 import { zip } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
-
-type SubStep = 'begin' | 'phantoms-completed' | 'calculate-completed' | 'all-completed';
+import { AbstractFactory } from "./AbstractFactory";
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated' }
@@ -18,9 +15,6 @@ type State = { tag: 'none', last: undefined }
     | { tag: 'failed', error: any }
     | { tag: 'cancelled' }
     | { tag: 'committed' }
-
-export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride, ancestor?: visual.Item }
-export type GeometryFactoryCache = Map<string, Promise<c3d.Item | c3d.Item[]>>;
 
 /**
  * A GeometryFactory is an object responsible for making and transforming geometrical objects, like
@@ -57,7 +51,7 @@ export type GeometryFactoryCache = Map<string, Promise<c3d.Item | c3d.Item[]>>;
  * 
  */
 
-export abstract class AbstractGeometryFactory extends CancellableRegisterable {
+export abstract class AbstractGeometryFactory extends AbstractFactory<visual.Item> {
     readonly changed = new Signal();
 
     private _state: State = { tag: 'none', last: undefined };
@@ -74,7 +68,6 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         protected readonly cache: GeometryFactoryCache = new Map()
     ) { super() }
 
-    protected temps: TemporaryObject[] = [];
     private phants: TemporaryObject[] = [];
     private hidden: THREE.Object3D[] = [];
 
@@ -155,15 +148,6 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         return this.temps = this.showTemps(finished);
     }
 
-    protected showTemps(finished: TemporaryObject[]) {
-        for (const temp of finished) {
-            temp.show();
-            temp.underlying.updateMatrixWorld();
-        }
-
-        return finished;
-    }
-
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
         try {
             const unarray = await this.calculate();
@@ -199,38 +183,15 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         }
     }
 
-    // NOTE: Some factories mutate the original items as an optimization; it's safer to rollback here rather
-    // than ad hoc, as the following is basically a global invariant:
-    private ensureTemporaryModificationsToOriginalItemsAreRolledBack() {
-        for (const item of this.originalItems) {
-            item.matrixAutoUpdate = true;
-            item.position.set(0, 0, 0);
-            item.quaternion.identity();
-            item.scale.set(1, 1, 1);
-            item.updateMatrixWorld();
-            item.visible = true;
-        }
-    }
-
-    doCancel(): void {
-        this.finalize();
-    }
-
-    private finalize() {
-        this.cleanupTemps();
+    protected finalize() {
+        super.finalize();
         this.cleanupPhantoms();
-        this.restoreOriginalItems();
         this.dispose();
     }
 
     protected restoreOriginalItems() {
         for (const i of this.hidden) i.visible = true;
-        this.ensureTemporaryModificationsToOriginalItemsAreRolledBack();
-    }
-
-    protected cleanupTemps() {
-        for (const temp of this.temps) temp.cancel();
-        this.temps = [];
+        super.restoreOriginalItems();
     }
 
     private cleanupPhantoms() {
@@ -270,14 +231,8 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         return result;
     }
 
-    protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
-    private get originalItems() { return toArray(this.originalItem) }
     protected get shouldRemoveOriginalItemOnCommit() { return true }
     protected get shouldHideOriginalItemDuringUpdate() { return this.shouldRemoveOriginalItemOnCommit }
-
-    async update(): Promise<void> { await this.doUpdate(() => false) }
-    async commit(): Promise<visual.Item | visual.Item[]> { return this.doCommit() }
-    cancel() { this.doCancel() }
 }
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {
@@ -454,11 +409,6 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     protected get keys(): string[] {
         return [];
     }
-
-    finish() { /* NOTE: finish is a noop */ }
-    interrupt(state?: CancellableRegisterableState) {
-        if (state !== 'Awaiting') this.cancel();
-    }
 }
 
 function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
@@ -472,3 +422,8 @@ export class NoOpError extends ValidationError {
         super("Operation has no effect");
     }
 }
+
+type SubStep = 'begin' | 'phantoms-completed' | 'calculate-completed' | 'all-completed';
+
+export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride, ancestor?: visual.Item }
+export type GeometryFactoryCache = Map<string, Promise<c3d.Item | c3d.Item[]>>;

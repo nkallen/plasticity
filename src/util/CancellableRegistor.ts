@@ -5,8 +5,8 @@ import { AlreadyFinishedError, CancellablePromise } from "./CancellablePromise";
 import { CancellableRegisterable } from "./CancellableRegisterable";
 import { Cancellable } from "./Cancellable";
 
-
 export type State = 'None' | 'Awaiting' | 'Cancelled' | 'Finished' | 'Interrupted';
+
 /**
  * The CancellableRegistor is an abstract base class for Commands. It implements basic state machine logic for
  * cancel/finish/interrupt. Its main responsibility is to keep track ("register") other objects that can be

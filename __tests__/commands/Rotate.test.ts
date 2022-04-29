@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
-import { RotateFactory } from '../../src/commands/translate/TranslateFactory';
+import { RotateFactory } from '../../src/commands/translate/TranslateItemFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';

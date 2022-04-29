@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { AbstractFactory } from "../../command/AbstractFactory";
 import Command from "../../command/Command";
 import { GeometryFactory } from "../../command/GeometryFactory";
 import { PointPicker } from "../../command/point-picker/PointPicker";
@@ -19,7 +20,8 @@ import { RotateKeyboardGizmo } from "./RotateKeyboardGizmo";
 import { ScaleDialog } from "./ScaleDialog";
 import { ScaleGizmo } from "./ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./ScaleKeyboardGizmo";
-import { MoveFactory, RotateFactory } from './TranslateFactory';
+import { MoveEmptyFactory } from "./TranslateEmptyFactory";
+import { MoveItemFactory, RotateFactory } from './TranslateItemFactory';
 
 export const Y = new THREE.Vector3(0, 1, 0);
 export const Z = new THREE.Vector3(0, 0, 1);
@@ -37,6 +39,9 @@ export class MoveCommand extends Command {
         } else if (selected.controlPoints.size > 0) {
             const command = new MoveControlPointCommand(this.editor);
             this.editor.enqueue(command, true);
+        } else if (selected.empties.size > 0) {
+            const command = new MoveEmptyCommand(this.editor);
+            this.editor.enqueue(command, true);
         }
     }
 }
@@ -45,19 +50,18 @@ interface PivotCommand extends Command {
     choosePivot: boolean;
 }
 
-export class MoveItemCommand extends Command implements PivotCommand {
+abstract class AbstractMoveCommand extends Command implements PivotCommand {
     choosePivot = false;
 
     async execute(): Promise<void> {
         const { editor } = this;
-        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves, ...editor.selection.selected.empties];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
         const centroid = bbox.getCenter(new THREE.Vector3());
 
-        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
-        move.items = objects;
+        const move = this.makeFactory();
 
         const dialog = new MoveDialog(move, editor.signals);
         const gizmo = new MoveGizmo(move, editor);
@@ -74,15 +78,38 @@ export class MoveItemCommand extends Command implements PivotCommand {
         }).resource(this);
 
         await choosePivot.call(this, this.choosePivot, centroid, move, gizmo);
-        keyboard.execute(onKeyPress(MoveItemCommand, gizmo, FreestyleMoveItemCommand).bind(this)).resource(this);
+        keyboard.execute(onKeyPress(this.constructor as GConstructor<PivotCommand>, gizmo, FreestyleMoveItemCommand).bind(this)).resource(this);
 
         await this.finished;
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
     }
+
+    protected abstract makeFactory(): MoveItemFactory | MoveEmptyFactory;
 }
 
+export class MoveItemCommand extends AbstractMoveCommand {
+    protected makeFactory(): MoveItemFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+        const move = new MoveItemFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.items = objects;
+        return move;
+    }
+
+}
+
+export class MoveEmptyCommand extends AbstractMoveCommand {
+    protected makeFactory(): MoveEmptyFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.empties];
+        const move = new MoveEmptyFactory(editor.scene, editor.materials, editor.signals).resource(this);
+        move.items = objects;
+        return move;
+    }
+
+}
 
 export class ScaleCommand extends Command {
     async execute(): Promise<void> {
@@ -242,7 +269,7 @@ export function onKeyPress(Pivot: GConstructor<PivotCommand>, gizmo: RotateGizmo
     }
 }
 
-export async function choosePivot(this: Command, choosePivot: boolean, fallback: THREE.Vector3, factory: GeometryFactory & { pivot: THREE.Vector3 }, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo) {
+export async function choosePivot(this: Command, choosePivot: boolean, fallback: THREE.Vector3, factory: { pivot: THREE.Vector3 }, gizmo: RotateGizmo | MoveGizmo | ScaleGizmo) {
     if (choosePivot) {
         gizmo.disable();
         const pointPicker = new PointPicker(this.editor);

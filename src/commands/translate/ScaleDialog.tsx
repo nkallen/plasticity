@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import { ScaleParams } from "./TranslateFactory";
+import { ScaleParams } from "./TranslateItemFactory";
 
 export class ScaleDialog extends AbstractDialog<ScaleParams> {
     name = "Scale";

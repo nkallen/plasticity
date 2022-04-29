@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
-import { BasicScaleFactory, X, Y, Z, FreestyleScaleFactory } from "./TranslateFactory";
+import { X, Y, Z } from "../../util/Constants";
+import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
+import * as visual from '../../visual_model/VisualModel';
+import { BasicScaleFactory, FreestyleScaleFactory } from "./TranslateItemFactory";
 
 /**
  * Scaling a curve to zero is the same as projecting onto a plane. Projecting onto a plane is a special,

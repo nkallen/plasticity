@@ -3,6 +3,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import { RaycastableTopologyItem } from "../../visual_model/Intersectable";
 import * as visual from "../../visual_model/VisualModel";
 import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
+import { Empty } from "../Empties";
 import { Scene } from "../Scene";
 import { PointSnap } from "./PointSnap";
 import { Snap } from "./Snap";
@@ -65,7 +66,7 @@ export abstract class SnapPickerStrategy {
     // Project all the intersections (go from approximate to exact values)
     // Fold in any additional results (sometimes the construction plane)
     // return min distance
-    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], cplane_intersection_results: (SnapResult & { distance: number })[], restriction: Snap | undefined, ) {
+    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], cplane_intersection_results: (SnapResult & { distance: number })[], restriction: Snap | undefined,) {
         const { isOrthoMode, constructionPlane: { orientation: constructionPlaneOrientation } } = viewport;
 
         const intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
@@ -120,6 +121,8 @@ export abstract class SnapPickerStrategy {
             } else if (object instanceof BetterRaycastingPoints) {
                 const snaps = object.userData.points as PointSnap[];
                 snap = snaps[intersection.index!];
+            } else if (object instanceof Empty) {
+                continue;
             } else {
                 if (object === undefined || object.userData === undefined || object.userData.snap === undefined) throw new Error(`invalid precondition: ${object.constructor.name} has no snap`);
                 snap = object.userData.snap as Snap;

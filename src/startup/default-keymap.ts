@@ -134,7 +134,7 @@ export default {
         "d": "gizmo:offset-curve:distance",
     },
 
-    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport": {
+    "[command='move'] plasticity-viewport, [command='move-item'] plasticity-viewport, [command='move-empty'] plasticity-viewport, [command='duplicate'] plasticity-viewport, [command='move-control-point'] plasticity-viewport, [command='action-face'] plasticity-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",
@@ -147,7 +147,7 @@ export default {
         "v": "keyboard:move:pivot"
     },
 
-    "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
+    "[command='scale'] plasticity-viewport, [command='scale-item'] plasticity-viewport, [command='scale-empty'] plasticity-viewport, [command='scale-control-point'] plasticity-viewport": {
         "x": "gizmo:scale:x",
         "y": "gizmo:scale:y",
         "z": "gizmo:scale:z",
@@ -170,7 +170,7 @@ export default {
         "d": "gizmo:modify-contour:fillet-all",
     },
 
-    "[command='rotate'] plasticity-viewport, [command='rotate-item'] plasticity-viewport, [command='rotate-control-point'] plasticity-viewport, [command='draft-solid'] plasticity-viewport": {
+    "[command='rotate'] plasticity-viewport, [command='rotate-item'] plasticity-viewport, [command='rotate-empty'] plasticity-viewport, [command='rotate-control-point'] plasticity-viewport, [command='draft-solid'] plasticity-viewport": {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",

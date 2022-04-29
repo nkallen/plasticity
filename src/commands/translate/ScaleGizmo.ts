@@ -5,7 +5,7 @@ import { EditorLike, Intersector, Mode, MovementInfo } from "../../command/Abstr
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AbstractAxialScaleGizmo, AxisHelper, boxGeometry, CircularGizmo, CompositeHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, PlanarGizmo } from "../../command/MiniGizmos";
-import { ScaleParams } from "./TranslateFactory";
+import { ScaleParams } from "./TranslateItemFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);

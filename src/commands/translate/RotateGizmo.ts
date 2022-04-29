@@ -7,7 +7,7 @@ import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, NumberHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { rad2deg } from "../../util/Conversion";
-import { RotateParams } from "./TranslateFactory";
+import { RotateParams } from "./TranslateItemFactory";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const X = new THREE.Vector3(1, 0, 0);

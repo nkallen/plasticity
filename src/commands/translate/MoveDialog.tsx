@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import { MoveParams } from "./TranslateFactory";
+import { MoveParams } from "./TranslateItemFactory";
 
 export class MoveDialog extends AbstractDialog<MoveParams> {
     name = "Move";

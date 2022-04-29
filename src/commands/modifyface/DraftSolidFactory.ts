@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory } from '../../command/GeometryFactory';
-import { RotateFactoryLike } from '../translate/TranslateFactory';
+import { RotateFactoryLike } from '../translate/TranslateItemFactory';
 import { TemporaryObject } from '../../editor/DatabaseLike';
 
 export class DraftSolidFactory extends GeometryFactory implements RotateFactoryLike {

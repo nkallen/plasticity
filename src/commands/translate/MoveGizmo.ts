@@ -6,7 +6,7 @@ import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, CompositeHelper, lineGeometry, MagnitudeStateMachine, NumberHelper, PlanarGizmo, VectorStateMachine } from "../../command/MiniGizmos";
 import { ProxyCamera } from "../../components/viewport/ProxyCamera";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { MoveParams } from "./TranslateFactory";
+import { MoveParams } from "./TranslateItemFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);

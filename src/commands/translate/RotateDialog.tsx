@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
-import { RotateParams } from "./TranslateFactory";
+import { RotateParams } from "./TranslateItemFactory";
 
 export class RotateDialog extends AbstractDialog<RotateParams> {
     name = "Rotate";

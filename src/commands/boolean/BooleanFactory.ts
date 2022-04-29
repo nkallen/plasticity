@@ -7,7 +7,7 @@ import { DatabaseLike, MaterialOverride, TemporaryObject } from "../../editor/Da
 import { composeMainName, vec2vec } from '../../util/Conversion';
 import { AtomicRef } from "../../util/Util";
 import * as visual from '../../visual_model/VisualModel';
-import { MoveParams } from "../translate/TranslateFactory";
+import { MoveParams } from "../translate/TranslateItemFactory";
 
 export interface MultiBooleanLikeFactory extends GeometryFactory {
     set targets(targets: visual.Solid[]);

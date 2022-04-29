@@ -18,7 +18,6 @@ export type NodeKey = string;
 export type NodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | VirtualGroup | Empty;
 export type RealNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Group | Empty;
 export type LeafNodeItem = visual.Solid | visual.SpaceInstance<visual.Curve3D> | visual.PlaneInstance<visual.Region> | Empty;
-export type NodeTransform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
 
 export class Nodes implements MementoOriginator<NodeMemento> {
     static key(member: NodeDekey): NodeKey {
@@ -50,7 +49,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     private readonly invisible = new Set<NodeKey>();
     private readonly unselectable = new Set<NodeKey>();
     private readonly node2name = new Map<NodeKey, string>();
-    private readonly node2transform = new Map<NodeKey, NodeTransform>();
+    private readonly node2transform = new Map<NodeKey, ReadonlyNodeTransform>();
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -289,3 +288,21 @@ export class Nodes implements MementoOriginator<NodeMemento> {
 }
 
 export type HideMode = 'direct' | 'indirect';
+
+export type NodeTransform = { position: THREE.Vector3, quaternion: THREE.Quaternion, scale: THREE.Vector3 };
+export type ReadonlyNodeTransform = Readonly<{ position: Readonly<THREE.Vector3>, quaternion: Readonly<THREE.Quaternion>, scale: Readonly<THREE.Vector3> }>;
+export const NodeIdentityTransform: NodeTransform = {
+    position: new THREE.Vector3(),
+    quaternion: new THREE.Quaternion,
+    scale: new THREE.Vector3(1, 1, 1)
+};
+
+const freezeTransform = (transform: NodeTransform): ReadonlyNodeTransform => {
+    Object.freeze(transform);
+    Object.freeze(transform.position);
+    Object.freeze(transform.quaternion);
+    Object.freeze(transform.scale);
+    return transform;
+}
+
+freezeTransform(NodeIdentityTransform);

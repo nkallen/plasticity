@@ -3,7 +3,7 @@ import * as c3d from '../../kernel/kernel';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
-import { MoveParams } from '../translate/TranslateFactory';
+import { MoveParams } from '../translate/TranslateItemFactory';
 
 export interface FilletFaceParams {
     distance: number;
