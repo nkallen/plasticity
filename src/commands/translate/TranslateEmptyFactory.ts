@@ -7,8 +7,8 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { Empty } from "../../editor/Empties";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { Scene } from "../../editor/Scene";
-import { deunit, mat2mat, vec2vec } from "../../util/Conversion";
-import { MoveParams } from "./TranslateItemFactory";
+import { deunit, mat2mat, point2point, vec2vec } from "../../util/Conversion";
+import { MoveParams, ScaleParams } from "./TranslateItemFactory";
 
 abstract class EmptyFactory extends AbstractFactory<Empty> {
     constructor(
@@ -93,6 +93,15 @@ export class MoveEmptyFactory extends TranslateFactory implements MoveParams {
         const params = new c3d.TransformValues();
         params.Move(vec2vec(move));
         return params;
+    }
+}
+
+export class ScaleEmptyFactory extends TranslateFactory implements ScaleParams {
+    pivot = new THREE.Vector3();
+    scale = new THREE.Vector3(1, 1, 1);
+    protected get transform(): c3d.TransformValues {
+        const { scale, pivot } = this;
+        return new c3d.TransformValues(scale.x, scale.y, scale.z, point2point(pivot));
     }
 }
 

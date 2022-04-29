@@ -1,7 +1,5 @@
 import * as THREE from "three";
-import { AbstractFactory } from "../../command/AbstractFactory";
 import Command from "../../command/Command";
-import { GeometryFactory } from "../../command/GeometryFactory";
 import { PointPicker } from "../../command/point-picker/PointPicker";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { GConstructor } from "../../util/Util";
@@ -20,7 +18,7 @@ import { RotateKeyboardGizmo } from "./RotateKeyboardGizmo";
 import { ScaleDialog } from "./ScaleDialog";
 import { ScaleGizmo } from "./ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./ScaleKeyboardGizmo";
-import { MoveEmptyFactory } from "./TranslateEmptyFactory";
+import { MoveEmptyFactory, ScaleEmptyFactory } from "./TranslateEmptyFactory";
 import { MoveItemFactory, RotateFactory } from './TranslateItemFactory';
 
 export const Y = new THREE.Vector3(0, 1, 0);
@@ -120,24 +118,26 @@ export class ScaleCommand extends Command {
         } else if (selected.controlPoints.size > 0) {
             const command = new ScaleControlPointCommand(this.editor);
             this.editor.enqueue(command, true);
+        } else if (selected.empties.size > 0) {
+            const command = new ScaleEmptyCommand(this.editor);
+            this.editor.enqueue(command, true);
         }
     }
 }
 
-export class ScaleItemCommand extends Command implements PivotCommand {
+abstract class AbstractScaleCommand extends Command implements PivotCommand {
     choosePivot = false;
 
     async execute(): Promise<void> {
         const { editor } = this;
-        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves, ...editor.selection.selected.empties];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new ProjectingBasicScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
-        scale.items = objects;
+        const scale = this.makeFactory();
 
         const gizmo = new ScaleGizmo(scale, editor);
         const dialog = new ScaleDialog(scale, editor.signals);
@@ -154,12 +154,34 @@ export class ScaleItemCommand extends Command implements PivotCommand {
         }).resource(this);
 
         await choosePivot.call(this, this.choosePivot, centroid, scale, gizmo);
-        keyboard.execute(onKeyPress(ScaleItemCommand, gizmo, FreestyleItemScaleCommand).bind(this)).resource(this);
+        keyboard.execute(onKeyPress(this.constructor as GConstructor<PivotCommand>, gizmo, FreestyleItemScaleCommand).bind(this)).resource(this);
 
         await this.finished;
 
         const selection = await scale.commit();
         this.editor.selection.selected.add(selection);
+    }
+
+    protected abstract makeFactory(): ProjectingBasicScaleFactory | ScaleEmptyFactory;
+}
+
+export class ScaleItemCommand extends AbstractScaleCommand {
+    makeFactory(): ProjectingBasicScaleFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+        const scale = new ProjectingBasicScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        return scale;
+    }
+}
+
+export class ScaleEmptyCommand extends AbstractScaleCommand {
+    makeFactory(): ScaleEmptyFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.empties];
+        const scale = new ScaleEmptyFactory(editor.scene, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        return scale;
     }
 }
 
