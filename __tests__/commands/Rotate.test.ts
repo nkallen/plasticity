@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
-import { RotateFactory } from '../../src/commands/translate/TranslateItemFactory';
+import { RotateItemFactory } from '../../src/commands/translate/TranslateItemFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -11,7 +11,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let rotate: RotateFactory;
+let rotate: RotateItemFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let box: visual.Solid;
@@ -20,7 +20,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(new ParallelMeshCreator(), new SolidCopier(), materials, signals);
-    rotate = new RotateFactory(db, materials, signals);
+    rotate = new RotateItemFactory(db, materials, signals);
 })
 
 beforeEach(async () => {

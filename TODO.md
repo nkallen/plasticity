@@ -4,6 +4,8 @@
 
 ### Backlog
 
+- [ ] helper axis for trxn  
+- [ ] outline selected empty  
 - [ ] Opacity of nodes  
 - [ ] Empty transform  
 

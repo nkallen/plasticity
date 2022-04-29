@@ -18,8 +18,8 @@ import { RotateKeyboardGizmo } from "./RotateKeyboardGizmo";
 import { ScaleDialog } from "./ScaleDialog";
 import { ScaleGizmo } from "./ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./ScaleKeyboardGizmo";
-import { MoveEmptyFactory, ScaleEmptyFactory } from "./TranslateEmptyFactory";
-import { MoveItemFactory, RotateFactory } from './TranslateItemFactory';
+import { MoveEmptyFactory, RotateEmptyFactory, ScaleEmptyFactory } from "./TranslateEmptyFactory";
+import { MoveItemFactory, RotateItemFactory } from './TranslateItemFactory';
 
 export const Y = new THREE.Vector3(0, 1, 0);
 export const Z = new THREE.Vector3(0, 0, 1);
@@ -197,11 +197,14 @@ export class RotateCommand extends Command {
         } else if (selected.controlPoints.size > 0) {
             const command = new RotateControlPointCommand(this.editor);
             this.editor.enqueue(command, true);
+        } else if (selected.empties.size > 0) {
+            const command = new RotateEmptyCommand(this.editor);
+            this.editor.enqueue(command, true);
         }
     }
 }
 
-export class RotateItemCommand extends Command implements PivotCommand {
+abstract class AbstractRotateCommand extends Command implements PivotCommand {
     choosePivot = false;
 
     async execute(): Promise<void> {
@@ -213,8 +216,7 @@ export class RotateItemCommand extends Command implements PivotCommand {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
-        rotate.items = objects;
+        const rotate = this.makeFactory();
 
         const gizmo = new RotateGizmo(rotate, editor);
         const dialog = new RotateDialog(rotate, editor.signals);
@@ -230,12 +232,33 @@ export class RotateItemCommand extends Command implements PivotCommand {
         }).resource(this);
 
         await choosePivot.call(this, this.choosePivot, centroid, rotate, gizmo);
-        keyboard.execute(onKeyPress(RotateItemCommand, gizmo, FreestyleRotateItemCommand).bind(this)).resource(this);
+        keyboard.execute(onKeyPress(this.constructor as GConstructor<AbstractRotateCommand>, gizmo, FreestyleRotateItemCommand).bind(this)).resource(this);
 
         await this.finished;
 
         const selection = await rotate.commit();
         this.editor.selection.selected.add(selection);
+    }
+    protected abstract makeFactory(): RotateItemFactory | RotateEmptyFactory;
+}
+
+export class RotateItemCommand extends AbstractRotateCommand {
+    makeFactory(): RotateItemFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+        const scale = new RotateItemFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        return scale;
+    }
+}
+
+export class RotateEmptyCommand extends AbstractRotateCommand {
+    makeFactory(): RotateEmptyFactory {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.empties];
+        const scale = new RotateEmptyFactory(editor.scene, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        return scale;
     }
 }
 

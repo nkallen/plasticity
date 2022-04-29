@@ -8,7 +8,7 @@ import { Empty } from "../../editor/Empties";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { Scene } from "../../editor/Scene";
 import { deunit, mat2mat, point2point, vec2vec } from "../../util/Conversion";
-import { MoveParams, ScaleParams } from "./TranslateItemFactory";
+import { MoveParams, RotateParams, ScaleParams } from "./TranslateItemFactory";
 
 abstract class EmptyFactory extends AbstractFactory<Empty> {
     constructor(
@@ -20,7 +20,7 @@ abstract class EmptyFactory extends AbstractFactory<Empty> {
 
 abstract class TranslateFactory extends EmptyFactory {
     _items!: Empty[];
-    private originalTransforms!: THREE.Matrix4[];
+    protected originalTransforms!: THREE.Matrix4[];
 
     get items() { return this._items }
     set items(items: Empty[]) {
@@ -105,6 +105,44 @@ export class ScaleEmptyFactory extends TranslateFactory implements ScaleParams {
     }
 }
 
+export class RotateEmptyFactory extends TranslateFactory implements RotateParams {
+    pivot!: THREE.Vector3
+    axis = new THREE.Vector3(1, 0, 0);
+    angle = 0;
+
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
+
+    // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
+    // but this works instead.
+    async doUpdate(abortEarly: () => boolean) {
+        const { items, pivot: point, axis, angle, originalTransforms } = this;
+        axis.normalize();
+        let result: TemporaryObject[] = [];
+        for (const [i, item] of items.entries()) {
+            const temp = rotateTemporary(item, point, axis, angle, originalTransforms[i]);
+            result.push(temp);
+        }
+        return await Promise.all(result);
+    }
+
+    protected get transform(): c3d.TransformValues {
+        const { axis, angle, pivot: point } = this;
+
+        if (angle === 0) throw new NoOpError();
+
+        const mat = new c3d.Matrix3D();
+        const p = point2point(point);
+        const v = vec2vec(axis, 1);
+        const axi = new c3d.Axis3D(p, v);
+        const rotation = mat.Rotate(axi, angle);
+
+        return new c3d.TransformValues(rotation);
+    }
+}
+
 function translateTemporary(item: THREE.Object3D, mat: THREE.Matrix4): TemporaryObject {
     item.matrixAutoUpdate = false;
     item.matrix.copy(mat);
@@ -114,3 +152,29 @@ function translateTemporary(item: THREE.Object3D, mat: THREE.Matrix4): Temporary
     const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
     return temp as TemporaryObject;
 }
+
+function rotateTemporary(item: THREE.Object3D, point: THREE.Vector3, axis: THREE.Vector3, angle: number, mat: THREE.Matrix4) {
+    if (angle === 0) {
+        item.matrix.copy(mat);
+        item.updateMatrixWorld(true);
+        const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
+        return temp as TemporaryObject;
+    }
+
+    _sub.makeTranslation(-point.x, -point.y, -point.z);
+    _add.makeTranslation(point.x, point.y, point.z);
+    _mul.makeRotationAxis(axis, angle);
+    item.matrix.copy(mat);
+    item.matrix.premultiply(_sub);
+    item.matrix.premultiply(_mul);
+    item.matrix.premultiply(_add);
+    item.matrix.decompose(item.position, item.quaternion, item.scale);
+    item.updateMatrixWorld(true);
+
+    const temp = { underlying: item, show() { }, hide() { }, cancel() { } };
+    return temp as TemporaryObject;
+}
+
+const _add = new THREE.Matrix4();
+const _sub = new THREE.Matrix4();
+const _mul = new THREE.Matrix4();

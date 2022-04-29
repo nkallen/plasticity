@@ -15,7 +15,7 @@ import { RotateDialog } from "./RotateDialog";
 import { RotateGizmo } from './RotateGizmo';
 import { ScaleDialog } from "./ScaleDialog";
 import { MoveItemCommand, RotateCommand, ScaleCommand, Y, Z } from "./TranslateCommand";
-import { FreestyleScaleFactoryLike, MoveItemFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './TranslateItemFactory';
+import { FreestyleScaleFactoryLike, MoveItemFactory, MoveFactoryLike, RotateItemFactory, RotateFactoryLike } from './TranslateItemFactory';
 
 export abstract class AbstractFreestyleMoveCommand extends Command {
     async execute(): Promise<void> {
@@ -216,11 +216,11 @@ export class FreestyleItemScaleCommand extends AbstractFreestyleScaleCommand {
 }
 
 export class FreestyleRotateItemCommand extends AbstractFreestyleRotateCommand {
-    protected async makeFactory(): Promise<RotateFactory> {
+    protected async makeFactory(): Promise<RotateItemFactory> {
         const { editor } = this;
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
-        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const rotate = new RotateItemFactory(editor.db, editor.materials, editor.signals).resource(this);
         rotate.items = objects;
         return rotate;
     }
