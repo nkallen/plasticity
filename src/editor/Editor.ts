@@ -71,7 +71,7 @@ export class Editor {
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.scene, this.crosses, this.signals);
     readonly keymaps = new KeymapManager();
-    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
+    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null });
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals, this.styles);
     readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.db, this.scene, this.signals);

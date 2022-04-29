@@ -13,7 +13,6 @@ import { Scene } from "../../editor/Scene";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "../../editor/snaps/ConstructionPlaneSnap";
 import { TextureLoader } from "../../editor/TextureLoader";
 import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
-import { SolidSelection } from "../../selection/TypedSelection";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Theme } from "../../startup/ConfigFiles";
@@ -348,7 +347,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.outlinePassHover.selectedObjects = this.collectOutline(this.editor.highlighter.outlineHover);
     }
 
-    private collectOutline(selection: SolidSelection) {
+    private collectOutline(selection: Iterable<visual.Outlineable>) {
         const toOutline = [];
         for (const item of selection) {
             const outline = item.outline;
@@ -722,6 +721,3 @@ export default (editor: EditorLike) => {
 
     customElements.define('plasticity-viewport', ViewportElement);
 }
-
-const Z = new THREE.Vector3(0, 0, 1);
-Object.freeze(Z);

@@ -59,7 +59,11 @@ export class SolidLevel extends THREE.Group {
     }
 }
 
-export class Solid extends Item {
+export interface Outlineable {
+    get outline(): THREE.Object3D | undefined 
+}
+
+export class Solid extends Item implements Outlineable {
     private _useNominal3: undefined;
     readonly lod = new SolidLOD();
 

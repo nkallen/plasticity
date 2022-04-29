@@ -30,6 +30,11 @@ export class ImageEmpty extends Empty {
         this.add(this.plane);
     }
 
+    get outline(): THREE.Object3D | undefined {
+        if (!this.visible) return undefined;
+        return this;
+    }
+
     dispose() {
         const material = this.plane.material as THREE.MeshLambertMaterial;
         material.dispose();

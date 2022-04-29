@@ -5,7 +5,7 @@ import { ColorRepresentation } from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { Empty } from "../editor/Empties";
+import { Empty, ImageEmpty } from "../editor/Empties";
 import { Scene } from "../editor/Scene";
 import { TextureLoader } from "../editor/TextureLoader";
 import basic_side from '../img/matcap/basic_side.exr';
@@ -309,8 +309,17 @@ export class RenderedSceneBuilder {
         }
     }
 
-    get outlineSelection() { return this.selection.selected.solids }
-    get outlineHover() { return this.selection.hovered.solids }
+    get outlineSelection(): Iterable<visual.Outlineable> {
+        const solids = this.selection.selected.solids
+        const empties = [...this.selection.selected.empties].filter(e => e instanceof ImageEmpty) as ImageEmpty[];
+        return [...solids, ...empties];
+    }
+    
+    get outlineHover(): Iterable<visual.Outlineable> {
+        const solids = this.selection.hovered.solids
+        const empties = [...this.selection.hovered.empties].filter(e => e instanceof ImageEmpty) as ImageEmpty[];
+        return [...solids, ...empties];
+    }
 
     useTemporary(selection: HasSelectedAndHovered) {
         switch (this.state.tag) {
