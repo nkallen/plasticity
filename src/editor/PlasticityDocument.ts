@@ -41,6 +41,7 @@ export class PlasticityDocument {
             if (mat.type === 'basic') {
                 material = new THREE.MeshBasicMaterial({
                     opacity: mat.opacity,
+                    depthFunc: mat.depthFunc,
                 });
             } else {
                 const base = mat.pbrMetallicRoughness.baseColorFactor;
@@ -217,7 +218,7 @@ export class PlasticityDocument {
             images: [...images.paths].map((p) => { return { uri: p } as ImageJSON }),
             materials: [...memento.materials.materials.values()].map(mat => {
                 const { name, material } = mat;
-                let type: any = { type: 'basic' };
+                let type: any = { type: 'basic', depthFunc: material.depthFunc };
                 if (material instanceof THREE.MeshPhysicalMaterial) {
                     type = {
                         pbrMetallicRoughness: {
@@ -327,6 +328,7 @@ interface MaterialJSON {
     transmissionFactor?: number;
     emissiveFactor?: number;
     opacity?: number;
+    depthFunc?: THREE.DepthModes;
 }
 
 interface PlasticityJSON {
