@@ -34,6 +34,10 @@ export class DeleteCommand extends Command {
             const command = new RemoveGroupCommand(this.editor);
             await command.execute();
         }
+        if (selected.empties.size > 0) {
+            const command = new RemoveEmptyCommand(this.editor);
+            await command.execute();
+        }
     }
 }
 
@@ -49,6 +53,14 @@ export class RemoveGroupCommand extends Command {
     async execute(): Promise<void> {
         for (const group of this.editor.selection.selected.groups) {
             this.editor.scene.deleteGroup(group);
+        }
+    }
+}
+
+export class RemoveEmptyCommand extends Command {
+    async execute(): Promise<void> {
+        for (const empty of this.editor.selection.selected.empties) {
+            this.editor.scene.deleteEmpty(empty);
         }
     }
 }
