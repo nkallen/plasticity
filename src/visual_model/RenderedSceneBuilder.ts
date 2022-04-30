@@ -187,6 +187,8 @@ export class RenderedSceneBuilder {
                 const material = empty.plane.material as THREE.MeshBasicMaterial;
                 material.opacity = particularMaterial.opacity;
                 material.transparent = particularMaterial.opacity < 1;
+                material.depthWrite = particularMaterial!.depthFunc !== THREE.NeverDepth; 
+                material.depthFunc = particularMaterial!.depthFunc;
             }
         }
     }

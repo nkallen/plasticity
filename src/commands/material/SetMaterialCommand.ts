@@ -51,7 +51,6 @@ export class SetMaterialCommand extends cmd.CommandLike {
                 if (empty instanceof ImageEmpty) {
                     const existing = empty.plane.material as THREE.MeshBasicMaterial;
                     existing.depthWrite = material!.depthFunc !== THREE.NeverDepth; 
-                    existing.depthTest = true;
                     existing.depthFunc = material!.depthFunc;
                     existing.opacity = material!.opacity;
                     existing.transparent = material!.opacity < 1;
