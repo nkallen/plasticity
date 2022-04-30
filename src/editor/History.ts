@@ -94,7 +94,7 @@ export class EmptyMemento {
 export class MaterialMemento {
     constructor(
         readonly counter: number,
-        readonly materials: ReadonlyMap<number, { name: string, material: THREE.MeshPhysicalMaterial }>
+        readonly materials: ReadonlyMap<number, { name: string, material: THREE.Material & { color: THREE.Color } }>
     ) { }
 }
 

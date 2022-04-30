@@ -4,10 +4,9 @@
 
 ### Backlog
 
-- [ ] helper axis for trxn  
-- [ ] outline selected empty  
+- [ ] remove rotation of empty  
+- [ ] delete empty  
 - [ ] Opacity of nodes  
-- [ ] Empty transform  
 
 ### Todo
 
@@ -17,6 +16,9 @@
 
 ### Done ✓
 
+- [x] Empty transform  
+- [x] outline selected empty  
+- [x] helper axis for trxn  
 - [x] Empty raycasting  
 - [x] Empty boxcasting  
 - [x] Empty in outline  

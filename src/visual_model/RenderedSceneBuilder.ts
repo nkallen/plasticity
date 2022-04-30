@@ -15,7 +15,7 @@ import { Theme } from "../startup/ConfigFiles";
 import * as visual from '../visual_model/VisualModel';
 
 type State = { tag: 'none' } | { tag: 'scratch', selection: HasSelectedAndHovered }
-type Mode = { tag: 'normal', material: THREE.Material & { color: ColorRepresentation } } | { tag: 'rendered', material: THREE.Material & { color: ColorRepresentation } };
+type Mode = { tag: 'normal', material: THREE.Material & { color: THREE.Color } } | { tag: 'rendered', material: THREE.Material & { color: THREE.Color } };
 export type MaterialMode = 'matcap' | 'colored-matcap' | 'colored-silhouette' | 'black-silhouette';
 
 export class RenderedSceneBuilder {
@@ -154,7 +154,7 @@ export class RenderedSceneBuilder {
 
     private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
-    highlightItem = (item: visual.SpaceItem, materialOverride?: THREE.Material & { color: ColorRepresentation }) => {
+    highlightItem = (item: visual.SpaceItem, materialOverride?: THREE.Material & { color: THREE.Color }) => {
         if (item instanceof visual.Solid) {
             this.highlightSolid(item, materialOverride);
         } else if (item instanceof visual.SpaceInstance) {
@@ -169,7 +169,7 @@ export class RenderedSceneBuilder {
         item.updateMatrixWorld();
     }
 
-    private highlightSolid(solid: visual.Solid, override?: THREE.Material & { color: ColorRepresentation }) {
+    private highlightSolid(solid: visual.Solid, override?: THREE.Material & { color: THREE.Color }) {
         this.highlightFaces(solid, override);
         this.highlightEdges(solid);
         solid.layers.set(visual.Layers.Solid);
@@ -181,6 +181,14 @@ export class RenderedSceneBuilder {
         empty.quaternion.copy(transform.quaternion);
         empty.scale.copy(transform.scale);
         empty.layers.set(visual.Layers.Empty);
+        if (empty instanceof ImageEmpty) {
+            const particularMaterial = this.scene.getMaterial(empty, true);
+            if (particularMaterial !== undefined) {
+                const material = empty.plane.material as THREE.MeshBasicMaterial;
+                material.opacity = particularMaterial.opacity;
+                material.transparent = particularMaterial.opacity < 1;
+            }
+        }
     }
 
     private highlightRegion(item: visual.PlaneInstance<visual.Region>) {
@@ -290,10 +298,12 @@ export class RenderedSceneBuilder {
             hovered_phantom.forEach(s => s.materialIndex = 3);
             if (this.mode.tag === 'normal') {
                 let material = this.mode.material;
-                if ((material === face_unhighlighted_colored_matcap || material === face_unhighlighted_colored_silhouette) && particularMaterial !== undefined) {
-                    const colored = material.clone() as THREE.Material & { color: THREE.Color };
-                    colored.color.set(particularMaterial.color);
-                    material = colored;
+                if (particularMaterial !== undefined) {
+                    if (material === face_unhighlighted_colored_matcap || material === face_unhighlighted_colored_silhouette) {
+                        const colored = material.clone() as THREE.Material & { color: THREE.Color };
+                        colored.color.set(particularMaterial.color);
+                        material = colored;
+                    }
                 }
                 facegroup.mesh.material = [face_hovered, face_highlighted, material, face_hovered_phantom]
             } else {
@@ -314,7 +324,7 @@ export class RenderedSceneBuilder {
         const empties = [...this.selection.selected.empties].filter(e => e instanceof ImageEmpty) as ImageEmpty[];
         return [...solids, ...empties];
     }
-    
+
     get outlineHover(): Iterable<visual.Outlineable> {
         const solids = this.selection.hovered.solids
         const empties = [...this.selection.hovered.empties].filter(e => e instanceof ImageEmpty) as ImageEmpty[];

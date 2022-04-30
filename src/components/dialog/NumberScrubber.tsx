@@ -62,10 +62,18 @@ export default (editor: Editor) => {
         }
 
         scrub(value: number) {
-            this.setAttribute("value", String(value));
+            this.setAttribute("value", String(this.trunc(value)));
             this.render();
             const event = new ChangeEvent('scrub', value);
             this.dispatchEvent(event);
+        }
+
+        private trunc(value: number) {
+            const stringMin = this.getAttribute('min');
+            const min = stringMin !== null ? +stringMin : Number.MAX_VALUE;
+            const stringMax = this.getAttribute('max');
+            const max = stringMax !== null ? +stringMax : Number.MAX_VALUE;
+            return Math.max(min, Math.min(max, value));
         }
 
         change(e: Event) {
@@ -74,8 +82,9 @@ export default (editor: Editor) => {
 
             const value = e.target.value;
 
-            const num = Number(value);
-            if (num !== NaN) {
+            let num = Number(value);
+            if (Number.isFinite(num)) {
+                num = this.trunc(num);
                 this.setAttribute('value', value);
                 const event = new ChangeEvent('change', num);
                 this.dispatchEvent(event);

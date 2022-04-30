@@ -34,25 +34,32 @@ export class PlasticityDocument {
                 )
             ));
         };
-        const materials = new Map<number, { name: string, material: THREE.MeshPhysicalMaterial }>();
+        const materials = new Map<number, { name: string, material: THREE.Material & { color: THREE.Color } }>();
         for (const [i, mat] of json.materials.entries()) {
             const name = mat.name;
-            const base = mat.pbrMetallicRoughness.baseColorFactor
-            const material = new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color().fromArray(base),
-                opacity: base[3],
-                metalness: mat.pbrMetallicRoughness.metallicFactor,
-                roughness: mat.pbrMetallicRoughness.roughnessFactor,
-                clearcoat: mat.clearcoatFactor,
-                clearcoatRoughness: mat.clearcoatRoughnessFactor,
-                ior: mat.ior,
-                sheenColor: mat.sheenColorFactor ? new THREE.Color().fromArray(mat.sheenColorFactor) : undefined,
-                sheenRoughness: mat.sheenRoughnessFactor,
-                specularIntensity: mat.specularFactor,
-                specularColor: mat.specularColorFactor ? new THREE.Color().fromArray(mat.specularColorFactor) : undefined,
-                transmission: mat.transmissionFactor,
-                emissive: mat.emissiveFactor,
-            });
+            let material;
+            if (mat.type === 'basic') {
+                material = new THREE.MeshBasicMaterial({
+                    opacity: mat.opacity,
+                });
+            } else {
+                const base = mat.pbrMetallicRoughness.baseColorFactor;
+                material = new THREE.MeshPhysicalMaterial({
+                    color: new THREE.Color().fromArray(base),
+                    opacity: base[3],
+                    metalness: mat.pbrMetallicRoughness.metallicFactor,
+                    roughness: mat.pbrMetallicRoughness.roughnessFactor,
+                    clearcoat: mat.clearcoatFactor,
+                    clearcoatRoughness: mat.clearcoatRoughnessFactor,
+                    ior: mat.ior,
+                    sheenColor: mat.sheenColorFactor ? new THREE.Color().fromArray(mat.sheenColorFactor) : undefined,
+                    sheenRoughness: mat.sheenRoughnessFactor,
+                    specularIntensity: mat.specularFactor,
+                    specularColor: mat.specularColorFactor ? new THREE.Color().fromArray(mat.specularColorFactor) : undefined,
+                    transmission: mat.transmissionFactor,
+                    emissive: mat.emissiveFactor,
+                });
+            }
             materials.set(i, { name, material });
         }
         into.materials.restoreFromMemento(new MaterialMemento(json.materials.length, materials));
@@ -210,22 +217,29 @@ export class PlasticityDocument {
             images: [...images.paths].map((p) => { return { uri: p } as ImageJSON }),
             materials: [...memento.materials.materials.values()].map(mat => {
                 const { name, material } = mat;
+                let type: any = { type: 'basic' };
+                if (material instanceof THREE.MeshPhysicalMaterial) {
+                    type = {
+                        pbrMetallicRoughness: {
+                            baseColorFactor: [...material.color.toArray(), material.opacity] as [number, number, number, number],
+                            metallicFactor: material.metalness,
+                            roughnessFactor: material.roughness,
+                        },
+                        emmissiveFactor: material.emissive,
+                        clearcoatFactor: material.clearcoat,
+                        clearcoatRoughnessFactor: material.clearcoatRoughness,
+                        ior: material.ior,
+                        sheenColorFactor: material.sheenColor.toArray() as [number, number, number],
+                        sheenRoughnessFactor: material.sheenRoughness,
+                        specularFactor: material.specularIntensity,
+                        specularColorFactor: material.specularColor.toArray() as [number, number, number],
+                        transmissionFactor: material.transmission,
+                    }
+                }
                 return {
                     name: name,
-                    pbrMetallicRoughness: {
-                        baseColorFactor: [...material.color.toArray(), material.opacity] as [number, number, number, number],
-                        metallicFactor: material.metalness,
-                        roughnessFactor: material.roughness,
-                    },
-                    emmissiveFactor: material.emissive,
-                    clearcoatFactor: material.clearcoat,
-                    clearcoatRoughnessFactor: material.clearcoatRoughness,
-                    ior: material.ior,
-                    sheenColorFactor: material.sheenColor.toArray() as [number, number, number],
-                    sheenRoughnessFactor: material.sheenRoughness,
-                    specularFactor: material.specularIntensity,
-                    specularColorFactor: material.specularColor.toArray() as [number, number, number],
-                    transmissionFactor: material.transmission,
+                    ...type,
+                    opacity: material.opacity,
                 } as MaterialJSON
             }),
         } as PlasticityJSON;
@@ -297,6 +311,7 @@ interface NodeJSON {
 
 interface MaterialJSON {
     name: string,
+    type: 'physical' | 'basic';
     pbrMetallicRoughness: {
         baseColorFactor: [number, number, number, number];
         metallicFactor: number;
@@ -311,6 +326,7 @@ interface MaterialJSON {
     specularColorFactor?: [number, number, number];
     transmissionFactor?: number;
     emissiveFactor?: number;
+    opacity?: number;
 }
 
 interface PlasticityJSON {

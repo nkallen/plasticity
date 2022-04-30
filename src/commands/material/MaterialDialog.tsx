@@ -1,4 +1,5 @@
 import { render } from 'preact';
+import * as THREE from "three";
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { MaterialParams } from './SetMaterialCommand';
@@ -11,7 +12,18 @@ export class MaterialDialog extends AbstractDialog<MaterialParams> {
     }
 
     render() {
-        const { color, metalness, roughness, ior, clearcoat, clearcoatRoughness, sheen, sheenRoughness, sheenColor, transmission, thickness, specularIntensity, specularColor } = this.params;
+        const params = this.params;
+        if (params instanceof THREE.MeshPhysicalMaterial) {
+            this.renderPhysical(params);
+        } else if (params instanceof THREE.MeshBasicMaterial) {
+            this.renderBasic(params);
+        } else {
+            throw new Error("not yet supported");
+        }
+    }
+
+    private renderPhysical(params: THREE.MeshPhysicalMaterial) {
+        const { color, metalness, roughness, ior, clearcoat, clearcoatRoughness, sheen, sheenRoughness, sheenColor, transmission, thickness, specularIntensity, specularColor, opacity } = params;
 
         render(
             <>
@@ -95,6 +107,35 @@ export class MaterialDialog extends AbstractDialog<MaterialParams> {
                         </div>
                     </li>
                 </ul></>, this);
+    }
+
+    private renderBasic(params: THREE.MeshBasicMaterial) {
+        const { opacity, depthFunc } = params;
+
+        render(<>
+            <ul>
+                <li>
+                    <label for="depthFunc">Depth
+                    </label>
+                    <div class="fields">
+                        <input type="radio" hidden name="depthFunc" id="normal" value={THREE.LessEqualDepth} checked={depthFunc === THREE.LessEqualDepth} onClick={this.onChange}></input>
+                        <label for="normal">Normal</label>
+
+                        <input type="radio" hidden name="depthFunc" id="always" value={THREE.AlwaysDepth} checked={depthFunc === THREE.AlwaysDepth} onClick={this.onChange}></input>
+                        <label for="always">Front</label>
+
+                        <input type="radio" hidden name="depthFunc" id="never" value={THREE.NeverDepth} checked={depthFunc === THREE.NeverDepth} onClick={this.onChange}></input>
+                        <label for="never">Behind</label>
+                    </div>
+                </li>
+                <li>
+                    <label for="opacity">Opacity</label>
+                    <div class="fields">
+                        <plasticity-number-scrubber name="opacity" disabled={1.0} default={0.5} min={0} max={1} value={opacity} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></plasticity-number-scrubber>
+                    </div>
+                </li>
+            </ul>
+        </>, this);
     }
 }
 customElements.define('plasticity-material-dialog', MaterialDialog);

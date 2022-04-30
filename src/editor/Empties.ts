@@ -28,6 +28,7 @@ export class ImageEmpty extends Empty {
         const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         this.plane = new THREE.Mesh(geometry, material);
         this.add(this.plane);
+        this.renderOrder = visual.RenderOrder.ImageEmpty;
     }
 
     get outline(): THREE.Object3D | undefined {

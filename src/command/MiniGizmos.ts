@@ -692,7 +692,9 @@ export class AxisHelper extends Helper implements GizmoHelper<any>, CancellableR
     constructor(private readonly material: THREE.LineBasicMaterial, stateless = false) {
         super();
         this.visible = stateless;
+        this.add(this.line);
     }
+    
     onStart(viewport: Viewport, position: THREE.Vector2) {
         this.visible = true;
     }

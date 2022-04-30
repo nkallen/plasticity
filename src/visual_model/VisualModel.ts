@@ -526,6 +526,7 @@ export const RenderOrder = {
     CurveEdge: 20,
     Face: 10,
     CurveSegment: 20,
+    ImageEmpty: 0,
 }
 
 export enum Layers {

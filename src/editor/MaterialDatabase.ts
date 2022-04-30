@@ -17,7 +17,7 @@ export default interface MaterialDatabase extends MementoOriginator<MaterialMeme
     mesh(): THREE.Material;
 
     add(name: string, material: THREE.Material): number;
-    get(id: number): THREE.Material & { color: THREE.ColorRepresentation };
+    get(id: number): THREE.Material & { color: THREE.Color };
 }
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
@@ -39,7 +39,7 @@ const region = region_unhighlighted;
 const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
 
 export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginator<MaterialMemento> {
-    private readonly materials = new Map<number, { name: string, material: THREE.MeshPhysicalMaterial }>();
+    private readonly materials = new Map<number, { name: string, material: THREE.Material & { color: THREE.Color } }>();
     private readonly lines = [line, line_dashed, previewLine];
     private counter = 1; // start > 0 since GetStyle() returns 0 for undefined.
 
@@ -85,7 +85,7 @@ export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginato
         return id;
     }
 
-    get(id: number): THREE.Material & { color: THREE.ColorRepresentation } {
+    get(id: number): THREE.Material & { color: THREE.Color } {
         return this.materials.get(id)!.material;
     }
 

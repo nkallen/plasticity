@@ -43,9 +43,9 @@ export class FakeMaterials implements MaterialDatabase {
         return hover
     }
 
-    private readonly material = new Map<number, THREE.Material & { color: THREE.ColorRepresentation }>();
+    private readonly material = new Map<number, THREE.Material & { color: THREE.Color }>();
     private counter = 0;
-    add(name: string, m: THREE.Material & { color: THREE.ColorRepresentation }): number {
+    add(name: string, m: THREE.Material & { color: THREE.Color }): number {
         this.material.set(this.counter, m);
         return this.counter++;
     }
