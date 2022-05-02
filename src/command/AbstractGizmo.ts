@@ -336,7 +336,7 @@ export class GizmoStateMachine<I, O> implements MovementInfo {
         this.camera = camera;
         this.gizmo.update(camera);
         this.gizmo.updateMatrixWorld();
-        this.cameraPlane.position.copy(this.gizmo.position);
+        this.cameraPlane.position.copy(this.gizmo.worldPosition);
         this.cameraPlane.quaternion.copy(camera.quaternion);
         this.cameraPlane.updateMatrixWorld();
         this.raycaster.setFromCamera(this.currentMousePosition, camera);
