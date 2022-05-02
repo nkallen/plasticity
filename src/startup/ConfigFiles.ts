@@ -3,13 +3,14 @@ import fse from 'fs-extra';
 import json5 from 'json5';
 import os from 'os';
 import path from 'path';
+import { assertUnreachable } from '../util/Util';
 import defaultKeymap from "./default-keymap";
 import defaultSettings from './default-settings';
 import defaultTheme from './default-theme';
 
 export type Theme = typeof import('./default-theme');
 export type Settings = typeof import('./default-settings');
-export type Mode = 'default' | 'blender' | 'maya' | 'moi';
+export type Mode = 'default' | 'blender' | 'maya' | 'moi' | '3dsmax';
 
 export class ConfigFiles {
     static readonly homePath = path.join(os.homedir(), '.plasticity');
@@ -112,6 +113,14 @@ export class ConfigFiles {
                             "alt-mouse2": "orbit:dolly",
                         }
                         break;
+                    case '3dsmax':
+                        parsed['orbit-controls'] = {
+                            "mouse1": "orbit:pan",
+                            "alt-mouse1": "orbit:rotate",
+                            "ctrl-alt-mouse1": "orbit:dolly",
+                        }
+                        break;
+                    default: assertUnreachable(mode);
                 }
                 fs.writeFileSync(ConfigFiles.userKeymapPath, json5.stringify(parsed, null, 4));
             } catch (e) {

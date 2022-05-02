@@ -242,6 +242,7 @@ export default {
         "3": "selection:mode:set:face",
         "4": "selection:mode:set:solid",
         "tab": "selection:mode:set:all",
+        "5": "selection:mode:set:all",
 
         "ctrl-1": "selection:convert:control-point",
         "ctrl-2": "selection:convert:edge",
