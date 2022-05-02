@@ -70,9 +70,9 @@ export default (editor: Editor) => {
 
         private trunc(value: number) {
             const stringMin = this.getAttribute('min');
-            const min = stringMin !== null ? +stringMin : Number.MAX_VALUE;
+            const min = stringMin !== null ? +stringMin : Number.NEGATIVE_INFINITY;
             const stringMax = this.getAttribute('max');
-            const max = stringMax !== null ? +stringMax : Number.MAX_VALUE;
+            const max = stringMax !== null ? +stringMax : Number.POSITIVE_INFINITY;
             return Math.max(min, Math.min(max, value));
         }
 
@@ -152,6 +152,8 @@ export default (editor: Editor) => {
         onPointerDown(e: PointerEvent) {
             switch (this.state.tag) {
                 case 'none':
+                    if (e.button != 0) return;
+
                     e.stopPropagation();
                     // preventDefault here prevents scrubber from focusing on start of drag
                     // (will focus later with the onCancel: onClick)

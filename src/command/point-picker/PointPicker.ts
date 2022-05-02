@@ -245,7 +245,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
                 document.addEventListener('keydown', onKeyDown);
                 document.addEventListener('keyup', onKeyUp);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerUp)));
+                disposables.add(new Disposable(() => domElement.removeEventListener('pointerup', onPointerUp)));
                 disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
             }
