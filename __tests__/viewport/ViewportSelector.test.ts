@@ -31,7 +31,7 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor.db;
+    db = editor._db;
     camera = viewport.camera;
     selector = viewport.selector;
     selection = editor.selection;

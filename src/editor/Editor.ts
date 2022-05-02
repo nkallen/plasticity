@@ -14,7 +14,8 @@ import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionCommandRegistrar } from "../selection/CommandRegistrar";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
-import theme from '../startup/default-theme';
+import defaultTheme from '../startup/default-theme';
+import defaultSettings from '../startup/default-settings';
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { Backup } from "./Backup";
@@ -88,7 +89,7 @@ export class Editor {
 
     windowLoaded = false;
 
-    constructor(readonly styles = theme) {
+    constructor(readonly settings = defaultSettings, readonly styles = defaultTheme) {
         window.addEventListener('resize', this.onWindowResize, false);
         window.addEventListener('load', this.onWindowLoad, false);
 

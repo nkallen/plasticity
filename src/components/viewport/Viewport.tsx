@@ -15,7 +15,7 @@ import { TextureLoader } from "../../editor/TextureLoader";
 import studio_small_03 from '../../img/hdri/studio_small_03_1k.exr';
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
-import { Theme } from "../../startup/ConfigFiles";
+import { Settings, Theme } from "../../startup/ConfigFiles";
 import { Helper, Helpers } from "../../util/Helpers";
 import { MaterialMode, RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as visual from '../../visual_model/VisualModel';
@@ -40,6 +40,7 @@ export interface EditorLike extends selector.EditorLike {
     highlighter: RenderedSceneBuilder,
     keymaps: AtomKeymap.KeymapManager,
     styles: Theme,
+    settings: Settings,
     planes: PlaneDatabase,
     textures: TextureLoader,
     scene: Scene,
@@ -52,11 +53,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
 
-    private readonly gridColor1 = new THREE.Color(this.editor.styles.colors.grid1).convertSRGBToLinear();
-    private readonly gridColor2 = new THREE.Color(this.editor.styles.colors.grid2).convertSRGBToLinear();
-    private readonly backgroundColor = new THREE.Color(this.editor.styles.colors.viewport).convertSRGBToLinear();
-    private readonly selectionOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[400]).convertSRGBToLinear();
-    private readonly hoverOutlineColor = new THREE.Color(this.editor.styles.colors.yellow[50]).convertSRGBToLinear();
+    private readonly colors = this.editor.styles.colors;
+    private readonly gridColor1 = new THREE.Color(this.colors.grid1).convertSRGBToLinear();
+    private readonly gridColor2 = new THREE.Color(this.colors.grid2).convertSRGBToLinear();
+    private readonly backgroundColor = new THREE.Color(this.colors.viewport).convertSRGBToLinear();
+    private readonly selectionOutlineColor = new THREE.Color(this.colors.yellow[400]).convertSRGBToLinear();
+    private readonly hoverOutlineColor = new THREE.Color(this.colors.yellow[50]).convertSRGBToLinear();
 
     private readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
@@ -113,22 +115,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.helpersPass.clearDepth = true;
 
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
-            outlinePassSelection.edgeStrength = 3;
-            outlinePassSelection.edgeThickness = 1;
             outlinePassSelection.visibleEdgeColor.copy(this.selectionOutlineColor);
             outlinePassSelection.hiddenEdgeColor.copy(this.selectionOutlineColor);
-            outlinePassSelection.downSampleRatio = 1;
             this.outlinePassSelection = outlinePassSelection;
 
             const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
-            outlinePassHover.edgeStrength = 3;
-            outlinePassHover.edgeThickness = 1;
             outlinePassHover.visibleEdgeColor.copy(this.hoverOutlineColor);
             outlinePassHover.hiddenEdgeColor.copy(this.hoverOutlineColor);
-            outlinePassHover.downSampleRatio = 1;
             this.outlinePassHover = outlinePassHover;
 
-            const navigatorGizmo = new ViewportNavigatorGizmo(this, 100);
+            const navigatorGizmo = new ViewportNavigatorGizmo(this, this.editor.settings.Viewport.navigatorSize);
             const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
             const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 
@@ -244,7 +240,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.objectRemoved.remove(this.setNeedsRender);
             this.editor.signals.objectReplaced.remove(this.setNeedsRender);
             this.editor.signals.emptyAdded.remove(this.setNeedsRender);
-            this.editor.signals.emptyRemoved.remove(this.setNeedsRender);    
+            this.editor.signals.emptyRemoved.remove(this.setNeedsRender);
             this.editor.signals.itemMaterialChanged.remove(this.setNeedsRender);
             this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
             this.editor.signals.factoryCancelled.remove(this.setNeedsRender);
@@ -678,7 +674,11 @@ export default (editor: EditorLike) => {
                     break;
             }
 
-            const navigationControls = new OrbitControls(camera, renderer.domElement, editor.keymaps);
+            const navigationControls = new OrbitControls(
+                camera,
+                renderer.domElement,
+                editor.keymaps,
+                editor.settings.OrbitControls);
             navigationControls.enableRotate = enableRotate;
 
             camera.up.set(0, 0, 1);

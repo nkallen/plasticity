@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { Settings } from "../../startup/ConfigFiles";
 import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { ProxyCamera } from "./ProxyCamera";
 
@@ -34,9 +35,9 @@ export class OrbitControls extends THREE.EventDispatcher {
 
     readonly target = new THREE.Vector3();
 
-    zoomSpeed = 0.5;
-    rotateSpeed = 1;
-    panSpeed = 1;
+    zoomSpeed = this.settings.zoomSpeed;
+    rotateSpeed = this.settings.rotateSpeed;
+    panSpeed = this.settings.panSpeed;
 
     minDistance = 0.1;
     maxDistance = 1000;
@@ -58,7 +59,12 @@ export class OrbitControls extends THREE.EventDispatcher {
     private readonly position0 = this.object.position.clone();
     private zoom0 = this.object.zoom;
 
-    constructor(readonly object: ProxyCamera, private readonly domElement: HTMLElement, private readonly keymaps: AtomKeymap.KeymapManager) {
+    constructor(
+        readonly object: ProxyCamera,
+        private readonly domElement: HTMLElement,
+        private readonly keymaps: AtomKeymap.KeymapManager,
+        private readonly settings: Settings['OrbitControls'],
+    ) {
         super();
         domElement.style.touchAction = 'none';
 

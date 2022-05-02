@@ -7,7 +7,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { Group, GroupId, GroupListing, Groups, VirtualGroup } from './Groups';
 import { MementoOriginator, SceneMemento } from './History';
 import MaterialDatabase from "./MaterialDatabase";
-import { HideMode, LeafNodeItem, NodeDekey, NodeItem, NodeKey, Nodes, RealNodeItem, NodeTransform, ReadonlyNodeTransform, NodeIdentityTransform } from "./Nodes";
+import { HideMode, LeafNodeItem, NodeDekey, NodeIdentityTransform, NodeItem, NodeKey, Nodes, NodeTransform, ReadonlyNodeTransform, RealNodeItem } from "./Nodes";
 import { TypeManager } from "./TypeManager";
 
 /**
@@ -180,7 +180,7 @@ export class Scene implements MementoOriginator<SceneMemento> {
     }
 
     private isIndirectlyHidden(node: NodeItem) {
-        if ((node instanceof visual.Item || node instanceof Group || node instanceof Empty)&& this.isHidden(node)) return true;
+        if ((node instanceof visual.Item || node instanceof Group || node instanceof Empty) && this.isHidden(node)) return true;
         if (!this.isVisible(node)) return true;
         let parent = this.groups.parent(this.item2key(node));
         if (parent === undefined) return false;

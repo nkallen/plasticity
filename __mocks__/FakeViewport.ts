@@ -58,7 +58,7 @@ export function MakeViewport(editor: EditorLike) {
         domElement,
         camera,
         new ConstructionPlaneSnap(),
-        new OrbitControls(camera, canvas, editor.keymaps),
+        new OrbitControls(camera, canvas, editor.keymaps, editor.settings.OrbitControls),
     );
     viewport.lastPointerEvent = new MouseEvent('pointermove', { clientX: 0, clientY: 0 }) as PointerEvent;
     return viewport;

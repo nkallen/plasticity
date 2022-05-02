@@ -1,18 +1,21 @@
 import fs from 'fs';
+import fse from 'fs-extra';
 import json5 from 'json5';
+import os from 'os';
 import path from 'path';
 import defaultKeymap from "./default-keymap";
+import defaultSettings from './default-settings';
 import defaultTheme from './default-theme';
-import os from 'os';
-import fse from 'fs-extra';
 
-export type Theme = typeof import('./default-theme')
+export type Theme = typeof import('./default-theme');
+export type Settings = typeof import('./default-settings');
 export type Mode = 'default' | 'blender' | 'maya' | 'moi';
 
 export class ConfigFiles {
     static readonly homePath = path.join(os.homedir(), '.plasticity');
     static readonly userKeymapPath = path.join(this.homePath, 'keymap.json');
     static readonly userThemePath = path.join(this.homePath, 'theme.json');
+    static readonly userSettingsPath = path.join(this.homePath, 'settings.json');
 
     static create() {
         if (!fs.existsSync(this.homePath)) {
@@ -63,6 +66,19 @@ export class ConfigFiles {
         return defaultTheme;
     }
 
+    static loadSettings() {
+        if (fs.existsSync(this.userSettingsPath)) {
+            try {
+                const parsed = json5.parse(fs.readFileSync(this.userSettingsPath).toString());
+                merge(defaultSettings, parsed);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        return defaultSettings;
+    }
+
     static updateOrbitControls(mode: Mode) {
         if (fs.existsSync(ConfigFiles.userKeymapPath)) {
             try {
@@ -101,6 +117,17 @@ export class ConfigFiles {
             } catch (e) {
                 console.error(e);
             }
+        }
+    }
+}
+
+function merge(canon: Record<string, any>, custom: Record<string, any>) {
+    for (const [k, v] of Object.entries(canon)) {
+        if (custom[k] === undefined) continue;
+        if (typeof v === 'object') {
+            merge(canon[k], custom[k]);
+        } else {
+            canon[k] = custom[k];
         }
     }
 }

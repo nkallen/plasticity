@@ -32,6 +32,7 @@ import { ConfigFiles } from './startup/ConfigFiles';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 ConfigFiles.loadTheme();
+ConfigFiles.loadSettings();
 
 export const editor = new Editor();
 

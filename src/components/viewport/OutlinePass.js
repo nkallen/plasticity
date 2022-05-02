@@ -33,9 +33,7 @@ class OutlinePass extends Pass {
         this.visibleEdgeColor = new Color(1, 1, 1);
         this.hiddenEdgeColor = new Color(0.1, 0.04, 0.02);
         this.usePatternTexture = false;
-        this.edgeThickness = 1.0;
         this.edgeStrength = 3.0;
-        this.downSampleRatio = 2;
         this.pulsePeriod = 0;
 
         this._visibilityCache = new Map();

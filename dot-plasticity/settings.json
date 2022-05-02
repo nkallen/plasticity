@@ -1,0 +1,11 @@
+{
+    Viewport: {
+        // navigatorSize: 100,
+    },
+
+    OrbitControls: {
+        // zoomSpeed: 0.8,
+        // rotateSpeed: 1,
+        // panSpeed: 1,
+    }
+}
