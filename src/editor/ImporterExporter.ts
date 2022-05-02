@@ -25,7 +25,7 @@ export class ImporterExporter {
                 const data = await fs.promises.readFile(filePath);
                 await db.deserialize(data);
                 await contours.rebuild();
-            } else if (/\.png$/.test(filePath)) {
+            } else if (/\.(png|jpg)$/.test(filePath)) {
                 if (cplane === undefined) cplane = PlaneDatabase.XY;
                 const data = await fs.promises.readFile(filePath);
                 await images.add(filePath, data);

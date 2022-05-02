@@ -303,7 +303,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 if (error) {
                     this.state = { tag: 'failed', error };
                     if (hasNext) await this.update();
-                    else await this.revertToLastSuccess();
+                    else await this.notifyOfError();
                 } else {
                     this.state = { tag: 'updated' };
                     if (hasNext) await this.update();
@@ -315,7 +315,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
         }
     }
 
-    private async revertToLastSuccess() {
+    private async notifyOfError() {
         switch (this.state.tag) {
             case 'failed':
                 const e = this.state.error;

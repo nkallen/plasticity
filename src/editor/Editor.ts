@@ -136,7 +136,7 @@ export class Editor {
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },
                 { name: 'C3D files', extensions: ['c3d'] },
-                { name: 'Image files', extensions: ['png'] }
+                { name: 'Image files', extensions: ['png', 'jpg'] }
             ]
         });
         const command = new ImportCommand(this);

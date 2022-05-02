@@ -4,9 +4,6 @@
 
 ### Backlog
 
-- [ ] remove rotation of empty  
-- [ ] delete empty  
-- [ ] Opacity of nodes  
 
 ### Todo
 
@@ -16,6 +13,11 @@
 
 ### Done ✓
 
+- [x] hide empty  
+- [x] unit tests for empty translation  
+- [x] Opacity of nodes  
+- [x] delete empty  
+- [x] remove rotation of empty  
 - [x] Empty transform  
 - [x] outline selected empty  
 - [x] helper axis for trxn  

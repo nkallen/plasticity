@@ -61,8 +61,8 @@ export class LockSelectedCommand extends cmd.CommandLike {
 
 export class HideSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
-        const { solids, curves, regions } = this.editor.selection.selected;
-        const selectedItems = [...solids, ...curves, ...regions];
+        const { solids, curves, regions, empties } = this.editor.selection.selected;
+        const selectedItems = [...solids, ...curves, ...regions, ...empties];
         for (const item of selectedItems) this.editor.scene.makeHidden(item, true);
     }
 }
@@ -70,7 +70,7 @@ export class HideSelectedCommand extends cmd.CommandLike {
 export class HideUnselectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const db = this.editor.db;
-        const { solids, curves, regions } = this.editor.selection.selected;
+        const { solids, curves, regions, empties } = this.editor.selection.selected;
         const selectedItems = new Set([...solids.ids, ...curves.ids, ...regions.ids]);
         for (const { view } of db.findAll()) {
             if (!selectedItems.has(view.simpleName)) this.editor.scene.makeHidden(view, true);
