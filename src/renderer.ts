@@ -26,7 +26,7 @@ import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.css';
-import { Editor } from './editor/Editor';
+import { Editor, supportedExtensions } from './editor/Editor';
 import { ConfigFiles } from './startup/ConfigFiles';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
@@ -78,3 +78,21 @@ Menu(editor);
 
 editor.backup.load();
 
+const res = new RegExp(`\\.${supportedExtensions.join('|')}$`, 'i')
+
+document.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer === null) return;
+    const files = [];
+    for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        const file = e.dataTransfer.files[i].path;
+        if (!res.test(file)) continue;
+        files.push(file);
+    }
+    editor.open(files);
+});
+
+document.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+});

@@ -14,8 +14,8 @@ import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionCommandRegistrar } from "../selection/CommandRegistrar";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
-import defaultTheme from '../startup/default-theme';
 import defaultSettings from '../startup/default-settings';
+import defaultTheme from '../startup/default-theme';
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { Backup } from "./Backup";
@@ -27,9 +27,9 @@ import { RegionManager } from "./curves/RegionManager";
 import { DatabaseLike } from "./DatabaseLike";
 import { EditorSignals } from "./EditorSignals";
 import { Empties } from "./Empties";
-import { Images } from "./Images";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
+import { Images } from "./Images";
 import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
@@ -41,6 +41,8 @@ import { SolidCopier } from "./SolidCopier";
 import { TextureLoader } from "./TextureLoader";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
+export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg'];
 
 export class Editor {
     private readonly disposable = new CompositeDisposable();
@@ -128,20 +130,23 @@ export class Editor {
         ipcRenderer.invoke('reload');
     }
 
-    async open() {
-        const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
-            properties: ['openFile', 'multiSelections'],
-            filters: [
-                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png'] },
-                { name: 'STEP files', extensions: ['stp', 'step'] },
-                { name: 'IGES files', extensions: ['igs', 'iges'] },
-                { name: 'SAT files', extensions: ['sat'] },
-                { name: 'C3D files', extensions: ['c3d'] },
-                { name: 'Image files', extensions: ['png', 'jpg'] }
-            ]
-        });
+    async open(files?: string[]) {
+        if (files === undefined) {
+            const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
+                properties: ['openFile', 'multiSelections'],
+                filters: [
+                    { name: 'All supported', extensions: supportedExtensions },
+                    { name: 'STEP files', extensions: ['stp', 'step'] },
+                    { name: 'IGES files', extensions: ['igs', 'iges'] },
+                    { name: 'SAT files', extensions: ['sat'] },
+                    { name: 'C3D files', extensions: ['c3d'] },
+                    { name: 'Image files', extensions: ['png', 'jpg'] }
+                ]
+            });
+            files = filePaths;
+        }
         const command = new ImportCommand(this);
-        command.filePaths = filePaths;
+        command.filePaths = files!;
         this.enqueue(command);
     }
 
