@@ -263,6 +263,7 @@ export default {
         "p": "command:pipe",
         "b": "command:fillet-solid",
         "e": "command:extrude",
+        "alt-e": "command:evolution",
         "t": "command:trim",
         "o": "command:offset-curve",
         "alt-x": "command:mirror",
