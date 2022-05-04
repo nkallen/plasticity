@@ -47,14 +47,6 @@ jobs:
       - name: Run tests
         run: |
           yarn ci
-      - name: Increment version
-        run: |
-          yarn plugin import version
-          yarn version patch
-          git config user.email "mr@roboto.com"
-          git config user.name "GitHub Action"
-          git commit -am "Update version"
-          git push
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,7 +60,6 @@ jobs:
           curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
           "@
   linux:
-    needs: windows
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -121,7 +112,6 @@ jobs:
           sudo snap install snapcraft --classic
           DEBUG='electron-forge-maker-snap:*,electron-forge:lifecycle' yarn publish
   mac-intel:
-    needs: windows
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -173,7 +163,6 @@ jobs:
         run: |
           yarn publish
   mac-arm:
-    needs: windows
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -221,3 +210,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           yarn publish --arch=arm64
+  increment-version:
+    needs: [windows, mac-arm, mac-intel, linux]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '17.5.0'
+          cache: 'yarn'
+      - name: Increment version
+        run: |
+          yarn plugin import version
+          yarn version patch
+          git config user.email "mr@roboto.com"
+          git config user.name "GitHub Action"
+          git commit -am "Update version"
+          git push
