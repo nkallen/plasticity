@@ -2732,10 +2732,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/three@npm:^0.140.0":
-  version: 0.140.0
-  resolution: "@types/three@npm:0.140.0"
-  checksum: 05693787002f0e879e76a09cfd474d4fd100779f00c048e380d146783adaff539846988625b0f9117451bf2790637a236c68111f7f3e160f5227373a037381ba
+"@types/three@npm:0.139.0":
+  version: 0.139.0
+  resolution: "@types/three@npm:0.139.0"
+  checksum: 811ce2dd6cfeaa8b051699b6e57f5696b30cb4d33697675c9eee500e377cdbdc872dc6932dfc094c3ae61acfb895d089043a6e5c389d563c516d99ebfef8c130
   languageName: node
   linkType: hard
 
@@ -11668,7 +11668,7 @@ __metadata:
     "@types/jest": ^26.0.22
     "@types/signals": ^1.0.1
     "@types/stats.js": ^0.17.0
-    "@types/three": ^0.140.0
+    "@types/three": 0.139.0
     "@types/webpack-env": ^1.16.2
     "@typescript-eslint/eslint-plugin": ^4.22.0
     "@typescript-eslint/parser": ^4.22.0
