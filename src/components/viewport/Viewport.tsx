@@ -96,10 +96,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         });
 
         renderer.setPixelRatio(window.devicePixelRatio);
-        const size = renderer.getSize(new THREE.Vector2());
-        const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
-        // @ts-expect-error('three.js @types are out of date')
-        const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, samples: 4, depthTexture });
+        const renderTarget = makeRenderTarget(renderer);
 
         EffectComposer: {
             this.composer = new EffectComposer(renderer, renderTarget);
@@ -720,4 +717,29 @@ export default (editor: EditorLike) => {
     }
 
     customElements.define('plasticity-viewport', ViewportElement);
+}
+
+function makeRenderTarget(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarget {
+    const size = renderer.getSize(new THREE.Vector2());
+
+    if (process.platform === 'linux') {
+        // Linux seems to require an explicity float depth texture otherwise there are zbuffer artifacts
+        const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
+        // @ts-expect-error('three.js @types are out of date')
+        return new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, samples: 4, depthTexture });
+    } else {
+        const gl = renderer.getContext();
+        const debugRendererInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        const device: string | undefined = debugRendererInfo === undefined ? undefined : renderer.getContext().getParameter(debugRendererInfo!.UNMASKED_RENDERER_WEBGL);
+
+        // Since we render in Linear/HDR we need at least HalfFloatType for the buffer to avoid banding.
+        // Unfortunately, the 
+        if (device === "Apple M1") {
+            // @ts-expect-error('three.js @types are out of date')
+            return new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.HalfFloatType, generateMipmaps: false, samples: 1 });
+        } else {
+            // @ts-expect-error('three.js @types are out of date')
+            return new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.HalfFloatType, generateMipmaps: false, samples: 4 });
+        }
+    }
 }

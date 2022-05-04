@@ -2732,10 +2732,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/three@npm:^0.139.0":
-  version: 0.139.0
-  resolution: "@types/three@npm:0.139.0"
-  checksum: 811ce2dd6cfeaa8b051699b6e57f5696b30cb4d33697675c9eee500e377cdbdc872dc6932dfc094c3ae61acfb895d089043a6e5c389d563c516d99ebfef8c130
+"@types/three@npm:^0.140.0":
+  version: 0.140.0
+  resolution: "@types/three@npm:0.140.0"
+  checksum: 05693787002f0e879e76a09cfd474d4fd100779f00c048e380d146783adaff539846988625b0f9117451bf2790637a236c68111f7f3e160f5227373a037381ba
   languageName: node
   linkType: hard
 
@@ -11668,7 +11668,7 @@ __metadata:
     "@types/jest": ^26.0.22
     "@types/signals": ^1.0.1
     "@types/stats.js": ^0.17.0
-    "@types/three": ^0.139.0
+    "@types/three": ^0.140.0
     "@types/webpack-env": ^1.16.2
     "@typescript-eslint/eslint-plugin": ^4.22.0
     "@typescript-eslint/parser": ^4.22.0
@@ -11710,7 +11710,7 @@ __metadata:
     svg-inline-loader: ^0.8.2
     tailwindcss: ^3.0.13
     terser-webpack-plugin: ^5.2.4
-    three: ^0.139.2
+    three: ^0.140.0
     ts-jest: ^27.0.0-next.10
     ts-loader: ^8.0.2
     ts-node: ^9.1.1
@@ -13929,10 +13929,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"three@npm:^0.139.2":
-  version: 0.139.2
-  resolution: "three@npm:0.139.2"
-  checksum: 9e016065b31a2a69bba730a32bd5b61354365bf0f5072121b8695aac38c9585e4e46361275967fbb58d21e001e5189128107c3ecbf24338ca951d11b524df992
+"three@npm:^0.140.0":
+  version: 0.140.0
+  resolution: "three@npm:0.140.0"
+  checksum: f7d16e643046c831741972d3caddf1f0b64ed42d454e13708e8d6cc329d700fa0544324942fc361d1bffb924a144750fce3662288208c2b7ed640e3a732a6d2a
   languageName: node
   linkType: hard
 

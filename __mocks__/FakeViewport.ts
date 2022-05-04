@@ -21,16 +21,18 @@ class FakeWebGLRenderer implements THREE.Renderer {
         return new THREE.Vector2();
     };
 
-    setAnimationLoop(fn: (x: number) => void) {
-
-    }
-
+    setAnimationLoop(fn: (x: number) => void) { }
     getRenderTarget() { return null }
     setRenderTarget() { }
     clear() { }
     clearDepth() { }
     getClearColor() { }
     getClearAlpha() { }
+    getContext() {
+        return {
+            getExtension(str: string) { }
+        }
+    }
 }
 
 export function MakeViewport(editor: EditorLike) {
