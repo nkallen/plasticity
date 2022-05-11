@@ -102,6 +102,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointercancel', this.onPointerCancel);
         domElement.addEventListener('wheel', this.onMouseWheel, { passive: false });
+        domElement.addEventListener('gesturestart', e => console.log(e));
 
         this.disposable.add(new Disposable(() => {
             domElement.removeEventListener('contextmenu', this.onContextMenu);
@@ -421,19 +422,46 @@ export class OrbitControls extends THREE.EventDispatcher {
     }
 
     onMouseWheel(event: WheelEvent) {
-        const { state, enabled, enableZoom, zoomScale } = this;
-        if (!enabled || !enableZoom || state.tag !== 'none') return;
-        if (event.ctrlKey || event.altKey || event.shiftKey) return;
+        const { state, enabled } = this;
+        if (!enabled || state.tag !== 'none') return;
 
+        if (!this.settings.isTrackpad) {
+            const { enableZoom, zoomScale } = this;
+            if (!enableZoom) return;
+            if (event.ctrlKey || event.altKey || event.shiftKey) return;
 
-        let deltaY = event.deltaY;
-        if (deltaY === 0 && event.shiftKey && event.deltaX !== 0) deltaY = event.deltaX;
+            let deltaY = event.deltaY;
+            if (deltaY === 0 && event.shiftKey && event.deltaX !== 0) deltaY = event.deltaX;
 
-        event.preventDefault();
-        this.dispatchEvent(startEvent);
-        this.dolly(Math.sign(deltaY) > 0 ? 1 / zoomScale : zoomScale);
-        this.update();
-        this.dispatchEvent(endEvent);
+            event.preventDefault();
+            this.dispatchEvent(startEvent);
+            this.dolly(Math.sign(deltaY) > 0 ? 1 / zoomScale : zoomScale);
+            this.update();
+            this.dispatchEvent(endEvent);
+        } else {
+            if (event.ctrlKey) {
+                const { enableZoom, zoomSpeed } = this;
+                if (!enableZoom) return;
+
+                const zoom = 1 - Math.abs(event.deltaY) / 100;
+                const dolly = Math.sign(event.deltaY) > 0 ? zoomSpeed / zoom : zoom / zoomSpeed;
+
+                event.preventDefault();
+                this.dispatchEvent(startEvent);
+                this.dolly(dolly);
+                this.update();
+                this.dispatchEvent(endEvent);
+            } else {
+                const { rotateDelta, rotateSpeed, enableRotate } = this;
+                if (!enableRotate) return;
+
+                rotateDelta.set(-event.deltaX, -event.deltaY).multiplyScalar(rotateSpeed / 2);
+                this.dispatchEvent(startEvent);
+                this.rotate(rotateDelta);
+                this.update();
+                this.dispatchEvent(endEvent);
+            }
+        }
     }
 
     onTouchStart(event: PointerEvent) {
@@ -624,13 +652,16 @@ export class OrbitControls extends THREE.EventDispatcher {
 
         rotateEnd.set(event.clientX, event.clientY);
         rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(rotateSpeed);
-        const element = domElement;
-        const left = 2 * Math.PI * rotateDelta.x / element.clientHeight; // yes, height
-        const up = 2 * Math.PI * rotateDelta.y / element.clientHeight;
+        this.rotate(rotateDelta);
+    }
+
+    private rotate(rotateDelta: THREE.Vector2) {
+        const { rotateStart, rotateEnd, domElement, sphericalDelta } = this;
+        const left = 2 * Math.PI * rotateDelta.x / domElement.clientHeight; // yes, height
+        const up = 2 * Math.PI * rotateDelta.y / domElement.clientHeight;
         sphericalDelta.theta -= left;
         sphericalDelta.phi -= up;
         rotateStart.copy(rotateEnd);
-        this.update();
     }
 
     private readonly dollyStart = new THREE.Vector2();
@@ -644,10 +675,8 @@ export class OrbitControls extends THREE.EventDispatcher {
         dollyDelta.subVectors(dollyEnd, dollyStart);
         const sign = up.dot(dollyDelta);
         const scale = this.zoomScale;
-
-        this.dolly(sign > 0 ? 1 / scale : scale);
-
         dollyStart.copy(dollyEnd);
+        this.dolly(sign > 0 ? 1 / scale : scale);
         this.update();
     }
 

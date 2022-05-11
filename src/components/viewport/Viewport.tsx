@@ -121,7 +121,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             outlinePassHover.hiddenEdgeColor.copy(this.hoverOutlineColor);
             this.outlinePassHover = outlinePassHover;
 
-            const navigatorGizmo = new ViewportNavigatorGizmo(this, this.editor.settings.Viewport.navigatorSize);
+            const navigatorGizmo = new ViewportNavigatorGizmo(this, this.editor.settings.Viewport.navigator.size, this.editor.settings.Viewport.navigator.padding);
             const navigatorPass = new ViewportNavigatorPass(navigatorGizmo, this.camera);
             const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 

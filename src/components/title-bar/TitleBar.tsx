@@ -15,10 +15,6 @@ export default (editor: Editor) => {
 
         render() {
             const tools = <div class={`flex flex-row items-center justify-start space-x-1 ${isMac ? 'ml-[128px]' : ''}`}>
-                <button class="p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} onClick={this.execute} data-command="file:new">
-                    <plasticity-icon name="new"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom" command="file:new">New document</plasticity-tooltip>
-                </button>
                 <button class="p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} onClick={this.execute} data-command="file:save-as">
                     <plasticity-icon name="export"></plasticity-icon>
                     <plasticity-tooltip placement="bottom" command="file:save-as">Export document (OBJ, STEP, ...)</plasticity-tooltip>
@@ -42,7 +38,7 @@ export default (editor: Editor) => {
             </div>;
 
             render(
-                <div class="z-50 drag w-full absolute h-[38px] top-0 flex justify-between p-1 hover:border-b hover:backdrop-blur-sm border-[#0B0B0B]">
+                <div class="z-30 drag w-full absolute h-10 top-0 flex justify-between p-1 border-[#0B0B0B]">
                     {tools}
                     {!isMac && windowButtons}
                 </div>, this);

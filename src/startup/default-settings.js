@@ -1,11 +1,15 @@
 module.exports = {
     Viewport: {
-        navigatorSize: 100,
+        navigator: {
+            size: 100,
+            padding: 10,
+        },
     },
 
     OrbitControls: {
         zoomSpeed: 1,
         rotateSpeed: 1,
         panSpeed: 1,
+        isTrackpad: false,
     }
 }

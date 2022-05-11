@@ -1,6 +1,6 @@
 {
     Viewport: {
-        // navigatorSize: 100,
+        // navigator: { size: 100 },
     },
 
     OrbitControls: {

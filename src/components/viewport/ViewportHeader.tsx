@@ -195,7 +195,7 @@ export default (editor: Editor) => {
                     </div>
                     {constructionPlane !== PlaneDatabase.XY &&
                         <div class="absolute top-2 left-1/2 z-50">
-                            <div class={`flex justify-between items-center py-0.5 px-2 space-x-1 rounded-full shadow-lg bg-neutral-800 hover:bg-neutral-700 ${constructionPlane.isTemp ? 'cursor-pointer' : ''}`} onClick={() => editor.planes.add(constructionPlane as ConstructionPlaneSnap)}>
+                            <div class={`flex justify-between items-center py-0.5 px-2 space-x-1 rounded-full shadow-lg bg-neutral-800 hover:bg-accent-700 ${constructionPlane.isTemp ? 'cursor-pointer' : ''}`} onClick={() => editor.planes.add(constructionPlane as ConstructionPlaneSnap)}>
                                 <div class="p-1 text-xs text-neutral-300 group-hover:text-neutral-100">{constructionPlane.isTemp ? "Temporary" : constructionPlane.name}</div>
                                 {constructionPlane.isTemp &&
                                     <button class="p-1 rounded group text-neutral-300">

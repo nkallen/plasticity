@@ -14,8 +14,7 @@ export default (editor: Editor) => {
             const ref = createRef();
             render(
                 <div class="p-4">
-                    <h1 class="mb-4 text-xs font-bold text-neutral-100">Performance stats</h1>
-                    <div ref={ref} class="flex space-x-1"></div>
+                    <div ref={ref} class="flex flex-col m-1"></div>
                 </div>, this);
 
             FrameRate: {

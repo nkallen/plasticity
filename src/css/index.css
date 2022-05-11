@@ -14,11 +14,11 @@
     }
 
     plasticity-pane-axis.vertical {
-        @apply flex flex-col w-full h-full;
+        @apply flex flex-col h-full;
     }
 
     plasticity-pane {
-        @apply relative overflow-y-auto border rounded shadow-xl bg-neutral-800 border-neutral-700 min-h-20;
+        @apply relative overflow-y-auto rounded bg-transparent min-h-20;
     }
 
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {

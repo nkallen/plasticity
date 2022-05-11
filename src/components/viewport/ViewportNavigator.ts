@@ -13,13 +13,13 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- frustrum, frustrum, frustrum, - frustrum, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
 
-    constructor(private readonly viewport: Viewport, readonly dim: number) {
+    constructor(private readonly viewport: Viewport, readonly dim: number, readonly padding: number) {
         super();
 
         this.camera.position.set(0, 0, 2);
 
         const panel = document.createElement('div');
-        panel.setAttribute('style', `position: absolute; right: 0px; top: 0px; height: ${dim}px; width: ${dim}px`);
+        panel.setAttribute('style', `position: absolute; right: ${padding}; top: ${padding}; height: ${dim}px; width: ${dim}px; z-index: 40`);
         panel.addEventListener('pointerup', e => this.onMouseUp(e));
         panel.addEventListener('pointerdown', e => e.stopPropagation());
         viewport.domElement.appendChild(panel);
@@ -117,13 +117,15 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
     private onMouseUp(event: PointerEvent) {
         event.stopPropagation();
 
-        const { mouse, dim, raycaster, camera, interactiveObjects, viewport } = this;
+        const { mouse, dim, padding, raycaster, camera, interactiveObjects, viewport } = this;
         const rect = viewport.domElement.getBoundingClientRect();
-        const offsetX = rect.left + (viewport.domElement.offsetWidth - dim);
-        const offsetY = rect.top;
+        const offsetX = rect.left + (viewport.domElement.offsetWidth - dim - padding);
+        const offsetY = rect.top + padding;
+        console.log(offsetX, offsetY);
 
         mouse.x = ((event.clientX - offsetX) / dim) * 2 - 1;
         mouse.y = - ((event.clientY - offsetY) / dim) * 2 + 1;
+        console.log(event.clientX - offsetX)
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactiveObjects);
@@ -253,7 +255,7 @@ export class ViewportNavigatorPass extends Pass {
         maskActive: boolean,
     ) {
         const { scene, viewportCamera, viewportHelper, oldViewport } = this;
-        const { dim, camera } = viewportHelper;
+        const { dim, padding, camera } = viewportHelper;
 
         let { width, height } = this;
         width /= renderer.getPixelRatio();
@@ -267,7 +269,7 @@ export class ViewportNavigatorPass extends Pass {
         renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
         renderer.clearDepth();
         renderer.autoClear = false;
-        renderer.setViewport(width - dim, height - dim, dim, dim);
+        renderer.setViewport(width - dim - padding, height - dim - padding, dim, dim);
 
         try {
             renderer.render(scene, camera);

@@ -23,7 +23,6 @@ export default (editor: Editor) => {
         render = (temp?: ConstructionPlane) => {
             render(
                 <div class="p-4">
-                    <h1 class="mb-4 text-xs font-bold text-neutral-100">Construction Planes</h1>
                     <ul class="space-y-1">
                         {[...editor.planes.all].map(plane =>
                             <li

@@ -14,10 +14,10 @@
 
 <body class="flex flex-col h-screen bg-neutral-900">
     <plasticity-titlebar></plasticity-titlebar>
-    <div class="absolute top-0 h-full w-full py-[42px] px-2">
+    <div class="absolute top-0 h-full w-full py-2 px-2">
         <plasticity-pane-axis class="horizontal">
 
-            <plasticity-pane>
+            <plasticity-pane class="py-[42px]">
                 <plasticity-outliner></plasticity-outliner>
             </plasticity-pane>
 
@@ -36,13 +36,7 @@
 
             <plasticity-pane-resize-handle></plasticity-pane-resize-handle>
 
-            <plasticity-pane-axis class="vertical">
-
-                <plasticity-pane>
-                    <plasticity-undo-history></plasticity-undo-history>
-                </plasticity-pane>
-
-                <plasticity-pane-resize-handle></plasticity-pane-resize-handle> 
+            <plasticity-pane-axis class="vertical py-[42px] w-5 max-w-5" style="flex-grow: 0.5;">
 
                 <plasticity-pane>
                     <plasticity-snaps></plasticity-snaps>
@@ -57,25 +51,13 @@
                 <plasticity-pane-resize-handle></plasticity-pane-resize-handle> 
 
                 <plasticity-pane>
-                    <plasticity-clipboard></plasticity-clipboard>
-                </plasticity-pane>
-
-                <plasticity-pane-resize-handle></plasticity-pane-resize-handle> 
-
-                <plasticity-pane>
                     <plasticity-stats></plasticity-stats>
                 </plasticity-pane>
 
-                <!-- <plasticity-pane-resize-handle></plasticity-pane-resize-handle>  -->
-
-                <!-- <plasticity-pane>
-                    <plasticity-viewport view="3d"></plasticity-viewport>
-                </plasticity-pane> -->
             </plasticity-pane-axis>
 
         </plasticity-pane-axis>
     </div>
-    <plasticity-creators></plasticity-creators>
 </body>
 
 </html>
