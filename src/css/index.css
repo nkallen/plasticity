@@ -18,7 +18,7 @@
     }
 
     plasticity-pane {
-        @apply relative overflow-y-auto rounded bg-transparent min-h-20;
+        @apply relative overflow-y-auto rounded-lg bg-transparent min-h-20;
     }
 
     plasticity-pane-axis.horizontal plasticity-pane-resize-handle {

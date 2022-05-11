@@ -653,6 +653,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         rotateEnd.set(event.clientX, event.clientY);
         rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(rotateSpeed);
         this.rotate(rotateDelta);
+        this.update();
     }
 
     private rotate(rotateDelta: THREE.Vector2) {

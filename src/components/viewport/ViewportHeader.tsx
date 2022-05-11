@@ -103,7 +103,7 @@ export default (editor: Editor) => {
                                     <plasticity-icon key={viewport.camera.isOrthographicCamera ? 'orthographic-view' : 'perspective-view'} name={viewport.camera.isOrthographicCamera ? 'orthographic-view' : 'perspective-view'}></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-orthographic">Perspective/Orthographic</plasticity-tooltip>
                                     <plasticity-menu placement="bottom">
-                                        <div class="w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
+                                        <div class="w-60 border-[0.5px] rounded-lg text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
                                             <ul>
                                                 <li>
                                                     <label for="fov">FOV</label>
@@ -154,7 +154,7 @@ export default (editor: Editor) => {
                                     <plasticity-icon name='render-mode'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-render-mode">Toggle render mode</plasticity-tooltip>
                                     <plasticity-menu placement="bottom">
-                                        <div class="min-w-60 border-[0.5px] rounded text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
+                                        <div class="min-w-60 border-[0.5px] rounded-lg text-neutral-50 bg-neutral-900 border-neutral-800 shadow-black/20 shadow-md">
                                             <ul>
                                                 {!viewport.isRenderMode &&
                                                     <>
