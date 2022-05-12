@@ -368,6 +368,7 @@ export default {
 
     "body": {
         "alt": "noop",
+        "escape": "menu:cancel",
     },
 
     "body[command] plasticity-viewport": {

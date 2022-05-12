@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 
@@ -14,31 +15,65 @@ export default (editor: Editor) => {
         disconnectedCallback() { }
 
         render() {
-            const tools = <div class={`flex flex-row items-center justify-start space-x-1 ${isMac ? 'ml-[128px]' : ''}`}>
-                <button class="p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} onClick={this.execute} data-command="file:save-as">
-                    <plasticity-icon name="export"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom" command="file:save-as">Export document (OBJ, STEP, ...)</plasticity-tooltip>
+            const tools = <div class={`flex items-center justify-start space-x-1 mt-7 z-40 ${isMac ? 'ml-[96px]' : ''}`}>
+                <button class="no-drag p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50 ring-1 ring-neutral-600 ring-opacity-5">
+                    <plasticity-icon name="file-menu"> </plasticity-icon>
+                    <plasticity-menu placement="bottom" trigger="onclick">
+                        <div class="w-72 p-2 rounded-lg text-neutral-50 shadow-black/20 shadow-lg ring-1 ring-neutral-600 ring-opacity-5 overflow-clip backdrop-blur-xl bg-black/30">
+                            <ol>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="file:new">
+                                    <plasticity-tooltip placement="right" command="file:new"></plasticity-tooltip>
+                                    <div class="flex">
+                                        <div class="py-4 pr-4"><plasticity-icon name="new"></plasticity-icon></div>
+                                        <div class="py-2">
+                                            <a class="text-neutral-200 font-semibold text-sm block">New Document</a>
+                                            <div class="text-xs text-neutral-300">Start modeling in a empty file</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="file:open">
+                                    <plasticity-tooltip placement="right" command="file:open"></plasticity-tooltip>
+                                    <div class="flex">
+                                        <div class="py-4 pr-4"><plasticity-icon name="import"></plasticity-icon></div>
+                                        <div class="py-2">
+                                            <a class="text-neutral-200 font-semibold text-sm block">Import Document</a>
+                                            <div class="text-xs text-neutral-300">Append PNG, STEP, etc.</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="file:save-as">
+                                    <plasticity-tooltip placement="right" command="file:save-as"></plasticity-tooltip>
+                                    <div class="flex">
+                                        <div class="py-4 pr-4"><plasticity-icon name="export"></plasticity-icon></div>
+                                        <div class="py-2">
+                                            <a class="text-neutral-200 font-semibold text-sm block">Export Document</a>
+                                            <div class="text-xs text-neutral-300">Export OBJ, STEP, etc.</div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </plasticity-menu>
                 </button>
-                <button class="p-1 rounded group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} onClick={this.execute} data-command="file:open">
-                    <plasticity-icon name="import"></plasticity-icon>
-                    <plasticity-tooltip placement="bottom" command="file:open">Import document</plasticity-tooltip>
+                <button class="no-drag p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} data-command="preferences:settings">
+                    <plasticity-icon name="settings-menu"></plasticity-icon>
                 </button>
             </div>;
 
-            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1">
-                <button class="p-2 rounded group hover:bg-neutral-700" tabIndex={-1}>
-                    <i data-feather="minimize" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
+            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1 mr-4 mt-7">
+                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-minimize')}>
+                    <plasticity-icon name="minimize"></plasticity-icon>
                 </button>
-                <button class="p-2 rounded group hover:bg-neutral-700" tabIndex={-1}>
-                    <i data-feather="maximize" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
+                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
+                    <plasticity-icon name="maximize"></plasticity-icon>
                 </button>
-                <button class="p-2 rounded group hover:bg-neutral-700" tabIndex={-1}>
-                    <i data-feather="x" class="w-4 h-4 stroke-neutral-300 group-hover:stroke-neutral-50"></i>
+                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-close')}>
+                    <plasticity-icon name="close"></plasticity-icon>
                 </button>
             </div>;
 
             render(
-                <div class="z-30 drag w-full absolute h-10 top-0 flex justify-between p-1 border-[#0B0B0B]">
+                <div class="z-30 w-full absolute h-10 top-0 flex justify-between p-1 drag" onDblClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
                     {tools}
                     {!isMac && windowButtons}
                 </div>, this);
@@ -55,6 +90,7 @@ export default (editor: Editor) => {
             }
 
             element.dispatchEvent(new CustomEvent(command, { bubbles: true }));
+            element.dispatchEvent(new CustomEvent('closeMenu', { bubbles: true }));
         }
     }
     customElements.define('plasticity-titlebar', TitleBar);

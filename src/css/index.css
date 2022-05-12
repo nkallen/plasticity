@@ -173,12 +173,16 @@
     }
 
     .plasticity-menu {
-        @apply absolute z-50 p-10 -mt-4 opacity-95;
+        @apply absolute z-50 p-10 -mt-4 bg-transparent;
     }
 }
 
 .drag {
     -webkit-app-region: drag;
+}
+
+.no-drag {
+    -webkit-app-region: no-drag;
 }
 
 * {

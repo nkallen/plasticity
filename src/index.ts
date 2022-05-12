@@ -28,20 +28,19 @@ const createWindow = () => {
     });
 
     const mainWindow = new BrowserWindow({
+        vibrancy: 'under-window',
         x: mainWindowState.x,
         y: mainWindowState.y,
         width: mainWindowState.width,
         height: mainWindowState.height,
         show: false,
-        backgroundColor: '#2e2c29',
+        backgroundColor: '#2e2c2920',
         titleBarStyle: 'hiddenInset',
-        // frame: false,
-        trafficLightPosition: { x: 12, y: 12 },
+        frame: false,
+        trafficLightPosition: { x: 22, y: 22 },
         webPreferences: {
-            // preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
             nodeIntegration: true,
             contextIsolation: false,
-            nodeIntegrationInWorker: true,
         }
     });
     // mainWindow.removeMenu();
@@ -64,17 +63,39 @@ const createWindow = () => {
 };
 
 ipcMain.handle('reload', async (event, args) => {
-    BrowserWindow.getFocusedWindow()?.webContents.forcefullyCrashRenderer()
-    BrowserWindow.getFocusedWindow()?.webContents.reload();
-})
+    const window = BrowserWindow.fromWebContents(event.sender)!;
+    window.webContents.forcefullyCrashRenderer()
+    window.webContents.reload();
+});
 
 ipcMain.handle('show-open-dialog', async (event, args) => {
     return dialog.showOpenDialog(args);
-})
+});
 
 ipcMain.handle('show-save-dialog', async (event, args) => {
     return dialog.showSaveDialog(args);
-})
+});
+
+ipcMain.on('window-event', (event, eventName: String) => {
+    const window = BrowserWindow.fromWebContents(event.sender)!;
+
+    switch (eventName) {
+        case 'window-minimize':
+            window.minimize()
+            break
+        case 'window-maximize':
+            window.isMaximized() ? window.unmaximize() : window.maximize()
+            break
+        case 'window-close':
+            window.close();
+            break
+        case 'window-is-maximized':
+            event.returnValue = window.isMaximized()
+            break
+        default:
+            break
+    }
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

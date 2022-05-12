@@ -2,6 +2,7 @@ import { CompositeDisposable } from "event-kit";
 import { listen } from '../atom/delegated-listener';
 
 export type MenuPlacement = 'top' | 'bottom' | 'left' | 'right' | 'auto';
+export type MenuTrigger = 'onclick' | 'oncontextmenu';
 
 interface MenuOptions {
     content: Node;
@@ -102,7 +103,7 @@ export class Menu {
             offset.top = offset.top + height - actualHeight;
         }
 
-        const delta = { left: 0, top: 0 };
+        const delta = this.getViewportAdjustedDelta(placement, offset, actualWidth, actualHeight);
 
         if (delta.left) offset.left += delta.left;
         else offset.top += delta.top;
@@ -111,8 +112,57 @@ export class Menu {
         div.style.left = offset.left + 'px';
     };
 
+    private getViewportAdjustedDelta(placement: string, pos: MenuOffset, actualWidth: number, actualHeight: number) {
+        var delta = { top: 0, left: 0 };
+
+        let viewportPadding = 10;
+        let viewportDimensions = document.body.getBoundingClientRect();
+
+        if (/right|left/.test(placement)) {
+            var topEdgeOffset = pos.top - viewportPadding;
+            var bottomEdgeOffset =
+                pos.top + viewportPadding + actualHeight;
+            if (topEdgeOffset < viewportDimensions.top) {
+                // top overflow
+                delta.top = viewportDimensions.top - topEdgeOffset;
+            } else if (
+                bottomEdgeOffset >
+                viewportDimensions.top + viewportDimensions.height
+            ) {
+                // bottom overflow
+                delta.top =
+                    viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset;
+            }
+        } else {
+            var leftEdgeOffset = pos.left - viewportPadding;
+            var rightEdgeOffset = pos.left + viewportPadding + actualWidth;
+            if (leftEdgeOffset < viewportDimensions.left) {
+                // left overflow
+                delta.left = viewportDimensions.left - leftEdgeOffset;
+            } else if (rightEdgeOffset > viewportDimensions.right) {
+                // right overflow
+                delta.left =
+                    viewportDimensions.left + viewportDimensions.width - rightEdgeOffset;
+            }
+        }
+
+        return delta;
+    }
+
     private leave = () => {
         this.div.remove();
+    }
+
+    private keypress = (e: KeyboardEvent) => {
+        console.log(e);
+        if (e.code === 'Esc') {
+            this.leave();
+            e.preventDefault();
+        }
+    }
+
+    hide = () => {
+        this.leave();
     }
 }
 

@@ -10,6 +10,21 @@ export default (editor: Editor) => {
         connectedCallback() { this.render() }
         render() {
             switch (this.name) {
+                case 'minimize':
+                    return render(
+                        <svg class="w-3 h-3 stroke-2" stroke-width="1.5" viewBox='0 0 11 11'>
+                            <path d='M11,4.9v1.1H0V4.399h11z' />
+                        </svg>, this);
+                case 'maximize':
+                    return render(
+                        <svg class="w-3 h-3 stroke-2" stroke-width="1.5" viewBox='0 0 11 11'>
+                            <path d='M0,1.7v7.6C0,10.2,0.8,11,1.7,11h7.6c0.9,0,1.7-0.8,1.7-1.7V1.7C11,0.8,10.2,0,9.3,0H1.7C0.8,0,0,0.8,0,1.7z M8.8,9.9H2.2c-0.6,0-1.1-0.5-1.1-1.1V2.2c0-0.6,0.5-1.1,1.1-1.1h6.7c0.6,0,1.1,0.5,1.1,1.1v6.7C9.9,9.4,9.4,9.9,8.8,9.9z' />
+                        </svg>, this);
+                case 'close':
+                    return render(
+                        <svg class="w-3 h-3 stroke-2" stroke-width="1.5" viewBox='0 0 11 11'>
+                            <path d='M6.279 5.5L11 10.221l-.779.779L5.5 6.279.779 11 0 10.221 4.721 5.5 0 .779.779 0 5.5 4.721 10.221 0 11 .779 6.279 5.5z' />
+                        </svg>, this);
                 case 'new':
                     return render(
                         <svg width="24" height="24" class="w-5 h-5 stroke-2" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,10 +34,10 @@ export default (editor: Editor) => {
                         </svg>, this);
                 case 'save':
                     return render(
-                        <svg width="24" height="24" class="w-icon h-icon stroke-2" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19Z" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M8.6 9H15.4C15.7314 9 16 8.73137 16 8.4V3.6C16 3.26863 15.7314 3 15.4 3H8.6C8.26863 3 8 3.26863 8 3.6V8.4C8 8.73137 8.26863 9 8.6 9Z" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M6 13.6V21H18V13.6C18 13.2686 17.7314 13 17.4 13H6.6C6.26863 13 6 13.2686 6 13.6Z" stroke="currentColor" stroke-width="1.5" />
+                        <svg width="24" height="24" class="w-5 h-5 stroke-2" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4Z" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M6 18L18 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 14V6M12 6L15.5 9.5M12 6L8.5 9.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'export':
                     return render(
@@ -30,6 +45,23 @@ export default (editor: Editor) => {
                             <path d="M3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19Z" stroke="currentColor" stroke-width="1.5" />
                             <path d="M8.6 9H15.4C15.7314 9 16 8.73137 16 8.4V3.6C16 3.26863 15.7314 3 15.4 3H8.6C8.26863 3 8 3.26863 8 3.6V8.4C8 8.73137 8.26863 9 8.6 9Z" stroke="currentColor" stroke-width="1.5" />
                             <path d="M6 13.6V21H18V13.6C18 13.2686 17.7314 13 17.4 13H6.6C6.26863 13 6 13.2686 6 13.6Z" stroke="currentColor" stroke-width="1.5" />
+                        </svg>, this);
+                case 'file-menu':
+                    return render(
+                        <svg width="24" height="24" class="w-12 h-5 stroke-2" stroke-width="1.5" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 11V4.6C2 4.26863 2.26863 4 2.6 4H8.77805C8.92127 4 9.05977 4.05124 9.16852 4.14445L12.3315 6.85555C12.4402 6.94876 12.5787 7 12.722 7H21.4C21.7314 7 22 7.26863 22 7.6V11M2 11V19.4C2 19.7314 2.26863 20 2.6 20H21.4C21.7314 20 22 19.7314 22 19.4V11M2 11H22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <g transform="translate(24, 0)">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            </g>
+                        </svg>, this);
+                case 'settings-menu':
+                    return render(
+                        <svg width="24" height="24" class="w-5 h-5 stroke-2" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            {/* <g transform="translate(24, 0)">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            </g> */}
                         </svg>, this);
                 case 'import':
                     return render(

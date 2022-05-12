@@ -74,7 +74,6 @@ export default (editor: Editor) => {
             const { scene, scene: { root }, selection: { selected } } = editor;
             const flattened = flatten(root, scene, scene.visibility, this.expandedGroups);
 
-
             const firstSelected = new Set<number>(), lastSelected = new Set<number>();
             FindContiguousBlocksOfSelectedItems: {
                 let prevSelected = false;
