@@ -91,8 +91,8 @@ export default class KeyboardEventManager {
 
     onWheelEvent(event: WheelEvent) {
         const e = (event.deltaY > 0) ?
-            this.wheel2keyboard('wheel+up', event) :
-            this.wheel2keyboard('wheel+down', event);
+            wheelEvent2keyboardEvent('wheel+up', event) :
+            wheelEvent2keyboardEvent('wheel+down', event);
         this.handleKeyboardEvent(e);
     }
 
@@ -107,27 +107,6 @@ export default class KeyboardEventManager {
 
     private handleKeyboardEvent(event: KeyboardEvent) {
         this.keymaps.handleKeyboardEvent(event);
-    }
-
-    private wheel2keyboard(name: string, event: WheelEvent): KeyboardEvent {
-        const e = KeymapManager.buildKeydownEvent(name, modifiers(event)) as unknown as KeyboardEvent;
-        // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
-        // to allow the original event to be stopped if something takes precedence.
-        const stopPropagation = e.stopPropagation.bind(e);
-        Object.defineProperty(e, 'stopPropagation', {
-            value() {
-                event.stopPropagation();
-                stopPropagation();
-            }
-        });
-        const preventDefault = e.preventDefault.bind(e);
-        Object.defineProperty(e, 'preventDefault', {
-            value() {
-                event.preventDefault();
-                preventDefault();
-            }
-        });
-        return e;
     }
 
     dispose() {
@@ -147,6 +126,27 @@ export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
         else if (event.buttons === 16) name += '5';
     }
     return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
+}
+
+export function wheelEvent2keyboardEvent(name: string, event: WheelEvent): KeyboardEvent {
+    const e = KeymapManager.buildKeydownEvent(name, modifiers(event)) as unknown as KeyboardEvent;
+    // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
+    // to allow the original event to be stopped if something takes precedence.
+    const stopPropagation = e.stopPropagation.bind(e);
+    Object.defineProperty(e, 'stopPropagation', {
+        value() {
+            event.stopPropagation();
+            stopPropagation();
+        }
+    });
+    const preventDefault = e.preventDefault.bind(e);
+    Object.defineProperty(e, 'preventDefault', {
+        value() {
+            event.preventDefault();
+            preventDefault();
+        }
+    });
+    return e;
 }
 
 function modifiers(event: MouseEvent) {

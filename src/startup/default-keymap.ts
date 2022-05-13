@@ -17,19 +17,19 @@ export default {
     },
 
     "[command='polygon'] plasticity-viewport": {
-        "ctrl-wheel+up": "gizmo:polygon:add-vertex",
-        "ctrl-wheel+down": "gizmo:polygon:subtract-vertex",
+        "shift-wheel+up": "gizmo:polygon:add-vertex",
+        "shift-wheel+down": "gizmo:polygon:subtract-vertex",
         "v": "gizmo:polygon:mode",
     },
 
     "[command='radial-array'] plasticity-viewport, [command='rectangular-array'] plasticity-viewport": {
-        "ctrl-wheel+up": "gizmo:array:add",
-        "ctrl-wheel+down": "gizmo:array:subtract",
+        "shift-wheel+up": "gizmo:array:add",
+        "shift-wheel+down": "gizmo:array:subtract",
     },
 
     "[command='rebuild'] plasticity-viewport": {
-        "ctrl-wheel+up": "gizmo:rebuild:forward",
-        "ctrl-wheel+down": "gizmo:rebuild:backward",
+        "shift-wheel+up": "gizmo:rebuild:forward",
+        "shift-wheel+down": "gizmo:rebuild:backward",
     },
 
     "[command='spiral'] plasticity-viewport": {
@@ -232,8 +232,8 @@ export default {
         "shift-space": "viewport:grid:selection",
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
-        "ctrl-wheel+up": "viewport:grid:incr",
-        "ctrl-wheel+down": "viewport:grid:decr",
+        "shift-wheel+up": "viewport:grid:incr",
+        "shift-wheel+down": "viewport:grid:decr",
     },
 
     "body:not([gizmo])": {

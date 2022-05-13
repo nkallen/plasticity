@@ -10,6 +10,5 @@ module.exports = {
         zoomSpeed: 1,
         rotateSpeed: 1,
         panSpeed: 1,
-        isTrackpad: false,
     }
 }

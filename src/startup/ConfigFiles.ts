@@ -10,7 +10,7 @@ import defaultTheme from './default-theme';
 
 export type Theme = typeof import('./default-theme');
 export type Settings = typeof import('./default-settings');
-export type Mode = 'default' | 'blender' | 'maya' | 'moi' | '3dsmax';
+export type Mode = 'default' | 'blender' | 'maya' | 'moi' | '3dsmax' | 'touchpad';
 
 export class ConfigFiles {
     static readonly homePath = path.join(os.homedir(), '.plasticity');
@@ -118,6 +118,12 @@ export class ConfigFiles {
                             "mouse1": "orbit:pan",
                             "alt-mouse1": "orbit:rotate",
                             "ctrl-alt-mouse1": "orbit:dolly",
+                        }
+                        break;
+                    case 'touchpad':
+                        parsed['orbit-controls'] = {
+                            "pinch": "orbit:dolly",
+                            "gesture": "orbit:pan",
                         }
                         break;
                     default: assertUnreachable(mode);

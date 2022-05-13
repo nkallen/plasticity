@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Settings } from "../../startup/ConfigFiles";
-import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
+import { pointerEvent2keyboardEvent, wheelEvent2keyboardEvent } from "./KeyboardEventManager";
 import { ProxyCamera } from "./ProxyCamera";
 
 const twoPI = 2 * Math.PI;
@@ -102,7 +102,6 @@ export class OrbitControls extends THREE.EventDispatcher {
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointercancel', this.onPointerCancel);
         domElement.addEventListener('wheel', this.onMouseWheel, { passive: false });
-        domElement.addEventListener('gesturestart', e => console.log(e));
 
         this.disposable.add(new Disposable(() => {
             domElement.removeEventListener('contextmenu', this.onContextMenu);
@@ -425,7 +424,9 @@ export class OrbitControls extends THREE.EventDispatcher {
         const { state, enabled } = this;
         if (!enabled || state.tag !== 'none') return;
 
-        if (!this.settings.isTrackpad) {
+        if (this.mouseButtons["pinch"] === "orbit:dolly") {
+            this.onGesture(event);
+        } else {
             const { enableZoom, zoomScale } = this;
             if (!enableZoom) return;
             if (event.ctrlKey || event.altKey || event.shiftKey) return;
@@ -438,29 +439,31 @@ export class OrbitControls extends THREE.EventDispatcher {
             this.dolly(Math.sign(deltaY) > 0 ? 1 / zoomScale : zoomScale);
             this.update();
             this.dispatchEvent(endEvent);
+        }
+    }
+
+    private onGesture(event: WheelEvent) {
+        if (event.ctrlKey) {
+            const { enableZoom, zoomSpeed } = this;
+            if (!enableZoom) return;
+
+            const zoom = 1 - Math.abs(event.deltaY) / 100;
+            const dolly = Math.sign(event.deltaY) > 0 ? zoomSpeed / zoom : zoom / zoomSpeed;
+
+            event.preventDefault();
+            this.dispatchEvent(startEvent);
+            this.dolly(dolly);
+            this.update();
+            this.dispatchEvent(endEvent);
         } else {
-            if (event.ctrlKey) {
-                const { enableZoom, zoomSpeed } = this;
-                if (!enableZoom) return;
+            const { rotateDelta, rotateSpeed, enableRotate } = this;
+            if (!enableRotate) return;
 
-                const zoom = 1 - Math.abs(event.deltaY) / 100;
-                const dolly = Math.sign(event.deltaY) > 0 ? zoomSpeed / zoom : zoom / zoomSpeed;
-
-                event.preventDefault();
-                this.dispatchEvent(startEvent);
-                this.dolly(dolly);
-                this.update();
-                this.dispatchEvent(endEvent);
-            } else {
-                const { rotateDelta, rotateSpeed, enableRotate } = this;
-                if (!enableRotate) return;
-
-                rotateDelta.set(-event.deltaX, -event.deltaY).multiplyScalar(rotateSpeed / 2);
-                this.dispatchEvent(startEvent);
-                this.rotate(rotateDelta);
-                this.update();
-                this.dispatchEvent(endEvent);
-            }
+            rotateDelta.set(-event.deltaX, -event.deltaY).multiplyScalar(rotateSpeed / 2);
+            this.dispatchEvent(startEvent);
+            this.rotate(rotateDelta);
+            this.update();
+            this.dispatchEvent(endEvent);
         }
     }
 

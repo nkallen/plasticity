@@ -105,6 +105,7 @@ export function buildMenu(mainWindow: BrowserWindow) {
             { label: 'Maya', click: updateOrbitControls('maya') },
             { label: 'Moi3D', click: updateOrbitControls('moi') },
             { label: '3ds Max', click: updateOrbitControls('3dsmax') },
+            { label: 'Touchpad', click: updateOrbitControls('touchpad') },
         ]
     });
     template.push({
