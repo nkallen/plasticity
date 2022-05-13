@@ -33,6 +33,8 @@ const createWindow = () => {
         y: mainWindowState.y,
         width: mainWindowState.width,
         height: mainWindowState.height,
+        minWidth: 1024,
+        minHeight: 768,
         show: false,
         backgroundColor: '#2e2c2920',
         titleBarStyle: 'hiddenInset',
