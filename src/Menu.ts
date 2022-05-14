@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
 import { TempDir } from './editor/TempDir';
 import { isMac } from './index';
-import { ConfigFiles, Mode } from './startup/ConfigFiles';
+import { ConfigFiles, OrbitMode } from './startup/ConfigFiles';
 
 export function buildMenu(mainWindow: BrowserWindow) {
     const template: MenuItemConstructorOptions[] = [];
@@ -103,7 +103,7 @@ export function buildMenu(mainWindow: BrowserWindow) {
             { label: 'Default', click: updateOrbitControls('default') },
             { label: 'Blender', click: updateOrbitControls('blender') },
             { label: 'Maya', click: updateOrbitControls('maya') },
-            { label: 'Moi3D', click: updateOrbitControls('moi') },
+            { label: 'Moi3D', click: updateOrbitControls('moi3d') },
             { label: '3ds Max', click: updateOrbitControls('3dsmax') },
             { label: 'Touchpad', click: updateOrbitControls('touchpad') },
         ]
@@ -125,7 +125,7 @@ export function buildMenu(mainWindow: BrowserWindow) {
     Menu.setApplicationMenu(menu);
 }
 
-function updateOrbitControls(mode: Mode): ((menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow | undefined, event: Electron.KeyboardEvent) => void) | undefined {
+export function updateOrbitControls(mode: OrbitMode): ((menuItem: Electron.MenuItem, browserWindow: Electron.BrowserWindow | undefined, event: Electron.KeyboardEvent) => void) | undefined {
     return e => {
         ConfigFiles.updateOrbitControls(mode);
         BrowserWindow.getFocusedWindow()?.webContents.reload();

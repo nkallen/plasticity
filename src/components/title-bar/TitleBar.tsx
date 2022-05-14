@@ -57,6 +57,31 @@ export default (editor: Editor) => {
                 </button>
                 <button class="no-drag p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50" tabIndex={-1} data-command="preferences:settings">
                     <plasticity-icon name="settings-menu"></plasticity-icon>
+                    <plasticity-menu placement="bottom" trigger="onclick">
+                        <div class="w-72 p-2 rounded-lg text-neutral-50 shadow-black/20 shadow-lg ring-1 ring-neutral-600 ring-opacity-5 overflow-clip backdrop-blur-xl bg-black/30">
+                            <div class="text-center p-2 text-neutral-200 font-semibold text-sm block">Orbit Settings</div>
+                            <ol>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-default">
+                                    Default
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-blender">
+                                    Blender
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-maya">
+                                    Maya
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-moi3d">
+                                    Moi3D
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-3dsmax">
+                                    3DS Max
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-touchpad">
+                                    Touch
+                                </li>
+                            </ol>
+                        </div>
+                    </plasticity-menu>
                 </button>
             </div>;
 

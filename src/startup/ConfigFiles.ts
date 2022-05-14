@@ -10,7 +10,7 @@ import defaultTheme from './default-theme';
 
 export type Theme = typeof import('./default-theme');
 export type Settings = typeof import('./default-settings');
-export type Mode = 'default' | 'blender' | 'maya' | 'moi' | '3dsmax' | 'touchpad';
+export type OrbitMode = 'default' | 'blender' | 'maya' | 'moi3d' | '3dsmax' | 'touchpad';
 
 export class ConfigFiles {
     static readonly homePath = path.join(os.homedir(), '.plasticity');
@@ -80,7 +80,7 @@ export class ConfigFiles {
         return defaultSettings;
     }
 
-    static updateOrbitControls(mode: Mode) {
+    static updateOrbitControls(mode: OrbitMode) {
         if (fs.existsSync(ConfigFiles.userKeymapPath)) {
             try {
                 const parsed = json5.parse(fs.readFileSync(ConfigFiles.userKeymapPath).toString());
@@ -105,7 +105,7 @@ export class ConfigFiles {
                             "alt-mouse2": "orbit:dolly"
                         }
                         break;
-                    case 'moi':
+                    case 'moi3d':
                         parsed['orbit-controls'] = {
                             "mouse2": "orbit:rotate",
                             "mouse1": "orbit:pan",

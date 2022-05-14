@@ -1,6 +1,8 @@
 import KeymapManager from "atom-keymap-plasticity";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
+import { ConfigFiles } from "../startup/ConfigFiles";
+import { OrbitMode } from "../startup/ConfigFiles";
 import * as THREE from "three";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
@@ -195,6 +197,12 @@ export class Editor {
             'edit:copy': () => this.clipboard.copy(),
             'edit:paste': () => this.clipboard.paste(),
             'edit:repeat-last-command': () => this.executor.repeatLastCommand(),
+            'settings:orbit-controls:set-default': () => updateOrbitControls('default'),
+            'settings:orbit-controls:set-blender': () => updateOrbitControls('blender'),
+            'settings:orbit-controls:set-maya': () => updateOrbitControls('maya'),
+            'settings:orbit-controls:set-moi3d': () => updateOrbitControls('moi3d'),
+            'settings:orbit-controls:set-3dsmax': () => updateOrbitControls('3dsmax'),
+            'settings:orbit-controls:set-touchpad': () => updateOrbitControls('touchpad'),
             'noop': () => { },
         });
         ipcRenderer.on('menu-command', this.command);
@@ -215,4 +223,9 @@ export class Editor {
         this.originator.debug();
         this.executor.debug();
     }
+}
+
+export function updateOrbitControls(mode: OrbitMode): void {
+    ConfigFiles.updateOrbitControls(mode);
+    ipcRenderer.send('window-event', 'window-reload');
 }

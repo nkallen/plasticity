@@ -4,7 +4,6 @@ import { Menu, MenuPlacement, MenuTrigger } from './MenuManager';
 
 export default (editor: Editor) => {
     class Anon extends HTMLElement {
-        private disposable?: Disposable;
         private menu!: Menu;
 
         connectedCallback() {
@@ -30,7 +29,6 @@ export default (editor: Editor) => {
 
         close = () => {
             this.menu.hide();
-            this.disposable!.dispose();
         }
     }
     customElements.define('plasticity-menu', Anon);

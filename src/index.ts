@@ -36,7 +36,7 @@ const createWindow = () => {
         minWidth: 1024,
         minHeight: 768,
         show: false,
-        backgroundColor: '#2e2c2920',
+        backgroundColor: '#1e1c1930',
         titleBarStyle: 'hiddenInset',
         frame: false,
         trafficLightPosition: { x: 22, y: 22 },
@@ -93,6 +93,9 @@ ipcMain.on('window-event', (event, eventName: String) => {
             break
         case 'window-is-maximized':
             event.returnValue = window.isMaximized()
+            break
+        case 'window-reload':
+            window.webContents.reload();
             break
         default:
             break
