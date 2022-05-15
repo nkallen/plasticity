@@ -50,6 +50,13 @@ export class Scene implements MementoOriginator<SceneMemento> {
         this.groups.debug();
     }
 
+    duplicate<T extends Empty>(empty: T): T {
+        const dup = this.empties.duplicate(empty);
+        const transform = this.getTransform(empty);
+        this.setTransform(dup, transform);
+        return dup;
+    }
+
     rebuild() {
         this.signals.sceneGraphChanged.dispatch();
     }

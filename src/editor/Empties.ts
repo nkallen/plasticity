@@ -20,7 +20,7 @@ export abstract class Empty extends visual.SpaceItem {
 export class ImageEmpty extends Empty {
     readonly plane: THREE.Mesh;
 
-    constructor(simpleName: EmptyId, texture: THREE.Texture) {
+    constructor(simpleName: EmptyId, readonly texture: THREE.Texture) {
         super(simpleName);
         const aspect = texture.image.width / texture.image.height;
         const fac = 5;
@@ -59,6 +59,22 @@ export class Empties implements MementoOriginator<EmptyMemento>{
         const texture = this.images.get(filePath);
         if (texture === undefined) throw new Error("invalid precondition: " + filePath);
         const empty = new ImageEmpty(id, texture);
+        return this.add(id, empty, info);
+    }
+
+    duplicate<T extends Empty>(empty: T): T {
+        if (empty instanceof ImageEmpty) {
+            const id = this.counter++;
+            const info = this.id2info.get(empty.simpleName);
+            if (info === undefined) throw new Error("Empty has no info");
+            const dup = new ImageEmpty(id, empty.texture);
+            return this.add(id, dup, info) as unknown as T;
+        } else {
+            throw new Error('Invalid empty type');
+        }
+    }
+
+    private add<T extends Empty>(id: EmptyId, empty: T, info: EmptyInfo): T {
         this.id2empty.set(id, empty);
         this.id2info.set(id, info);
         this.signals.emptyAdded.dispatch(empty);

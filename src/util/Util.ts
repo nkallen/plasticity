@@ -11,6 +11,7 @@ export type CreateMutable<Type> = {
 };
 
 export function assertUnreachable(x: never): never {
+    console.error(x);
     throw new Error("Didn't expect to get here");
 }
 
