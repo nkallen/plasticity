@@ -44,7 +44,7 @@ import { TextureLoader } from "./TextureLoader";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg'];
+export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg', 'jpeg'];
 
 export class Editor {
     private readonly disposable = new CompositeDisposable();
@@ -142,7 +142,7 @@ export class Editor {
                     { name: 'IGES files', extensions: ['igs', 'iges'] },
                     { name: 'SAT files', extensions: ['sat'] },
                     { name: 'C3D files', extensions: ['c3d'] },
-                    { name: 'Image files', extensions: ['png', 'jpg'] }
+                    { name: 'Image files', extensions: ['png', 'jpg', 'jpeg'] }
                 ]
             });
             files = filePaths;
