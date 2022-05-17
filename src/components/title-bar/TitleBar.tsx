@@ -15,7 +15,7 @@ export default (editor: Editor) => {
         disconnectedCallback() { }
 
         render() {
-            const tools = <div class={`flex items-center justify-start space-x-1 mt-7 z-40 ${isMac ? 'ml-[96px]' : ''}`}>
+            const tools = <div class={`flex items-center justify-start space-x-1 mt-7 z-40 ${isMac ? 'ml-[96px]' : 'ml-4'}`}>
                 <button class="no-drag p-1 rounded stroke-1 group text-neutral-300 hover:bg-neutral-700 hover:text-neutral-50 ring-1 ring-neutral-600 ring-opacity-5">
                     <plasticity-icon name="file-menu"> </plasticity-icon>
                     <plasticity-menu placement="bottom" trigger="onclick">
@@ -85,7 +85,7 @@ export default (editor: Editor) => {
                 </button>
             </div>;
 
-            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1 mr-4 mt-7">
+            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1 mr-7 mt-7">
                 <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-minimize')}>
                     <plasticity-icon name="minimize"></plasticity-icon>
                 </button>
