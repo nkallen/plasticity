@@ -526,4 +526,5 @@ export const defaultPhysicalMaterial = new THREE.MeshPhysicalMaterial({
     polygonOffset: true,
     polygonOffsetFactor: 1,
     polygonOffsetUnits: 2,
+    fog: false,
 });

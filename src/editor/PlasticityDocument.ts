@@ -59,6 +59,7 @@ export class PlasticityDocument {
                     specularColor: mat.specularColorFactor ? new THREE.Color().fromArray(mat.specularColorFactor) : undefined,
                     transmission: mat.transmissionFactor,
                     emissive: mat.emissiveFactor,
+                    fog: false,
                 });
             }
             materials.set(i, { name, material });
