@@ -20,6 +20,7 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
 
         const panel = document.createElement('div');
         panel.setAttribute('style', `position: absolute; right: ${padding}; top: ${padding}; height: ${dim}px; width: ${dim}px; z-index: 40`);
+        panel.setAttribute('class', 'no-drag');
         panel.addEventListener('pointerup', e => this.onMouseUp(e));
         panel.addEventListener('pointerdown', e => e.stopPropagation());
         viewport.domElement.appendChild(panel);
