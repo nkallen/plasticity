@@ -127,10 +127,10 @@ export default (editor: Editor) => {
                             </li>
 
                             <li class="group">
+                                <input type="checkbox" class="hidden absolute peer" id={`overlays_${uid}`} checked={this.viewport.showOverlays}
+                                    onClick={e => viewport.toggleOverlays()}
+                                />
                                 <label for={`overlays_${uid}`} class="block p-2 shadow-lg transform cursor-pointer group-first:rounded-l group-last:rounded-r bg-neutral-800 peer-checked:bg-accent-600 peer-checked:hover:bg-accent-700 text-accent-200 hover:text-accent-100 hover:bg-accent-600">
-                                    <input type="checkbox" class="hidden absolute peer" id={`overlays_${uid}`} checked={this.viewport.showOverlays}
-                                        onClick={e => viewport.toggleOverlays()}
-                                    />
                                     <plasticity-icon name='overlays'></plasticity-icon>
                                     <plasticity-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</plasticity-tooltip>
                                 </label>
@@ -168,9 +168,9 @@ export default (editor: Editor) => {
                                                         </li>
                                                         <li>
                                                             <div class="flex flex-row space-x-1">
-                                                            <img src={color_matcap_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-matcap'} />
-                                                            <img src={black_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'black-silhouette'} />
-                                                            <img src={color_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-silhouette'} />
+                                                                <img src={color_matcap_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-matcap'} />
+                                                                <img src={black_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'black-silhouette'} />
+                                                                <img src={color_silhouette_png} class="block w-16 rounded-r" onClick={e => viewport.material = 'colored-silhouette'} />
                                                             </div>
                                                         </li>
                                                     </>

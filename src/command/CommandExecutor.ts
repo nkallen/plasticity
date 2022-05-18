@@ -1,3 +1,4 @@
+import { Disposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import ContourManager from "../editor/curves/ContourManager";
@@ -88,7 +89,7 @@ export class CommandExecutor {
             'command:abort': () => command.cancel(),
         });
         const state = history.current;
-        document.body.setAttribute("command", command.identifier);
+        const undeorateBody = this.decorateBody(command);
         try {
             let selectionChanged = false;
             signals.objectSelected.addOnce(() => selectionChanged = true);
@@ -128,6 +129,7 @@ export class CommandExecutor {
                     console.error([...helpers.scene.children]);
                 }
                 helpers.clear();
+                undeorateBody.dispose();
             }
 
             signals.commandEnded.dispatch(command);
@@ -144,6 +146,19 @@ export class CommandExecutor {
                 }
             }
         }
+    }
+
+    private decorateBody(command: Command) {
+        document.body.setAttribute("command", command.identifier);
+        const buttons = document.querySelectorAll(`plasticity-command[name=${command.identifier}] > div`);
+        for (const button of Array.from(buttons)) {
+            button.classList.add('active');
+        }
+        return new Disposable(() => {
+            for (const button of Array.from(buttons)) {
+                button.classList.remove('active');
+            }
+        });
     }
 
     private disableViewportSelector(command: Command) {
