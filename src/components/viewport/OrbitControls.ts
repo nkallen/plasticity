@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Settings } from "../../startup/ConfigFiles";
-import { pointerEvent2keyboardEvent, wheelEvent2keyboardEvent } from "./KeyboardEventManager";
+import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { ProxyCamera } from "./ProxyCamera";
 
 const twoPI = 2 * Math.PI;

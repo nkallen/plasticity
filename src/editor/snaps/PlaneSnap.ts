@@ -15,10 +15,6 @@ export class PlaneSnap extends Snap {
 
     readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, material);
 
-    static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
-    static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
-    static Z = new PlaneSnap(new THREE.Vector3(0, 0, 1));
-
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
     readonly x: THREE.Vector3;
@@ -40,12 +36,12 @@ export class PlaneSnap extends Snap {
         if (n.dot(Z) === 1) {
             orientation.identity();
         } else if (n.dot(X) === 1) {
-            orientation.set(0, Math.SQRT1_2, 0, Math.SQRT1_2);
+            orientation.set(0.5, 0.5, 0.5, 0.5);
         } else if (n.dot(Y) === 1) {
-            orientation.set(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
+            orientation.set(0, Math.SQRT1_2, Math.SQRT1_2, 0);
         } else {
             const { mat } = this;
-            mat.lookAt(origin, n, Z);
+            mat.lookAt(n.clone().add(origin), origin, Z);
             orientation.setFromRotationMatrix(mat).normalize();
         }
     }

@@ -160,11 +160,9 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
 }
 
 export function makeOrthographicCamera() {
-    const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
-    return orthographicCamera;
+    return new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
 }
 
 export function makePerspectiveCamera() {
-    const perspective = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    return perspective;
+    return new THREE.PerspectiveCamera(fov, aspect, near, far);
 }

@@ -23,27 +23,27 @@ export class ViewportGeometryNavigator extends ViewportNavigatorExecutor {
             case 'face':
                 if (mode === 'align-camera') {
                     controls.target.copy(cplane.p);
-                    this.animateToPositionAndQuaternion(cplane.n);
+                    this.animateToPositionAndQuaternion(cplane.orientation);
                 }
                 editor.enqueue(new NavigateCommand(editor, to.targets));
                 return cplane;
             case 'region':
                 if (mode === 'align-camera') {
                     controls.target.copy(cplane.p);
-                    this.animateToPositionAndQuaternion(cplane.n);
+                    this.animateToPositionAndQuaternion(cplane.orientation);
                 }
                 const set = new Set([to.target.underlying] as visual.Region[]);
                 editor.enqueue(new NavigateCommand(editor, set));
                 return cplane;
             case 'cplane':
-                const normal = cplane.n, target = cplane.p;
+                const target = cplane.p;
                 if (mode === 'align-camera') {
                     controls.target.copy(target);
-                    this.animateToPositionAndQuaternion(normal);
+                    this.animateToPositionAndQuaternion(cplane.orientation);
                 }
                 return cplane;
             default:
-                this.animateToPositionAndQuaternion(cplane.n);
+                this.animateToPositionAndQuaternion(cplane.orientation);
                 return cplane;
         }
     }

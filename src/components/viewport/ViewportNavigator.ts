@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
+import { Y } from "../../util/Constants";
 import { OrbitControls } from "./OrbitControls";
 import { Viewport } from "./Viewport";
 
@@ -126,7 +127,6 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
 
         mouse.x = ((event.clientX - offsetX) / dim) * 2 - 1;
         mouse.y = - ((event.clientY - offsetY) / dim) * 2 + 1;
-        console.log(event.clientX - offsetX)
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactiveObjects);
@@ -149,22 +149,19 @@ export class ViewportNavigatorExecutor {
 
     private readonly q1 = new THREE.Quaternion();
     private readonly q2 = new THREE.Quaternion();
-    private readonly dummy = new THREE.Object3D();
+    private readonly targetNormal = new THREE.Vector3();
     private radius = 0;
 
-    animateToPositionAndQuaternion(targetNormal: THREE.Vector3) {
-        const { controls, q1, q2, dummy } = this;
+    animateToPositionAndQuaternion(targetQuat: THREE.Quaternion) {
+        const { controls, q1, q2, targetNormal } = this;
         const { object: viewportCamera, target } = controls;
 
         this.radius = viewportCamera.position.distanceTo(target);
-        targetNormal = targetNormal.clone().multiplyScalar(this.radius).add(target);
+        targetNormal.copy(Y).applyQuaternion(targetQuat).multiplyScalar(this.radius).add(target);
 
-        dummy.position.copy(target);
-        dummy.lookAt(viewportCamera.position);
-        q1.copy(dummy.quaternion);
+        q1.copy(viewportCamera.quaternion);
 
-        dummy.lookAt(targetNormal);
-        q2.copy(dummy.quaternion);
+        q2.copy(targetQuat);
 
         this.animating = true;
     }
@@ -179,13 +176,15 @@ export class ViewportNavigatorExecutor {
         // animate position by doing a slerp and then scaling the position on the unit sphere
         q1.rotateTowards(q2, step);
         viewportCamera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(radius).add(target);
+        viewportCamera.quaternion.copy(q1);
+        viewportCamera.target.copy(controls.target);
 
         if (q1.angleTo(q2) < 10e-7) {
             q1.copy(q2);
             viewportCamera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(radius).add(target);
+            viewportCamera.quaternion.copy(q1);
             this.animating = false;
         }
-        controls.update();
         return true;
     }
 
