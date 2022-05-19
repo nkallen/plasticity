@@ -531,11 +531,11 @@ describe('activateSnapped', () => {
 
         const pointAxisSnaps = compact(pointPicker.snaps).filter(s => s instanceof PointAxisSnap) as PointAxisSnap[];
         const x = pointAxisSnaps.find(p => p.name === 'x')!;
-        expect(x.n).toApproximatelyEqual(new THREE.Vector3(Math.SQRT1_2, -Math.SQRT1_2, 0));
+        expect(x.n).toApproximatelyEqual(new THREE.Vector3(-Math.SQRT1_2, Math.SQRT1_2, 0));
         const y = pointAxisSnaps.find(p => p.name === 'y')!;
         expect(y.n).toApproximatelyEqual(new THREE.Vector3(-0.408, -0.408, 0.816));
         const z = pointAxisSnaps.find(p => p.name === 'z')!;
-        expect(z.n).toApproximatelyEqual(new THREE.Vector3(-0.577, -0.577, -0.577));
+        expect(z.n).toApproximatelyEqual(new THREE.Vector3(0.577, 0.577, 0.577));
     });
 
     test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {

@@ -38,7 +38,7 @@ test("project not axis aligned, at origin, snap to grid", () => {
 });
 
 test("project not axis aligned, not at origin, snap to grid", () => {
-    const normal = new THREE.Vector3(0.5, 0.5, Math.SQRT1_2);
+    const normal = new THREE.Vector3(0.5, 0.5, Math.SQRT1_2).normalize();
     const plane = new PlaneSnap(normal, new THREE.Vector3(1, 0, 0));
     plane.gridFactor = 0.1;
     let i: THREE.Intersection;
@@ -46,7 +46,7 @@ test("project not axis aligned, not at origin, snap to grid", () => {
     expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(-0.207, 0.2071, Math.SQRT1_2));
     const point = new THREE.Vector3(1, 1, -Math.SQRT2);
     i = { point } as THREE.Intersection;
-    expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(0.7928, 1.207, -Math.SQRT1_2));
+    expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(1.29, 1.707, -Math.SQRT2));
 });
 
 test("isValid", () => {
@@ -81,7 +81,7 @@ test("orientation", () => {
 
     plane = new PlaneSnap(Y, Z);
     orientation = plane.orientation;
-    expect(orientation).toHaveQuaternion(new THREE.Quaternion(-Math.SQRT1_2));
+    expect(orientation).toHaveQuaternion(new THREE.Quaternion(0, Math.SQRT1_2, Math.SQRT1_2, 0));
 });
 
 const Z = new THREE.Vector3(0, 0, 1);

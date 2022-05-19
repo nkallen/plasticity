@@ -147,7 +147,7 @@ describe('navigate', () => {
         // @ts-ignore
         viewport.navigator.update(1000000000);
         expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0, 0, Math.SQRT1_2, Math.SQRT1_2))).toBeCloseTo(1);
+        expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
     });
 
     test("navigate(orientation)", () => {
@@ -174,12 +174,12 @@ describe('navigate', () => {
     test("navigate(undefined) default cplane", () => {
         viewport.constructionPlane = PlaneDatabase.XY;
         expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
+        expect(viewport.camera.quaternion).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
         viewport.navigate();
         // @ts-ignore
         viewport.navigator.update(1000000000);
         expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0, 0, Math.SQRT1_2, Math.SQRT1_2))).toBeCloseTo(1);
+        expect(viewport.camera.quaternion).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
     });
 
     test("isOrtho", () => {
