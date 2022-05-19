@@ -160,7 +160,6 @@ export class ViewportNavigatorExecutor {
         targetNormal.copy(Y).applyQuaternion(targetQuat).multiplyScalar(this.radius).add(target);
 
         q1.copy(viewportCamera.quaternion);
-
         q2.copy(targetQuat);
 
         this.animating = true;
