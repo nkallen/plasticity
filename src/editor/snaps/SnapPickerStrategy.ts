@@ -6,7 +6,7 @@ import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting
 import { Empty } from "../Empties";
 import { Scene } from "../Scene";
 import { PointSnap } from "./PointSnap";
-import { Snap } from "./Snap";
+import { GridLike, Snap } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { RaycasterParams, SnapResult } from "./SnapPicker";
 import { FaceSnap } from "./Snaps";
@@ -66,15 +66,14 @@ export abstract class SnapPickerStrategy {
     // Project all the intersections (go from approximate to exact values)
     // Fold in any additional results (sometimes the construction plane)
     // return min distance
-    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], cplane_intersection_results: (SnapResult & { distance: number })[], restriction: Snap | undefined,) {
+    projectIntersections(viewport: Viewport, geo_intersections_snaps: SnapAndIntersection[], other_intersections_snaps: SnapAndIntersection[], cplane_intersection_results: (SnapResult & { distance: number })[], restriction: Snap | undefined, snapToGrid: GridLike | undefined) {
         const { isOrthoMode, constructionPlane: { orientation: constructionPlaneOrientation } } = viewport;
 
         const intersections_snaps = [...geo_intersections_snaps, ...other_intersections_snaps];
         let results: (SnapResult & { distance: number })[] = [];
         let minDistance = Number.MAX_VALUE;
         for (const { snap, intersection } of intersections_snaps) {
-            // TODO: this should probably snapToGrid
-            const { position, orientation } = snap.project(intersection.point);
+            const { position, orientation } = snap.project(intersection.point, snapToGrid);
 
             // Step 4.b.: If we are on a preferred face, discard all snaps that aren't also on the face
             if (restriction && !restriction.isValid(position)) continue;

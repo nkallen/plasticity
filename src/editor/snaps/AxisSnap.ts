@@ -1,8 +1,8 @@
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { Snap, ChoosableSnap, SnapProjection } from "./Snap";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import { ChoosableSnap, GridLike, Snap, SnapProjection } from "./Snap";
 
 const dotGeometry = new THREE.BufferGeometry();
 dotGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
@@ -54,10 +54,11 @@ export class AxisSnap extends Snap implements ChoosableSnap {
 
     private readonly projection = new THREE.Vector3();
     private readonly intersectionPoint = new THREE.Vector3();
-    project(point: THREE.Vector3) {
+    project(point: THREE.Vector3, snapToGrid?: GridLike) {
         const { n, o, orientation } = this;
         const { projection, intersectionPoint } = this;
         const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(point).sub(o))).add(o).clone();
+        snapToGrid?.snapToGrid(position, this);
         return { position, orientation };
     }
 
@@ -102,6 +103,12 @@ export class AxisSnap extends Snap implements ChoosableSnap {
         const dist = intersections[0].point.sub(o).dot(n);
         const position = intersection.copy(n).multiplyScalar(dist).add(o);
         return { position, orientation: this.orientation };
+    }
+
+    isCoplanar(plane: THREE.Plane): boolean {
+        const { o, n } = this;
+        const a = o, b = o.clone().add(n);
+        return plane.distanceToPoint(a) < 10e-6 && plane.distanceToPoint(b) < 10e-6;
     }
 }
 

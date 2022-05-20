@@ -32,7 +32,7 @@ export abstract class Snap implements Restriction {
         });
     }
 
-    abstract project(point: THREE.Vector3, snapToGrid?: boolean): SnapProjection;
+    abstract project(point: THREE.Vector3, snapToGrid?: GridLike): SnapProjection;
     abstract isValid(pt: THREE.Vector3): boolean;
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return; }
@@ -42,6 +42,10 @@ export abstract class Snap implements Restriction {
 
 export interface ChoosableSnap extends Snap {
     intersect(raycaster: THREE.Raycaster, info?: { position: THREE.Vector3; orientation: THREE.Quaternion; }): SnapProjection | undefined;
+}
+
+export interface GridLike {
+    snapToGrid(point: THREE.Vector3, compat: Snap): THREE.Vector3;
 }
 
 export type SnapProjection = {

@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
+import { AxisSnap } from "../src/editor/snaps/AxisSnap";
 import { PlaneSnap } from "../src/editor/snaps/PlaneSnap";
+import { Y, Z, origin, X } from "../src/util/Constants";
 import { point2point, vec2vec } from "../src/util/Conversion";
 import './matchers';
 
@@ -31,10 +33,10 @@ test("project not axis aligned, at origin, snap to grid", () => {
     const plane = new PlaneSnap(normal, origin);
     let i: THREE.Intersection;
     i = { point: origin } as THREE.Intersection;
-    expect(plane.project(i, true).position).toApproximatelyEqual(origin);
+    expect(plane.project(i, plane).position).toApproximatelyEqual(origin);
     const point = new THREE.Vector3(1, 1, -Math.SQRT2);
     i = { point } as THREE.Intersection;
-    expect(plane.project(i, true).position).toApproximatelyEqual(point);
+    expect(plane.project(i, plane).position).toApproximatelyEqual(point);
 });
 
 test("project not axis aligned, not at origin, snap to grid", () => {
@@ -43,10 +45,10 @@ test("project not axis aligned, not at origin, snap to grid", () => {
     plane.gridFactor = 0.1;
     let i: THREE.Intersection;
     i = { point: origin } as THREE.Intersection;
-    expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(-0.207, 0.2071, Math.SQRT1_2));
+    expect(plane.project(i, plane).position).toApproximatelyEqual(new THREE.Vector3(-0.207, 0.2071, Math.SQRT1_2));
     const point = new THREE.Vector3(1, 1, -Math.SQRT2);
     i = { point } as THREE.Intersection;
-    expect(plane.project(i, true).position).toApproximatelyEqual(new THREE.Vector3(1.29, 1.707, -Math.SQRT2));
+    expect(plane.project(i, plane).position).toApproximatelyEqual(new THREE.Vector3(1.29, 1.707, -Math.SQRT2));
 });
 
 test("isValid", () => {
@@ -84,6 +86,29 @@ test("orientation", () => {
     expect(orientation).toHaveQuaternion(new THREE.Quaternion(0, Math.SQRT1_2, Math.SQRT1_2, 0));
 });
 
-const Z = new THREE.Vector3(0, 0, 1);
-const Y = new THREE.Vector3(0, 1, 0);
-const origin = new THREE.Vector3();
+test("snapToGrid(compatible plane)", () => {
+    const plane = new PlaneSnap(Z, origin);
+    plane.gridFactor = 4;
+    expect(plane.snapToGrid(new THREE.Vector3(0.123, 0.123, 0), plane)).toEqual(new THREE.Vector3(0.125, 0.125, 0));
+})
+
+test("snapToGrid(incompatible plane)", () => {
+    const plane = new PlaneSnap(Z, origin);
+    const incompatible = new PlaneSnap(Z, new THREE.Vector3(0, 0, 1));
+    plane.gridFactor = 4;
+    expect(plane.snapToGrid(new THREE.Vector3(0.123, 0.123, 1), incompatible)).toEqual(new THREE.Vector3(0.123, 0.123, 1));
+})
+
+test("snapToGrid(compatible axis snap)", () => {
+    const plane = new PlaneSnap(Z, origin);
+    plane.gridFactor = 4;
+    const axis = new AxisSnap(undefined, origin, X);
+    expect(plane.snapToGrid(new THREE.Vector3(0.123, 0.123, 0), axis)).toEqual(new THREE.Vector3(0.125, 0.125, 0));
+})
+
+test("snapToGrid(incompatible axis snap)", () => {
+    const plane = new PlaneSnap(Z, origin);
+    plane.gridFactor = 4;
+    const axis = new AxisSnap(undefined, new THREE.Vector3(1, 2, 3), X);
+    expect(plane.snapToGrid(new THREE.Vector3(1, 2, 3), axis)).toEqual(new THREE.Vector3(1, 2, 3));
+})

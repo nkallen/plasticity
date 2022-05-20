@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point, vec2vec } from "../../util/Conversion";
-import { Snap } from "./Snap";
+import { AxisSnap } from "./AxisSnap";
+import { GridLike, Snap } from "./Snap";
 
 const origin = new THREE.Vector3(0, 0, 0);
 const X = new THREE.Vector3(1, 0, 0);
@@ -10,7 +11,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 
-export class PlaneSnap extends Snap {
+export class PlaneSnap extends Snap implements GridLike {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
     readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, material);
@@ -86,22 +87,34 @@ export class PlaneSnap extends Snap {
     }
 
     private readonly y = new THREE.Vector3();
-    project(intersection: THREE.Vector3 | THREE.Intersection, snapToGrid = false) {
+    project(intersection: THREE.Vector3 | THREE.Intersection, snapToGrid?: GridLike) {
         const point = intersection instanceof THREE.Vector3 ? intersection : intersection.point;
-        const { n, p, orientation, basis, basisInv } = this;
-        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
-        const position = plane.projectPoint(point, new THREE.Vector3());
-        if (snapToGrid) {
-            let { gridFactor } = this;
-            gridFactor *= 10;
-            position.applyMatrix4(basisInv);
-            position.set(
-                Math.round(position.x * gridFactor) / gridFactor,
-                Math.round(position.y * gridFactor) / gridFactor,
-                0);
-            position.applyMatrix4(basis);
-        }
+        const { plane, orientation } = this;
+        let position = plane.projectPoint(point, new THREE.Vector3());
+        snapToGrid?.snapToGrid(position, this);
         return { position, orientation };
+    }
+
+    snapToGrid(position: THREE.Vector3, compat: Snap) {
+        if (compat instanceof PlaneSnap && compat !== this) return position;
+        const { plane } = this;
+        if (compat instanceof AxisSnap && !compat.isCoplanar(plane)) return position;
+
+        let { gridFactor, basis, basisInv } = this;
+        gridFactor *= 10;
+        position.applyMatrix4(basisInv);
+        position.set(
+            Math.round(position.x * gridFactor) / gridFactor,
+            Math.round(position.y * gridFactor) / gridFactor,
+            0);
+        position.applyMatrix4(basis);
+        return position;
+    }
+
+    get plane(): THREE.Plane {
+        const { n, p } = this;
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
+        return plane;
     }
 
     move(pt: THREE.Vector3): PlaneSnap {

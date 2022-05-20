@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Choice, PointPickerModel } from "../../command/point-picker/PointPickerModel";
 import { Viewport } from "../../components/viewport/Viewport";
 import * as visual from "../../visual_model/VisualModel";
-import { ChoosableSnap } from "./Snap";
+import { ChoosableSnap, GridLike } from "./Snap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapResult } from "./SnapPicker";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
@@ -28,7 +28,8 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
         if (intersections.length === 0) return [];
         const approximatePosition = intersections[0].point;
         const distance = intersections[0].distance;
-        const { position: precisePosition, orientation } = constructionPlane.project(approximatePosition, snapToGrid);
+        const grid: GridLike | undefined = snapToGrid ? constructionPlane : undefined;
+        const { position: precisePosition, orientation } = constructionPlane.project(approximatePosition, grid);
         return [{ snap: constructionPlane, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation, distance }];
     }
 

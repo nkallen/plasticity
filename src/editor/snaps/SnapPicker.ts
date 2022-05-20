@@ -7,7 +7,7 @@ import { AxisSnap, axisSnapMaterial } from "./AxisSnap";
 import { ConstructionPlaneSnap, FaceConstructionPlaneSnap } from "./ConstructionPlaneSnap";
 import { PlaneSnap } from "./PlaneSnap";
 import { PointSnap } from "./PointSnap";
-import { Snap } from "./Snap";
+import { GridLike, Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
@@ -82,7 +82,8 @@ export class SnapPicker {
 
         const other_intersections_snaps = strategy.intersectWithSnaps(additional, pointss, raycaster, snaps);
 
-        let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, cplane_intersection_results, restriction);
+        const grid: GridLike | undefined = snaps.snapToGrid ? viewport.constructionPlane : undefined;
+        let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, cplane_intersection_results, restriction, grid);
         results = strategy.processXRay(viewport, results, minDistance);
         return this.sort(results);
     }

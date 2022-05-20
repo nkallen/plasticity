@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PointResult } from "../../command/point-picker/PointPicker";
-import { FaceSnap } from "./Snaps";
 import { PlaneSnap } from "./PlaneSnap";
-import { Snap } from "./Snap";
+import { GridLike, Snap } from "./Snap";
+import { FaceSnap } from "./Snaps";
 
-export interface ConstructionPlane extends Snap {
+export interface ConstructionPlane extends Snap, GridLike {
     get n(): THREE.Vector3;
     get p(): THREE.Vector3;
     get x(): THREE.Vector3 | undefined;
@@ -117,6 +117,10 @@ export class ScreenSpaceConstructionPlaneSnap extends Snap implements Constructi
     move(delta: THREE.Vector3) {
         // FIXME: this seems wrong
         return this;
+    }
+
+    snapToGrid(position: THREE.Vector3) {
+        return position;
     }
 
     gridFactor = 1;
