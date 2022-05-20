@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
-    project(point: THREE.Vector3): SnapProjection;
+    project(point: THREE.Vector3, snapToGrid?: GridLike): SnapProjection;
 }
 
 export abstract class Snap implements Restriction {

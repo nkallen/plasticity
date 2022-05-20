@@ -61,7 +61,7 @@ beforeEach(() => {
 test('applyRestrictions when no restriction', () => {
     expect(pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode)).toBe(undefined);
     const result = { snap: snaps.identityMap.lookup(solid.faces.get(0)) } as SnapResult;
-    const results = snap.applyRestrictions(pointPicker, viewport, [result]);
+    const results = snap.applyRestrictions(false, pointPicker, viewport, [result]);
     expect(results).toEqual([result]);
 });
 
@@ -70,6 +70,6 @@ test('applyRestrictions when face construction plane and restriction', () => {
     viewport.constructionPlane = viewport.cplanes.constructionPlaneForFace(face);
     expect(pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode)).toBe(undefined);
     const result = { snap: snaps.identityMap.lookup(face) } as SnapResult;
-    const results = snap.applyRestrictions(pointPicker, viewport, [result]);
+    const results = snap.applyRestrictions(false, pointPicker, viewport, [result]);
     expect(results).toEqual([]);
 });

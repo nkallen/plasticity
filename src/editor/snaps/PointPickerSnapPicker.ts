@@ -53,7 +53,7 @@ export class PointPickerSnapPicker {
         if (!snaps.enabled) {
             if (choice !== undefined) {
                 const chosen = strategy.intersectChoice(choice, raycaster);
-                return strategy.applyRestrictions(pointPicker, viewport, chosen);
+                return strategy.applyRestrictions(snaps.snapToGrid, pointPicker, viewport, chosen);
             } else {
                 return strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport);
             }
@@ -79,11 +79,11 @@ export class PointPickerSnapPicker {
             const except = intersections.filter(i => !(i.snap instanceof FaceConstructionPlaneSnap || ConstructionPlaneSnap));
             const projected = strategy.projectIntersectionOntoChoice(choice.snap, viewport, except);
             const result = projected.length > 0 ? projected : chosen;
-            return strategy.applyRestrictions(pointPicker, viewport, result);
+            return strategy.applyRestrictions(snaps.snapToGrid, pointPicker, viewport, result);
         }
 
         if (cplaneIsFallback) intersections = intersections.concat(cplane);
-        const restricted = strategy.applyRestrictions(pointPicker, viewport, intersections);
+        const restricted = strategy.applyRestrictions(snaps.snapToGrid, pointPicker, viewport, intersections);
 
         return findAllSnapsInTheSamePlace(restricted);
     }

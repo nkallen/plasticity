@@ -41,15 +41,17 @@ export class PointPickerSnapPickerStrategy extends SnapPickerStrategy {
         return [{ snap, orientation: orientation, position, cursorPosition: position, cursorOrientation: orientation }];
     }
 
-    applyRestrictions(pointPicker: PointPickerModel, viewport: Viewport, input: SnapResult[]): SnapResult[] {
+    applyRestrictions(snapToGrid: boolean, pointPicker: PointPickerModel, viewport: Viewport, input: SnapResult[]): SnapResult[] {
         const constructionPlane = viewport.constructionPlane;
         const restriction = pointPicker.restrictionFor(constructionPlane, viewport.isOrthoMode);
         if (restriction === undefined) return input.filter(info => constructionPlane.isCompatibleWithSnap(info.snap));
 
+        const grid: GridLike | undefined = snapToGrid ? constructionPlane : undefined;
+
         const output = [];
         for (const info of input) {
             if (!restriction.isValid(info.position)) continue;
-            const { position, orientation } = restriction.project(info.position);
+            const { position, orientation } = restriction.project(info.position, grid);
             info.position = position;
             info.orientation = orientation;
             output.push(info);
