@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import * as THREE from "three";
-import * as c3d from '../kernel/kernel';
-import { assertUnreachable } from '../util/Util';
-import * as visual from '../visual_model/VisualModel';
-import { Empty, EmptyId, EmptyInfo } from './Empties';
-import { GroupId } from './Groups';
-import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, EmptyMemento, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "./History";
-import { NodeKey, Nodes, NodeTransform } from './Nodes';
+import * as c3d from '../../kernel/kernel';
+import { assertUnreachable } from '../../util/Util';
+import * as visual from '../../visual_model/VisualModel';
+import { EmptyId, EmptyInfo } from '../Empties';
+import { GroupId } from '../Groups';
+import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, GroupMemento, MaterialMemento, NodeMemento, SceneMemento, ViewportMemento } from "../History";
+import { NodeKey, Nodes, NodeTransform } from '../Nodes';
 
 export class PlasticityDocument {
     constructor(private readonly originator: EditorOriginator) { }
@@ -332,7 +332,7 @@ interface MaterialJSON {
     depthFunc?: THREE.DepthModes;
 }
 
-interface PlasticityJSON {
+export interface PlasticityJSON {
     db: GeometryDatabaseJSON;
     viewports: ViewportJSON[];
     materials: MaterialJSON[];

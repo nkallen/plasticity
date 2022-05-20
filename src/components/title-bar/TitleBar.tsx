@@ -26,7 +26,7 @@ export default (editor: Editor) => {
                                     <div class="flex">
                                         <div class="py-4 pr-4"><plasticity-icon name="new"></plasticity-icon></div>
                                         <div class="py-2">
-                                            <a class="text-neutral-200 font-semibold text-sm block">New Document</a>
+                                            <a class="text-neutral-200 font-semibold text-sm block">New document</a>
                                             <div class="text-xs text-neutral-300">Start modeling in a empty file</div>
                                         </div>
                                     </div>
@@ -36,7 +36,17 @@ export default (editor: Editor) => {
                                     <div class="flex">
                                         <div class="py-4 pr-4"><plasticity-icon name="import"></plasticity-icon></div>
                                         <div class="py-2">
-                                            <a class="text-neutral-200 font-semibold text-sm block">Import Document</a>
+                                            <a class="text-neutral-200 font-semibold text-sm block">Open document</a>
+                                            <div class="text-xs text-neutral-300">Clear workspace and open .plasticity file</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="file:import">
+                                    <plasticity-tooltip placement="right" command="file:import"></plasticity-tooltip>
+                                    <div class="flex">
+                                        <div class="py-4 pr-4"><plasticity-icon name="import"></plasticity-icon></div>
+                                        <div class="py-2">
+                                            <a class="text-neutral-200 font-semibold text-sm block">Import document</a>
                                             <div class="text-xs text-neutral-300">Append PNG, STEP, etc.</div>
                                         </div>
                                     </div>
@@ -46,8 +56,8 @@ export default (editor: Editor) => {
                                     <div class="flex">
                                         <div class="py-4 pr-4"><plasticity-icon name="export"></plasticity-icon></div>
                                         <div class="py-2">
-                                            <a class="text-neutral-200 font-semibold text-sm block">Export Document</a>
-                                            <div class="text-xs text-neutral-300">Export OBJ, STEP, etc.</div>
+                                            <a class="text-neutral-200 font-semibold text-sm block">Export document</a>
+                                            <div class="text-xs text-neutral-300">Save/Export OBJ, STEP, etc.</div>
                                         </div>
                                     </div>
                                 </li>

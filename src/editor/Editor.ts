@@ -20,7 +20,7 @@ import defaultSettings from '../startup/default-settings';
 import defaultTheme from '../startup/default-theme';
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
-import { Backup } from "./Backup";
+import { Backup } from "./serialization/Backup";
 import { Clipboard } from "./Clipboard";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
@@ -41,6 +41,9 @@ import { Scene } from "./Scene";
 import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
 import { TextureLoader } from "./TextureLoader";
+import { PlasticityDocument } from "./serialization/PlasticityDocument";
+import { Chunkifier } from "./serialization/Chunkifier";
+import * as fs from 'fs';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -132,7 +135,23 @@ export class Editor {
         ipcRenderer.invoke('reload');
     }
 
-    async open(files?: string[]) {
+    async open() {
+        const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
+            properties: ['openFile'],
+            filters: [
+                { name: 'Plasticity files', extensions: ['plasticity'] },
+            ]
+        });
+        const filePath = filePaths[0];
+        const data = await fs.promises.readFile(filePath);
+        const { json, c3d } = Chunkifier.load(data);
+        await PlasticityDocument.load(json, c3d, this.originator);
+        this.originator.debug();
+        this.originator.validate();
+        this.signals.backupLoaded.dispatch();
+    }
+
+    async import(files?: string[]) {
         if (files === undefined) {
             const { filePaths } = await ipcRenderer.invoke('show-open-dialog', {
                 properties: ['openFile', 'multiSelections'],
@@ -155,6 +174,7 @@ export class Editor {
     async export() {
         const { canceled, filePath } = await ipcRenderer.invoke('show-save-dialog', {
             filters: [
+                { name: 'Plasticity files', extensions: ['plasticity'] },
                 { name: 'C3D files', extensions: ['c3d'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
@@ -168,6 +188,12 @@ export class Editor {
             const command = new ExportCommand(this);
             command.filePath = filePath!;
             this.enqueue(command);
+        } else if (/\.plasticity$/.test(filePath!)) {
+            const document = new PlasticityDocument(this.originator);
+            const { json, c3d } = await document.serialize(filePath);
+            const chunkifier = new Chunkifier('plasticity', 1, json, c3d);
+            const buffer = chunkifier.serialize();
+            return fs.promises.writeFile(filePath, buffer);
         } else {
             this.importer.export(memento, filePath!);
         }
@@ -191,6 +217,7 @@ export class Editor {
         const d = this.registry.add(document.body, {
             'file:new': () => this.clear(),
             'file:open': () => this.open(),
+            'file:import': () => this.import(),
             'file:save-as': () => this.export(),
             'edit:undo': () => this.undo(),
             'edit:redo': () => this.redo(),

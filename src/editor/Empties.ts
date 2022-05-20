@@ -4,7 +4,7 @@ import * as visual from '../visual_model/VisualModel';
 import { EditorSignals } from "./EditorSignals";
 import { EmptyMemento, MementoOriginator } from "./History";
 import { Images } from "./Images";
-import { EmptyJSON } from "./PlasticityDocument";
+import { EmptyJSON } from "./serialization/PlasticityDocument";
 
 export type EmptyId = number;
 

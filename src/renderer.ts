@@ -89,7 +89,7 @@ document.addEventListener('drop', e => {
         if (!res.test(file)) continue;
         files.push(file);
     }
-    editor.open(files);
+    editor.import(files);
 });
 
 document.addEventListener('dragover', e => {

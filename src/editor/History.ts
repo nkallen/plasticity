@@ -12,7 +12,7 @@ import { Empty, EmptyId, EmptyInfo } from "./Empties";
 import { Images } from "./Images";
 import { GroupId } from "./Groups";
 import { NodeKey, NodeTransform } from "./Nodes";
-import { EmptyJSON } from "./PlasticityDocument";
+import { EmptyJSON } from "./serialization/PlasticityDocument";
 import { PointSnap } from "./snaps/PointSnap";
 import { DisablableType } from "./TypeManager";
 
@@ -172,7 +172,7 @@ export class EditorOriginator {
 
     constructor(
         readonly db: MementoOriginator<GeometryMemento> & Serializable,
-        readonly empties: MementoOriginator<EmptyMemento> & { deserialize(foo: EmptyJSON[]): void},
+        readonly empties: MementoOriginator<EmptyMemento> & { deserialize(json: EmptyJSON[]): void},
         readonly scene: MementoOriginator<SceneMemento>,
         readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
@@ -285,6 +285,11 @@ export class History {
         this._undoStack.push(item);
         this._redoStack.length = 0;
         this.signals.historyAdded.dispatch();
+    }
+
+    clear() {
+        this._undoStack.length = 0;
+        this._redoStack.length = 0;
     }
 
     undo(): boolean {

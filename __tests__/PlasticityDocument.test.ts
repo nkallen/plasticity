@@ -14,7 +14,7 @@ import { Group } from '../src/editor/Groups';
 import { EditorOriginator } from '../src/editor/History';
 import { Images } from '../src/editor/Images';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlasticityDocument } from '../src/editor/PlasticityDocument';
+import { PlasticityDocument } from '../src/editor/serialization/PlasticityDocument';
 import { Scene } from '../src/editor/Scene';
 import * as visual from '../src/visual_model/VisualModel';
 import './matchers';
