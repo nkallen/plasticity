@@ -232,7 +232,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         // rotate offset back to "camera-up-vector-is-up" space
         offset.applyQuaternion(quatInverse);
         camera.position.copy(target).add(offset);
-        if (Math.abs(sphericalDelta.phi) > 0 || Math.abs(sphericalDelta.theta) > 0) camera.lookAt(target);
+        camera.lookAt(target);
         camera.target.copy(target);
 
         sphericalDelta.set(0, 0, 0);
