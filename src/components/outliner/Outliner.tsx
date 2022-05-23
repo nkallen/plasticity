@@ -1,17 +1,17 @@
 import { CompositeDisposable } from 'event-kit';
 import { render } from 'preact';
+import * as THREE from 'three';
 import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UngroupSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
-import { DeleteCommand, SetMaterialCommand } from '../../commands/GeometryCommands';
+import { DeleteCommand, RemoveMaterialCommand, SetMaterialCommand } from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
+import { Empty } from '../../editor/Empties';
 import { Group, GroupId, VirtualGroup } from '../../editor/Groups';
 import { NodeKey, RealNodeItem } from '../../editor/Nodes';
 import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
+import { assertUnreachable } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
 import OutlinerItem, { indentSize, ToggleVisibilityCommand } from './OutlinerItems';
-import * as THREE from 'three';
-import { assertUnreachable } from '../../util/Util';
-import { Empty } from '../../editor/Empties';
 
 export default (editor: Editor) => {
     OutlinerItem(editor);
@@ -30,7 +30,8 @@ export default (editor: Editor) => {
             editor.signals.commandEnded.add(this.render);
             editor.signals.historyChanged.add(this.render);
 
-            for (const Command of [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand, SetMaterialCommand]) {
+            const Commands = [DeleteCommand, LockSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, UnhideAllCommand, ExportCommand, GroupSelectedCommand, UngroupSelectedCommand, SetMaterialCommand, RemoveMaterialCommand];
+            for (const Command of Commands) {
                 disposable.add(editor.registry.addOne(this, `command:${Command.identifier}`, () => {
                     const command = new Command(editor);
                     command.agent = 'user';

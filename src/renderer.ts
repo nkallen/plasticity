@@ -26,7 +26,8 @@ import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.css';
-import { Editor, supportedExtensions } from './editor/Editor';
+import { Editor } from './editor/Editor';
+import { supportedExtensions } from './editor/ImporterExporter';
 import { ConfigFiles } from './startup/ConfigFiles';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);

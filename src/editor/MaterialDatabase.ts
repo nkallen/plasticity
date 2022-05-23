@@ -21,27 +21,23 @@ export default interface MaterialDatabase extends MementoOriginator<MaterialMeme
 }
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
-
 const line = new LineMaterial({ color: 0x0, linewidth: 1.4 });
-
 const line_dashed = new LineMaterial({ color: 0x0, linewidth: 0.3, dashed: true, dashScale: 100, dashSize: 100, gapSize: 100 });
 line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
 
 const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
-
 const surface = region_unhighlighted;
-
 const mesh = face_unhighlighted_matcap;
-
 const region = region_unhighlighted;
-
 const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
+
+const startCounter = 1; // start > 0 since GetStyle() returns 0 for undefined.
 
 export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginator<MaterialMemento> {
     private readonly materials = new Map<number, { name: string, material: THREE.Material & { color: THREE.Color } }>();
     private readonly lines = [line, line_dashed, previewLine];
-    private counter = 1; // start > 0 since GetStyle() returns 0 for undefined.
+    private counter = startCounter;
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
@@ -100,6 +96,11 @@ export class BasicMaterialDatabase implements MaterialDatabase, MementoOriginato
     restoreFromMemento(m: MaterialMemento): void {
         (this.counter as BasicMaterialDatabase['counter']) = m.counter;
         (this.materials as BasicMaterialDatabase['materials']) = new Map(m.materials);
+    }
+
+    clear() {
+        this.counter = startCounter;
+        this.materials.clear();
     }
 
     validate(): void { }

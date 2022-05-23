@@ -1,8 +1,6 @@
 import KeymapManager from "atom-keymap-plasticity";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CompositeDisposable, Disposable } from "event-kit";
-import { ConfigFiles } from "../startup/ConfigFiles";
-import { OrbitMode } from "../startup/ConfigFiles";
 import * as THREE from "three";
 import Command from '../command/Command';
 import { CommandExecutor } from "../command/CommandExecutor";
@@ -16,11 +14,11 @@ import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionCommandRegistrar } from "../selection/CommandRegistrar";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
+import { ConfigFiles, OrbitMode } from "../startup/ConfigFiles";
 import defaultSettings from '../startup/default-settings';
 import defaultTheme from '../startup/default-theme';
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
-import { Backup } from "./serialization/Backup";
 import { Clipboard } from "./Clipboard";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
@@ -32,22 +30,19 @@ import { Empties } from "./Empties";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import { Images } from "./Images";
-import { ImporterExporter } from "./ImporterExporter";
+import { ImporterExporter, supportedExtensions } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { DoCacheMeshCreator, ParallelMeshCreator } from "./MeshCreator";
 import { PlaneDatabase } from "./PlaneDatabase";
 import { Scene } from "./Scene";
+import { Backup } from "./serialization/Backup";
 import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
 import { TextureLoader } from "./TextureLoader";
-import { PlasticityDocument } from "./serialization/PlasticityDocument";
-import { Chunkifier } from "./serialization/Chunkifier";
-import * as fs from 'fs';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg', 'jpeg'];
 
 export class Editor {
     private readonly disposable = new CompositeDisposable();
@@ -90,7 +85,7 @@ export class Editor {
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new RenderedSceneBuilder(this.db, this.scene, this.textures, this.selection, this.styles, this.signals);
-    readonly importer = new ImporterExporter(this._db, this.empties, this.scene, this.images, this.contours);
+    readonly importer = new ImporterExporter(this.originator, this._db, this.empties, this.scene, this.images, this.contours, this.signals);
     readonly planes = new PlaneDatabase(this.signals);
     readonly clipboard = new Clipboard(this);
 
@@ -143,12 +138,8 @@ export class Editor {
             ]
         });
         const filePath = filePaths[0];
-        const data = await fs.promises.readFile(filePath);
-        const { json, c3d } = Chunkifier.load(data);
-        await PlasticityDocument.load(json, c3d, this.originator);
-        this.originator.debug();
-        this.originator.validate();
-        this.signals.backupLoaded.dispatch();
+        this.executor.cancelActiveCommand();
+        await this.importer.open(filePath);
     }
 
     async import(files?: string[]) {
@@ -183,19 +174,12 @@ export class Editor {
             ]
         });
         if (canceled) return;
-        const memento = this._db.saveToMemento().model;
         if (/\.obj$/.test(filePath!)) {
             const command = new ExportCommand(this);
             command.filePath = filePath!;
             this.enqueue(command);
-        } else if (/\.plasticity$/.test(filePath!)) {
-            const document = new PlasticityDocument(this.originator);
-            const { json, c3d } = await document.serialize(filePath);
-            const chunkifier = new Chunkifier('plasticity', 1, json, c3d);
-            const buffer = chunkifier.serialize();
-            return fs.promises.writeFile(filePath, buffer);
         } else {
-            this.importer.export(memento, filePath!);
+            this.importer.export(filePath!);
         }
     }
 

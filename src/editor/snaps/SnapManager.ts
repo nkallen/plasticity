@@ -66,10 +66,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         Object.freeze(this.basicSnaps);
 
         this.layers.enableAll();
-
-        this.id2snaps.set(visual.Solid, new Map());
-        this.id2snaps.set(visual.Curve3D, new Map());
-        this.id2snaps.set(visual.Region, new Map());
+        this.init();
 
         signals.objectAdded.add(([item, agent]) => {
             if (agent === 'user') {
@@ -96,6 +93,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         signals.commandEnded.add(() => this.cache.update());
         signals.objectReplaced.add(() => this.cache.update());
         signals.historyChanged.add(() => this.cache.update());
+    }
+
+    private init() {
+        this.id2snaps.set(visual.Solid, new Map());
+        this.id2snaps.set(visual.Curve3D, new Map());
+        this.id2snaps.set(visual.Region, new Map());
     }
 
     get all(): { basicSnaps: ReadonlySet<Snap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
@@ -360,6 +363,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     restoreFromMemento(m: SnapMemento) {
         (this.id2snaps as SnapManager['id2snaps']) = copyId2Snaps(m.id2snaps);
         (this.hidden as SnapManager['hidden']) = new Map(m.hidden);
+    }
+
+    clear() {
+        this.id2snaps.clear();
+        this.hidden.clear();
+        this.init();
     }
 
     validate() {

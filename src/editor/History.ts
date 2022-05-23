@@ -86,6 +86,7 @@ export class SceneMemento {
 
 export class EmptyMemento {
     constructor(
+        readonly counter: number,
         readonly id2info: ReadonlyMap<EmptyId, Readonly<EmptyInfo>>,
         readonly id2empty: ReadonlyMap<EmptyId, Empty>,
     ) { }
@@ -240,6 +241,16 @@ export class EditorOriginator {
         this.scene.debug();
         console.groupEnd();
     }
+
+    clear() {
+        this.db.clear();
+        this.empties.clear();
+        this.scene.clear();
+        this.selection.clear();
+        this.crosses.clear();
+        this.snaps.clear();
+        this.curves.clear();
+    }
 }
 
 export interface MementoOriginator<T> {
@@ -247,6 +258,7 @@ export interface MementoOriginator<T> {
     restoreFromMemento(m: T): void;
     validate(): void;
     debug(): void;
+    clear(): void;
 }
 
 export interface Serializable {

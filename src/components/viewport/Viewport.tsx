@@ -589,6 +589,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
+    clear() { }
+
     debug(): void { }
 
     // top left is 0,0, bottom right is width,height

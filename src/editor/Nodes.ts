@@ -206,6 +206,15 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         (this.node2transform as Nodes['node2transform']) = new Map(m.node2transform);
     }
 
+    clear() {
+        this.node2material.clear();
+        this.hidden.clear();
+        this.invisible.clear();
+        this.unselectable.clear();
+        this.node2name.clear();
+        this.node2transform.clear();
+    }
+
     validate() {
         for (const k of this.node2material.keys()) {
             const { tag, id } = Nodes.dekey(k);

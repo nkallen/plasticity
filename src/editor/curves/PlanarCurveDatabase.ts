@@ -313,6 +313,11 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         (this.placements as PlanarCurveDatabase['placements']) = new Set(m.placements);
     }
 
+    clear() {
+        this.curve2info.clear();
+        this.placements.clear();
+    }
+
     validate() {
         for (const [id, info] of this.curve2info) {
             console.assert(this.db.lookupItemById(id) !== undefined, "curve is in database", id);

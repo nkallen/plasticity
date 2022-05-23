@@ -439,6 +439,18 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.selectionChanged.dispatch({ selection: this });
     }
 
+    clear() {
+        this.solidIds.clear();
+        this.parentsWithSelectedChildren.clear();
+        this.edgeIds.clear();
+        this.faceIds.clear();
+        this.curveIds.clear();
+        this.regionIds.clear();
+        this.controlPointIds.clear();
+        this.groupIds.clear();
+        this.emptyIds.clear();
+    }
+
     validate() {
         for (const id of this.solidIds) {
             console.assert(this.db.lookupItemById(id) !== undefined, "solid is in database", id);

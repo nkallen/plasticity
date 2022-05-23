@@ -17,6 +17,8 @@ export abstract class Empty extends visual.SpaceItem {
     }
 }
 
+const startCounter = 0;
+
 export class ImageEmpty extends Empty {
     readonly plane: THREE.Mesh;
 
@@ -44,7 +46,7 @@ export class ImageEmpty extends Empty {
 }
 
 export class Empties implements MementoOriginator<EmptyMemento>{
-    private counter: EmptyId = 0;
+    private counter: EmptyId = startCounter;
     private readonly id2info = new Map<EmptyId, Readonly<EmptyInfo>>();
     private readonly id2empty = new Map<EmptyId, Empty>();
 
@@ -104,14 +106,22 @@ export class Empties implements MementoOriginator<EmptyMemento>{
 
     saveToMemento(): EmptyMemento {
         return new EmptyMemento(
+            this.counter,
             new Map(this.id2info),
             new Map(this.id2empty),
         );
     }
 
     restoreFromMemento(m: EmptyMemento) {
+        (this.counter as Empties['counter']) = m.counter;
         (this.id2info as Empties['id2info']) = new Map(m.id2info);
         (this.id2empty as Empties['id2empty']) = new Map(m.id2empty);
+    }
+
+    clear() {
+        this.id2info.clear();
+        this.id2empty.clear();
+        this.counter = startCounter;
     }
 
     async deserialize(jsons: EmptyJSON[]) {

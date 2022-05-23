@@ -9,6 +9,7 @@ import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { Empties } from '../src/editor/Empties';
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
+import { EditorOriginator } from '../src/editor/History';
 import { Images } from '../src/editor/Images';
 import { ImporterExporter } from "../src/editor/ImporterExporter";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
@@ -32,8 +33,8 @@ beforeEach(() => {
     signals = editor.signals;
     images = editor.images;
     empties = new Empties(images, signals);
-    const scene = new Scene(db, empties, materials, signals);
-    importer = new ImporterExporter(editor._db, empties, scene, images, editor.contours);
+    scene = new Scene(db, empties, materials, signals);
+    importer = new ImporterExporter(editor.originator, editor._db, empties, scene, images, editor.contours, signals);
 });
 
 test("export & import c3d", async () => {
@@ -41,17 +42,16 @@ test("export & import c3d", async () => {
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     const item = await makeSphere.commit() as visual.Solid;
-    const model = db.saveToMemento().model;
+
+    const dir = os.tmpdir();
+    const filePath = path.join(dir, 'export.c3d');
+    await importer.export(filePath);
 
     await db.removeItem(item);
     expect(db.items.length).toBe(0);
 
-    const dir = os.tmpdir();
-    const filePath = path.join(dir, 'export.c3d');
-    await importer.export(model, filePath);
-
     await editor.contours.transaction(() =>
-        importer.open([filePath])
+        importer.import([filePath])
     );
     expect(db.items.length).toBe(1);
 })

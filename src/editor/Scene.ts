@@ -319,6 +319,12 @@ export class Scene implements MementoOriginator<SceneMemento> {
         (this.cwd as Scene['cwd']) = this.lookupGroupById(m.cwd);
         this.groups.restoreFromMemento(m.groups);
     }
+
+    clear() {
+        this.nodes.clear();
+        this.cwd = this.root;
+        this.groups.clear();
+    }
 }
 
 type Snapshot = {

@@ -8,15 +8,22 @@ export type GroupId = number;
 export type GroupListing = { tag: 'Group', group: Group } | { tag: 'Item', item: visual.Item } | { tag: 'Empty', empty: Empty }
 export type VirtualGroupType = 'Curves' | 'Solids' | 'Empties';
 
+const startCounter = 0;
+
 export class Groups implements MementoOriginator<GroupMemento> {
-    private counter: GroupId = 0;
+    private counter: GroupId = startCounter;
 
     private readonly member2parent = new Map<NodeKey, GroupId>();
     private readonly group2children = new Map<GroupId, Set<NodeKey>>();
-    readonly root: Group; // always 0
+    readonly root!: Group; // always 0
 
     constructor(private readonly signals: EditorSignals) {
-        this.root = this.create(); // the root is its own parent
+        this.init();
+    }
+
+    private init() {
+        (this['root'] as Groups['root']) = this.create(); // the root is its own parent
+        console.assert(this.root.simpleName === 0);
     }
 
     get all() {
@@ -131,10 +138,18 @@ export class Groups implements MementoOriginator<GroupMemento> {
             copyGroup2Children(this.group2children),
         )
     }
+
     restoreFromMemento(m: GroupMemento) {
         (this.counter as Groups['counter']) = m.counter;
         (this.member2parent as Groups['member2parent']) = new Map(m.member2parent);
         (this.group2children as Groups['group2children']) = copyGroup2Children(m.group2children);
+    }
+
+    clear() {
+        this.counter = startCounter;
+        this.member2parent.clear();
+        this.group2children.clear();
+        this.init();
     }
 
     validate() {

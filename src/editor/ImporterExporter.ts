@@ -1,24 +1,42 @@
 import * as fs from 'fs';
+import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
 import ContourManager from './curves/ContourManager';
+import { EditorSignals } from './EditorSignals';
 import { Empties } from './Empties';
-import { Images } from "./Images";
 import { GeometryDatabase } from "./GeometryDatabase";
+import { EditorOriginator } from './History';
+import { Images } from "./Images";
 import { PlaneDatabase } from './PlaneDatabase';
-import { ConstructionPlane } from './snaps/ConstructionPlaneSnap';
 import { Scene } from './Scene';
-import * as THREE from 'three';
+import { Chunkifier } from './serialization/Chunkifier';
+import { PlasticityDocument } from './serialization/PlasticityDocument';
+import { ConstructionPlane } from './snaps/ConstructionPlaneSnap';
+
+export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg', 'jpeg'];
 
 export class ImporterExporter {
     constructor(
+        private readonly originator: EditorOriginator,
         private readonly db: GeometryDatabase,
         private readonly empties: Empties,
         private readonly scene: Scene,
         private readonly images: Images,
-        private readonly contours: ContourManager
+        private readonly contours: ContourManager,
+        private readonly signals: EditorSignals,
     ) { }
 
-    async open(filePaths: string[], cplane?: ConstructionPlane) {
+    async open(filePath: string) {
+        const data = await fs.promises.readFile(filePath);
+        const { json, c3d } = Chunkifier.load(data);
+        this.originator.clear();
+        await PlasticityDocument.load(json, c3d, this.originator);
+        this.originator.debug();
+        this.originator.validate();
+        this.signals.backupLoaded.dispatch();
+    }
+
+    async import(filePaths: string[], cplane?: ConstructionPlane) {
         const { db, contours, empties, images, scene } = this;
         for (const filePath of filePaths) {
             if (/\.c3d$/.test(filePath)) {
@@ -43,11 +61,19 @@ export class ImporterExporter {
         }
     }
 
-    async export(model: c3d.Model, filePath: string) {
-        if (/\.c3d$/.test(filePath!)) {
+    async export(filePath: string) {
+        if (/\.plasticity$/.test(filePath!)) {
+            const document = new PlasticityDocument(this.originator);
+            const { json, c3d } = await document.serialize(filePath);
+            const chunkifier = new Chunkifier('plasticity', 1, json, c3d);
+            const buffer = chunkifier.serialize();
+            return fs.promises.writeFile(filePath, buffer);
+        } else if (/\.c3d$/.test(filePath!)) {
+            const model = this.db.saveToMemento().model;
             const data = await c3d.Writer.WriteItems_async(model);
             await fs.promises.writeFile(filePath, data.memory);
         } else {
+            const model = this.db.saveToMemento().model;
             await c3d.Conversion.ExportIntoFile_async(model, filePath!);
         }
     }

@@ -148,6 +148,13 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         (this._crosses as CrossPointDatabase['crosses']) = new Set(m.crosses);
     }
 
+    clear() {
+        this.curve2touched.clear();
+        this.id2cross.clear();
+        this.id2curve.clear();
+        this._crosses.clear();
+    }
+
     debug(): void { }
 }
 

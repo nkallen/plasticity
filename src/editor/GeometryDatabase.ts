@@ -416,6 +416,18 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         (this.automatics as GeometryDatabase['automatics']) = new Set(m.automatics);
     }
 
+    clear() {
+        this.clearTemporaryObjects();
+        this.geometryModel.clear();
+        this.version2id.clear();
+        this.id2version.clear();
+        this.automatics.clear();
+        this.topologyModel.clear();
+        this.controlPointModel.clear();
+        this.positiveCounter = 1;
+        this.negativeCounter = -1;
+    }
+
     async serialize(): Promise<Buffer> {
         return this.saveToMemento().serialize();
     }
