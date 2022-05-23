@@ -95,20 +95,20 @@ export default (editor: Editor) => {
                 </button>
             </div>;
 
-            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1 mr-7 mt-7">
-                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-minimize')}>
+            const windowButtons = <div class="flex flex-row justify-start items-center space-x-1">
+                <button class="no-drag p-4 h-10 group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-minimize')}>
                     <plasticity-icon name="minimize"></plasticity-icon>
                 </button>
-                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
+                <button class="no-drag p-4 h-10 group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
                     <plasticity-icon name="maximize"></plasticity-icon>
                 </button>
-                <button class="no-drag p-2 rounded group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-close')}>
+                <button class="no-drag p-4 h-10 group hover:bg-neutral-600 fill-neutral-300 hover:fill-neutral-50" tabIndex={-1} onClick={e => ipcRenderer.send('window-event', 'window-close')}>
                     <plasticity-icon name="close"></plasticity-icon>
                 </button>
             </div>;
 
             render(
-                <div class="z-30 w-full absolute h-10 top-0 flex justify-between p-1 drag" onDblClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
+                <div class="z-30 w-full absolute h-10 top-0 flex justify-between drag" onDblClick={e => ipcRenderer.send('window-event', 'window-maximize')}>
                     {tools}
                     {!isMac && windowButtons}
                 </div>, this);
