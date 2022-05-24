@@ -84,7 +84,7 @@ export class SnapPicker {
 
         const grid: GridLike | undefined = snaps.snapToGrid ? viewport.constructionPlane : undefined;
         let { minDistance, results } = strategy.projectIntersections(viewport, geo_intersections_snaps, other_intersections_snaps, cplane_intersection_results, restriction, grid);
-        results = strategy.processXRay(viewport, results, minDistance);
+        results = strategy.processXRay(viewport, results, cplane_intersection_results, minDistance);
         return this.sort(results);
     }
 

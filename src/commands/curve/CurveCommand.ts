@@ -1,14 +1,11 @@
-import * as THREE from 'three';
-import * as c3d from '../../kernel/kernel';
 import Command from "../../command/Command";
 import { PointPicker } from "../../command/point-picker/PointPicker";
 import { PointSnap } from "../../editor/snaps/PointSnap";
+import * as c3d from '../../kernel/kernel';
 import { Finish } from "../../util/Cancellable";
 import * as visual from "../../visual_model/VisualModel";
 import { CurveWithPreviewFactory } from "./CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./CurveKeyboardGizmo";
-
-const Y = new THREE.Vector3(0, 1, 0);
 
 export class CurveCommand extends Command {
     protected type = c3d.SpaceType.Hermit3D;

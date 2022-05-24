@@ -92,14 +92,19 @@ export abstract class SnapPickerStrategy {
         return { minDistance, results };
     }
 
-    processXRay(viewport: Viewport, results: (SnapResult & { distance: number })[], minDistance: number) {
+    processXRay(viewport: Viewport, results: (SnapResult & { distance: number })[], cplane_intersection_results: (SnapResult & { distance: number })[], minDistance: number) {
         const { isXRay, isOrthoMode } = viewport;
-        if (!isXRay) {
-            results = findAllIntersectionsVeryCloseTogether(results, minDistance);
-        }
         if (isOrthoMode) {
             results = results.filter(r => !(r.snap instanceof FaceSnap));
         }
+        if (!isXRay) {
+            results = findAllIntersectionsVeryCloseTogether(results, minDistance);
+            if (isOrthoMode && results.length === 0) {
+                // This case happens when intersecting a face above the construction plane in ortho and non-xray mode
+                results = cplane_intersection_results;
+            }
+        }
+
         return results;
     }
 

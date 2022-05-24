@@ -123,7 +123,6 @@ export class ViewportNavigatorGizmo extends THREE.Object3D {
         const rect = viewport.domElement.getBoundingClientRect();
         const offsetX = rect.left + (viewport.domElement.offsetWidth - dim - padding);
         const offsetY = rect.top + padding;
-        console.log(offsetX, offsetY);
 
         mouse.x = ((event.clientX - offsetX) / dim) * 2 - 1;
         mouse.y = - ((event.clientY - offsetY) / dim) * 2 + 1;

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { point2point } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
@@ -166,6 +166,8 @@ export class EditCornerRectangleFactory extends CornerRectangleFactory implement
 
     protected orthogonal(): FourCorners {
         const { width, length: height } = this;
+        if (width === 0 || height === 0) throw new ValidationError("Width and height must be > 0");
+        
         const { p1, p2, p3, p4 } = super.orthogonal();
         p2.sub(p1).normalize().multiplyScalar(width);
         p4.sub(p1).normalize().multiplyScalar(height);
