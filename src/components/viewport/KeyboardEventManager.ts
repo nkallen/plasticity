@@ -90,9 +90,16 @@ export default class KeyboardEventManager {
     }
 
     onWheelEvent(event: WheelEvent) {
-        const e = (event.deltaY > 0) ?
-            wheelEvent2keyboardEvent('wheel+up', event) :
-            wheelEvent2keyboardEvent('wheel+down', event);
+        let e: KeyboardEvent;
+        if (!event.shiftKey) {
+            e = (event.deltaY > 0) ?
+                wheelEvent2keyboardEvent('wheel+up', event) :
+                wheelEvent2keyboardEvent('wheel+down', event);
+        } else {
+            e = (event.deltaX > 0) ?
+                wheelEvent2keyboardEvent('wheel+up', event) :
+                wheelEvent2keyboardEvent('wheel+down', event);
+        }
         this.handleKeyboardEvent(e);
     }
 
@@ -130,6 +137,7 @@ export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
 
 export function wheelEvent2keyboardEvent(name: string, event: WheelEvent): KeyboardEvent {
     const e = KeymapManager.buildKeydownEvent(name, modifiers(event)) as unknown as KeyboardEvent;
+    console.log(e);
     // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
     // to allow the original event to be stopped if something takes precedence.
     const stopPropagation = e.stopPropagation.bind(e);
