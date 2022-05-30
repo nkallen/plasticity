@@ -137,7 +137,6 @@ export function pointerEvent2keyboardEvent(event: MouseEvent): KeyboardEvent {
 
 export function wheelEvent2keyboardEvent(name: string, event: WheelEvent): KeyboardEvent {
     const e = KeymapManager.buildKeydownEvent(name, modifiers(event)) as unknown as KeyboardEvent;
-    console.log(e);
     // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
     // to allow the original event to be stopped if something takes precedence.
     const stopPropagation = e.stopPropagation.bind(e);
