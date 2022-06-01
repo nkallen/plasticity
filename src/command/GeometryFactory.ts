@@ -54,13 +54,6 @@ type State = { tag: 'none', last: undefined }
 export abstract class AbstractGeometryFactory extends AbstractFactory<visual.Item> {
     readonly changed = new Signal();
 
-    private _state: State = { tag: 'none', last: undefined };
-    get state() { return this._state }
-    set state(state: State) {
-        this._state = state;
-        this.changed.dispatch();
-    }
-
     constructor(
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
@@ -236,6 +229,13 @@ export abstract class AbstractGeometryFactory extends AbstractFactory<visual.Ite
 }
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {
+    private _state: State = { tag: 'none', last: undefined };
+    get state() { return this._state }
+    set state(state: State) {
+        this._state = state;
+        this.changed.dispatch();
+    }
+
     async update() {
         const abortEarly = () => this.done;
 
@@ -404,10 +404,6 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
             default:
                 throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
         }
-    }
-
-    protected get keys(): string[] {
-        return [];
     }
 }
 

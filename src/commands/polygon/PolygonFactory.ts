@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { point2point, vec2vec } from "../../util/Conversion";
 import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
+import { Z } from "../../util/Constants";
 
 export class PolygonFactory extends GeometryFactory {
     mode = Mode.Horizontal;
@@ -33,6 +34,3 @@ export class PolygonFactory extends GeometryFactory {
         return this._normal.copy(Z).applyQuaternion(this.orientation);
     }
 }
-
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
