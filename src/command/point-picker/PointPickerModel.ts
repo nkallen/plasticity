@@ -5,7 +5,7 @@ import { CrossPoint, CrossPointDatabase } from '../../editor/curves/CrossPointDa
 import { DatabaseLike } from "../../editor/DatabaseLike";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "../../editor/snaps/Snaps";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "../../editor/snaps/Snaps";
 import { AxisSnap, LineAxisSnap, PointAxisSnap } from "../../editor/snaps/AxisSnap";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { PointSnap } from "../../editor/snaps/PointSnap";

@@ -84,6 +84,10 @@ export class CurvePointSnap extends PointSnap {
     override restrictionFor(point: THREE.Vector3): Restriction | undefined {
         return this.curveSnap.restrictionFor(point);
     }
+
+    override additionalSnapsGivenPreviousSnap(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] {
+        return this.curveSnap.additionalSnapsGivenPreviousSnap(point, lastPickedSnap);
+    }
 }
 
 
@@ -282,6 +286,8 @@ export class CurveSnap extends Snap {
                 result.push(snap);
             }
         }
+
+        if (lastPickedSnap instanceof CurvePointSnap) lastPickedSnap = lastPickedSnap.curveSnap;
 
         if (lastPickedSnap instanceof CurveSnap) {
             const planarized = curve3d2curve2d(lastPickedSnap.model, placement);
