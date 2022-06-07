@@ -2,6 +2,8 @@ import { ipcRenderer } from 'electron';
 import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 
+const APP_VERSION = process.env.APP_VERSION;
+
 const isMac = process.platform === 'darwin'
 
 export default (editor: Editor) => {
@@ -69,6 +71,7 @@ export default (editor: Editor) => {
                     <plasticity-icon name="settings-menu"></plasticity-icon>
                     <plasticity-menu placement="bottom" trigger="onclick">
                         <div class="w-72 p-2 rounded-lg text-neutral-50 shadow-black/20 shadow-lg ring-1 ring-neutral-600 ring-opacity-5 overflow-clip backdrop-blur-xl bg-black/30">
+                            <div class="text-center p-2 text-neutral-200 text-xs">Plasticity {APP_VERSION}</div>
                             <div class="text-center p-2 text-neutral-200 font-semibold text-sm block">Orbit Settings</div>
                             <ol>
                                 <li class="hover:bg-white/20 px-5 py-2 rounded-lg" onClick={this.execute} data-command="settings:orbit-controls:set-default">
