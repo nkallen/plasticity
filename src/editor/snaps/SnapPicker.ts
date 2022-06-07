@@ -11,7 +11,7 @@ import { GridLike, Snap } from "./Snap";
 import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "./SnapManager";
 import { PointSnapCache, SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { SnapPickerStrategy } from "./SnapPickerStrategy";
-import { CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap } from "./Snaps";
+import { CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, TanTanSnap } from "./Snaps";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
@@ -145,6 +145,7 @@ declare module './Snap' {
 
 Snap.prototype.priority = 10;
 FaceCenterPointSnap.prototype.priority = 0.99;
+TanTanSnap.prototype.priority = 0.99;
 PointSnap.prototype.priority = 1;
 CurveSnap.prototype.priority = 2;
 AxisSnap.prototype.priority = 2;

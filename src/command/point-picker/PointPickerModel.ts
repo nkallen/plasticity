@@ -13,6 +13,7 @@ import { ChoosableSnap, OrRestriction, Restriction, Snap } from "../../editor/sn
 import { inst2curve, point2point } from '../../util/Conversion';
 import * as visual from "../../visual_model/VisualModel";
 import { PointResult, SnapCollection } from './PointPicker';
+import { X, Y, Z } from "../../util/Constants";
 
 const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
 export type Choice = { snap: ChoosableSnap; info?: { position: THREE.Vector3, orientation: THREE.Quaternion }; sticky: boolean };
@@ -295,7 +296,7 @@ export class PointPickerModel {
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
     private readonly mutualSnaps = new Set<Snap>();
-    activateMutualSnaps(nearby: Snap[]) {
+    activateMutualSnaps(intersected: Iterable<Snap>) {
         const { mutualSnaps, pickedPointSnaps } = this;
         if (pickedPointSnaps.length === 0) return;
 
@@ -303,7 +304,7 @@ export class PointPickerModel {
         const lastPickedSnap = last.info.snap;
         if (lastPickedSnap === undefined) return;
 
-        for (const snap of nearby) {
+        for (const snap of intersected) {
             if (mutualSnaps.has(snap)) continue;
             mutualSnaps.add(snap); // idempotent
 
@@ -315,10 +316,6 @@ export class PointPickerModel {
         }
     }
 }
-
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
 
 export function isAxisAligned(axis: PointAxisSnap): boolean {
     const n = axis.n;

@@ -66,6 +66,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         Object.freeze(this.basicSnaps);
 
         this.layers.enableAll();
+        this.layers.disable(visual.Layers.CurveFragment);
         this.init();
 
         signals.objectAdded.add(([item, agent]) => {

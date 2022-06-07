@@ -153,14 +153,6 @@ export class Menu {
         this.div.remove();
     }
 
-    private keypress = (e: KeyboardEvent) => {
-        console.log(e);
-        if (e.code === 'Esc') {
-            this.leave();
-            e.preventDefault();
-        }
-    }
-
     hide = () => {
         this.leave();
     }
