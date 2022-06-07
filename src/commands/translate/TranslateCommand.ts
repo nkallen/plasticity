@@ -21,9 +21,6 @@ import { ScaleKeyboardGizmo } from "./ScaleKeyboardGizmo";
 import { MoveEmptyFactory, RotateEmptyFactory, ScaleEmptyFactory } from "./TranslateEmptyFactory";
 import { MoveItemFactory, RotateItemFactory } from './TranslateItemFactory';
 
-export const Y = new THREE.Vector3(0, 1, 0);
-export const Z = new THREE.Vector3(0, 0, 1);
-
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;

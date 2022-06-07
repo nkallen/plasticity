@@ -3,6 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, PhantomInfo, ValidationError } from '../../command/GeometryFactory';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
+import { X, Y, Z } from "../../util/Constants";
 import { composeMainName, ContourAndPlacement, curve3d2curve2d, deunit, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
@@ -379,7 +380,3 @@ export function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, lim
 export function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
     return plane.normal.manhattanLength() > 0 && plane.intersectsBox(bbox)
 }
-
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 0);

@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { TemporaryObject } from "../../editor/DatabaseLike";
+import * as c3d from '../../kernel/kernel';
 import { identityMatrix, X } from "../../util/Constants";
+import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
+import * as visual from '../../visual_model/VisualModel';
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -122,7 +122,6 @@ abstract class TranslateFactory extends GeometryFactory {
 
 export interface MoveParams {
     move: THREE.Vector3;
-    pivot: THREE.Vector3; // FIXME: remove pivot for move
 }
 
 export interface MoveFactoryLike extends GeometryFactory, MoveParams {

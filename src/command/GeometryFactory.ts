@@ -1,5 +1,5 @@
 import { Signal } from "signals";
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 import { Measure } from "../components/stats/Measure";
 import { DatabaseLike, MaterialOverride, TemporaryObject } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';

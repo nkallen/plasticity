@@ -5,6 +5,7 @@ import { PointPicker } from "../../command/point-picker/PointPicker";
 import { AxisSnap } from "../../editor/snaps/AxisSnap";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { PointSnap } from "../../editor/snaps/PointSnap";
+import { Y, Z } from "../../util/Constants";
 import { vec2vec } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
 import { PhantomLineFactory } from '../line/LineFactory';
@@ -14,7 +15,7 @@ import { ProjectingFreestyleScaleFactory } from "./ProjectCurveFactory";
 import { RotateDialog } from "./RotateDialog";
 import { RotateGizmo } from './RotateGizmo';
 import { ScaleDialog } from "./ScaleDialog";
-import { MoveItemCommand, RotateCommand, ScaleCommand, Y, Z } from "./TranslateCommand";
+import { MoveItemCommand, RotateCommand, ScaleCommand } from "./TranslateCommand";
 import { FreestyleScaleFactoryLike, MoveItemFactory, MoveFactoryLike, RotateItemFactory, RotateFactoryLike } from './TranslateItemFactory';
 
 export abstract class AbstractFreestyleMoveCommand extends Command {
