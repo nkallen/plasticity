@@ -75,6 +75,9 @@ export class PlasticityDocument {
         const node2material = new Map<NodeKey, number>();
         const node2name = new Map<NodeKey, string>();
         const node2transform = new Map<NodeKey, NodeTransform>();
+        const hidden = new Set<NodeKey>();
+        const invisible = new Set<NodeKey>();
+        const unselectable = new Set<NodeKey>();
         for (const [i, node] of json.nodes.entries()) {
             const key = keyForNode(node, items);
             if (node.material !== undefined) {
@@ -89,6 +92,9 @@ export class PlasticityDocument {
                 const scale = new THREE.Vector3().fromArray(node.scale);
                 node2transform.set(key, { position, quaternion, scale });
             }
+            if (node.hidden === true) hidden.add(key);
+            if (node.invisible === true) invisible.add(key);
+            if (node.unselectable === true) unselectable.add(key);
         }
 
         const buffers = await Promise.all(json.images.map(info => fs.promises.readFile(info.uri)));
@@ -110,7 +116,7 @@ export class PlasticityDocument {
         }
         into.scene.restoreFromMemento(new SceneMemento(
             0,
-            new NodeMemento(node2material, new Set(), new Set(), new Set(), node2name, node2transform),
+            new NodeMemento(node2material, hidden, invisible, unselectable, node2name, node2transform),
             new GroupMemento(json.groups.length, member2parent, group2children))
         );
 
@@ -186,6 +192,9 @@ export class PlasticityDocument {
                 const material = materialId !== undefined ? materialId2position.get(materialId)! : undefined;
                 const name = nodes.node2name.get(key);
                 const transform = nodes.node2transform.get(key);
+                const invisible = nodes.invisible.has(key);
+                const unselectable = nodes.unselectable.has(key);
+                const hidden = nodes.hidden.has(key);
                 const { tag } = Nodes.dekey(key);
                 const node = {} as NodeJSON;
                 if (tag === 'Item') node.item = item;
@@ -200,6 +209,9 @@ export class PlasticityDocument {
                     node.rotation = transform.quaternion.toArray() as [number, number, number, number];
                     node.scale = transform.scale.toArray();
                 }
+                if (invisible === true) node.invisible = invisible;
+                if (unselectable === true) node.unselectable = unselectable;
+                if (hidden === true) node.hidden = hidden;
                 return node;
             }),
             groups: [...groups.group2children].map(([gid, children]) => {
@@ -311,6 +323,10 @@ interface NodeJSON {
     translation?: [number, number, number];
     rotation?: [number, number, number, number];
     scale?: [number, number, number];
+
+    invisible?: boolean;
+    unselectable?: boolean;
+    hidden?: boolean;
 }
 
 interface MaterialJSON {
