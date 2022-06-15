@@ -13,7 +13,7 @@ import { Chunkifier } from './serialization/Chunkifier';
 import { PlasticityDocument } from './serialization/PlasticityDocument';
 import { ConstructionPlane } from './snaps/ConstructionPlaneSnap';
 
-export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'png', 'jpg', 'jpeg'];
+export const supportedExtensions = ['stp', 'step', 'c3d', 'igs', 'iges', 'sat', 'x_t', 'x_b', 'png', 'jpg', 'jpeg'];
 
 export class ImporterExporter {
     constructor(

@@ -151,6 +151,7 @@ export class Editor {
                     { name: 'STEP files', extensions: ['stp', 'step'] },
                     { name: 'IGES files', extensions: ['igs', 'iges'] },
                     { name: 'SAT files', extensions: ['sat'] },
+                    { name: 'Parasolid files', extensions: ['x_t', 'x_b'] },
                     { name: 'C3D files', extensions: ['c3d'] },
                     { name: 'Image files', extensions: ['png', 'jpg', 'jpeg'] }
                 ]
@@ -170,6 +171,7 @@ export class Editor {
                 { name: 'STEP files', extensions: ['stp', 'step'] },
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },
+                { name: 'Parasolid files', extensions: ['x_t', 'x_b'] },
                 { name: 'Wavefront OBJ', extensions: ['obj'] },
             ]
         });
