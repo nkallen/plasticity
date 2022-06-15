@@ -5,14 +5,11 @@ import { Empty } from '../../editor/Empties';
 import { Group } from '../../editor/Groups';
 import { NodeItem, RealNodeItem } from '../../editor/Nodes';
 import { ChangeSelectionModifier, ChangeSelectionOption } from '../../selection/ChangeSelectionExecutor';
-import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
 import * as visual from '../../visual_model/VisualModel';
 
 export const indentSize = 20;
 
 export default (editor: Editor) => {
-    const keypress = new SelectionKeypressStrategy(editor.keymaps);
-
     class OutlinerItem extends HTMLElement {
         get nodeKey() { return this.getAttribute("nodeKey")! }
         get indent() { return Number(this.getAttribute("indent"))! }
@@ -120,12 +117,11 @@ export default (editor: Editor) => {
         }
 
         select = (e: MouseEvent) => {
-            const command = new OutlinerChangeSelectionCommand(editor, [this.item], keypress.event2modifier(e), keypress.event2option(e));
-            editor.enqueue(command, true);
+            this.dispatchEvent(new CustomEvent('select', { bubbles: true, detail: e }));
         }
 
         hover = (e: MouseEvent) => {
-            editor.changeSelection.onOutlinerHover([this.item], keypress.event2modifier(e), keypress.event2option(e));
+            this.dispatchEvent(new CustomEvent('hover', { bubbles: true, detail: e }));
         }
 
         setVisibility = (e: MouseEvent, value: boolean) => {

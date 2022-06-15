@@ -181,7 +181,7 @@ export class EditorOriginator {
         readonly crosses: MementoOriginator<CrossPointMemento>,
         readonly curves: MementoOriginator<CurveMemento>,
         readonly contours: ContourManager,
-        readonly viewports: MementoOriginator<ViewportMemento>[],
+        readonly viewports: Iterable<MementoOriginator<ViewportMemento>>,
         readonly images: Images,
     ) { }
 

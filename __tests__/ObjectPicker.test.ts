@@ -24,7 +24,7 @@ let viewport: Viewport;
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
 
     db = editor._db;
     selection = editor.selection;

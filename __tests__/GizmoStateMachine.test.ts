@@ -37,7 +37,7 @@ let gizmo: FakeGizmo;
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
     signals = editor.signals;
 })
 

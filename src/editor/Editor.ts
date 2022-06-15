@@ -9,6 +9,7 @@ import { SelectionCommandManager } from "../command/SelectionCommandManager";
 import { ExportCommand, ImportCommand } from "../commands/CommandLike";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
+import {Outliner} from "../components/outliner/Outliner";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
@@ -43,13 +44,13 @@ import { TextureLoader } from "./TextureLoader";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-
 export class Editor {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
     readonly textures = new TextureLoader();
-    readonly viewports: Viewport[] = [];
+    readonly viewports: Set<Viewport> = new Set();
+    readonly outliners: Set<Outliner> = new Set();
 
     readonly signals = new EditorSignals();
     readonly registry = new CommandRegistry();
@@ -120,7 +121,7 @@ export class Editor {
     }
 
     private _activeViewport?: Viewport;
-    get activeViewport() { return this._activeViewport ?? this.viewports[0] }
+    get activeViewport() { return this._activeViewport ?? [...this.viewports][0] }
     onViewportActivated = (v: Viewport) => {
         this._activeViewport = v;
     }

@@ -18,7 +18,7 @@ beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     pointPicker = new PointPicker(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
     document.body.appendChild(viewport.domElement);
 });
 
@@ -29,7 +29,7 @@ afterEach(() => {
 let domElement: HTMLCanvasElement;
 
 beforeEach(() => {
-    domElement = editor.viewports[0].renderer.domElement;
+    domElement = [...editor.viewports][0].renderer.domElement;
     domElement.setPointerCapture = jest.fn();
 })
 

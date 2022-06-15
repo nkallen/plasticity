@@ -30,7 +30,7 @@ let multiplex: ViewportControlMultiplexer;
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
     db = editor._db;
     camera = viewport.camera;
     selector = viewport.selector;

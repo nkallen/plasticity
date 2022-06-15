@@ -1,4 +1,4 @@
-import { CompositeDisposable } from 'event-kit';
+import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import * as THREE from 'three';
 import { ExportCommand, GroupSelectedCommand, HideSelectedCommand, HideUnselectedCommand, InvertHiddenCommand, LockSelectedCommand, UngroupSelectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
@@ -7,20 +7,56 @@ import { Editor } from '../../editor/Editor';
 import { Empty } from '../../editor/Empties';
 import { Group, GroupId, VirtualGroup } from '../../editor/Groups';
 import { NodeKey, RealNodeItem } from '../../editor/Nodes';
-import { SelectionDelta } from '../../selection/ChangeSelectionExecutor';
+import { ChangeSelectionModifier, ChangeSelectionOption, SelectionDelta } from '../../selection/ChangeSelectionExecutor';
 import { assertUnreachable } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 import { flatten } from "./FlattenOutline";
 import OutlinerItem, { indentSize, ToggleVisibilityCommand } from './OutlinerItems';
+import Command, * as cmd from "../../command/Command";
+import { SelectionKeypressStrategy } from '../../selection/SelectionKeypressStrategy';
+
+export interface EditorLike extends cmd.EditorLike {
+}
+
+type OutlinerState = { tag: 'basic', selector: BasicOutlinerSelector } | { tag: 'temporary', selector: OutlinerSelector }
+
+export class Outliner {
+    private readonly basic = new BasicOutlinerSelector(this.editor);
+    private state: OutlinerState = { tag: 'basic', selector: this.basic };
+
+    constructor(
+        private readonly editor: EditorLike) { }
+
+    select(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+        this.state.selector.select(items, modifier, option);
+    }
+
+    hover(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+        this.state.selector.hover(items, modifier, option);
+    }
+
+    push(selector: OutlinerSelector) {
+        if (this.state.tag !== 'basic') throw new Error("invalid state");
+
+        this.state = { tag: 'temporary', selector };
+        return new Disposable(() => {
+            this.state = { tag: 'basic', selector: this.basic }
+        });
+    }
+}
 
 export default (editor: Editor) => {
     OutlinerItem(editor);
+    const keypress = new SelectionKeypressStrategy(editor.keymaps);
 
-    class Outliner extends HTMLElement {
+    class OutlinerElement extends HTMLElement {
+        readonly model = new Outliner(editor);
+
         private readonly disposable = new CompositeDisposable();
         private readonly expandedGroups = new Set<GroupId>([editor.scene.root.id]);
 
         connectedCallback() {
+            editor.outliners.add(this.model);
             this.render();
             const { disposable } = this;
 
@@ -41,6 +77,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
+            editor.outliners.delete(this.model);
             editor.signals.backupLoaded.remove(this.render);
             editor.signals.sceneGraphChanged.remove(this.render);
             editor.signals.historyChanged.remove(this.render);
@@ -114,14 +151,15 @@ export default (editor: Editor) => {
                         const selectable = scene.isSelectable(object);
                         const isSelected = selected.has(object);
                         const nodeKey = scene.item2key(item.object);
-                        const klass = Outliner.klass(nodeKey);
+                        const klass = OutlinerElement.klass(nodeKey);
                         const mat = scene.getMaterial(object);
                         const color = getColor(mat);
                         const id = object instanceof Group || object instanceof Empty ? object.simpleName : editor.db.lookupId(object.simpleName);
                         const name = scene.getName(object) ?? `${klass} ${id}`;
                         return <plasticity-outliner-item
                             class={`block ${firstSelected.has(i) ? 'rounded-t' : ''}  ${lastSelected.has(i) ? 'rounded-b' : ''} overflow-clip`}
-                            key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} onexpand={this.expand} color={color}
+                            key={nodeKey} nodeKey={nodeKey} klass={klass} name={name} indent={indent} isvisible={visible} ishidden={hidden} selectable={selectable} isdisplayed={isDisplayed} isSelected={isSelected} color={color}
+                            onexpand={this.expand} onselect={this.select} onhover={this.hover}
                         ></plasticity-outliner-item>
                     case 'SolidSection':
                     case 'CurveSection':
@@ -179,6 +217,20 @@ export default (editor: Editor) => {
             this.render();
         }
 
+        select = (e: CustomEvent) => {
+            const target = e.target as EventTarget & { item: RealNodeItem };
+            const item = target.item;
+            const mouseEvent = e.detail as MouseEvent;
+            this.model.select([item], keypress.event2modifier(mouseEvent), keypress.event2option(mouseEvent));
+        }
+
+        hover = (e: CustomEvent) => {
+            const target = e.target as EventTarget & { item: RealNodeItem };
+            const item = target.item;
+            const mouseEvent = e.detail as MouseEvent;
+            this.model.hover([item], keypress.event2modifier(mouseEvent), keypress.event2option(mouseEvent));
+        }
+
         setVisibility = async (e: MouseEvent, virtual: VirtualGroup, value: boolean) => {
             const command = new ToggleVisibilityCommand(editor, virtual, value);
             editor.enqueue(command);
@@ -190,7 +242,7 @@ export default (editor: Editor) => {
             editor.enqueue(command);
         }
     }
-    customElements.define('plasticity-outliner', Outliner);
+    customElements.define('plasticity-outliner', OutlinerElement);
 }
 
 function getColor(material: THREE.Material | undefined): string | undefined {
@@ -198,4 +250,41 @@ function getColor(material: THREE.Material | undefined): string | undefined {
     if (material instanceof THREE.MeshBasicMaterial) return material.color.getHexString();
     if (material instanceof THREE.MeshLambertMaterial) return material.color.getHexString();
     return undefined;
+}
+
+export interface OutlinerSelector {
+    select(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void;
+    hover(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void;
+}
+
+class BasicOutlinerSelector implements OutlinerSelector {
+    constructor(
+        private readonly editor: EditorLike) { }
+
+    select(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+        const { editor } = this;
+        const command = new OutlinerChangeSelectionCommand(editor, items, modifier, option);
+        editor.enqueue(command, true);
+    }
+
+    hover(items: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption) {
+        const { editor } = this;
+        editor.changeSelection.onOutlinerHover(items, modifier, option);
+    }
+}
+
+class OutlinerChangeSelectionCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly items: readonly RealNodeItem[],
+        private readonly modifier: ChangeSelectionModifier,
+        private readonly option: ChangeSelectionOption
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { items } = this;
+        this.editor.changeSelection.onOutlinerSelect(items, this.modifier, this.option);
+    }
 }

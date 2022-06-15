@@ -31,7 +31,7 @@ export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2
 
 export interface EditorLike {
     db: DatabaseLike;
-    viewports: Viewport[];
+    viewports: Iterable<Viewport>;
     snaps: SnapManager;
     signals: EditorSignals;
     helpers: Helpers;

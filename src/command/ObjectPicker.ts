@@ -1,13 +1,15 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { Outliner, OutlinerSelector } from '../components/outliner/Outliner';
 import { Viewport } from '../components/viewport/Viewport';
 import { RaycasterParameters } from '../components/viewport/ViewportControl';
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { EditorSignals } from '../editor/EditorSignals';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
+import { RealNodeItem } from '../editor/Nodes';
 import { Scene } from '../editor/Scene';
-import { ChangeSelectionExecutor, ChangeSelectionOption, SelectionDelta } from '../selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption, SelectionDelta } from '../selection/ChangeSelectionExecutor';
 import { NonemptyClickStrategy } from '../selection/Click';
 import { HasSelectedAndHovered, HasSelection, Selectable } from '../selection/SelectionDatabase';
 import { SelectionKeypressStrategy } from '../selection/SelectionKeypressStrategy';
@@ -23,7 +25,8 @@ import { Executable } from './Quasimode';
 
 interface EditorLike {
     db: DatabaseLike;
-    viewports: Viewport[];
+    viewports: Iterable<Viewport>;
+    outliners: Iterable<Outliner>;
     signals: EditorSignals;
     materials: MaterialDatabase;
     changeSelection: ChangeSelectionExecutor;
@@ -67,6 +70,25 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
 
     processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {
         this.changeSelection.onBoxHover(selected, this.keypress.event2modifier(moveEvent));
+    }
+}
+
+export class ObjectPickerOutlinerSelector implements OutlinerSelector {
+    private readonly nonempty = new NonemptyClickStrategy(this.editor.db, this.editor.scene, this.selection.mode, this.selection.selected, this.selection.hovered, this.selection.selected);
+    private readonly changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.editor.scene, this.selection.signals, this.prohibitions, this.nonempty);
+
+    constructor(
+        private readonly editor: EditorLike,
+        private readonly selection: HasSelectedAndHovered,
+        private readonly prohibitions: ReadonlySet<Selectable>,
+    ) { }
+
+    select(selected: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+        this.changeSelection.onOutlinerSelect(selected, modifier, option);
+    }
+
+    hover(selected: RealNodeItem[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+        this.changeSelection.onOutlinerHover(selected, modifier, option);
     }
 }
 
@@ -136,6 +158,11 @@ export class ObjectPicker implements Executable<SelectionDelta, HasSelection> {
                 const selector = new ObjectPickerViewportSelector(viewport, editor, selection, this.raycasterParams, this.prohibitions, this.keymapSelector);
                 disposables.add(viewport.multiplexer.only(selector));
                 disposables.add(new Disposable(() => selector.dispose()));
+            }
+
+            for (const outliner of this.editor.outliners) {
+                const selector = new ObjectPickerOutlinerSelector(editor, selection, this.prohibitions);
+                disposables.add(outliner.push(selector));
             }
 
             return {

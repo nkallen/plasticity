@@ -27,8 +27,8 @@ test('keeps track of active viewport', () => {
 
     viewport1.start(); viewport2.start();
 
-    editor.viewports.push(viewport1);
-    editor.viewports.push(viewport2);
+    editor.viewports.add(viewport1);
+    editor.viewports.add(viewport2);
 
     expect(editor.activeViewport).toBe(viewport1);
 

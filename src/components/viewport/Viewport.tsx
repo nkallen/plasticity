@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { DatabaseLike } from "../../editor/DatabaseLike";
+import { Editor } from "../../editor/Editor";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { PlaneDatabase } from "../../editor/PlaneDatabase";
@@ -33,7 +34,7 @@ import { ViewportPointControl } from "./ViewportPointControl";
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
     helpers: Helpers,
-    viewports: Viewport[],
+    viewports: Iterable<Viewport>,
     signals: EditorSignals,
     originator: EditorOriginator,
     windowLoaded: boolean,
@@ -632,7 +633,7 @@ export interface ViewportElement {
     readonly model: Viewport;
 }
 
-export default (editor: EditorLike) => {
+export default (editor: Editor) => {
     class ViewportElement extends HTMLElement implements ViewportElement {
         readonly model: Viewport;
 
@@ -695,7 +696,7 @@ export default (editor: EditorLike) => {
         }
 
         connectedCallback() {
-            editor.viewports.push(this.model);
+            editor.viewports.add(this.model);
 
             const pane = this.parentElement as Pane | null;
             pane?.signals?.flexScaleChanged.add(this.resize);
@@ -705,7 +706,10 @@ export default (editor: EditorLike) => {
             if (editor.windowLoaded) this.model.start();
         }
 
-        disconnectedCallback() { this.model.dispose() }
+        disconnectedCallback() {
+            editor.viewports.delete(this.model);
+            this.model.dispose()
+        }
 
         private debounce?: NodeJS.Timeout;
         resize = () => {

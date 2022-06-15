@@ -29,7 +29,7 @@ let selection: SelectionDatabase;
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
     db = editor.db;
     selection = editor.selection;
     signals = editor.signals;

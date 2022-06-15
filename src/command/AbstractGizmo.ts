@@ -41,7 +41,7 @@ export interface GizmoView<I> {
 export interface EditorLike {
     db: DatabaseLike;
     helpers: Helpers;
-    viewports: Viewport[];
+    viewports: Iterable<Viewport>;
     signals: EditorSignals;
     registry: CommandRegistry;
     gizmos: GizmoMaterialDatabase;

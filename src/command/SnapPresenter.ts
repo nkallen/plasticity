@@ -100,7 +100,7 @@ export class PointTarget extends Helper {
 interface EditorLike {
     helpers: Helpers;
     signals: EditorSignals;
-    viewports: Viewport[];
+    viewports: Iterable<Viewport>;
 }
 
 export class SnapPresenter {

@@ -11,7 +11,7 @@ import { Helpers } from "../util/Helpers";
 
 export interface EditorLike {
     helpers: Helpers,
-    viewports: Viewport[],
+    viewports: Iterable<Viewport>,
     signals: EditorSignals,
     registry: CommandRegistry,
 }

@@ -16,6 +16,7 @@ import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import { Scene } from "../editor/Scene";
 import { ImporterExporter } from "../editor/ImporterExporter";
+import { Outliner } from "../components/outliner/Outliner";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -44,7 +45,8 @@ export interface EditorLike {
     curves: PlanarCurveDatabase,
     signals: EditorSignals,
     materials: MaterialDatabase,
-    viewports: Viewport[],
+    viewports: Iterable<Viewport>,
+    outliners: Iterable<Outliner>,
     snaps: SnapManager,
     helpers: Helpers,
     registry: CommandRegistry,

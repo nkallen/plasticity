@@ -27,7 +27,7 @@ export interface EditorLike {
     history: History;
     selection: HasSelectedAndHovered;
     contours: ContourManager;
-    viewports: ReadonlyArray<Viewport>;
+    viewports: Iterable<Viewport>;
     meshCreator: CachingMeshCreator;
     snaps: SnapManager;
     copier: SolidCopier;

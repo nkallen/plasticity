@@ -25,7 +25,7 @@ let scene: Scene;
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
-    editor.viewports.push(viewport);
+    editor.viewports.add(viewport);
     scene = editor.scene;
     db = editor._db;
 })

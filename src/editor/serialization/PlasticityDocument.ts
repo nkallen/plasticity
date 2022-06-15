@@ -19,8 +19,10 @@ export class PlasticityDocument {
     }
 
     static async load(json: PlasticityJSON, c3d: Buffer, into: EditorOriginator): Promise<PlasticityDocument> {
+        const viewports = [...into.viewports];
         for (const [i, viewport] of json.viewports.entries()) {
-            into.viewports[i].restoreFromMemento(new ViewportMemento(
+            if (i > viewports.length) break;
+            viewports[i].restoreFromMemento(new ViewportMemento(
                 new CameraMemento(
                     viewport.camera.type,
                     new THREE.Vector3().fromArray(viewport.camera.translation),
@@ -123,7 +125,7 @@ export class PlasticityDocument {
         const c3d = await db.serialize();
         const c3dFilename = `${filename}.c3d`
 
-        const viewports = this.originator.viewports.map(v => v.saveToMemento());
+        const viewports = [...this.originator.viewports].map(v => v.saveToMemento());
 
         let i, j;
         i = 0;
@@ -161,7 +163,7 @@ export class PlasticityDocument {
             db: {
                 uri: c3dFilename,
             },
-            viewports: viewports.map(viewport => (
+            viewports: [...viewports].map(viewport => (
                 {
                     camera: {
                         type: viewport.camera.mode,
