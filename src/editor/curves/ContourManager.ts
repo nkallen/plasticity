@@ -84,7 +84,7 @@ export default class ContourManager extends DatabaseProxy {
         return result;
     }
 
-    private async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+    async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none':
                 await this.curves.add(curve);
@@ -129,16 +129,6 @@ export default class ContourManager extends DatabaseProxy {
                 return;
             }
             default: throw new Error("invalid state: " + this.state.tag);
-        }
-    }
-
-    async rebuild() {
-        switch (this.state.tag) {
-            case 'none':
-                throw new Error("must call in transaction");
-            case 'transaction':
-                const curves = this.db.find(visual.SpaceInstance);
-                for (const curve of curves) this.addCurve(curve.view);
         }
     }
 

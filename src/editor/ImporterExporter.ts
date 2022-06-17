@@ -37,12 +37,12 @@ export class ImporterExporter {
     }
 
     async import(filePaths: string[], cplane?: ConstructionPlane) {
-        const { db, contours, empties, images, scene } = this;
+        const { db, originator, empties, images, scene } = this;
         for (const filePath of filePaths) {
             if (/\.c3d$/.test(filePath)) {
                 const data = await fs.promises.readFile(filePath);
                 await db.deserialize(data);
-                await contours.rebuild();
+                await originator.rebuild();
             } else if (/\.(png|jpg|jpeg)$/i.test(filePath)) {
                 if (cplane === undefined) cplane = PlaneDatabase.XY;
                 const data = await fs.promises.readFile(filePath);

@@ -120,7 +120,7 @@ export class PlasticityDocument {
             new GroupMemento(json.groups.length, member2parent, group2children))
         );
 
-        await into.contours.transaction(() => into.contours.rebuild());
+        await into.contours.transaction(() => into.rebuild());
         return new PlasticityDocument(into);
     }
 

@@ -173,8 +173,8 @@ export class EditorOriginator {
 
     constructor(
         readonly db: MementoOriginator<GeometryMemento> & Serializable,
-        readonly empties: MementoOriginator<EmptyMemento> & { deserialize(json: EmptyJSON[]): void},
-        readonly scene: MementoOriginator<SceneMemento>,
+        readonly empties: MementoOriginator<EmptyMemento> & { deserialize(json: EmptyJSON[]): void },
+        readonly scene: MementoOriginator<SceneMemento> & { get visibleObjects(): visual.SpaceItem[] },
         readonly materials: MementoOriginator<MaterialMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
@@ -250,6 +250,14 @@ export class EditorOriginator {
         this.crosses.clear();
         this.snaps.clear();
         this.curves.clear();
+    }
+
+    async rebuild() {
+        const visibles = this.scene.visibleObjects;
+        for (const v of visibles) {
+            if (!(v instanceof visual.SpaceInstance)) continue;
+            await this.contours.addCurve(v);
+        }
     }
 }
 

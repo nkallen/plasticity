@@ -177,7 +177,7 @@ describe(PlasticityDocument, () => {
         const { json, c3d } = await save.serialize(filename);
         expect(empties.items.length).toBe(1);
         
-        empties.removeItem(empty);
+        empties.clear();
         images.clear();
         expect(empties.items.length).toBe(0);
         await PlasticityDocument.load(json, c3d, originator);
