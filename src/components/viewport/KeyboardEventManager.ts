@@ -96,9 +96,16 @@ export default class KeyboardEventManager {
                 wheelEvent2keyboardEvent('wheel+up', event) :
                 wheelEvent2keyboardEvent('wheel+down', event);
         } else {
-            e = (event.deltaX > 0) ?
-                wheelEvent2keyboardEvent('wheel+up', event) :
-                wheelEvent2keyboardEvent('wheel+down', event);
+            // Depending on platform, shiftKey switches deltaX to deltaY
+            const isVertical = Math.abs(event.deltaY) > 0 && event.deltaX === 0;
+            if (isVertical)
+                e = (event.deltaY > 0) ?
+                    wheelEvent2keyboardEvent('wheel+up', event) :
+                    wheelEvent2keyboardEvent('wheel+down', event);
+            else
+                e = (event.deltaX > 0) ?
+                    wheelEvent2keyboardEvent('wheel+up', event) :
+                    wheelEvent2keyboardEvent('wheel+down', event);
         }
         this.handleKeyboardEvent(e);
     }
