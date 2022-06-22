@@ -14,6 +14,7 @@ import { Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { Scene } from "../Scene";
+import { X, Y, Z } from "../../util/Constants";
 
 export enum SnapType {
     Basic = 1 << 0,
@@ -390,9 +391,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 }
 
 const origin = new THREE.Vector3();
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0)
-const Z = new THREE.Vector3(0, 0, 1);
 
 export const originSnap = new PointSnap("Origin");
 export const xAxisSnap = new AxisSnap("X", X, origin, Z);

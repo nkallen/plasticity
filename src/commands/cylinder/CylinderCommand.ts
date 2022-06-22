@@ -1,3 +1,4 @@
+import { Z } from "../../util/Constants";
 import * as THREE from "three";
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
@@ -10,8 +11,6 @@ import { CenterCircleFactory } from '../circle/CircleFactory';
 import { PossiblyBooleanCylinderFactory } from './CylinderFactory';
 import { EditCylinderGizmo } from "./CylinderGizmo";
 import { EditCylinderDialog } from "./EditCylinderDialog";
-
-const Z = new THREE.Vector3(0, 0, 1);
 
 export class CylinderCommand extends Command {
     async execute(): Promise<void> {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 import { composeMainName, point2point } from "../../util/Conversion";
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";

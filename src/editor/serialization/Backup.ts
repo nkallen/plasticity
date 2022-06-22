@@ -2,7 +2,7 @@ import * as path from 'path';
 import { EditorSignals } from "../EditorSignals";
 import { EditorOriginator } from "../History";
 import { PlasticityDocument } from './PlasticityDocument';
-import { TempDir } from '../TempDir';
+import { TempDir } from './TempDir';
 
 export class Backup {
     constructor(

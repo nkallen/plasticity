@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { point2point } from "../../util/Conversion";

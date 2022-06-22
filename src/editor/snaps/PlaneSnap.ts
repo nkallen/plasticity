@@ -1,13 +1,10 @@
+import { X, Y, Z, origin } from "../../util/Constants";
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { point2point, vec2vec } from "../../util/Conversion";
 import { AxisSnap } from "./AxisSnap";
 import { GridLike, Snap } from "./Snap";
 
-const origin = new THREE.Vector3(0, 0, 0);
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 

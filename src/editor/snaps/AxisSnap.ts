@@ -3,6 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { ChoosableSnap, GridLike, Snap, SnapProjection } from "./Snap";
+import { X, Y, Z, origin } from "../../util/Constants";
 
 const dotGeometry = new THREE.BufferGeometry();
 dotGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
@@ -16,12 +17,8 @@ axisGeometry_line.setFromPoints(points);
 const axisGeometry_line2 = new LineGeometry();
 axisGeometry_line2.setPositions([0, -100_000, 0, 0, 100_000, 0]);
 export const axisSnapMaterial = new LineMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.1, dashed: true, dashScale: 100, dashSize: 100 });
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
 const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
-const origin = new THREE.Vector3();
 
 
 export class AxisSnap extends Snap implements ChoosableSnap {

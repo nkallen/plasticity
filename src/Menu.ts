@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
-import { TempDir } from './editor/TempDir';
+import { TempDir } from './editor/serialization/TempDir';
 import { isMac } from './index';
 import { ConfigFiles, OrbitMode } from './startup/ConfigFiles';
 
