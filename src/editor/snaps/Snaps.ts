@@ -147,14 +147,10 @@ export class FaceCenterPointSnap extends PointSnap {
 
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
-    readonly snapper: THREE.Object3D;
-    readonly helper = new THREE.Group();
+    readonly helper = this.view.slice('line');
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
-        this.snapper = view.slice();
-        const slice = view.slice('line');
-        this.helper.add(slice);
         this.init();
     }
 
@@ -207,11 +203,9 @@ const zero = new THREE.Vector3();
 
 export class CurveSnap extends Snap {
     readonly name = "Curve";
-    readonly snapper = new THREE.Group();
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
-        // this.snapper.add(view.picker);
         this.init();
     }
 
@@ -333,7 +327,6 @@ export class TanTanSnap extends PointSnap {
 
 export class FaceSnap extends Snap implements ChoosableSnap {
     readonly name = "Face";
-    readonly snapper = new THREE.Object3D(); // FIXME: FaceSnap and other geometry doesn't actually have a snapper ... disentangle interfaces
 
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {
         super();

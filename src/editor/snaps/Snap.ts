@@ -26,26 +26,18 @@ export abstract class Snap implements Restriction {
 
 export abstract class NonPointSnap extends Snap {
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
-    readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
 
     protected override init() {
-        const { snapper, nearby, helper } = this;
+        const { snapper, helper } = this;
         if (snapper === helper)
             throw new Error("Snapper should not === helper because snappers have userData and helpers should be simple cloneable objects");
 
         super.init();
 
         snapper.updateMatrixWorld();
-        nearby?.updateMatrixWorld();
 
         snapper.userData.snap = this;
         snapper.traverse(c => {
-            c.userData.snap = this;
-        });
-
-        if (nearby != null)
-            nearby.userData.snap = this;
-        nearby?.traverse(c => {
             c.userData.snap = this;
         });
     }
