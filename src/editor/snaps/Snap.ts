@@ -20,11 +20,17 @@ export abstract class Snap implements Restriction {
     abstract isValid(pt: THREE.Vector3): boolean;
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return; }
-    additionalSnapsFor(point: THREE.Vector3): (PointSnap | NonPointSnap)[] { return []; }
+    additionalSnapsFor(point: THREE.Vector3): RaycastableSnap[] { return []; }
     additionalSnapsGivenPreviousSnap(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return []; }
 }
 
-export abstract class NonPointSnap extends Snap {
+/**
+ * Whereas a Snap represents any snap target, many kinds of snap have specially optimized
+ * picking/raycasting implementations. However, some snaps, the "RaycastableSnaps", have
+ * a generic raycasting implementation with a "snapper" object.
+ * 
+ */
+export abstract class RaycastableSnap extends Snap {
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
 
     protected override init() {

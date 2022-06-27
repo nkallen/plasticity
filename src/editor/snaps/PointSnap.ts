@@ -6,8 +6,6 @@ import { PlaneSnap } from "./PlaneSnap";
 
 export class PointSnap extends Snap {
     readonly position: THREE.Vector3;
-    static snapperGeometry = new THREE.SphereGeometry(0.1);
-    static nearbyGeometry = new THREE.SphereGeometry(0.2);
 
     constructor(readonly name?: string, position = new THREE.Vector3(), protected readonly normal = Z) {
         super();

@@ -10,7 +10,7 @@ import { DisablableType } from "../TypeManager";
 import { CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap } from "./Snaps";
 import { AxisSnap } from "./AxisSnap";
 import { PointSnap } from "./PointSnap";
-import { NonPointSnap, Snap } from "./Snap";
+import { RaycastableSnap, Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { Scene } from "../Scene";
@@ -23,6 +23,7 @@ export enum SnapType {
 }
 
 export type SnapMap = Map<c3d.SimpleName, ReadonlySet<PointSnap>>;
+type BasicSnap = PointSnap | RaycastableSnap;
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     private _enabled = true;
@@ -103,9 +104,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.id2snaps.set(visual.Region, new Map());
     }
 
-    get all(): { basicSnaps: ReadonlySet<PointSnap | NonPointSnap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
+    get all(): { basicSnaps: ReadonlySet<BasicSnap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
         const { scene: { types } } = this;
-        const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<PointSnap | NonPointSnap>();
+        const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<BasicSnap>();
         const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
 
         let geometrySnaps: ReadonlySet<PointSnap>[] = [];

@@ -9,7 +9,7 @@ import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, CurveEdgeSnap, CurveEn
 import { AxisSnap, LineAxisSnap, PointAxisSnap } from "../../editor/snaps/AxisSnap";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { PointSnap } from "../../editor/snaps/PointSnap";
-import { ChoosableSnap, NonPointSnap, OrRestriction, Restriction, Snap } from "../../editor/snaps/Snap";
+import { ChoosableSnap, RaycastableSnap, OrRestriction, Restriction, Snap } from "../../editor/snaps/Snap";
 import { inst2curve, point2point } from '../../util/Conversion';
 import * as visual from "../../visual_model/VisualModel";
 import { PointResult, SnapCollection } from './PointPicker';
@@ -27,7 +27,7 @@ export class PointPickerModel {
     private readonly disabled = new Set<Snap>();
 
     private _restriction?: Restriction;
-    private readonly _restrictionSnaps = new Array<NonPointSnap>(); // Snap targets for the restrictions
+    private readonly _restrictionSnaps = new Array<RaycastableSnap>(); // Snap targets for the restrictions
     private restrictionPoint?: THREE.Vector3;
     private restrictionPlane?: PlaneSnap;
 
@@ -47,7 +47,7 @@ export class PointPickerModel {
         this.crosses = new CrossPointDatabase(this.originalCrosses);
     }
 
-    restrictionSnapsFor(): NonPointSnap[] {
+    restrictionSnapsFor(): RaycastableSnap[] {
         return this._restrictionSnaps;
     }
 
@@ -103,7 +103,7 @@ export class PointPickerModel {
                 const last = pickedPointSnaps[pickedPointSnaps.length - 1];
                 const lastSnap = last.info.snap;
                 const lastOrientation = last.info.orientation;
-                let work: (PointSnap | NonPointSnap)[] = [];
+                let work: (PointSnap | RaycastableSnap)[] = [];
                 let axes = [...straightSnaps];
                 if (facePreferenceMode === 'strong') {
                     const rotated = axes.map(s => s.rotate(lastOrientation));
@@ -160,7 +160,7 @@ export class PointPickerModel {
         this.otherAddedSnaps.clear();
     }
 
-    addSnap(...snaps: (PointSnap | NonPointSnap)[]) {
+    addSnap(...snaps: (PointSnap | RaycastableSnap)[]) {
         this.otherAddedSnaps.push(...snaps);
         this.otherAddedSnaps.update();
     }

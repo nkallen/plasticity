@@ -12,7 +12,7 @@ import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { PointSnap } from "../../editor/snaps/PointSnap";
-import { NonPointSnap, Snap } from "../../editor/snaps/Snap";
+import { RaycastableSnap, Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
 import { PointSnapCache } from "../../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams } from '../../editor/snaps/SnapPicker';
@@ -49,14 +49,14 @@ export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 export class SnapCollection {
     readonly points: Set<PointSnap> = new Set();
-    readonly other: NonPointSnap[] = [];
+    readonly other: RaycastableSnap[] = [];
     readonly cache = new PointSnapCache();
 
-    push(...snaps: (PointSnap | NonPointSnap)[]) {
+    push(...snaps: (PointSnap | RaycastableSnap)[]) {
         for (const snap of snaps) {
             if (snap instanceof PointSnap) {
                 this.points.add(snap)
-            } else if (snap instanceof NonPointSnap) {
+            } else if (snap instanceof RaycastableSnap) {
                 this.other.push(snap);
             } else assertUnreachable(snap);
         }
@@ -327,7 +327,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     restrictToPlane(plane: PlaneSnap) { return this.model.restrictToPlane(plane) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
-    addSnap(...snaps: (PointSnap | NonPointSnap)[]) { this.model.addSnap(...snaps) }
+    addSnap(...snaps: (PointSnap | RaycastableSnap)[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     set facePreferenceMode(facePreferenceMode: PreferenceMode) { this.model.facePreferenceMode = facePreferenceMode }

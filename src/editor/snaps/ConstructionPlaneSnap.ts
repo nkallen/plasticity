@@ -2,10 +2,10 @@ import * as THREE from "three";
 import * as c3d from '../../kernel/kernel';
 import { PointResult } from "../../command/point-picker/PointPicker";
 import { PlaneSnap } from "./PlaneSnap";
-import { GridLike, NonPointSnap, Snap } from "./Snap";
+import { GridLike, RaycastableSnap, Snap } from "./Snap";
 import { FaceSnap } from "./Snaps";
 
-export interface ConstructionPlane extends NonPointSnap, GridLike {
+export interface ConstructionPlane extends RaycastableSnap, GridLike {
     get n(): THREE.Vector3;
     get p(): THREE.Vector3;
     get x(): THREE.Vector3 | undefined;
@@ -52,7 +52,7 @@ export class FaceConstructionPlaneSnap extends PlaneSnap implements Construction
 
 type State = { tag: 'none'; } | { tag: 'start'; snap: ConstructionPlaneSnap; };
 
-export class ScreenSpaceConstructionPlaneSnap extends NonPointSnap implements ConstructionPlane {
+export class ScreenSpaceConstructionPlaneSnap extends RaycastableSnap implements ConstructionPlane {
     readonly name = "Screen Space";
     private state: State = { tag: 'none' };
     snapper!: THREE.Object3D;
