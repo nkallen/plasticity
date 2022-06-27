@@ -364,6 +364,8 @@ export class Face extends TopologyItem {
     dispose() { }
 }
 
+const lineMaterial = new THREE.LineBasicMaterial();
+
 export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group {
     private _useNominal: undefined;
 
@@ -417,7 +419,7 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
             const result = new THREE.Line();
             result.copy(this.line as any);
             result.geometry = geometry;
-            result.material = new THREE.LineBasicMaterial();
+            result.material = lineMaterial;
             return result;
         }
     }
