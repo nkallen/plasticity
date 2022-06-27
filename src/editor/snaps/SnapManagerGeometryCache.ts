@@ -61,7 +61,6 @@ export class PointSnapCache {
     add(points: ReadonlySet<PointSnap>) {
         const pointInfo = new Float32Array(points.size * 3);
         let j = 0;
-        const array = [...points];
         for (const point of points) {
             pointInfo.set(point.position.toArray(), j * 3);
             j++;
@@ -69,7 +68,7 @@ export class PointSnapCache {
         const pointsGeometry = new THREE.BufferGeometry();
         pointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pointInfo, 3));
         const picker = new BetterRaycastingPoints(pointsGeometry, this.material);
-        picker.userData.points = array;
+        picker.userData.points = [...points];
         this._points.add(picker);
     }
 

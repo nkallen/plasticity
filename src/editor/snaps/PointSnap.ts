@@ -32,8 +32,4 @@ export class PointSnap extends Snap {
     isValid(pt: THREE.Vector3): boolean {
         return this.position.manhattanDistanceTo(pt) < 10e-6;
     }
-
-    restrictionFor(point: THREE.Vector3): Restriction | undefined {
-        return new PlaneSnap(this.normal, this.position);
-    }
 }
