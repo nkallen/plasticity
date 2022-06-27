@@ -1,5 +1,6 @@
+import { X, Y, Z } from "../../util/Constants";
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPoint } from "../curves/CrossPointDatabase";
@@ -259,7 +260,7 @@ export class CurveSnap extends Snap {
         return [normalSnap, binormalSnap, tangentSnap];
     }
 
-    additionalSnapsGivenPreviousSnap(last: THREE.Vector3, lastPickedSnap: Snap) {
+    override additionalSnapsGivenPreviousSnap(last: THREE.Vector3, lastPickedSnap: Snap) {
         const { model } = this;
         const planarized = curve3d2curve2d(model, new c3d.Placement3D());
         if (planarized === undefined) return [];
@@ -392,7 +393,3 @@ export class FaceSnap extends Snap implements ChoosableSnap {
         return new c3d.Placement3D(point, normal, false);
     }
 }
-
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
