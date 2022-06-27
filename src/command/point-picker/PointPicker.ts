@@ -12,7 +12,7 @@ import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PointPickerSnapPicker } from "../../editor/snaps/PointPickerSnapPicker";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
 import { PointSnap } from "../../editor/snaps/PointSnap";
-import { Snap } from "../../editor/snaps/Snap";
+import { NonPointSnap, Snap } from "../../editor/snaps/Snap";
 import { SnapManager } from '../../editor/snaps/SnapManager';
 import { PointSnapCache } from "../../editor/snaps/SnapManagerGeometryCache";
 import { RaycasterParams } from '../../editor/snaps/SnapPicker';
@@ -26,6 +26,7 @@ import { SnapInfo, SnapPresentation, SnapPresenter } from '../SnapPresenter';
 import { Choices, PointPickerModel, PreferenceMode } from './PointPickerModel';
 import { PointAxisSnap } from '../../editor/snaps/AxisSnap';
 import { Scene } from '../../editor/Scene';
+import { assertUnreachable } from '../../util/Util';
 
 export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -48,16 +49,16 @@ export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 export class SnapCollection {
     readonly points: Set<PointSnap> = new Set();
-    readonly other: Snap[] = [];
+    readonly other: NonPointSnap[] = [];
     readonly cache = new PointSnapCache();
 
-    push(...snaps: Snap[]) {
+    push(...snaps: (PointSnap | NonPointSnap)[]) {
         for (const snap of snaps) {
             if (snap instanceof PointSnap) {
                 this.points.add(snap)
-            } else {
+            } else if (snap instanceof NonPointSnap) {
                 this.other.push(snap);
-            }
+            } else assertUnreachable(snap);
         }
     }
 
@@ -326,7 +327,7 @@ export class PointPicker implements Executable<PointResult, PointResult> {
     restrictToPlane(plane: PlaneSnap) { return this.model.restrictToPlane(plane) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
-    addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
+    addSnap(...snaps: (PointSnap | NonPointSnap)[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     set facePreferenceMode(facePreferenceMode: PreferenceMode) { this.model.facePreferenceMode = facePreferenceMode }

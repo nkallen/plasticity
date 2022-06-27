@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { PointSnap } from "./PointSnap";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
@@ -7,18 +8,35 @@ export interface Restriction {
 
 export abstract class Snap implements Restriction {
     readonly name?: string = undefined;
-    abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
-    readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
     readonly helper?: THREE.Object3D; // another indicator, like a long line for axis snaps
 
     protected init() {
+        const { helper } = this;
+
+        helper?.updateMatrixWorld();
+    }
+
+    abstract project(point: THREE.Vector3, snapToGrid?: GridLike): SnapProjection;
+    abstract isValid(pt: THREE.Vector3): boolean;
+
+    restrictionFor(point: THREE.Vector3): Restriction | undefined { return; }
+    additionalSnapsFor(point: THREE.Vector3): (PointSnap | NonPointSnap)[] { return []; }
+    additionalSnapsGivenPreviousSnap(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return []; }
+}
+
+export abstract class NonPointSnap extends Snap {
+    abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
+    readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
+
+    protected override init() {
         const { snapper, nearby, helper } = this;
         if (snapper === helper)
             throw new Error("Snapper should not === helper because snappers have userData and helpers should be simple cloneable objects");
 
+        super.init();
+
         snapper.updateMatrixWorld();
         nearby?.updateMatrixWorld();
-        helper?.updateMatrixWorld();
 
         snapper.userData.snap = this;
         snapper.traverse(c => {
@@ -31,13 +49,6 @@ export abstract class Snap implements Restriction {
             c.userData.snap = this;
         });
     }
-
-    abstract project(point: THREE.Vector3, snapToGrid?: GridLike): SnapProjection;
-    abstract isValid(pt: THREE.Vector3): boolean;
-
-    restrictionFor(point: THREE.Vector3): Restriction | undefined { return; }
-    additionalSnapsFor(point: THREE.Vector3): Snap[] { return []; }
-    additionalSnapsGivenPreviousSnap(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return []; }
 }
 
 export interface ChoosableSnap extends Snap {

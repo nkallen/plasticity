@@ -7,7 +7,7 @@ import { CrossPoint } from "../curves/CrossPointDatabase";
 import { AxisSnap, NormalAxisSnap, PointAxisSnap } from "./AxisSnap";
 import { PlaneSnap } from "./PlaneSnap";
 import { PointSnap } from "./PointSnap";
-import { ChoosableSnap, OrRestriction, Restriction, Snap, SnapProjection } from "./Snap";
+import { ChoosableSnap, NonPointSnap, OrRestriction, Restriction, Snap, SnapProjection } from "./Snap";
 
 export class CircleCenterPointSnap extends PointSnap {
     readonly helper = new THREE.Group();
@@ -51,7 +51,7 @@ export class CrossPointSnap extends PointSnap {
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
-        let result: Snap[] = [];
+        let result: (PointSnap | NonPointSnap)[] = [];
         result = result.concat(this.curve1.additionalSnapsFor(point));
         result = result.concat(this.curve2.additionalSnapsFor(point));
         return result;
@@ -78,7 +78,7 @@ export class CurvePointSnap extends PointSnap {
     get view() { return this.curveSnap.view }
     get model() { return this.curveSnap.model }
 
-    additionalSnapsFor(point: THREE.Vector3): Snap[] {
+    additionalSnapsFor(point: THREE.Vector3) {
         return this.curveSnap.additionalSnapsFor(point);
     }
 

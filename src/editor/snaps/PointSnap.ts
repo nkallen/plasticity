@@ -5,8 +5,6 @@ import { PlaneSnap } from "./PlaneSnap";
 
 
 export class PointSnap extends Snap {
-    readonly snapper = new THREE.Mesh(PointSnap.snapperGeometry);
-    readonly nearby = new THREE.Mesh(PointSnap.nearbyGeometry);
     readonly position: THREE.Vector3;
     static snapperGeometry = new THREE.SphereGeometry(0.1);
     static nearbyGeometry = new THREE.SphereGeometry(0.2);
@@ -14,8 +12,6 @@ export class PointSnap extends Snap {
     constructor(readonly name?: string, position = new THREE.Vector3(), protected readonly normal = Z) {
         super();
 
-        this.snapper.position.copy(position);
-        this.nearby.position.copy(position);
         this.position = position.clone();
         super.init();
     }
@@ -37,7 +33,7 @@ export class PointSnap extends Snap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        return this.snapper.position.manhattanDistanceTo(pt) < 10e-6;
+        return this.position.manhattanDistanceTo(pt) < 10e-6;
     }
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined {

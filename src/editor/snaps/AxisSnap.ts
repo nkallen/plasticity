@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
-import { ChoosableSnap, GridLike, Snap, SnapProjection } from "./Snap";
+import { ChoosableSnap, GridLike, NonPointSnap, Snap, SnapProjection } from "./Snap";
 import { X, Y, Z, origin } from "../../util/Constants";
 
 const dotGeometry = new THREE.BufferGeometry();
@@ -21,7 +21,7 @@ const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transpa
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
 
-export class AxisSnap extends Snap implements ChoosableSnap {
+export class AxisSnap extends NonPointSnap implements ChoosableSnap {
     readonly snapper = new Line2(axisGeometry_line2, axisSnapMaterial);
     readonly helper: THREE.Object3D = new THREE.Line(axisGeometry_line, lineBasicMaterial);
 

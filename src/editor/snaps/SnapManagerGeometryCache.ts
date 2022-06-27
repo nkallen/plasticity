@@ -3,8 +3,9 @@ import * as intersectable from "../../visual_model/Intersectable";
 import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "../../visual_model/VisualModelRaycasting";
 import { DatabaseLike } from "../DatabaseLike";
 import { PointSnap } from "./PointSnap";
-import { Snap } from "./Snap";
+import { NonPointSnap, Snap } from "./Snap";
 import { SnapManager } from "../snaps/SnapManager";
+import { assertUnreachable } from "../../util/Util";
 
 export class SnapManagerGeometryCache {
     get resolution() { return this._geometrySnaps.resolution; }
@@ -37,8 +38,9 @@ export class SnapManagerGeometryCache {
             if (snap instanceof PointSnap) {
                 geometrySnapCache.add(new Set([snap]));
                 continue;
-            }
-            result.push(snap.snapper);
+            } else if (snap instanceof NonPointSnap) {
+                result.push(snap.snapper);
+            } else assertUnreachable(snap);
         }
         geometrySnapCache.add(new Set(crossSnaps));
         this._basic = result;

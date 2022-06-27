@@ -10,7 +10,7 @@ import { DisablableType } from "../TypeManager";
 import { CircleCenterPointSnap, CircleCurveCenterPointSnap, CircularNurbsCenterPointSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap } from "./Snaps";
 import { AxisSnap } from "./AxisSnap";
 import { PointSnap } from "./PointSnap";
-import { Snap } from "./Snap";
+import { NonPointSnap, Snap } from "./Snap";
 import { SnapIdentityMap } from "./SnapIdentityMap";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
 import { Scene } from "../Scene";
@@ -50,7 +50,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     options: SnapType = SnapType.Basic | SnapType.Geometry | SnapType.Crosses;
     readonly layers = new THREE.Layers();
 
-    private readonly basicSnaps = new Set<Snap>([originSnap, xAxisSnap, yAxisSnap, zAxisSnap]);
+    private readonly basicSnaps = new Set([originSnap, xAxisSnap, yAxisSnap, zAxisSnap]);
     private readonly id2snaps = new Map<DisablableType, SnapMap>();
     private readonly hidden = new Map<c3d.SimpleName, ReadonlySet<PointSnap>>()
 
@@ -103,9 +103,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.id2snaps.set(visual.Region, new Map());
     }
 
-    get all(): { basicSnaps: ReadonlySet<Snap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
+    get all(): { basicSnaps: ReadonlySet<PointSnap | NonPointSnap>, geometrySnaps: readonly ReadonlySet<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
         const { scene: { types } } = this;
-        const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<Snap>();
+        const basicSnaps = (this.options & SnapType.Basic) === SnapType.Basic ? this.basicSnaps : new Set<PointSnap | NonPointSnap>();
         const crossSnaps = (this.options & SnapType.Crosses) === SnapType.Crosses ? this.crossSnaps : [];
 
         let geometrySnaps: ReadonlySet<PointSnap>[] = [];

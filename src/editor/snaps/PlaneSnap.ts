@@ -3,12 +3,12 @@ import * as THREE from "three";
 import * as c3d from '../../kernel/kernel';
 import { point2point, vec2vec } from "../../util/Conversion";
 import { AxisSnap } from "./AxisSnap";
-import { GridLike, Snap } from "./Snap";
+import { GridLike, NonPointSnap, Snap } from "./Snap";
 
 const material = new THREE.MeshBasicMaterial();
 material.side = THREE.DoubleSide;
 
-export class PlaneSnap extends Snap implements GridLike {
+export class PlaneSnap extends NonPointSnap implements GridLike {
     static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 
     readonly snapper: THREE.Object3D = new THREE.Mesh(PlaneSnap.geometry, material);
