@@ -10,22 +10,17 @@ import { PointSnap } from "./PointSnap";
 import { ChoosableSnap, RaycastableSnap, OrRestriction, Restriction, Snap, SnapProjection } from "./Snap";
 
 export class CircleCenterPointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
-
-    constructor(model: c3d.Arc3D, view: visual.CurveEdge) {
+    constructor(model: c3d.Arc3D, private readonly view: visual.CurveEdge) {
         super("Center",
             point2point(model.GetCentre()),
             vec2vec(model.GetPlaneCurve(false).placement.GetAxisZ(), 1).normalize()
         );
-
-        const slice = view.slice('line');
-        this.helper.add(slice);
     }
+
+    get helper() { return this.view.slice('line') }
 }
 
 export class CircleCurveCenterPointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
-
     constructor(model: c3d.Arc3D, readonly curveSnap: CurveSnap) {
         super("Center",
             point2point(model.GetCentre()),
@@ -35,14 +30,11 @@ export class CircleCurveCenterPointSnap extends PointSnap {
 }
 
 export class CircularNurbsCenterPointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
-
-    constructor(center: THREE.Vector3, z: THREE.Vector3, view: visual.CurveEdge) {
+    constructor(center: THREE.Vector3, z: THREE.Vector3, private readonly view: visual.CurveEdge) {
         super("Center", center, z);
-
-        const slice = view.slice('line');
-        this.helper.add(slice);
     }
+
+    get helper() { return this.view.slice('line') }
 }
 
 export class CrossPointSnap extends PointSnap {
@@ -59,12 +51,13 @@ export class CrossPointSnap extends PointSnap {
 }
 
 export class AxisAxisCrossPointSnap extends PointSnap {
-    readonly helper = new THREE.Group();
+    private readonly _helper = new THREE.Group();
+    get helper() { return this._helper }
 
     constructor(readonly cross: CrossPoint, axis1: AxisSnap, axis2: AxisSnap) {
         super("Intersection", cross.position);
-        this.helper.add(axis1.helper.clone());
-        this.helper.add(axis2.helper.clone());
+        this._helper.add(axis1.helper.clone());
+        this._helper.add(axis2.helper.clone());
     }
 }
 
@@ -93,12 +86,11 @@ export class CurvePointSnap extends PointSnap {
 
 
 export class AxisCurveCrossPointSnap extends CurvePointSnap {
-    readonly helper = new THREE.Group();
-
-    constructor(readonly cross: CrossPoint, axis: AxisSnap, readonly curve: CurveSnap) {
+    constructor(readonly cross: CrossPoint, private readonly axis: AxisSnap, readonly curve: CurveSnap) {
         super("Intersection", cross.position, curve, cross.on2.t);
-        this.helper.add(axis.helper.clone());
     }
+
+    get helper() { return this.axis.helper }
 
     additionalSnapsFor(point: THREE.Vector3) {
         return this.curve.additionalSnapsFor(point);
@@ -114,12 +106,11 @@ export class CurveEndPointSnap extends CurvePointSnap {
 }
 
 export class EdgePointSnap extends PointSnap {
-    readonly helper?: THREE.Object3D;
-
     constructor(name: string, position: THREE.Vector3, tangent: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
         super(name, position, tangent);
-        this.helper = edgeSnap.helper;
     }
+
+    override get helper() { return this.edgeSnap.helper }
 
     override restrictionFor(point: THREE.Vector3) {
         return this.edgeSnap.restrictionFor(point);
@@ -147,12 +138,12 @@ export class FaceCenterPointSnap extends PointSnap {
 
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
-    readonly helper = this.view.slice('line');
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
-        this.init();
     }
+
+    override get helper() { return this.view.slice('line') }
 
     t(point: THREE.Vector3) {
         return this.model.PointProjection(point2point(point));
@@ -206,7 +197,6 @@ export class CurveSnap extends Snap {
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
-        this.init();
     }
 
     t(point: THREE.Vector3) {
@@ -330,7 +320,6 @@ export class FaceSnap extends Snap implements ChoosableSnap {
 
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {
         super();
-        this.init();
     }
 
     private readonly mat = new THREE.Matrix4();

@@ -23,7 +23,8 @@ const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
 export class AxisSnap extends RaycastableSnap implements ChoosableSnap {
     readonly snapper = new Line2(axisGeometry_line2, axisSnapMaterial);
-    readonly helper: THREE.Object3D = new THREE.Line(axisGeometry_line, lineBasicMaterial);
+    private readonly _helper: THREE.Object3D = new THREE.Line(axisGeometry_line, lineBasicMaterial);
+    get helper() { return this._helper }
 
     static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));

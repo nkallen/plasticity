@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Snap, Restriction } from "./Snap";
 import { AxisSnap } from "./AxisSnap";
 import { PlaneSnap } from "./PlaneSnap";
+import { Z } from "../../util/Constants";
 
 
 export class PointSnap extends Snap {
@@ -9,9 +10,7 @@ export class PointSnap extends Snap {
 
     constructor(readonly name?: string, position = new THREE.Vector3(), protected readonly normal = Z) {
         super();
-
         this.position = position.clone();
-        super.init();
     }
 
     project(point: THREE.Vector3) {
@@ -38,4 +37,3 @@ export class PointSnap extends Snap {
         return new PlaneSnap(this.normal, this.position);
     }
 }
-const Z = new THREE.Vector3(0, 0, 1);

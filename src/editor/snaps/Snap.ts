@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { PointSnap } from "./PointSnap";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
@@ -8,14 +7,12 @@ export interface Restriction {
 
 export abstract class Snap implements Restriction {
     readonly name?: string = undefined;
-    readonly helper?: THREE.Object3D; // another indicator, like a long line for axis snaps
 
-    protected init() {
-        const { helper } = this;
-
-        helper?.updateMatrixWorld();
+    // another indicator, like a long line for axis snaps
+    get helper(): THREE.Object3D | undefined {
+        return undefined;
     }
-
+    
     abstract project(point: THREE.Vector3, snapToGrid?: GridLike): SnapProjection;
     abstract isValid(pt: THREE.Vector3): boolean;
 
@@ -33,12 +30,10 @@ export abstract class Snap implements Restriction {
 export abstract class RaycastableSnap extends Snap {
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
 
-    protected override init() {
+    protected init() {
         const { snapper, helper } = this;
         if (snapper === helper)
             throw new Error("Snapper should not === helper because snappers have userData and helpers should be simple cloneable objects");
-
-        super.init();
 
         snapper.updateMatrixWorld();
 
