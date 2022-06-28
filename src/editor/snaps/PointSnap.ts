@@ -1,8 +1,7 @@
 import * as THREE from "three";
-import { Snap, Restriction } from "./Snap";
-import { AxisSnap } from "./AxisSnap";
-import { PlaneSnap } from "./PlaneSnap";
 import { Z } from "../../util/Constants";
+import { AxisSnap } from "./AxisSnap";
+import { Snap } from "./Snap";
 
 
 export class PointSnap extends Snap {

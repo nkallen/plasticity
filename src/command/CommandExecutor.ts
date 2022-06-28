@@ -89,7 +89,7 @@ export class CommandExecutor {
             'command:abort': () => command.cancel(),
         });
         const state = history.current;
-        const undeorateBody = this.decorateBody(command);
+        const undecorateBody = this.decorateBody(command);
         try {
             let selectionChanged = false;
             signals.objectSelected.addOnce(() => selectionChanged = true);
@@ -129,7 +129,7 @@ export class CommandExecutor {
                     console.error([...helpers.scene.children]);
                 }
                 helpers.clear();
-                undeorateBody.dispose();
+                undecorateBody.dispose();
             }
 
             signals.commandEnded.dispatch(command);

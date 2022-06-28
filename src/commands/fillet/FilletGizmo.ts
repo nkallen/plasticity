@@ -10,9 +10,8 @@ import { point2point, vec2vec } from "../../util/Conversion";
 import { Helper } from "../../util/Helpers";
 import * as fillet from './FilletFactory';
 import { FilletParams } from './FilletFactory';
+import { Y } from "../../util/Constants";
 
-const Y = new THREE.Vector3(0, 1, 0);
-Object.freeze(Y);
 
 export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new FilletMagnitudeGizmo("fillet-solid:distance", this.editor);
