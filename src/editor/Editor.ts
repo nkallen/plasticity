@@ -18,6 +18,7 @@ import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { ConfigFiles, OrbitMode } from "../startup/ConfigFiles";
 import defaultSettings from '../startup/default-settings';
 import defaultTheme from '../startup/default-theme';
+import { Z } from "../util/Constants";
 import { Helpers } from "../util/Helpers";
 import { RenderedSceneBuilder } from "../visual_model/RenderedSceneBuilder";
 import { Clipboard } from "./Clipboard";
@@ -42,7 +43,7 @@ import { SnapManager } from './snaps/SnapManager';
 import { SolidCopier } from "./SolidCopier";
 import { TextureLoader } from "./TextureLoader";
 
-THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+THREE.Object3D.DefaultUp = Z;
 
 export class Editor {
     private readonly disposable = new CompositeDisposable();

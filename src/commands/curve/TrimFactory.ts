@@ -1,4 +1,4 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { inst2curve } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
@@ -32,14 +32,6 @@ export default class TrimFactory extends GeometryFactory {
         }
         this._originals = [...result.keys()];
         this.infos = result;
-    }
-
-    cut(inst: visual.SpaceInstance<visual.Curve3D>, start: number, stop: number) {
-        const model = this.db.lookup(inst);
-        const curve = inst2curve(model)!;
-        this._originals.push(inst);
-        this.infos = new Map();
-        this.infos.set(inst, { curve, infos: [{ start, stop, untrimmedAncestor: inst }] });
     }
 
     async calculate() {
@@ -81,7 +73,7 @@ export default class TrimFactory extends GeometryFactory {
         return result.map(c => new c3d.SpaceInstance(c));
     }
 
-    private async trimGeneral(fragment: Fragment) {
+    private async trimGeneral(fragment: Fragment): Promise<c3d.SpaceInstance[]> {
         const { curve, infos } = fragment;
 
         const interval = curve2interval(curve);

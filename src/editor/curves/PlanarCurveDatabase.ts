@@ -1,4 +1,5 @@
 import * as c3d from '../../kernel/kernel';
+import { origin, X, Z } from '../../util/Constants';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, polyline2contour } from '../../util/Conversion';
 import * as visual from "../../visual_model/VisualModel";
 import { DatabaseLike } from "../DatabaseLike";
@@ -16,7 +17,6 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     ) {
         const origin = new c3d.CartPoint3D(0, 0, 0);
         const X = new c3d.Vector3D(1, 0, 0);
-        const Y = new c3d.Vector3D(0, 1, 0);
         const Z = new c3d.Vector3D(0, 0, 1);
         this.placements.add(new c3d.Placement3D(origin, Z, X, false));
     }
