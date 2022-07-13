@@ -34,6 +34,14 @@ export default class TrimFactory extends GeometryFactory {
         this.infos = result;
     }
 
+    cut(inst: visual.SpaceInstance<visual.Curve3D>, start: number, stop: number) {
+        const model = this.db.lookup(inst);
+        const curve = inst2curve(model)!;
+        this._originals.push(inst);
+        this.infos = new Map();
+        this.infos.set(inst, { curve, infos: [{ start, stop, untrimmedAncestor: inst }] });
+    }
+    
     async calculate() {
         const { infos } = this;
 

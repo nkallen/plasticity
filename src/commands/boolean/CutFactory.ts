@@ -367,7 +367,7 @@ const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, pl
     }
 })();
 
-function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: THREE.Vector3): c3d.Placement3D | undefined {
+export function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: THREE.Vector3): c3d.Placement3D | undefined {
     const plane = new THREE.Plane();
     const x = plane.setFromCoplanarPoints(limit1, limit2, limit2.clone().add(X));
     if (wouldCut(bbox, x)) return x_placement;
@@ -377,6 +377,6 @@ function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: TH
     if (wouldCut(bbox, z)) return z_placement;
 }
 
-function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
+export function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
     return plane.normal.manhattanLength() > 0 && plane.intersectsBox(bbox)
 }
