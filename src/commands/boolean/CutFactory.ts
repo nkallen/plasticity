@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory, PhantomInfo, ValidationError } from '../../command/GeometryFactory';
 import { ConstructionPlane } from "../../editor/snaps/ConstructionPlaneSnap";
 import { PlaneSnap } from "../../editor/snaps/PlaneSnap";
@@ -367,7 +367,7 @@ const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, pl
     }
 })();
 
-export function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: THREE.Vector3): c3d.Placement3D | undefined {
+function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, limit2: THREE.Vector3): c3d.Placement3D | undefined {
     const plane = new THREE.Plane();
     const x = plane.setFromCoplanarPoints(limit1, limit2, limit2.clone().add(X));
     if (wouldCut(bbox, x)) return x_placement;
@@ -377,6 +377,6 @@ export function bestPlacementForCut(bbox: THREE.Box3, limit1: THREE.Vector3, lim
     if (wouldCut(bbox, z)) return z_placement;
 }
 
-export function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
+function wouldCut(bbox: THREE.Box3, plane: THREE.Plane): boolean {
     return plane.normal.manhattanLength() > 0 && plane.intersectsBox(bbox)
 }

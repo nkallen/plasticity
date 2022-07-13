@@ -3,6 +3,7 @@ import Command, { EditorLike } from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { PointPicker } from "../../command/point-picker/PointPicker";
 import { SelectionMode } from "../../selection/SelectionModeSet";
+import { Y, Z } from "../../util/Constants";
 import * as visual from "../../visual_model/VisualModel";
 import { MultiBooleanFactory } from "../boolean/BooleanFactory";
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
@@ -11,11 +12,6 @@ import { ExtrudeDialog } from "./ExtrudeDialog";
 import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
 import { ExtrudeKeyboardGizmo } from "./ExtrudeKeyboardGizmo";
-
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-Object.freeze(Y);
-Object.freeze(Z);
 
 export class ExtrudeCommand extends Command {
     point?: THREE.Vector3;
@@ -140,6 +136,5 @@ export function onKeyPress(factory: PossiblyBooleanExtrudeFactory, gizmo: Extrud
         }
     }
 }
-
 
 const Y2Z = new THREE.Quaternion().setFromUnitVectors(Y, Z);

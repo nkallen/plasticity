@@ -1,10 +1,8 @@
-import * as THREE from 'three';
 import Command from "../../command/Command";
+import { Y } from '../../util/Constants';
 import * as visual from "../../visual_model/VisualModel";
 import OffsetCurveFactory from "./OffsetContourFactory";
 import { OffsetCurveGizmo } from "./OffsetCurveGizmo";
-
-const Y = new THREE.Vector3(0, 1, 0);
 
 export class OffsetCurveCommand extends Command {
     async execute(): Promise<void> {
