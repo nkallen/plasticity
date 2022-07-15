@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { Agent } from '../../editor/DatabaseLike';
 import { EditorSignals } from "../../editor/EditorSignals";

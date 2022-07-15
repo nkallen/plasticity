@@ -1,4 +1,4 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 
 export class FunctionWrapper {
     constructor(readonly underlying: c3d.CubicFunction) {

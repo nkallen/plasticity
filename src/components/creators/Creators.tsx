@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import * as cmd from "../../command/Command";
 import { EditorLike } from '../../command/Command';
 import { RebuildCommand } from '../../commands/CommandLike';

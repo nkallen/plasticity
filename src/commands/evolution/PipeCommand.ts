@@ -2,12 +2,11 @@ import * as THREE from 'three';
 import Command from "../../command/Command";
 import { ObjectPicker } from "../../command/ObjectPicker";
 import { SelectionMode } from '../../selection/SelectionModeSet';
+import { Y } from '../../util/Constants';
 import { PossiblyBooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { PipeDialog } from "./PipeDialog";
 import { PossiblyBooleanPipeFactory } from "./PipeFactory";
 import { PipeGizmo } from "./PipeGizmo";
-
-const Y = new THREE.Vector3(0, 1, 0);
 
 export class PipeCommand extends Command {
     async execute(): Promise<void> {

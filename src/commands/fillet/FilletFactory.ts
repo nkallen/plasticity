@@ -1,9 +1,9 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { delegate, derive } from '../../command/FactoryBuilder';
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
 import { SolidCopierPool } from '../../editor/SolidCopier';
-import { composeMainName, deunit, trunc, truncunit, unit } from '../../util/Conversion';
+import { composeMainName, deunit, trunc, unit } from '../../util/Conversion';
 import { AtomicRef } from '../../util/Util';
 import * as visual from '../../visual_model/VisualModel';
 import { FunctionWrapper } from './FunctionWrapper';

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 import { X, Y, Z } from "../../util/Constants";
 import { inst2curve, point2point, vec2vec } from "../../util/Conversion";

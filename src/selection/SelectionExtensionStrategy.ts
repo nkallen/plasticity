@@ -1,7 +1,7 @@
 import { DatabaseLike } from "../editor/DatabaseLike";
 import { Intersectable } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
-import c3d from '../../build/Release/c3d.node';
+import * as c3d from '../kernel/kernel';
 
 export class SelectionExtensionStrategy {
     constructor(protected readonly db: DatabaseLike) { }

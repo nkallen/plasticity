@@ -4,11 +4,9 @@ import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
+import { Y, Z } from "../../util/Constants";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";
 import { PipeParams } from "./PipeFactory";
-
-const Z = new THREE.Vector3(0, 0, 1);
-const Y = new THREE.Vector3(0, 1, 0);
 
 export class PipeGizmo extends CompositeGizmo<PipeParams> {
     private readonly sectionSizeGizmo = new SectionSizeGizmo("pipe:section-size", this.editor);

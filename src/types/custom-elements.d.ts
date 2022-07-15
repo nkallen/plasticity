@@ -1,6 +1,6 @@
 import { ChangeEvent } from "src/components/creators/NumberScrubber";
 import * as visual from '../../VisualModel';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 
 export declare global {
     export namespace preact.createElement.JSX {

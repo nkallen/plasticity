@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as THREE from 'three';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import * as visual from '../../visual_model/VisualModel';
 import { deunit } from '../../util/Conversion';
 import { GeometryFactory } from '../../command/GeometryFactory';

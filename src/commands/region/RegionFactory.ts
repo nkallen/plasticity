@@ -1,4 +1,4 @@
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { GeometryFactory } from '../../command/GeometryFactory';
 import { curve3d2curve2d, normalizePlacement } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';

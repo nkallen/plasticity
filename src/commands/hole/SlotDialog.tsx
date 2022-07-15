@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditorSignals } from '../../editor/EditorSignals';
 import { SlotParams } from "./SlotFactory";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 
 export class SlotDialog extends AbstractDialog<SlotParams> {
     name = "Slot";

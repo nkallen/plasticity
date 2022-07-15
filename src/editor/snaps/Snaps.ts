@@ -318,7 +318,7 @@ export class TanTanSnap extends PointSnap {
 export class FaceSnap extends Snap implements ChoosableSnap {
     readonly name = "Face";
 
-    constructor(readonly view: visual.Face, readonly model: c3d.Face) {
+    constructor(readonly view: visual.Face, private readonly model: c3d.Face) {
         super();
     }
 

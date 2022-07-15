@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../../command/AbstractDialog";
 import { BridgeCurvesParams } from './BridgeCurvesFactory';
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 
 export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
     name = "Bridge curves";

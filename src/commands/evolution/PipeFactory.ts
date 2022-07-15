@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import * as c3d from '../../kernel/kernel';
 import { delegate } from '../../command/FactoryBuilder';
 import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import { MaterialOverride } from "../../editor/DatabaseLike";
@@ -31,7 +31,6 @@ export class PipeFactory extends GeometryFactory implements PipeParams {
     }
 
     private _vertexCount = 0;
-
     get vertexCount() { return this._vertexCount }
     set vertexCount(count: number) {
         count = Math.floor(Math.max(0, count));
