@@ -6,13 +6,11 @@ import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { GizmoMaterial } from "../../command/GizmoMaterials";
 import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, NumberHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
+import { X, Y, Z } from "../../util/Constants";
 import { rad2deg } from "../../util/Conversion";
 import { RotateParams } from "./TranslateItemFactory";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
 
 export class RotateGizmo extends CompositeGizmo<RotateParams> {
     private readonly materials = this.editor.gizmos;

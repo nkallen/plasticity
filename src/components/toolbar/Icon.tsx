@@ -190,14 +190,17 @@ export default (editor: Editor) => {
                 case 'center-point-arc':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 19C19 10.6 13.4 5 5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21.9999 16C21.9999 10.4772 17.5228 6 11.9999 6C7.89931 6 4.37514 8.46819 2.83203 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 3" />
+                            <path d="M2 17C2.55228 17 3 16.5523 3 16C3 15.4477 2.55228 15 2 15C1.44772 15 1 15.4477 1 16C1 16.5523 1.44772 17 2 17Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M2 16H12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'three-point-arc':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 19C12 14.8 9.2 12 5 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M19 19C19 10.6 13.4 5 5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M5 19.01L5.01 18.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M22 16C22 10.4772 17.5228 6 12 6C6.47715 6 2 10.4772 2 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M2 17C2.55228 17 3 16.5523 3 16C3 15.4477 2.55228 15 2 15C1.44772 15 1 15.4477 1 16C1 16.5523 1.44772 17 2 17Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M22 17C22.5523 17 23 16.5523 23 16C23 15.4477 22.5523 15 22 15C21.4477 15 21 15.4477 21 16C21 16.5523 21.4477 17 22 17Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'center-ellipse':
                     return render(
@@ -212,29 +215,28 @@ export default (editor: Editor) => {
                 case 'corner-rectangle':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4.9984 2H2V4.9984H4.9984V2Z" stroke="currentColor" stroke-width="1.4992" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M4.9978 3.50098H18.998" stroke="currentColor" stroke-width="1.50335" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M3.49878 4.99805V19" stroke="currentColor" stroke-width="1.35589" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M20.4968 4.99951V19.0015" stroke="currentColor" stroke-width="1.35589" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M4.9978 20.501H18.998" stroke="currentColor" stroke-width="1.50335" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M21.9964 19.002H18.998V22.0004H21.9964V19.002Z" stroke="currentColor" stroke-width="1.4992" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4Z" stroke="currentColor" />
+                            <path d="M3 4C3.55228 4 4 3.55228 4 3C4 2.44772 3.55228 2 3 2C2.44772 2 2 2.44772 2 3C2 3.55228 2.44772 4 3 4Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 22C21.5523 22 22 21.5523 22 21C22 20.4477 21.5523 20 21 20C20.4477 20 20 20.4477 20 21C20 21.5523 20.4477 22 21 22Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'center-rectangle':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 20C17 21.1046 17.8954 22 19 22C20.1046 22 21 21.1046 21 20C21 18.8954 20.1046 18 19 18C17.8954 18 17 18.8954 17 20ZM17 20H15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M7 4C7 5.10457 6.10457 6 5 6C3.89543 6 3 5.10457 3 4C3 2.89543 3.89543 2 5 2C6.10457 2 7 2.89543 7 4ZM7 4L9 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M14 4L12 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M12 20H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M3 20C11 20 13 4 21 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4Z" stroke="currentColor" />
+                            <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'three-point-rectangle':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4.9984 2H2V4.9984H4.9984V2Z" stroke="currentColor" stroke-width="1.4992" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M21.9964 2.00195H18.998V5.00035H21.9964V2.00195Z" stroke="currentColor" stroke-width="1.4992" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M21.9964 19.002H18.998V22.0004H21.9964V19.002Z" stroke="currentColor" stroke-width="1.4992" stroke-miterlimit="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 21V3.6C3 3.26863 3.26863 3 3.6 3H21" stroke="currentColor" />
+                            <path d="M17 21H20.4C20.7314 21 21 20.7314 21 20.4V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 7V9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 12V14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M7 21H9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 21H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 4C3.55228 4 4 3.55228 4 3C4 2.44772 3.55228 2 3 2C2.44772 2 2 2.44772 2 3C2 3.55228 2.44772 4 3 4Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 22C3.55228 22 4 21.5523 4 21C4 20.4477 3.55228 20 3 20C2.44772 20 2 20.4477 2 21C2 21.5523 2.44772 22 3 22Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 4C21.5523 4 22 3.55228 22 3C22 2.44772 21.5523 2 21 2C20.4477 2 20 2.44772 20 3C20 3.55228 20.4477 4 21 4Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'polygon':
                     return render(
@@ -244,7 +246,13 @@ export default (editor: Editor) => {
                 case 'spiral':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21.4383 11.6622L12.2483 20.8522C11.1225 21.9781 9.59552 22.6106 8.00334 22.6106C6.41115 22.6106 4.88418 21.9781 3.75834 20.8522C2.63249 19.7264 2 18.1994 2 16.6072C2 15.015 2.63249 13.4881 3.75834 12.3622L12.9483 3.17222C13.6989 2.42166 14.7169 2 15.7783 2C16.8398 2 17.8578 2.42166 18.6083 3.17222C19.3589 3.92279 19.7806 4.94077 19.7806 6.00222C19.7806 7.06368 19.3589 8.08166 18.6083 8.83222L9.40834 18.0222C9.03306 18.3975 8.52406 18.6083 7.99334 18.6083C7.46261 18.6083 6.95362 18.3975 6.57834 18.0222C6.20306 17.6469 5.99222 17.138 5.99222 16.6072C5.99222 16.0765 6.20306 15.5675 6.57834 15.1922L15.0683 6.71222" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.5 6.00398C3.5 7.80795 6.35714 9 11.5 9C18.5 9 19.5 6.00398 19.5 6.00398C19.5 6.00398 18.5 3 11.5 3C6.35714 3 3.5 4.2 3.5 6.00398Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.5 12.004C3.5 13.808 6.35714 15 11.5 15C18.5 15 19.5 12.004 19.5 12.004C19.5 12.004 18.5 9 11.5 9C6.35714 9 3.5 10.2 3.5 12.004Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.5 18.004C3.5 19.808 6.35714 21 11.5 21C18.5 21 19.5 18.004 19.5 18.004C19.5 18.004 18.5 15 11.5 15C6.35714 15 3.5 16.2 3.5 18.004Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19.5 12C19.5 12 20.5 11.025 20.5 9C20.5 6.975 19.5 6 19.5 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M20.5 4C20.5 5.35 19.5 6 19.5 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19.5 18C19.5 18 20.5 17.025 20.5 15C20.5 12.975 19.5 12 19.5 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M20.5 20C20.5 18.65 19.5 18 19.5 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'character-curve':
                     return render(
@@ -260,28 +268,25 @@ export default (editor: Editor) => {
                 case 'bridge-curves':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="2" width="7" height="5" rx="0.6" stroke="currentColor" stroke-width="1.5" />
-                            <rect x="8.5" y="17" width="7" height="5" rx="0.6" stroke="currentColor" stroke-width="1.5" />
-                            <rect x="14" y="2" width="7" height="5" rx="0.6" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M6.5 7V10.5C6.5 11.6046 7.39543 12.5 8.5 12.5H15.5C16.6046 12.5 17.5 11.6046 17.5 10.5V7" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M12 12.5V17" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M18 4L21 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 21C10.5523 21 11 20.5523 11 20C11 19.4477 10.5523 19 10 19C9.44772 19 9 19.4477 9 20C9 20.5523 9.44772 21 10 21Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M14 5C14.5523 5 15 4.55228 15 4C15 3.44772 14.5523 3 14 3C13.4477 3 13 3.44772 13 4C13 4.55228 13.4477 5 14 5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10 20C10 20 16.5 17.5 12 12C7.5 6.5 14 4 14 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 20H6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'sphere':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M13 2.04932C13 2.04932 16 5.99994 16 11.9999" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M11 21.9506C11 21.9506 8 17.9999 8 11.9999C8 5.99994 11 2.04932 11 2.04932" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M2.62964 15.5H12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M2.62964 8.5H21.3704" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M21.8789 17.9174C22.3727 18.2211 22.3423 18.9604 21.8337 19.0181L19.2671 19.309L18.1159 21.6213C17.8878 22.0795 17.1827 21.8552 17.0661 21.2873L15.8108 15.1713C15.7123 14.6913 16.1437 14.3892 16.561 14.646L21.8789 17.9174Z" stroke="currentColor" />
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 22C8.68629 22 6 17.5228 6 12C6 6.47715 8.68629 2 12 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'cylinder':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 6V12C4 12 4 15 11 15C18 15 18 12 18 12V6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M11 3C18 3 18 6 18 6C18 6 18 9 11 9C4 9 4 6 4 6C4 6 4 3 11 3Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M19 22V16M19 16L22 19M19 16L16 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 2C20 2 20 5 20 5C20 5 20 8 12 8C4 8 4 5 4 5C4 5 4 2 12 2Z" stroke="currentColor" />
+                            <path d="M12 16C20 16 20 19 20 19C20 19 20 22 12 22C4 22 4 19 4 19C4 19 4 16 12 16Z" stroke="currentColor" />
+                            <path d="M20 5V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M4 5V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'elementary-solid':
                 case 'corner-box':
@@ -293,15 +298,20 @@ export default (editor: Editor) => {
                 case 'center-box':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2.6954 7.18536L11.6954 11.1854L12.3046 9.81464L3.3046 5.81464L2.6954 7.18536ZM12.75 21.5V10.5H11.25V21.5H12.75ZM12.3046 11.1854L21.3046 7.18536L20.6954 5.81464L11.6954 9.81464L12.3046 11.1854Z" fill="currentColor" />
-                            <path d="M3 17.1101V6.88992C3 6.65281 3.13964 6.43794 3.35632 6.34164L11.7563 2.6083C11.9115 2.53935 12.0885 2.53935 12.2437 2.6083L20.6437 6.34164C20.8604 6.43794 21 6.65281 21 6.88992V17.1101C21 17.3472 20.8604 17.5621 20.6437 17.6584L12.2437 21.3917C12.0885 21.4606 11.9115 21.4606 11.7563 21.3917L3.35632 17.6584C3.13964 17.5621 3 17.3472 3 17.1101Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 7.35304L21 16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647L2.99998 7.35304C2.99998 7.13514 3.11812 6.93437 3.3086 6.82855L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82855C20.8818 6.93437 21 7.13514 21 7.35304Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M20.5 16.7222L12.2914 12.1618C12.1102 12.0612 11.8898 12.0612 11.7086 12.1618L3.5 16.7222" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.52844 7.29363L11.7086 11.8382C11.8898 11.9388 12.1102 11.9388 12.2914 11.8382L20.5 7.27783" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 3L12 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 19.5V22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'three-point-box':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2.6954 7.18536L11.6954 11.1854L12.3046 9.81464L3.3046 5.81464L2.6954 7.18536ZM12.75 21.5V10.5H11.25V21.5H12.75ZM12.3046 11.1854L21.3046 7.18536L20.6954 5.81464L11.6954 9.81464L12.3046 11.1854Z" fill="currentColor" />
-                            <path d="M3 17.1101V6.88992C3 6.65281 3.13964 6.43794 3.35632 6.34164L11.7563 2.6083C11.9115 2.53935 12.0885 2.53935 12.2437 2.6083L20.6437 6.34164C20.8604 6.43794 21 6.65281 21 6.88992V17.1101C21 17.3472 20.8604 17.5621 20.6437 17.6584L12.2437 21.3917C12.0885 21.4606 11.9115 21.4606 11.7563 21.3917L3.35632 17.6584C3.13964 17.5621 3 17.3472 3 17.1101Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M7.5 4.5L16.1437 8.34164C16.3604 8.43794 16.5 8.65281 16.5 8.88992V12.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3 18C3.55228 18 4 17.5523 4 17C4 16.4477 3.55228 16 3 16C2.44772 16 2 16.4477 2 17C2 17.5523 2.44772 18 3 18Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 7.35304L21 16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647L2.99998 7.35304C2.99998 7.13514 3.11812 6.93437 3.3086 6.82855L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82855C20.8818 6.93437 21 7.13514 21 7.35304Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.52844 7.29363L11.7086 11.8382C11.8898 11.9388 12.1102 11.9388 12.2914 11.8382L20.5 7.27783" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 21L12 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'delete':
                     return render(
@@ -464,6 +474,7 @@ export default (editor: Editor) => {
                             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'evolution':
+                case 'sweep':
                 case 'loft':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -514,7 +525,10 @@ export default (editor: Editor) => {
                 case 'slot':
                     return render(
                         <svg width="24" height="24" class="w-icon h-icon stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M21 7.35304L21 16.647C21 16.8649 20.8819 17.0656 20.6914 17.1715L12.2914 21.8381C12.1102 21.9388 11.8898 21.9388 11.7086 21.8381L3.30861 17.1715C3.11814 17.0656 3 16.8649 3 16.647L2.99998 7.35304C2.99998 7.13514 3.11812 6.93437 3.3086 6.82855L11.7086 2.16188C11.8898 2.06121 12.1102 2.06121 12.2914 2.16188L20.6914 6.82855C20.8818 6.93437 21 7.13514 21 7.35304Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M3.52844 7.29363L8.40002 10.0001M20.5 7.27783L15.6 10.0001" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 21V16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>, this);
                 case 'eye':
                     return render(

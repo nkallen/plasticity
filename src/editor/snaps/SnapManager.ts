@@ -22,7 +22,7 @@ export enum SnapType {
     Crosses = 2 << 1,
 }
 
-export type SnapMap = Map<c3d.SimpleName, ReadonlySet<PointSnap>>;
+type SnapMap = Map<c3d.SimpleName, ReadonlySet<PointSnap>>;
 type BasicSnap = PointSnap | RaycastableSnap;
 
 export class SnapManager implements MementoOriginator<SnapMemento> {

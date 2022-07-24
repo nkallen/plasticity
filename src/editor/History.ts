@@ -307,11 +307,6 @@ export class History {
         this.signals.historyAdded.dispatch();
     }
 
-    clear() {
-        this._undoStack.length = 0;
-        this._redoStack.length = 0;
-    }
-
     undo(): boolean {
         const undo = this._undoStack.pop();
         if (!undo) return false;
@@ -334,9 +329,5 @@ export class History {
         this.signals.historyChanged.dispatch();
 
         return true;
-    }
-
-    restore(memento: Memento) {
-        this.originator.restoreFromMemento(memento);
     }
 }

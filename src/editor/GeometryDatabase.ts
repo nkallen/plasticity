@@ -367,7 +367,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const { topologyModel } = this;
         if (parent instanceof visual.Solid) {
             for (const face of parent.allFaces) topologyModel.delete(face.simpleName);
-            for (const edge of parent.allFaces) topologyModel.delete(edge.simpleName);
+            for (const edge of parent.allEdges) topologyModel.delete(edge.simpleName);
         }
     }
 

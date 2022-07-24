@@ -1,4 +1,4 @@
-import { X, Y, Z } from "../../util/Constants";
+import { freeze, X, Y, Z } from "../../util/Constants";
 import * as THREE from "three";
 import * as c3d from '../../kernel/kernel';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
@@ -139,7 +139,7 @@ export class FaceCenterPointSnap extends PointSnap {
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
 
-    constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
+    constructor(readonly view: visual.CurveEdge, private readonly model: c3d.CurveEdge) {
         super();
     }
 

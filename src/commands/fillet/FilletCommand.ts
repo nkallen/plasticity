@@ -109,7 +109,8 @@ export class FilletSolidCommand extends Command {
             switch (s) {
                 case 'add':
                     const { point } = await variable.execute().resource(this);
-                    const { model, view } = restriction.match;
+                    const { view } = restriction.match;
+                    const model = this.editor.db.lookupTopologyItem(view);
                     const t = restriction.match.t(point);
                     const fn = fillet.functions.get(view.simpleName)!;
                     const added = gizmo.addVariable(point, model, t);
