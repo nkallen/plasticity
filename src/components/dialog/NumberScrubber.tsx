@@ -17,13 +17,23 @@ export default (editor: Editor) => {
     type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: CompositeDisposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, currentEvent: PointerEvent, startValue: number, currentValue: number, disposable: CompositeDisposable }
 
     class Scrubber extends HTMLElement {
+        private state: ScrubberState = { tag: 'none' };
         static get observedAttributes() { return ['value']; }
 
         private _precision = 3;
         get precision() { return this._precision }
-        set precision(precision: number) { this._precision = precision }
+        set precision(precision: number) { this._precision = Math.abs(precision) }
 
-        private state: ScrubberState = { tag: 'none' };
+        private _min = Number.NEGATIVE_INFINITY;
+        get min() { return this._min }
+        set min(min: number) { this._min = min }
+
+        private _max = Number.POSITIVE_INFINITY;
+        get max() { return this._max }
+        set max(max: number) { this._max = max }
+
+        private _enabled = true;
+        set enabled(enabled: boolean) { this._enabled = enabled }
 
         constructor() {
             super();
@@ -36,9 +46,6 @@ export default (editor: Editor) => {
             this.change = this.change.bind(this);
             this.toggle = this.toggle.bind(this);
         }
-
-        private _enabled = true;
-        set enabled(enabled: boolean) { this._enabled = enabled }
 
         connectedCallback() { this.render() }
 
@@ -69,11 +76,11 @@ export default (editor: Editor) => {
         }
 
         private trunc(value: number) {
-            const stringMin = this.getAttribute('min');
-            const min = stringMin !== null ? +stringMin : Number.NEGATIVE_INFINITY;
-            const stringMax = this.getAttribute('max');
-            const max = stringMax !== null ? +stringMax : Number.POSITIVE_INFINITY;
-            return Math.max(min, Math.min(max, value));
+            const { min, max, precision } = this;
+            const exp = Math.pow(10, precision - 1);
+            value = Math.trunc(exp * value) / exp;
+            value = Math.max(min, Math.min(max, value));
+            return value;
         }
 
         change(e: Event) {
@@ -134,7 +141,7 @@ export default (editor: Editor) => {
                     const delta = this.state.startEvent === this.state.currentEvent
                         ? 0
                         : e.movementX / 3;
-                    
+
                     // Speed up (10x) when Shift is held. Slow down (0.1x) when alt is held.
                     const precisionSpeedMod = e.shiftKey ? -1 : e.altKey ? 1 : 0;
                     const precisionAndSpeed = precision + precisionSpeedMod;
@@ -232,10 +239,6 @@ export default (editor: Editor) => {
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
             const full = this.isDisabled ? '' : `${displayValue}${precisionDigits > 0 && precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
-            const stringMin = this.getAttribute('min');
-            const min = stringMin !== null ? +stringMin : undefined;
-            const stringMax = this.getAttribute('max');
-            const max = stringMax !== null ? +stringMax : undefined;
             const stringDisabled = this.getAttribute('disabled');
             const disabled = stringDisabled !== null ? +stringDisabled : undefined;
 
