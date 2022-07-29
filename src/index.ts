@@ -68,7 +68,7 @@ const createWindow = () => {
 
 ipcMain.handle('reload', async (event, args) => {
     const window = BrowserWindow.fromWebContents(event.sender)!;
-    window.webContents.forcefullyCrashRenderer()
+    window.webContents.forcefullyCrashRenderer();
     window.webContents.reload();
 });
 
@@ -85,10 +85,10 @@ ipcMain.on('window-event', (event, eventName: String) => {
 
     switch (eventName) {
         case 'window-minimize':
-            window.minimize()
+            window.minimize();
             break
         case 'window-maximize':
-            window.isMaximized() ? window.unmaximize() : window.maximize()
+            window.isMaximized() ? window.unmaximize() : window.maximize();
             break
         case 'window-close':
             window.close();

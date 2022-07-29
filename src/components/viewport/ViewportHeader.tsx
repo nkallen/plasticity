@@ -179,9 +179,9 @@ export default (editor: Editor) => {
                                                 <li>
                                                     <label for="form" class="hidden">Visibility</label>
                                                     <div class="fields">
-                                                        <input type="checkbox" hidden name="form" id="show-edges" checked={viewport.isShowingEdges} onClick={e => viewport.isShowingEdges = !viewport.isShowingEdges}></input>
+                                                        <input type="checkbox" hidden name="form" id="show-edges" checked={viewport.isShowingEdges} onClick={e => viewport.toggleEdges()}></input>
                                                         <label for="show-edges">Show edges</label>
-                                                        <input type="checkbox" hidden name="form" id="show-faces" checked={viewport.isShowingFaces} onClick={e => viewport.isShowingFaces = !viewport.isShowingFaces}></input>
+                                                        <input type="checkbox" hidden name="form" id="show-faces" checked={viewport.isShowingFaces} onClick={e => viewport.toggleFaces()}></input>
                                                         <label for="show-faces">Show faces</label>
                                                     </div>
                                                 </li>

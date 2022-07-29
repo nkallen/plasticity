@@ -113,6 +113,7 @@ export function buildMenu(mainWindow: BrowserWindow) {
         submenu: [
             { label: `Version: ${app.getVersion()}` },
             {
+                accelerator: 'Ctrl+Shift+Alt+N',
                 label: 'Emergency clear backup', click: e => {
                     TempDir.clear();
                     BrowserWindow.getFocusedWindow()?.webContents.forcefullyCrashRenderer();
