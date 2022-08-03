@@ -20,7 +20,6 @@ export type ControlPointData = { index: number, views: Set<visual.ControlPoint> 
 export interface MaterialOverride {
     region?: THREE.Material;
     line?: LineMaterial;
-    lineDashed?: LineMaterial;
     controlPoint?: BetterRaycastingPointsMaterial;
     mesh?: THREE.Material;
     surface?: THREE.Material;

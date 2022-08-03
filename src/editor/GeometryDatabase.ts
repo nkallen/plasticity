@@ -308,7 +308,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
                         const segments = new build.CurveSegmentGroupBuilder();
                         for (const edge of item.edges) {
-                            segments.add(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
+                            segments.add(edge, id, materials?.line ?? lineMaterial, this.materials.lineDashed());
                         }
 
                         const points = build.ControlPointGroupBuilder.build(underlying, id, pointMaterial);

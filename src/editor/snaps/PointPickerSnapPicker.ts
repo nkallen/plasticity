@@ -76,7 +76,7 @@ export class PointPickerSnapPicker {
 
         if (choice !== undefined) {
             const chosen = strategy.intersectChoice(choice, raycaster);
-            const except = intersections.filter(i => !(i.snap instanceof FaceConstructionPlaneSnap || ConstructionPlaneSnap));
+            const except = intersections.filter(i => !(i.snap instanceof FaceConstructionPlaneSnap || i.snap instanceof ConstructionPlaneSnap));
             const projected = strategy.projectIntersectionOntoChoice(choice.snap, viewport, except);
             const result = projected.length > 0 ? projected : chosen;
             return strategy.applyRestrictions(snaps.snapToGrid, pointPicker, viewport, result);

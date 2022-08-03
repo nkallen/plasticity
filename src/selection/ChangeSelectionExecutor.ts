@@ -9,7 +9,7 @@ import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
 import { ClickStrategy, HoverStrategy } from './Click';
-import { SelectionConversionStrategy } from './CommandRegistrar';
+import { SelectionConversionStrategy } from "./SelectionConversionStrategy";
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 import { SelectionMode } from "./SelectionModeSet";
 

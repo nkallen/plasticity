@@ -12,7 +12,7 @@ import { ParallelMeshCreator } from '../../src/editor/MeshCreator';
 import { Scene } from '../../src/editor/Scene';
 import { SolidCopier } from '../../src/editor/SolidCopier';
 import { ChangeSelectionModifier } from '../../src/selection/ChangeSelectionExecutor';
-import { SelectionConversionStrategy } from '../../src/selection/CommandRegistrar';
+import { SelectionConversionStrategy } from '../../src/selection/SelectionConversionStrategy';
 import { Selection, SelectionDatabase } from '../../src/selection/SelectionDatabase';
 import { SelectionMode } from '../../src/selection/SelectionModeSet';
 import * as visual from '../../src/visual_model/VisualModel';
