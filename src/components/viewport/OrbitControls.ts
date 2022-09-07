@@ -455,6 +455,15 @@ export class OrbitControls extends THREE.EventDispatcher {
             this.dolly(dolly);
             this.update();
             this.dispatchEvent(endEvent);
+        } else if (event.shiftKey) {
+            const { enablePan, panDelta, panStart, panEnd } = this;
+            if (!enablePan) return;
+            panEnd.set(event.clientX, event.clientY, 0);
+            panDelta.set(-event.deltaX, -event.deltaY, 0);
+            this.pan(panDelta);
+            panStart.copy(panEnd);
+            this.update();
+            this.dispatchEvent(endEvent);
         } else {
             const { rotateDelta, rotateSpeed, enableRotate } = this;
             if (!enableRotate) return;
