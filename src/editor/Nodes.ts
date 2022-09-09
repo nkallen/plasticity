@@ -44,7 +44,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         else assertUnreachable(tag);
     }
 
-    private readonly node2material = new Map<NodeKey, number>();
+    private readonly id2material = new Map<NodeKey, number>();
     private readonly hidden = new Set<NodeKey>();
     private readonly invisible = new Set<NodeKey>();
     private readonly unselectable = new Set<NodeKey>();
@@ -69,7 +69,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
         const k = this.item2key(item);
         this.hidden.delete(k);
         this.invisible.delete(k);
-        this.node2material.delete(k);
+        this.id2material.delete(k);
         this.node2name.delete(k);
         this.unselectable.delete(k);
         if (item instanceof Group) {
@@ -161,7 +161,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     setMaterial(item: RealNodeItem, materialId: number | undefined): void {
-        const { node2material } = this;
+        const { id2material: node2material } = this;
         const k = this.item2key(item);
         if (materialId === undefined) {
             node2material.delete(k);
@@ -173,7 +173,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     getMaterial(item: RealNodeItem): THREE.Material & { color: THREE.Color } | undefined {
-        const { node2material } = this;
+        const { id2material: node2material } = this;
         const k = this.item2key(item);
         const materialId = node2material.get(k);
         if (materialId === undefined) return undefined;
@@ -188,7 +188,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
 
     saveToMemento(): NodeMemento {
         return new NodeMemento(
-            new Map(this.node2material),
+            new Map(this.id2material),
             new Set(this.hidden),
             new Set(this.invisible),
             new Set(this.unselectable),
@@ -198,7 +198,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     restoreFromMemento(m: NodeMemento) {
-        (this.node2material as Nodes['node2material']) = new Map(m.node2material);
+        (this.id2material as Nodes['id2material']) = new Map(m.node2material);
         (this.hidden as Nodes['hidden']) = new Set(m.hidden);
         (this.invisible as Nodes['invisible']) = new Set(m.invisible);
         (this.unselectable as Nodes['unselectable']) = new Set(m.unselectable);
@@ -207,7 +207,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     clear() {
-        this.node2material.clear();
+        this.id2material.clear();
         this.hidden.clear();
         this.invisible.clear();
         this.unselectable.clear();
@@ -216,7 +216,7 @@ export class Nodes implements MementoOriginator<NodeMemento> {
     }
 
     validate() {
-        for (const k of this.node2material.keys()) {
+        for (const k of this.id2material.keys()) {
             const { tag, id } = Nodes.dekey(k);
             if (tag === 'Item')
                 console.assert(this.db.lookupById(id) !== undefined, "item in database", id);
@@ -245,8 +245,11 @@ export class Nodes implements MementoOriginator<NodeMemento> {
 
     debug() {
         console.group("Nodes");
-        const { node2material: id2material, hidden, invisible, unselectable } = this;
-        console.group("name2material");
+        const { id2material, node2name, hidden, invisible, unselectable } = this;
+        console.group("node2name");
+        console.table([...node2name].map(([name, mat]) => { return { name, mat } }));
+        console.groupEnd();
+        console.group("id2material");
         console.table([...id2material].map(([name, mat]) => { return { name, mat } }));
         console.groupEnd();
         console.group("hidden");

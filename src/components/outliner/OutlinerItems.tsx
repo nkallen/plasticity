@@ -54,6 +54,7 @@ export default (editor: Editor) => {
                     placeholder={klass} value={name}
                     onBlur={e => this.handleBlur(e)}
                     onKeyDown={e => this.handleEnter(e)}
+                    onSelect={e => e.stopPropagation()}
                 ></input>;
             const anySettingsForThisSpecificItem = hidden || !visible || !selectable;
             const result =
