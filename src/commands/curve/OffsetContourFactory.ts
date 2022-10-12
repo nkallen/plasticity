@@ -191,7 +191,7 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
     }
 }
 
-// NOTE: this should be unneccessary in future releases of c3d
+// NOTE: this should be unnecessary in future releases of c3d
 function repairUnclosedContour(result: c3d.Curve3D) {
     if (!result.IsClosed() && result.IsA() === c3d.SpaceType.ContourOnPlane) {
         const cop = result.Cast<c3d.ContourOnPlane>(result.IsA());

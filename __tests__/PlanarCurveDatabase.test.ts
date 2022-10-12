@@ -308,7 +308,7 @@ test("polylines are broken into their constituent segments", async () => {
     expect(db.items.length).toBe(3);
 });
 
-test("closed polylines are borken into their constituent segments", async () => {
+test("closed polylines are broken into their constituent segments", async () => {
     const makeRectangle = new CornerRectangleFactory(db, materials, signals);
     makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
     makeRectangle.p2 = new THREE.Vector3(1, 1, 1);

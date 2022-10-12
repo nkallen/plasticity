@@ -84,7 +84,7 @@ export default (editor: Editor) => {
         }
 
         change(e: Event) {
-            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondtion");
+            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondition");
             e.stopPropagation();
 
             const value = e.target.value;

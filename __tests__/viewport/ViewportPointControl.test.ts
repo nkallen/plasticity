@@ -59,7 +59,7 @@ describe(ViewportPointControl, () => {
 
     // NOTE: the next couple methods use complicated mocking to test. With profound regret!
     // Starting a click enqueues a command. The command then registers a callback that is invoked
-    // on further mouse events. Here, we just avoid enqueing the command; so we register a custom
+    // on further mouse events. Here, we just avoid enqueuing the command; so we register a custom
     // callback for the purpose of testing, and assert on that.
 
     test('startClick & startDrag enqueues move command', async () => {

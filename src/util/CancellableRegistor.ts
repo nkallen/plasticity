@@ -64,7 +64,7 @@ export abstract class CancellableRegistor implements Cancellable {
                 for (const resource of this.resources) {
                     resource.interrupt(this.state);
                 }
-                // And here we DO NOT change the state because the CommandExecutor will explicity call .finish()
+                // And here we DO NOT change the state because the CommandExecutor will explicitly call .finish()
                 // IFF the Command.execute() completed without erroring
         }
     }

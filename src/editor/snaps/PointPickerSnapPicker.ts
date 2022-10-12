@@ -66,7 +66,7 @@ export class PointPickerSnapPicker {
         const preference = pointPicker.preference?.snap;
 
         // NOTE: the construction plane can either act just as a fallback (when its the default floor) OR
-        // it can act like a real object (when the user explicity set the cplane). When "real", it needs
+        // it can act like a real object (when the user explicitly set the cplane). When "real", it needs
         // to be ranked with other snaps/intersect/raycasting in the standard way.
         const cplane = strategy.intersectConstructionPlane(snaps.snapToGrid, pointPicker, raycaster, viewport);
         const cplaneIsFallback = !viewport.preferConstructionPlane;

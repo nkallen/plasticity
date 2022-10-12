@@ -612,7 +612,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     // input: bottom left -1,-1, top right 1,1
-    // output: top left is 0,0, botton right is width,height
+    // output: top left is 0,0, bottom right is width,height
     denormalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
         position.set((1 + position.x) / 2, (1 - position.y) / 2);
         const rect = this.domElement.getBoundingClientRect();
@@ -729,7 +729,7 @@ function makeRenderTarget(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarge
     const size = renderer.getSize(new THREE.Vector2());
 
     if (process.platform === 'linux') {
-        // Linux seems to require an explicity float depth texture otherwise there are zbuffer artifacts
+        // Linux seems to require an explicitly float depth texture otherwise there are zbuffer artifacts
         const depthTexture = new THREE.DepthTexture(size.width, size.height, THREE.FloatType);
         // @ts-expect-error('three.js @types are out of date')
         return new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false, samples: 4, depthTexture });

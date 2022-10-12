@@ -44,7 +44,7 @@ export class CommandExecutor {
     // (Optionally) interrupt any active commands and "enqueue" another.
     // Ensure commands are executed ATOMICALLY.
     // That is, do not start a new command until the previous is fully completed,
-    // including any cancelation cleanup. (await this.execute(next))
+    // including any cancellation cleanup. (await this.execute(next))
     async enqueue(command: Command, interrupt = true, remember = true) {
         if (remember && command.remember) this.lastCommand = command.constructor as GConstructor<Command>;
 

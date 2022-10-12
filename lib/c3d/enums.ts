@@ -261,7 +261,7 @@ export enum CreatorType {
     SimplifyFlatSolid = 618,  ///< \ru Строитель упрощения развёртки листового тела. \en Constructor of the sheet solid flat pattern simplification.
     UserStampSolid = 619,  ///< \ru Строитель оболочки с штамповкой телом. \en Constructor of a shell with stamping by solid. 
     RemoveOperationSolid = 620,  ///< \ru Строитель удаления операции листового тела. \en Constructor of removing of the sheet solid.
-    BuildSheetMetalSolid = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitary solid.
+    BuildSheetMetalSolid = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitrary solid.
 
     // \ru Строители оболочек. \en Creators of shells. 
     JoinShell = 701,  ///< \ru Строитель оболочки соединения. \en Constructor of a joint shell. 
@@ -404,7 +404,7 @@ export enum ResultType {
     FaceError,                   ///< \ru Ошибочная грань. \en Wrong face. 
     RibError,                    ///< \ru Неизвестная ошибка постановки ребра жесткости. \en Unknown error at rib statement. 
     DraftError,                  ///< \ru Неизвестная ошибка уклона граней тела. \en Unknown error of inclining of solid faces. 
-    NoObjectForDirection,        ///< \ru В выбранном направлении отсутствует поверхность. \en No surface in the choosen direction. 
+    NoObjectForDirection,        ///< \ru В выбранном направлении отсутствует поверхность. \en No surface in the chosen direction. 
     AbsorptionSolid,             ///< \ru Локальное тело поглощает результат. \en Local solid absorbs result. 
     Error,                       ///< \ru Неизвестная ошибка. \en Unknown error. 
     None,                        ///< \ru Нет сообщений. \en No messages. 
@@ -481,14 +481,14 @@ export enum ResultType {
     DirectionExtensionError,     ///< \ru Не удалось продлить поверхность в данном направлении. \en Cannot extend surface in the given direction. 
     ExtensionPoleError,          ///< \ru Грань содержит полюс: укажите другую кромку или выберите другой тип продления. \en Face contains a pole: specify another boundary or select another extension type. 
     MustBeOpenOrClosed,          ///< \ru Контуры должны быть либо все замкнуты, либо все разомкнуты. \en All the contours must be closed or open simultaneously. 
-    TooComplicatedItemsSet,      ///< \ru Слишком сложный набор элементов для обработки. \en Too complicated set of elemnts to process. 
+    TooComplicatedItemsSet,      ///< \ru Слишком сложный набор элементов для обработки. \en Too complicated set of elements to process. 
     NoAxesIntersection,          ///< \ru Оси не пересекаются. \en Axes are not crossed. 
     TooFarItems,                 ///< \ru Объекты слишком далеко. \en Objects too far. 
     ProcessIsStopped,            ///< \ru Процесс остановлен. \en Process is stopped. 
     ContourSweptError,           ///< \ru Контур невозможно использовать для заданного перемещения. \en Contour cannot be used for given movement. 
     SomeContourError,            ///< \ru Один из контуров невозможно использовать для заданного построения. \en Contour cannot be used for given construction. 
     SplitWireNotAllFaces,        ///< \ru Линии разъема (ребра пересечения) созданы не на всех выбранных гранях или не доходят до границ граней. \en Parting lines (cross edges) created not on all selected faces or do not reach the boundaries of the faces.
-    GeneratrixColinearGuide,     ///< \ru В некоторых точках образующая параллельна направляющей. \en Generatrix parallel to the giude at some points. 
+    GeneratrixColinearGuide,     ///< \ru В некоторых точках образующая параллельна направляющей. \en Generatrix parallel to the guide at some points. 
     NotEnoughMemory,             ///< \ru Недостаточно памяти. \en Not enough memory. 
     BorderColinearCurve,         ///< \ru Направление боковой границы параллельно касательной на конце образующей кривой. \en Direction of lateral border is parallel to a tangent at the end of a guide curve. 
     ObjectNotFound,              ///< \ru Объект не найден. \en Object not found. 
@@ -676,7 +676,7 @@ enum ConvResType {
     ImpossibleReadAssembly,///< \ru Не поддерживает работу со сборками.  \en Assemblies are not supported.
     LicenseNotFound,       ///< \ru Ошибка получения лицензии.           \en License check failure.
     NotEnoughMemory,       ///< \ru Недостаточно памяти.                 \en Not enough memory.
-    UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extenstion.
+    UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extension.
 };
 
 enum MLTipType {

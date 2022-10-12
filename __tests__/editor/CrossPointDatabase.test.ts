@@ -81,7 +81,7 @@ test("two intersecting circles, add & remove in reverse order", async () => {
     expect(crosses.crosses.size).toBe(0);
 });
 
-test("two intersecting circles, add & remove in reverse order but with heirarchical dbs", async () => {
+test("two intersecting circles, add & remove in reverse order but with hierarchical dbs", async () => {
     makeCircle1.center = new THREE.Vector3(0, -0.1, 0);
     makeCircle1.radius = 1;
     const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);

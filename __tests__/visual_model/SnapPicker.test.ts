@@ -141,7 +141,7 @@ describe(PointPickerSnapPicker, () => {
         expect(raycaster.layers.isEnabled(visual.Layers.Face)).toBe(true);
     });
 
-    test('with a high priorty construction plane, the construction plane is chosen when it is nearer', () => {
+    test('with a high priority construction plane, the construction plane is chosen when it is nearer', () => {
         viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.55));
         viewport.constructionPlane.priority = -1;
         const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
@@ -151,7 +151,7 @@ describe(PointPickerSnapPicker, () => {
         expect(results[0].snap).toBe(viewport.constructionPlane);
     });
 
-    test('with a low priorty construction plane, the plane is not chosen when there is something in front of it', () => {
+    test('with a low priority construction plane, the plane is not chosen when there is something in front of it', () => {
         viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0.55));
         viewport.constructionPlane.priority = 1000;
         const farther = { point: new THREE.Vector3(), distance: 1, object: new RaycastableTopologyItem(topologyItem), topologyItem };
