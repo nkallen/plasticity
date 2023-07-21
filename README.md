@@ -7,6 +7,13 @@ For more information, visit [plasticity.xyz](https://plasticity.xyz/).
 
 <ins>**Feature requests**</ins> should be made at [plasticity.canny.io](https://plasticity.canny.io/).
 
-<ins>**Bug reports**</ins> should be made on the private Discord server for paid users.
+<ins>**Bug reports**</ins> should be made either on the private Discord server for paid users.
 
-Discussion, updates, and community help can also be found on that server.
+Discussion, updates, and community help can also be found on that server. There is also [a Discord server for free trial users](https://discord.gg/ytGV7EwY).
+
+Here are some recommended learning resources:
+- [Pixel Fondue](https://www.youtube.com/playlist?list=PLv8HciXoFYX-VGc-zqYQNLaWl8PuwIelI)
+- [Glenn Patterson](https://www.youtube.com/playlist?list=PLnJebV8AnDVqd0EMXna2IpXPQauDhGq6L)
+- [Nikita Kasputin](https://www.youtube.com/playlist?list=PLvK4Eudxj5BP2lTedstE-egEzNUZIjTaN)
+- [Archiplan Services](https://www.youtube.com/playlist?list=PLmThF8GeBiDb9U0iMIx4lHZWHTnXj39TK)
+- [Learn Everything About Design](https://www.youtube.com/playlist?list=PLBDfGh8A8kXXZx0FUCg05qIbts5zbeRT9)
