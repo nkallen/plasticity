@@ -9,7 +9,9 @@ For more information, visit [plasticity.xyz](https://plasticity.xyz/).
 
 <ins>**Bug reports**</ins> should be made either on the private Discord server for paid users.
 
-Discussion, updates, and community help can also be found on that server. There is also [a Discord server for free trial users](https://discord.gg/ytGV7EwY).
+Discussion, updates, and community help can also be found on that server. 
+
+There is also **[a Discord server for free trial users](https://discord.gg/ytGV7EwY).**
 
 Here are some recommended learning resources:
 - [Pixel Fondue](https://www.youtube.com/playlist?list=PLv8HciXoFYX-VGc-zqYQNLaWl8PuwIelI)
