@@ -7,6 +7,6 @@ For more information, visit [plasticity.xyz](https://plasticity.xyz/).
 
 <ins>**Feature requests**</ins> should be made at [plasticity.canny.io](https://plasticity.canny.io/).
 
-<ins>**Bug reports**</ins> should be made on the Discord server, which can be accessed by [emailing](mailto:contact@plasticity.xyz) to request access.
+<ins>**Bug reports**</ins> should be made on the private Discord server.
 
 Discussion, updates, and community help can also be found on that server.
