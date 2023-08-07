@@ -11,7 +11,7 @@ For more information, visit [plasticity.xyz](https://plasticity.xyz/).
 
 Discussion, updates, and community help can also be found on that server. 
 
-There is also **[a Discord server for free trial users](https://discord.gg/ytGV7EwY).**
+There is also **[a Discord server for free trial users](https://discord.gg/RrXSbjVaux).**
 
 Here are some recommended learning resources:
 - [Pixel Fondue](https://www.youtube.com/playlist?list=PLv8HciXoFYX-VGc-zqYQNLaWl8PuwIelI)
