@@ -16,6 +16,6 @@ There is also **[a Discord server for free trial users](https://discord.gg/RrXSb
 Here are some recommended learning resources:
 - [Pixel Fondue](https://www.youtube.com/playlist?list=PLv8HciXoFYX-VGc-zqYQNLaWl8PuwIelI)
 - [Glenn Patterson](https://www.youtube.com/playlist?list=PLnJebV8AnDVqd0EMXna2IpXPQauDhGq6L)
-- [Nikita Kasputin](https://www.youtube.com/playlist?list=PLvK4Eudxj5BP2lTedstE-egEzNUZIjTaN)
+- [Nikita Kapustin](https://www.youtube.com/playlist?list=PLvK4Eudxj5BP2lTedstE-egEzNUZIjTaN)
 - [Archiplan Services](https://www.youtube.com/playlist?list=PLmThF8GeBiDb9U0iMIx4lHZWHTnXj39TK)
 - [Learn Everything About Design](https://www.youtube.com/playlist?list=PLBDfGh8A8kXXZx0FUCg05qIbts5zbeRT9)
